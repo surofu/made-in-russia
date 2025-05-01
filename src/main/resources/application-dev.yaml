@@ -1,0 +1,11 @@
+server:
+  port: 8080
+logging:
+  level:
+    root: info
+spring:
+  datasource:
+    url: ${DEV_POSTGRES_URL}
+    username: ${DEV_POSTGRES_USERNAME}
+    password: ${DEV_POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
