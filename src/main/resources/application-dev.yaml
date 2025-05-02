@@ -20,6 +20,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: ${DEV_JPA_OPEN_IN_VIEW}
   flyway:
     enabled: true
     locations: classpath:db/migration

@@ -20,5 +20,6 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
+    open-in-view: ${PROD_JPA_OPEN_IN_VIEW}
   flyway:
     enabled: false
