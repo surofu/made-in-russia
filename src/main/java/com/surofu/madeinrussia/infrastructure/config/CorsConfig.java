@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.config;
+package com.surofu.madeinrussia.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

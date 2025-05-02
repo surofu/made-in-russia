@@ -1,22 +1,29 @@
-package com.surofu.madeinrussia.category;
+package com.surofu.madeinrussia.core.model.deliveryMethod;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Table(name = "categories")
-public class Category {
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "delivery_methods")
+public class DeliveryMethod {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
+    @Embedded
+    private DeliveryMethodName name;
 
-    @UpdateTimestamp
+    @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime creationDate;
 
