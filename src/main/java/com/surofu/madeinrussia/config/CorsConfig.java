@@ -12,19 +12,19 @@ import java.util.Arrays;
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins}")
+    @Value("${spring.mvc.cors.allowed-origins}")
     private String allowedOrigins;
 
-    @Value("${cors.allowed-methods}")
+    @Value("${spring.mvc.cors.allowed-methods}")
     private String allowedMethods;
 
-    @Value("${cors.allowed-headers}")
+    @Value("${spring.mvc.cors.allowed-headers}")
     private String allowedHeaders;
 
-    @Value("${cors.allow-credentials:true}")
+    @Value("${spring.mvc.cors.allow-credentials}")
     private boolean allowCredentials;
 
-    @Value("${cors.max-age:3600}")
+    @Value("${spring.mvc.cors.max-age}")
     private long maxAge;
 
     @Bean
