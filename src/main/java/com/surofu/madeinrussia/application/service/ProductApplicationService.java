@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.dto.GetProductsDto;
 import com.surofu.madeinrussia.application.dto.ProductDto;
 import com.surofu.madeinrussia.application.query.GetProductByIdQuery;
 import com.surofu.madeinrussia.application.query.GetProductsQuery;
@@ -23,7 +24,7 @@ public class ProductApplicationService implements ProductService {
     private final ProductRepository repository;
 
     @Override
-    public Page<ProductDto> getProducts(GetProductsQuery query) {
+    public GetProductsDto getProducts(GetProductsQuery query) {
         Page<Product> products = repository.findAll(query.getPageable());
         List<ProductDto> productDtos = new ArrayList<>(products.getTotalPages());
 
@@ -31,7 +32,7 @@ public class ProductApplicationService implements ProductService {
             productDtos.add(ProductDto.of(product));
         }
 
-        return new PageImpl<>(productDtos, query.getPageable(), products.getTotalElements());
+        return new GetProductsDto(productDtos, query.getPageable(), products.getTotalElements());
     }
 
     @Override
