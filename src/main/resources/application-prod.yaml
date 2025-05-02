@@ -1,25 +1,25 @@
 server:
-  port: ${PROD_PORT}
+  port: ${PORT}
 logging:
   level:
-    root: ${PROD_LOG_LEVEL}
+    root: ${LOG_LEVEL}
 spring:
   mvc:
     cors:
-      allowed-origins: ${PROD_CORS_ALLOWED_ORIGINS}
-      allowed-methods: ${PROD_CORS_ALLOWED_METHODS}
-      allowed-headers: ${PROD_CORS_ALLOWED_HEADERS}
-      allow-credentials: ${PROD_CORS_ALLOW_CREDENTIALS}
-      max-age: ${PROD_CORS_MAX_AGE}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}
+      allowed-methods: ${CORS_ALLOWED_METHODS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS}
+      max-age: ${CORS_MAX_AGE}
   datasource:
-    url: ${PROD_POSTGRES_URL}
-    username: ${PROD_POSTGRES_USERNAME}
-    password: ${PROD_POSTGRES_PASSWORD}
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: false
-    open-in-view: ${PROD_JPA_OPEN_IN_VIEW}
+    open-in-view: ${JPA_OPEN_IN_VIEW}
   flyway:
     enabled: false
