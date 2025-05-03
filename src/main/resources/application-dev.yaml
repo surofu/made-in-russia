@@ -3,6 +3,9 @@ server:
 logging:
   level:
     root: ${LOG_LEVEL}
+    org:
+      springframework:
+        cache: DEBUG
 spring:
   mvc:
     cors:
