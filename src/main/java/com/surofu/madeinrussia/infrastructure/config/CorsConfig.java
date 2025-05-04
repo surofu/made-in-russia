@@ -25,7 +25,7 @@ public class CorsConfig {
     private boolean allowCredentials;
 
     @Value("${spring.mvc.cors.max-age}")
-    private long maxAge;
+    private Long maxAge;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
