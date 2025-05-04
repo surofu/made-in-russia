@@ -1,11 +1,17 @@
 package com.surofu.madeinrussia.core.model.category;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "categories")
 public class Category {
 
@@ -13,8 +19,8 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
+    @Embedded
+    private CategoryName name;
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)

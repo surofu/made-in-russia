@@ -12,14 +12,13 @@ import java.io.Serializable;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductTitle implements Serializable {
-    @Column(name = "title")
-    private String value;
+    private String title;
 
-    private ProductTitle(String value) {
-        this.value = value;
+    private ProductTitle(String title) {
+        this.title = title;
     }
 
-    public static ProductTitle of(String value) {
-        return new ProductTitle(value);
+    public static ProductTitle of(String title) {
+        return new ProductTitle(title);
     }
 }

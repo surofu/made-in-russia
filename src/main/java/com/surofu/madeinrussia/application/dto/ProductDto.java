@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +12,7 @@ import java.time.LocalDateTime;
 public final class ProductDto {
     private Long id;
     private DeliveryMethodDto deliveryMethod;
+    private CategoryDto category;
     private String title;
     private BigDecimal price;
     private BigDecimal discount;
@@ -25,11 +25,12 @@ public final class ProductDto {
         return ProductDto.builder()
                 .id(product.getId())
                 .deliveryMethod(DeliveryMethodDto.of(product.getDeliveryMethod()))
-                .title(product.getTitle().getValue())
-                .price(product.getPrice().getValue())
-                .discount(product.getDiscount().getValue())
-                .discountedPrice(product.getDiscountedPrice())
-                .imageUrl(product.getImageUrl().getValue())
+                .category(CategoryDto.of(product.getCategory()))
+                .title(product.getTitle().getTitle())
+                .price(product.getPrice().getPrice())
+                .discount(product.getPrice().getDiscount())
+                .discountedPrice(product.getPrice().getDiscountedPrice())
+                .imageUrl(product.getImageUrl().getImageUrl())
                 .creationDate(product.getCreationDate())
                 .lastModificationDate(product.getLastModificationDate())
                 .build();

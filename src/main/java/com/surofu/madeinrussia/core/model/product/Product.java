@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product;
 
+import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,14 +25,14 @@ public class Product {
     @ManyToOne
     private DeliveryMethod deliveryMethod;
 
+    @ManyToOne
+    private Category category;
+
     @Embedded
     private ProductTitle title;
 
     @Embedded
     private ProductPrice price;
-
-    @Embedded
-    private ProductDiscount discount;
 
     @Embedded
     private ProductImageUrl imageUrl;
@@ -44,8 +44,4 @@ public class Product {
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime lastModificationDate;
-
-    public BigDecimal getDiscountedPrice() {
-       return price.makeDiscount(discount.getValue());
-    }
 }

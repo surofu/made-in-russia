@@ -25,7 +25,7 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Cacheable("productsPage")
     public Page<ProductDto> getProducts(GetProductsQuery query) {
-        Page<Product> products = repository.findAllWithDeliveryMethodAsDto(query.getPageable());
+        Page<Product> products = repository.findAll(query.getSpecification(), query.getPageable());
         List<ProductDto> productDtos = new ArrayList<>(products.getTotalPages());
 
         for (Product product : products) {

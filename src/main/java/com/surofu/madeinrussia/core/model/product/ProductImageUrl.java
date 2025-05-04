@@ -12,14 +12,13 @@ import java.io.Serializable;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductImageUrl implements Serializable {
-    @Column(name = "imageUrl")
-    private String value;
+    private String imageUrl;
 
     private ProductImageUrl(String imageUrl) {
-        this.value = value;
+        this.imageUrl = imageUrl;
     }
 
-    public static ProductImageUrl of(String value) {
-        return new ProductImageUrl(value);
+    public static ProductImageUrl of(String imageUrl) {
+        return new ProductImageUrl(imageUrl);
     }
 }
