@@ -14,12 +14,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/products")
@@ -58,7 +64,9 @@ public class ProductsRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
             )
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0")
+            @Min(0)
+            int page,
 
             @Parameter(
                     name = "size",
@@ -66,7 +74,10 @@ public class ProductsRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
             )
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "10")
+            @Min(1)
+            @Max(100)
+            int size,
 
             @Parameter(
                     name = "categoryId",
@@ -74,7 +85,9 @@ public class ProductsRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "integer", format = "int64", example = "1")
             )
-            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false)
+            @Positive
+            Long categoryId,
 
             @Parameter(
                     name = "minPrice",
@@ -82,7 +95,9 @@ public class ProductsRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", format = "decimal", example = "10.50")
             )
-            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false)
+            @DecimalMin("0.0")
+            BigDecimal minPrice,
 
             @Parameter(
                     name = "maxPrice",
@@ -90,7 +105,9 @@ public class ProductsRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", format = "decimal", example = "99.99")
             )
-            @RequestParam(required = false) BigDecimal maxPrice
+            @RequestParam(required = false)
+            @DecimalMin("0.0")
+            BigDecimal maxPrice
     ) {
         GetProductsQuery query = new GetProductsQuery(
                 page, size, categoryId, minPrice, maxPrice);
@@ -131,7 +148,9 @@ public class ProductsRestController {
                     example = "123",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
-            @PathVariable Long id
+            @PathVariable
+            @Positive
+            Long id
     ) {
         GetProductByIdQuery query = new GetProductByIdQuery(id);
         return productService.getProductById(GetProductById.of(query)).process(getProductByIdProcessor);
