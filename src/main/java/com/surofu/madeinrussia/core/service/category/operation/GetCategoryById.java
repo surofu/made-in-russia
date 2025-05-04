@@ -5,8 +5,6 @@ import com.surofu.madeinrussia.application.query.category.GetCategoryByIdQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetCategoryById {

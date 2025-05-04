@@ -1,8 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.GetProductsDto;
+import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.query.product.GetProductByIdQuery;
 import com.surofu.madeinrussia.application.query.product.GetProductsQuery;
 import com.surofu.madeinrussia.core.service.product.ProductService;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +29,7 @@ public class ProductsRestController {
     private final ProductService productService;
 
     private final GetProducts.Result.Processor<ResponseEntity<?>> getProductsProcessor;
+    private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
 
     @GetMapping
     @Operation(
@@ -92,5 +96,44 @@ public class ProductsRestController {
                 page, size, categoryId, minPrice, maxPrice);
 
         return productService.getProducts(GetProducts.of(query)).process(getProductsProcessor);
+    }
+
+    @GetMapping("{id}")
+    @Operation(
+            summary = "Get product by ID",
+            description = "Retrieves a single product by its unique identifier",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product found and returned",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ProductDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content(schema = @Schema(hidden = true))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid ID supplied",
+                            content = @Content(schema = @Schema(hidden = true))
+                    )
+            }
+    )
+    public ResponseEntity<?> getProductById(
+            @Parameter(
+                    name = "id",
+                    description = "ID of the product to be retrieved",
+                    required = true,
+                    example = "123",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long id
+    ) {
+        GetProductByIdQuery query = new GetProductByIdQuery(id);
+        return productService.getProductById(GetProductById.of(query)).process(getProductByIdProcessor);
     }
 }

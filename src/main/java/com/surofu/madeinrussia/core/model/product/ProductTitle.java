@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.model.product;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
