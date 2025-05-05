@@ -30,7 +30,7 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(value = "productsPage", key = """
             {
              #operation.query.page(), #operation.query.size(),
-             #operation.query.categoryIds().hashCode(),
+             #operation.query.categoryIds()?.hashCode(),
              #operation.query.minPrice(), #operation.query.maxPrice()
              }
             """)
@@ -54,7 +54,7 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "product", key = "operation.query.productId()")
+    @Cacheable(value = "product", key = "#operation.query.productId()")
     public GetProductById.Result getProductById(GetProductById operation) {
         Optional<Product> product = repository.findById(operation.getQuery().productId());
         Optional<ProductDto> productDto = product.map(ProductDto::of);

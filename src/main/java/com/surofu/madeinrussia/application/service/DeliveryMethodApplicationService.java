@@ -33,7 +33,7 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     }
 
     @Override
-    @Cacheable(value = "deliveryMethod", key = "operation.query.deliveryMethodId()")
+    @Cacheable(value = "deliveryMethod", key = "#operation.query.deliveryMethodId()")
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
         Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getQuery().deliveryMethodId());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);
