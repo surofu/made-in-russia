@@ -5,5 +5,5 @@ import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 
 public interface CategoryService {
     GetCategories.Result getCategories();
-    GetCategoryById.Result getCategoryById(GetCategoryById query);
+    GetCategoryById.Result getCategoryById(GetCategoryById operation);
 }

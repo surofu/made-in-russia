@@ -172,6 +172,7 @@ public class ProductsRestController {
             Long id
     ) {
         GetProductByIdQuery query = new GetProductByIdQuery(id);
-        return productService.getProductById(GetProductById.of(query)).process(getProductByIdProcessor);
+        GetProductById operation = GetProductById.of(query);
+        return productService.getProductById(operation).process(getProductByIdProcessor);
     }
 }

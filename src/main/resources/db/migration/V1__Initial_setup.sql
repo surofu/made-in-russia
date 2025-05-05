@@ -1,6 +1,6 @@
 -- create table if not exists users
 -- (
---     id                     bigserial primary key,
+--     categoryId                     bigserial primary key,
 --     login                  varchar(255) not null unique,
 --     email                  varchar(255) not null unique,
 --     registration_date      timestamp    not null default now(),
@@ -9,13 +9,13 @@
 --
 -- create table if not exists users_passwords
 -- (
---     id                     bigserial primary key,
+--     categoryId                     bigserial primary key,
 --     user_id                bigint       not null,
 --     password               varchar(255) not null,
 --     creation_date          timestamp    not null default now(),
 --     last_modification_date timestamp    not null default now(),
 --
---     constraint fk_users_passwords_user_id foreign key (user_id) references users (id)
+--     constraint fk_users_passwords_user_id foreign key (user_id) references users (categoryId)
 -- );
 
 create table if not exists categories
@@ -56,6 +56,6 @@ create table if not exists products
 --   user_id bigint not null,
 --   product_id bigint not null,
 --
---   constraint fk_users_favorites_products_user_id foreign key (user_id) references users (id),
---   constraint fk_users_favorites_products_product_id foreign key (product_id) references products (id)
+--   constraint fk_users_favorites_products_user_id foreign key (user_id) references users (categoryId),
+--   constraint fk_users_favorites_products_product_id foreign key (product_id) references products (categoryId)
 -- );

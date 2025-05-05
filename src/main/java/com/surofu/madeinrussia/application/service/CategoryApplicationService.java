@@ -35,13 +35,13 @@ public class CategoryApplicationService implements CategoryService {
     @Override
     @Cacheable("category")
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
-        Optional<Category> category = repository.getCategoryById(operation.getQuery().id());
+        Optional<Category> category = repository.getCategoryById(operation.getQuery().categoryId());
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
 
         if (categoryDto.isPresent()) {
             return GetCategoryById.Result.success(categoryDto.get());
         }
 
-        return GetCategoryById.Result.notFound();
+        return GetCategoryById.Result.notFound(operation.getQuery().categoryId());
     }
 }

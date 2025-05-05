@@ -93,6 +93,7 @@ public class CategoryRestController {
             Long id
     ) {
         GetCategoryByIdQuery query = new GetCategoryByIdQuery(id);
-        return service.getCategoryById(GetCategoryById.of(query)).process(getCategoryByIdProcessor);
+        GetCategoryById operation = GetCategoryById.of(query);
+        return service.getCategoryById(operation).process(getCategoryByIdProcessor);
     }
 }

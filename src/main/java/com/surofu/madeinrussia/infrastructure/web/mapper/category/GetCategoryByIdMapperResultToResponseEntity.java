@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.category;
 
+import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ public class GetCategoryByIdMapperResultToResponseEntity implements GetCategoryB
 
     @Override
     public ResponseEntity<?> processNotFound(GetCategoryById.Result.NotFound result) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        SimpleResponseErrorDto errorDto = new SimpleResponseErrorDto("Category with id '%d' not found".formatted(result.getCategoryId()));
+        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

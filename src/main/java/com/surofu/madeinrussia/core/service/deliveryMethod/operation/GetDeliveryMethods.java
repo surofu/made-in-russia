@@ -1,6 +1,6 @@
-package com.surofu.madeinrussia.core.service.category.operation;
+package com.surofu.madeinrussia.core.service.deliveryMethod.operation;
 
-import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,19 +8,19 @@ import java.util.List;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetCategories {
+public class GetDeliveryMethods {
 
-    public interface  Result {
+    public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(List<CategoryDto> categories) {
-            log.info("Successfully processed {} categories", categories.size());
-            return Success.of(categories);
+        static Result success(List<DeliveryMethodDto> deliveryMethodDtoList) {
+            log.info("Successfully processed {} delivery methods", deliveryMethodDtoList.size());
+            return Success.of(deliveryMethodDtoList);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            List<CategoryDto> categories;
+            List<DeliveryMethodDto> deliveryMethodDtos;
 
             @Override
             public <T> T process(Processor<T> processor) {

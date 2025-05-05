@@ -57,6 +57,6 @@ public class ProductApplicationService implements ProductService {
             return GetProductById.Result.success(productDto.get());
         }
 
-        return GetProductById.Result.notFound();
+        return GetProductById.Result.notFound(operation.getQuery().productId());
     }
 }

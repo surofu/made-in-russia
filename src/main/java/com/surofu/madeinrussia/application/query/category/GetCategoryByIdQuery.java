@@ -1,4 +1,4 @@
 package com.surofu.madeinrussia.application.query.category;
 
-public record GetCategoryByIdQuery(Long id) {
+public record GetCategoryByIdQuery(Long categoryId) {
 }

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.product;
 
+import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ public class GetProductByIdMapperResultToResponseEntity implements GetProductByI
 
     @Override
     public ResponseEntity<?> processNotFound(GetProductById.Result.NotFound result) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        SimpleResponseErrorDto errorDto = new SimpleResponseErrorDto("Product with id '%d' not found".formatted(result.getProductId()));
+        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

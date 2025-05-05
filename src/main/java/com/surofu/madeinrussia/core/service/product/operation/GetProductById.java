@@ -14,12 +14,13 @@ public class GetProductById {
         <T> T process(Processor<T> processor);
 
         static Result success(ProductDto productDto) {
-            log.info("Successfully retrieved product: {}", productDto);
+            log.info("Successfully processed product: {}", productDto);
             return Success.of(productDto);
         }
 
-        static Result notFound() {
-            return NotFound.INSTANCE;
+        static Result notFound(Long productId) {
+            log.info("Product with id '{}' not found", productId);
+            return NotFound.of(productId);
         }
 
         @Value(staticConstructor = "of")
@@ -32,8 +33,9 @@ public class GetProductById {
             }
         }
 
-        enum NotFound implements Result {
-            INSTANCE;
+        @Value(staticConstructor = "of")
+        class NotFound implements Result {
+            Long productId;
 
             @Override
             public <T> T process(Processor<T> processor) {
