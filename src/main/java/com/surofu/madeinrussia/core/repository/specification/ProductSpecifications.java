@@ -9,11 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductSpecifications {
-    public static Specification<Product> hasCategory(Long categoryId) {
-        return (root, query, cb) ->
-                categoryId != null ?
-                        cb.equal(root.get("category").get("id"), categoryId) :
-                        null;
+    public static Specification<Product> hasCategories(List<Long> categoryIds) {
+        return (root, query, cb) -> {
+            if (categoryIds == null || categoryIds.isEmpty()) {
+                return cb.conjunction();
+            }
+
+            return root.get("category").get("id").in(categoryIds);
+        };
     }
 
     public static Specification<Product> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {

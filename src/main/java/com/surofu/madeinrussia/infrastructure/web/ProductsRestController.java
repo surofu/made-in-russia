@@ -9,21 +9,21 @@ import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Validated
 @RestController
@@ -80,14 +80,33 @@ public class ProductsRestController {
             int size,
 
             @Parameter(
-                    name = "categoryId",
-                    description = "Filter products by category ID",
+                    name = "categoryIds",
+                    description = "Filter products by category IDs. Multiple category IDs can be provided",
                     in = ParameterIn.QUERY,
-                    schema = @Schema(type = "integer", format = "int64", example = "1")
+                    schema = @Schema(
+                            type = "array",
+                            format = "int64",
+                            example = "[1, 2, 3]",
+                            minLength = 1,
+                            maxLength = 20
+                    ),
+                    explode = Explode.FALSE,
+                    examples = {
+                            @ExampleObject(
+                                    name = "Single category",
+                                    value = "1",
+                                    description = "Filter by single category ID"
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple categories",
+                                    value = "1,2,3",
+                                    description = "Filter by multiple category IDs"
+                            )
+                    }
             )
             @RequestParam(required = false)
-            @Positive
-            Long categoryId,
+            @Size(max = 8, message = "Maximum 8 categories allowed")
+            List<@Positive(message = "Each category ID must be positive") Long> categoryIds,
 
             @Parameter(
                     name = "minPrice",
@@ -110,7 +129,7 @@ public class ProductsRestController {
             BigDecimal maxPrice
     ) {
         GetProductsQuery query = new GetProductsQuery(
-                page, size, categoryId, minPrice, maxPrice);
+                page, size, categoryIds, minPrice, maxPrice);
 
         return productService.getProducts(GetProducts.of(query)).process(getProductsProcessor);
     }

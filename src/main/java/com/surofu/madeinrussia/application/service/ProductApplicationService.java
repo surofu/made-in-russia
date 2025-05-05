@@ -32,7 +32,7 @@ public class ProductApplicationService implements ProductService {
         Pageable pageable = PageRequest.of(operation.getQuery().page(), operation.getQuery().size());
 
         Specification<Product> specification = Specification
-                .where(ProductSpecifications.hasCategory(operation.getQuery().categoryId()))
+                .where(ProductSpecifications.hasCategories(operation.getQuery().categoryIds()))
                 .and(ProductSpecifications.priceBetween(operation.getQuery().minPrice(), operation.getQuery().maxPrice()));
 
         Page<Product> products = repository.findAll(specification, pageable);

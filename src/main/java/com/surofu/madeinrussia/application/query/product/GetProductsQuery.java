@@ -1,11 +1,12 @@
 package com.surofu.madeinrussia.application.query.product;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record GetProductsQuery(
         int page,
         int size,
-        Long categoryId,
+        List<Long> categoryIds,
         BigDecimal minPrice,
         BigDecimal maxPrice
 ) {
