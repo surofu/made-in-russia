@@ -77,7 +77,7 @@ public class DeliveryMethodRestController {
                     )
             }
     )
-    public ResponseEntity<?> getDeliveryMethod(
+    public ResponseEntity<?> getDeliveryMethodById(
             @Parameter(
                     name = "id",
                     description = "ID of the delivery method to retrieve",

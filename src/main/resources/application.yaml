@@ -14,3 +14,26 @@ spring:
       auto-commit: true
       pool-name: HikariPool
       transaction-isolation: TRANSACTION_READ_COMMITTED
+
+app:
+  rate:
+    limit:
+      capacity: 100
+      whitelist: |
+        192.168.1.1
+        127.0.0.1
+      refill:
+        tokens: 5
+        minutes: 1
+
+management:
+  tags:
+    application: ${spring.application.name}
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, ratelimit
+      base-path: /actuator
