@@ -33,7 +33,7 @@ public class CategoryApplicationService implements CategoryService {
     }
 
     @Override
-    @Cacheable("category")
+    @Cacheable(value = "category", key = "operation.query.categoryId()")
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
         Optional<Category> category = repository.getCategoryById(operation.getQuery().categoryId());
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);

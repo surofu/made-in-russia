@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.core.service.deliveryMethod.DeliveryMethodService
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethodById;
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethods;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     private final DeliveryMethodRepository repository;
 
     @Override
+    @Cacheable("deliveryMethods")
     public GetDeliveryMethods.Result getDeliveryMethods() {
         List<DeliveryMethod> deliveryMethods = repository.getDeliveryMethods();
         List<DeliveryMethodDto> deliveryMethodDtos = new ArrayList<>(deliveryMethods.size());
@@ -31,6 +33,7 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     }
 
     @Override
+    @Cacheable(value = "deliveryMethod", key = "operation.query.deliveryMethodId()")
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
         Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getQuery().deliveryMethodId());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);

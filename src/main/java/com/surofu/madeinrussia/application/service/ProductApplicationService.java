@@ -27,7 +27,13 @@ public class ProductApplicationService implements ProductService {
     private final ProductRepository repository;
 
     @Override
-    @Cacheable("productsPage")
+    @Cacheable(value = "productsPage", key = """
+            {
+             #operation.query.page(), #operation.query.size(),
+             #operation.query.categoryIds().hashCode(),
+             #operation.query.minPrice(), #operation.query.maxPrice()
+             }
+            """)
     public GetProducts.Result getProducts(GetProducts operation) {
         Pageable pageable = PageRequest.of(operation.getQuery().page(), operation.getQuery().size());
 
@@ -48,7 +54,7 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
-    @Cacheable("product")
+    @Cacheable(value = "product", key = "operation.query.productId()")
     public GetProductById.Result getProductById(GetProductById operation) {
         Optional<Product> product = repository.findById(operation.getQuery().productId());
         Optional<ProductDto> productDto = product.map(ProductDto::of);
