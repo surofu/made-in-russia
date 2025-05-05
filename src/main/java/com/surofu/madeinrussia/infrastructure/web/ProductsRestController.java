@@ -80,6 +80,35 @@ public class ProductsRestController {
             int size,
 
             @Parameter(
+                    name = "deliveryMethodIds",
+                    description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(
+                            type = "array",
+                            format = "int64",
+                            example = "[1, 2]",
+                            minLength = 1,
+                            maxLength = 20
+                    ),
+                    explode = Explode.FALSE,
+                    examples = {
+                            @ExampleObject(
+                                    name = "Single delivery method",
+                                    value = "1",
+                                    description = "Filter by single delivery method ID"
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple delivery methods",
+                                    value = "1,2,3",
+                                    description = "Filter by multiple delivery method IDs"
+                            )
+                    }
+            )
+            @RequestParam(required = false)
+            @Size(max = 2, message = "Maximum 2 delivery methods allowed")
+            List<@Positive(message = "Each delivery method ID must be positive") Long> deliveryMethodIds,
+
+            @Parameter(
                     name = "categoryIds",
                     description = "Filter products by category IDs. Multiple category IDs can be provided",
                     in = ParameterIn.QUERY,
@@ -128,9 +157,7 @@ public class ProductsRestController {
             @DecimalMin("0.0")
             BigDecimal maxPrice
     ) {
-        GetProductsQuery query = new GetProductsQuery(
-                page, size, categoryIds, minPrice, maxPrice);
-
+        GetProductsQuery query = new GetProductsQuery(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
         return productService.getProducts(GetProducts.of(query)).process(getProductsProcessor);
     }
 

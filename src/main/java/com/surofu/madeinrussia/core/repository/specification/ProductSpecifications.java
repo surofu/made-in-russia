@@ -9,6 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductSpecifications {
+    public static Specification<Product> hasDeliveryMethods(List<Long> deliveryMethodIds) {
+        return (root, query, cb) -> {
+            if (deliveryMethodIds == null || deliveryMethodIds.isEmpty()) {
+                return cb.conjunction();
+            }
+
+            return root.get("deliveryMethod").get("id").in(deliveryMethodIds);
+        };
+    }
+
     public static Specification<Product> hasCategories(List<Long> categoryIds) {
         return (root, query, cb) -> {
             if (categoryIds == null || categoryIds.isEmpty()) {
