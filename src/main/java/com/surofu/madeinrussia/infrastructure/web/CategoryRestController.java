@@ -44,11 +44,6 @@ public class CategoryRestController {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = CategoryDto.class))
                             )
-                    ),
-                    @ApiResponse(
-                            responseCode = "500",
-                            description = "Internal server error",
-                            content = @Content(schema = @Schema(hidden = true))
                     )
             }
     )
