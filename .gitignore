@@ -6,6 +6,7 @@ target/
 
 ### Secrets ###
 .env
+.env-*
 docker-*.yaml
 
 ### STS ###
