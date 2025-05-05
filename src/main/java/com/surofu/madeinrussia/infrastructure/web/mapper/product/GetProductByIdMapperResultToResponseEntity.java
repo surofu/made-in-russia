@@ -16,7 +16,8 @@ public class GetProductByIdMapperResultToResponseEntity implements GetProductByI
 
     @Override
     public ResponseEntity<?> processNotFound(GetProductById.Result.NotFound result) {
-        SimpleResponseErrorDto errorDto = new SimpleResponseErrorDto("Product with id '%d' not found".formatted(result.getProductId()));
+        String errorMessage = "Product with id '%d' not found".formatted(result.getProductId());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }
