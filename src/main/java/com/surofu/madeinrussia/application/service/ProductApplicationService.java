@@ -20,22 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Application service implementation for product operations.
- * Handles business logic and acts as a bridge between controllers and domain layer.
- */
 @Service
 @AllArgsConstructor
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository repository;
 
-    /**
-     * Retrieves paginated and filtered list of products
-     * @param operation The operation containing query parameters and pagination info
-     * @return Result containing paginated product DTOs
-     * @apiNote Results are cached using a composite key of all filter parameters
-     */
     @Override
     @Cacheable(
             value = "productsPage",
@@ -47,7 +37,7 @@ public class ProductApplicationService implements ProductService {
              #operation.query.minPrice(), #operation.query.maxPrice()
              }
             """,
-            unless = "#result == null"
+            unless = "#result.getProductDtoPage().isEmpty()"
     )
     public GetProducts.Result getProducts(GetProducts operation) {
         Pageable pageable = PageRequest.of(operation.getQuery().page(), operation.getQuery().size());
@@ -69,17 +59,11 @@ public class ProductApplicationService implements ProductService {
         return GetProducts.Result.success(productDtoPage);
     }
 
-    /**
-     * Retrieves a single product by its unique identifier
-     * @param operation The operation containing the product ID to lookup
-     * @return Result containing either the found product or not-found status
-     * @apiNote Results are cached by product ID
-     */
     @Override
     @Cacheable(
             value = "product",
             key = "#operation.query.productId()",
-            unless = "#result == null"
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
         Optional<Product> product = repository.findById(operation.getQuery().productId());

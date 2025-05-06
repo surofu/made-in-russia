@@ -13,13 +13,13 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryMethodName implements Serializable {
     @Column(name = "name")
-    private String value;
+    private String name;
 
-    private DeliveryMethodName(String value) {
-        this.value = value;
+    private DeliveryMethodName(String name) {
+        this.name = name;
     }
 
-    public static DeliveryMethodName of(String value) {
-        return new DeliveryMethodName(value);
+    public static DeliveryMethodName of(String name) {
+        return new DeliveryMethodName(name);
     }
 }

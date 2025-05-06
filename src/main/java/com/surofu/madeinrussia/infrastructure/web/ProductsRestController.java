@@ -106,7 +106,8 @@ public class ProductsRestController {
             )
             @RequestParam(required = false)
             @Size(max = 2, message = "Maximum 2 delivery methods allowed")
-            List<@Positive(message = "Each delivery method ID must be positive") Long> deliveryMethodIds,
+            List<@Max(value = 2, message = "Each delivery method ID must be less then or equal to 2")
+            @Positive(message = "Each delivery method ID must be positive") Long> deliveryMethodIds,
 
             @Parameter(
                     name = "categoryIds",
@@ -135,7 +136,8 @@ public class ProductsRestController {
             )
             @RequestParam(required = false)
             @Size(max = 8, message = "Maximum 8 categories allowed")
-            List<@Positive(message = "Each category ID must be positive") Long> categoryIds,
+            List<@Max(value = 8, message = "Each category ID must be less then or equal to 8")
+            @Positive(message = "Each category ID must be positive") Long> categoryIds,
 
             @Parameter(
                     name = "minPrice",

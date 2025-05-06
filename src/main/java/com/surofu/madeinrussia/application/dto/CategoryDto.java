@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Data Transfer Object (DTO) for Category information
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -48,11 +45,6 @@ public final class CategoryDto implements Serializable {
     )
     private LocalDateTime lastModificationDate;
 
-    /**
-     * Converts a Category entity to CategoryDto
-     * @param category the entity to convert
-     * @return converted DTO
-     */
     @Schema(hidden = true)
     public static CategoryDto of(Category category) {
         return CategoryDto.builder()

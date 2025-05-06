@@ -10,6 +10,6 @@ public class GetCategoriesMapperResultToResponseEntity implements GetCategories.
 
     @Override
     public ResponseEntity<?> processSuccess(GetCategories.Result.Success result) {
-        return new ResponseEntity<>(result.getCategories(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getCategoryDtos(), HttpStatus.OK);
     }
 }

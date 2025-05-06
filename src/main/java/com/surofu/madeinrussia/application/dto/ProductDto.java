@@ -11,9 +11,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Data Transfer Object (DTO) representing a product with all associated details
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -98,11 +95,6 @@ public final class ProductDto implements Serializable {
     )
     private LocalDateTime lastModificationDate;
 
-    /**
-     * Converts a Product entity to ProductDto
-     * @param product the entity to convert
-     * @return converted DTO
-     */
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
         return ProductDto.builder()

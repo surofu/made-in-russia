@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Data Transfer Object (DTO) for Delivery Method information
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -52,16 +49,11 @@ public final class DeliveryMethodDto implements Serializable {
     )
     private LocalDateTime lastModificationDate;
 
-    /**
-     * Converts a DeliveryMethod entity to DeliveryMethodDto
-     * @param deliveryMethod the entity to convert
-     * @return converted DTO
-     */
     @Schema(hidden = true)
     public static DeliveryMethodDto of(DeliveryMethod deliveryMethod) {
         return DeliveryMethodDto.builder()
                 .id(deliveryMethod.getId())
-                .name(deliveryMethod.getName().getValue())
+                .name(deliveryMethod.getName().getName())
                 .creationDate(deliveryMethod.getCreationDate())
                 .lastModificationDate(deliveryMethod.getLastModificationDate())
                 .build();
