@@ -105,9 +105,7 @@ public class ProductsRestController {
                     }
             )
             @RequestParam(required = false)
-            @Size(max = 2, message = "Maximum 2 delivery methods allowed")
-            List<@Max(value = 2, message = "Each delivery method ID must be less then or equal to 2")
-            @Positive(message = "Each delivery method ID must be positive") Long> deliveryMethodIds,
+            List<Long> deliveryMethodIds,
 
             @Parameter(
                     name = "categoryIds",
@@ -135,9 +133,7 @@ public class ProductsRestController {
                     }
             )
             @RequestParam(required = false)
-            @Size(max = 8, message = "Maximum 8 categories allowed")
-            List<@Max(value = 8, message = "Each category ID must be less then or equal to 8")
-            @Positive(message = "Each category ID must be positive") Long> categoryIds,
+            List<Long> categoryIds,
 
             @Parameter(
                     name = "minPrice",
@@ -146,7 +142,6 @@ public class ProductsRestController {
                     schema = @Schema(type = "number", format = "decimal", example = "10.50")
             )
             @RequestParam(required = false)
-            @DecimalMin("0.0")
             BigDecimal minPrice,
 
             @Parameter(
@@ -156,7 +151,6 @@ public class ProductsRestController {
                     schema = @Schema(type = "number", format = "decimal", example = "99.99")
             )
             @RequestParam(required = false)
-            @DecimalMin("0.0")
             BigDecimal maxPrice
     ) {
         GetProductsQuery query = new GetProductsQuery(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
@@ -197,7 +191,6 @@ public class ProductsRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            @Positive
             Long id
     ) {
         GetProductByIdQuery query = new GetProductByIdQuery(id);

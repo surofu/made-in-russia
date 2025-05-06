@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
@@ -17,13 +18,25 @@ import java.io.Serializable;
 public final class SimpleResponseErrorDto implements Serializable {
 
     @Schema(
-            description = "Error message describing what went wrong",
-            example = "Product not found"
+            description = "Error type",
+            example = "Not Found"
     )
     private String error;
 
+    @Schema(
+            description = "Error message describing what went wrong",
+            example = "Product with id '123' not found"
+    )
+    private String message;
+
+    @Schema(
+            description = "HTTP status code",
+            example = "404"
+    )
+    private int status;
+
     @Schema(hidden = true)
-    public static SimpleResponseErrorDto of(String errorMessage) {
-        return new SimpleResponseErrorDto(errorMessage);
+    public static SimpleResponseErrorDto of(String errorMessage, HttpStatus httpStatus) {
+        return new SimpleResponseErrorDto(httpStatus.getReasonPhrase(), errorMessage, httpStatus.value());
     }
 }

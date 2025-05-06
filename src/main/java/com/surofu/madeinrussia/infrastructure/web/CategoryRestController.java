@@ -84,7 +84,6 @@ public class CategoryRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            @Positive
             Long id
     ) {
         GetCategoryByIdQuery query = new GetCategoryByIdQuery(id);

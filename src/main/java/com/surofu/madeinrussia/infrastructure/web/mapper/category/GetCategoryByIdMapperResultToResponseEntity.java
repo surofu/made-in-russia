@@ -17,7 +17,7 @@ public class GetCategoryByIdMapperResultToResponseEntity implements GetCategoryB
     @Override
     public ResponseEntity<?> processNotFound(GetCategoryById.Result.NotFound result) {
         String errorMessage = "Category with id '%d' not found".formatted(result.getCategoryId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage);
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

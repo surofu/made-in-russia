@@ -17,7 +17,7 @@ public class GetDeliveryMethodByIdMapperResultToResponseEntity implements GetDel
     @Override
     public ResponseEntity<?> processNotFound(GetDeliveryMethodById.Result.NotFound result) {
         String errorMessage = "Product with id '%d' not found".formatted(result.getDeliveryMethodId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage);
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

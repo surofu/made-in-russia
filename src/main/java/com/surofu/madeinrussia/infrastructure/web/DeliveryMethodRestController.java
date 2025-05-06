@@ -86,7 +86,6 @@ public class DeliveryMethodRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            @Positive
             Long id
     ) {
         GetDeliveryMethodByIdQuery query = new GetDeliveryMethodByIdQuery(id);
