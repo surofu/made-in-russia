@@ -67,11 +67,6 @@ public class CategoryRestController {
                             responseCode = "404",
                             description = "Category not found",
                             content = @Content(schema = @Schema(hidden = true))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid ID supplied",
-                            content = @Content(schema = @Schema(hidden = true))
                     )
             }
     )

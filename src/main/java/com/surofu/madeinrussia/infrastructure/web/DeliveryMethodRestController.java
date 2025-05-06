@@ -66,11 +66,6 @@ public class DeliveryMethodRestController {
                                     schema = @Schema(implementation = DeliveryMethodDto.class))
                     ),
                     @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid ID supplied",
-                            content = @Content(schema = @Schema(hidden = true))
-                    ),
-                    @ApiResponse(
                             responseCode = "404",
                             description = "Delivery method not found",
                             content = @Content(schema = @Schema(hidden = true))

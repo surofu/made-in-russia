@@ -174,11 +174,6 @@ public class ProductsRestController {
                             responseCode = "404",
                             description = "Product not found",
                             content = @Content(schema = @Schema(hidden = true))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid ID supplied",
-                            content = @Content(schema = @Schema(hidden = true))
                     )
             }
     )
