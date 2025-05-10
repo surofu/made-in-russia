@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Schema(
         name = "Category",
-        description = "Represents a product category with its metadata"
+        description = "Represents a product category DTO"
 )
 public final class CategoryDto implements Serializable {
 
@@ -35,15 +35,19 @@ public final class CategoryDto implements Serializable {
 
     @Schema(
             description = "Timestamp when the category was created",
-            example = "2023-07-15T14:30:00"
+            example = "2023-07-15T14:30:00",
+            type = "string",
+            format = "date-time"
     )
-    private LocalDateTime creationDate;
+    private ZonedDateTime creationDate;
 
     @Schema(
             description = "Timestamp when the category was last modified",
-            example = "2023-07-20T09:15:30"
+            example = "2023-07-20T09:15:30",
+            type = "string",
+            format = "date-time"
     )
-    private LocalDateTime lastModificationDate;
+    private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
     public static CategoryDto of(Category category) {

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -24,10 +24,8 @@ public final class Category implements Serializable {
     private CategoryName name;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime creationDate;
+    private ZonedDateTime creationDate;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime lastModificationDate;
+    private ZonedDateTime lastModificationDate;
 }

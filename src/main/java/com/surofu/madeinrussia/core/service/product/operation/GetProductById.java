@@ -19,7 +19,7 @@ public class GetProductById {
         }
 
         static Result notFound(Long productId) {
-            log.warn("Product with id '{}' not found", productId);
+            log.warn("Product with ID '{}' not found", productId);
             return NotFound.of(productId);
         }
 

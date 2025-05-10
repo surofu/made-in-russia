@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Schema(
         name = "DeliveryMethod",
-        description = "Represents a shipping/delivery method with its metadata"
+        description = "Represents a delivery method DTO"
 )
 public final class DeliveryMethodDto implements Serializable {
 
@@ -39,7 +39,7 @@ public final class DeliveryMethodDto implements Serializable {
             type = "string",
             format = "date-time"
     )
-    private LocalDateTime creationDate;
+    private ZonedDateTime creationDate;
 
     @Schema(
             description = "Timestamp when the delivery method was last modified",
@@ -47,7 +47,7 @@ public final class DeliveryMethodDto implements Serializable {
             type = "string",
             format = "date-time"
     )
-    private LocalDateTime lastModificationDate;
+    private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
     public static DeliveryMethodDto of(DeliveryMethod deliveryMethod) {

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Schema(
         name = "Product",
-        description = "Represents a product with complete information including pricing, category and delivery options"
+        description = "Represents a product DTO"
 )
 public final class ProductDto implements Serializable {
 
@@ -85,7 +85,7 @@ public final class ProductDto implements Serializable {
             type = "string",
             format = "date-time"
     )
-    private LocalDateTime creationDate;
+    private ZonedDateTime creationDate;
 
     @Schema(
             description = "Timestamp when the product was last modified",
@@ -93,7 +93,7 @@ public final class ProductDto implements Serializable {
             type = "string",
             format = "date-time"
     )
-    private LocalDateTime lastModificationDate;
+    private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
     public static ProductDto of(Product product) {

@@ -13,7 +13,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Schema(
         name = "SimpleErrorResponse",
-        description = "Basic error response containing a single error message"
+        description = "Represents a error response DTO"
 )
 public final class SimpleResponseErrorDto implements Serializable {
 

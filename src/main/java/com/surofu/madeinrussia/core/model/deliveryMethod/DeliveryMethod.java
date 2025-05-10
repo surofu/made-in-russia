@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -25,10 +25,8 @@ public final class DeliveryMethod implements Serializable {
     private DeliveryMethodName name;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime creationDate;
+    private ZonedDateTime creationDate;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime lastModificationDate;
+    private ZonedDateTime lastModificationDate;
 }

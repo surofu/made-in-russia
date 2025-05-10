@@ -14,7 +14,7 @@ public class GetCategoryById {
         <T> T process(Processor<T> processor);
 
         static Result success(CategoryDto categoryDto) {
-            log.info("Successfully retrieved category with ID: {}", categoryDto.getId());
+            log.info("Successfully processed category: {}", categoryDto);
             return Success.of(categoryDto);
         }
 
