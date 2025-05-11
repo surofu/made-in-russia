@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.user.User;
-import com.surofu.madeinrussia.core.model.userRole.UserRole;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

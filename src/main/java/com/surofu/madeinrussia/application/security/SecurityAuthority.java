@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.security;
 
-import com.surofu.madeinrussia.core.model.userRole.UserRole;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 

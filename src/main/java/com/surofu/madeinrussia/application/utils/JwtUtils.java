@@ -1,5 +1,6 @@
-package com.surofu.madeinrussia.application.security;
+package com.surofu.madeinrussia.application.utils;
 
+import com.surofu.madeinrussia.application.security.SecurityUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -14,17 +15,17 @@ import java.util.*;
 import java.util.function.Function;
 
 @Component
-public class JwtUtil {
-    @Value("${app.jwt.access-token.secret}")
+public class JwtUtils {
+    @Value("${jwt.access-token.secret}")
     private String accessTokenSecret;
 
-    @Value("${app.jwt.refresh-token.secret}")
+    @Value("${jwt.refresh-token.secret}")
     private String refreshTokenSecret;
 
-    @Value("${app.jwt.access-token.lifetime}")
+    @Value("${jwt.access-token.lifetime}")
     private Duration accessTokenLifetime;
 
-    @Value("${app.jwt.refresh-token.lifetime}")
+    @Value("${jwt.refresh-token.lifetime}")
     private Duration refreshTokenLifetime;
 
     public String generateAccessToken(UserDetails userDetails) {

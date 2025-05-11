@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.model.user;
 
-import com.surofu.madeinrussia.core.model.userRole.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

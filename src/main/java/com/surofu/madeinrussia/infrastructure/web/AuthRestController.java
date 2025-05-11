@@ -3,12 +3,17 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.command.LoginWithEmailCommand;
 import com.surofu.madeinrussia.application.command.LoginWithLoginCommand;
 import com.surofu.madeinrussia.application.command.RegisterCommand;
+import com.surofu.madeinrussia.application.command.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
+import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
@@ -28,9 +33,11 @@ import org.springframework.web.bind.annotation.*;
 )
 public class AuthRestController {
     private final AuthService authService;
+
     private final Register.Result.Processor<ResponseEntity<?>> registerProcessor;
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
+    private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
 
     @PostMapping("register")
     @Operation(
@@ -110,7 +117,7 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithEmailCommand.class)
                     )
             )
-            @RequestBody LoginWithEmailCommand loginWithEmailCommand
+            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand
     ) {
         LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand);
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
@@ -152,9 +159,51 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithLoginCommand.class)
                     )
             )
-            @RequestBody LoginWithLoginCommand loginWithLoginCommand
+            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand
     ) {
         LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand);
         return authService.loginWithLogin(operation).process(loginWithLoginProcessor);
+    }
+
+    @PostMapping("verify-email")
+    @Operation(
+            summary = "Verify email address",
+            description = "Validates user's email using verification code",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Email verified successfully",
+                            content = @Content(
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid or expired verification code",
+                            content = @Content(
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> verifyEmail(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Email verification data",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = VerifyEmailCommand.class)
+                    )
+            )
+            @RequestBody @Valid VerifyEmailCommand verifyEmailCommand
+    ) {
+        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand);
+        return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 }

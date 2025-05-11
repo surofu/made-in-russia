@@ -2,27 +2,28 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
-import com.surofu.madeinrussia.application.security.JwtUtil;
-import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
+import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
-import com.surofu.madeinrussia.core.model.userRole.UserRole;
-import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
+import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,10 +34,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
-    private final UserPasswordRepository passwordRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtils;
+    private final AsyncAuthApplicationService asyncAuthApplicationService;
+
+    @Qualifier("verificationCacheManager")
+    private final CacheManager cacheManager;
 
     @Override
     public Register.Result register(Register operation) {
@@ -54,22 +57,9 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithLoginAlreadyExists(userLogin.get());
         }
 
-        User user = new User();
-        user.setEmail(userEmail);
-        user.setLogin(userLogin.orElse(null));
+        asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation);
 
-        UserPassword userPassword = new UserPassword();
-        userPassword.setUser(user);
-
-        String rawHashedPassword = passwordEncoder.encode(operation.getCommand().password());
-        userPassword.setPassword(rawHashedPassword);
-
-        user.setRole(UserRole.ROLE_NOT_VERIFIED);
-
-        userRepository.saveUser(user);
-        passwordRepository.saveUserPassword(userPassword);
-
-        String registerSuccessMessage = "Аккаунт успешно создан. Для активации аккаунта подтвердите почту";
+        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", rawEmail);
 
         SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
                 .message(registerSuccessMessage)
@@ -95,14 +85,8 @@ public class AuthApplicationService implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
         UserDetails userDetails = (UserDetails) authenticationResponse.getPrincipal();
 
-        if (userDetails instanceof SecurityUser securityUser) {
-            if (securityUser.getUser().getRole().equals(UserRole.ROLE_NOT_VERIFIED)) {
-                return LoginWithEmail.Result.notVerified();
-            }
-        }
-
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String accessToken = jwtUtils.generateAccessToken(userDetails);
+        String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
         LoginSuccessDto loginSuccessDto = LoginSuccessDto.builder()
                 .accessToken(accessToken)
@@ -135,14 +119,8 @@ public class AuthApplicationService implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
         UserDetails userDetails = (UserDetails) authenticationResponse.getPrincipal();
 
-        if (userDetails instanceof SecurityUser securityUser) {
-            if (securityUser.getUser().getRole().equals(UserRole.ROLE_NOT_VERIFIED)) {
-                return LoginWithLogin.Result.notVerified();
-            }
-        }
-
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String accessToken = jwtUtils.generateAccessToken(userDetails);
+        String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
         LoginSuccessDto loginSuccessDto = LoginSuccessDto.builder()
                 .accessToken(accessToken)
@@ -150,5 +128,47 @@ public class AuthApplicationService implements AuthService {
                 .build();
 
         return LoginWithLogin.Result.success(loginSuccessDto);
+    }
+
+    @Override
+    public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
+        String email = operation.getCommand().email();
+        String verificationCode = operation.getCommand().code();
+
+        Cache unverifiedUsersCache = cacheManager.getCache("unverifiedUsers");
+
+        User user = unverifiedUsersCache.get(email, User.class);
+
+        if (user == null) {
+            return VerifyEmail.Result.accountNotFound(email);
+        }
+
+        Cache unverifiedUserPasswordsCache = cacheManager.getCache("unverifiedUserPasswords");
+
+        UserPassword userPassword = unverifiedUserPasswordsCache.get(email, UserPassword.class);
+
+        if (userPassword == null) {
+            return VerifyEmail.Result.accountNotFound(email);
+        }
+
+        Cache verificationCodesCache = cacheManager.getCache("verificationCodes");
+
+        String verificationCodeFromCache = verificationCodesCache.get(email, String.class);
+
+        if (verificationCodeFromCache == null) {
+            return VerifyEmail.Result.accountNotFound(email);
+        }
+
+        System.out.println("code from cache: " + verificationCodeFromCache);
+
+        if (verificationCode.equals(verificationCodeFromCache)) {
+            asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword);
+
+            String message = "Почта успешно подтверждена";
+            SimpleResponseMessageDto responseMessageDto = new SimpleResponseMessageDto(message);
+            return VerifyEmail.Result.success(responseMessageDto);
+        }
+
+        return VerifyEmail.Result.invalidVerificationCode(verificationCode);
     }
 }

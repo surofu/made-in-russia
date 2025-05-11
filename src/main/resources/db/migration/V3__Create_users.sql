@@ -1,7 +1,7 @@
 do
 $$
     begin
-        create type user_role as enum ('ROLE_NOT_VERIFIED', 'ROLE_USER', 'ROLE_ADMIN');
+        create type user_role as enum ('ROLE_USER', 'ROLE_ADMIN');
     exception
         when duplicate_object then null;
     end

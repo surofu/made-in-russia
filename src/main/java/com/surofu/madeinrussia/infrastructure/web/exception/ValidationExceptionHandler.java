@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.exception;
 
+import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Hidden
 @RestControllerAdvice
@@ -36,11 +38,11 @@ public class ValidationExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException exception) {
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException exception) {
+        Map<String, Map<String, String>> errors = new HashMap<>();
 
         exception.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
+                errors.put("errors", Map.of(error.getField(), Objects.requireNonNull(error.getDefaultMessage())))
         );
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

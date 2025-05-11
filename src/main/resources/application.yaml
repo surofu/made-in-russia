@@ -7,23 +7,31 @@ server:
     no-request-timeout: 60000    # Таймаут бездействия (60 сек)
     direct-buffers: true         # Использование прямых буферов (лучше для производительности)
     buffer-size: 1024            # Размер буфера (можно уменьшить, если мало RAM)
+
+#========= Spring =========#
 spring:
   application:
     name: MadeInRussia
   profiles:
     active: dev
   mvc:
+
+    #========= Cors =========#
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS}
       allowed-methods: ${CORS_ALLOWED_METHODS}
       allowed-headers: ${CORS_ALLOWED_HEADERS}
       allow-credentials: ${CORS_ALLOW_CREDENTIALS}
       max-age: ${CORS_MAX_AGE}
+
+  #========= Datasource =========#
   datasource:
     url: ${POSTGRES_URL}
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+    #========= Hikari Pool =========#
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10
@@ -35,6 +43,25 @@ spring:
       transaction-isolation: TRANSACTION_READ_COMMITTED
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
+
+  #========= Mail =========#
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        transport:
+          protocol: smtps
+        smtp:
+          port: 25
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+#========= Management =========#
 management:
   endpoint:
     health:
@@ -44,15 +71,21 @@ management:
       exposure:
         include: health, info, metrics, prometheus, ratelimit
       base-path: /actuator
+
+#========= Logging =========#
 logging:
   level:
     root: ${LOG_LEVEL}
 
+#========= JWT =========#
+jwt:
+  access-token:
+    secret: ${JWT_ACCESS_TOKEN_SECRET}
+    lifetime: ${JWT_ACCESS_TOKEN_LIFETIME}
+  refresh-token:
+    secret: ${JWT_REFRESH_TOKEN_SECRET}
+    lifetime: ${JWT_REFRESH_TOKEN_LIFETIME}
+
 app:
-  jwt:
-    access-token:
-      secret: ${JWT_ACCESS_TOKEN_SECRET}
-      lifetime: ${JWT_ACCESS_TOKEN_LIFETIME}
-    refresh-token:
-      secret: ${JWT_REFRESH_TOKEN_SECRET}
-      lifetime: ${JWT_REFRESH_TOKEN_LIFETIME}
+  mail-verification:
+    duration-in-minutes: ${MAIL_VERIFICATION_DURATION_IN_MINUTES}
