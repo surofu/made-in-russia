@@ -18,7 +18,7 @@ public class Register {
         static Result success(SimpleResponseMessageDto responseMessageDto) {
             log.info("Successfully processed register user with message: {}", responseMessageDto.getMessage());
             return Success.of(responseMessageDto);
-        };
+        }
 
         static Result userWithEmailAlreadyExists(UserEmail email) {
             log.warn("User with email '{}' already exists", email);

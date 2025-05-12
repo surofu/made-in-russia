@@ -1,25 +1,19 @@
 package com.surofu.madeinrussia.application.service.async;
 
 import com.surofu.madeinrussia.application.utils.EmailVerificationUtils;
-import com.surofu.madeinrussia.core.model.user.User;
-import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
-import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -32,32 +26,56 @@ public class AsyncAuthApplicationService {
     private final EmailVerificationUtils emailVerificationUtils;
     private final MailService mailService;
 
-    @Qualifier("verificationCacheManager")
-    private final CacheManager cacheManager;
+    private final CacheManager verificationCacheManager;
 
     @Async
-    public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
+    public void saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
         String rawEmail = operation.getCommand().email();
-        Optional<String> rawLogin = operation.getCommand().login();
+        String rawLogin = operation.getCommand().login();
+        String rawPhoneNumber = operation.getCommand().phoneNumber();
+        String rawPassword = operation.getCommand().password();
+        String rawHashedPassword = passwordEncoder.encode(rawPassword);
+        String rawRegion = operation.getCommand().region();
 
         UserEmail userEmail = UserEmail.of(rawEmail);
-        Optional<UserLogin> userLogin = rawLogin.map(UserLogin::of);
+        UserLogin userLogin = UserLogin.of(rawLogin);
+        UserPhoneNumber userPhoneNumber = UserPhoneNumber.of(rawPhoneNumber);
+        UserRegion userRegion = UserRegion.of(rawRegion);
 
         User user = new User();
+        user.setRole(UserRole.ROLE_USER);
         user.setEmail(userEmail);
-        user.setLogin(userLogin.orElse(null));
+        user.setLogin(userLogin);
+        user.setPhoneNumber(userPhoneNumber);
+        user.setRegion(userRegion);
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
-
-        String rawHashedPassword = passwordEncoder.encode(operation.getCommand().password());
         userPassword.setPassword(rawHashedPassword);
 
-        user.setRole(UserRole.ROLE_USER);
+        String unverifiedUsersCacheName = "unverifiedUsers";
+        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);
 
-        Cache unverifiedUsersCache = cacheManager.getCache("unverifiedUsers");
-        Cache unverifiedUserPasswordsCache = cacheManager.getCache("unverifiedUserPasswords");
-        Cache verificationCodesCache = cacheManager.getCache("verificationCodes");
+        if (unverifiedUsersCache == null) {
+            logCacheError(unverifiedUsersCacheName);
+            return;
+        }
+
+        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
+        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
+
+        if (unverifiedUserPasswordsCache == null) {
+            logCacheError(unverifiedUserPasswordsCacheName);
+            return;
+        }
+
+        String verificationCodesCacheName = "verificationCodes";
+        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
+
+        if (verificationCodesCache == null) {
+            logCacheError(verificationCodesCacheName);
+            return;
+        }
 
         unverifiedUsersCache.put(rawEmail, user);
         unverifiedUserPasswordsCache.put(rawEmail, userPassword);
@@ -131,15 +149,33 @@ public class AsyncAuthApplicationService {
         } catch (Exception ex) {
             log.error("Error while sending email", ex);
         }
-
-        return CompletableFuture.completedFuture(null);
     }
 
     @Async
     public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) {
-        Cache unverifiedUsersCache = cacheManager.getCache("unverifiedUsers");
-        Cache unverifiedUserPasswordsCache = cacheManager.getCache("unverifiedUserPasswords");
-        Cache verificationCodesCache = cacheManager.getCache("verificationCodes");
+        String unverifiedUsersCacheName = "unverifiedUsers";
+        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);
+
+        if (unverifiedUsersCache == null) {
+            logCacheError(unverifiedUsersCacheName);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
+        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
+
+        if (unverifiedUserPasswordsCache == null) {
+            logCacheError(unverifiedUserPasswordsCacheName);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        String verificationCodesCacheName = "verificationCodes";
+        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
+
+        if (verificationCodesCache == null) {
+            logCacheError(verificationCodesCacheName);
+            return CompletableFuture.completedFuture(null);
+        }
 
         String email = user.getEmail().getEmail();
 
@@ -151,5 +187,9 @@ public class AsyncAuthApplicationService {
         passwordRepository.saveUserPassword(userPassword);
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    private void logCacheError(String cacheName) {
+        log.error("Error while sending email. Cache with name '{}' not found", cacheName);
     }
 }

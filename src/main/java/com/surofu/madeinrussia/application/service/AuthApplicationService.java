@@ -19,7 +19,6 @@ import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -46,23 +44,15 @@ public class AuthApplicationService implements AuthService {
     private final AsyncAuthApplicationService asyncAuthApplicationService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
-    @Qualifier("verificationCacheManager")
-    private final CacheManager cacheManager;
+    private final CacheManager verificationCacheManager;
 
     @Override
     public Register.Result register(Register operation) {
         String rawEmail = operation.getCommand().email();
-        Optional<String> rawLogin = operation.getCommand().login();
-
         UserEmail userEmail = UserEmail.of(rawEmail);
-        Optional<UserLogin> userLogin = rawLogin.map(UserLogin::of);
 
         if (userRepository.existsUserByEmail(userEmail)) {
             return Register.Result.userWithEmailAlreadyExists(userEmail);
-        }
-
-        if (userLogin.isPresent() && userRepository.existsUserByLogin(userLogin.get())) {
-            return Register.Result.userWithLoginAlreadyExists(userLogin.get());
         }
 
         asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation);
@@ -87,7 +77,7 @@ public class AuthApplicationService implements AuthService {
         try {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         } catch (AuthenticationException ex) {
-            return LoginWithEmail.Result.invalidCredentials();
+            return LoginWithEmail.Result.invalidCredentials(email, password);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
@@ -112,7 +102,7 @@ public class AuthApplicationService implements AuthService {
         Optional<String> email = userRepository.getUserEmailByLogin(UserLogin.of(login));
 
         if (email.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials();
+            return LoginWithLogin.Result.invalidCredentials(login, password);
         }
 
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(email, password);
@@ -121,7 +111,7 @@ public class AuthApplicationService implements AuthService {
         try {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         } catch (AuthenticationException ex) {
-            return LoginWithLogin.Result.invalidCredentials();
+            return LoginWithLogin.Result.invalidCredentials(login, password);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
@@ -144,7 +134,7 @@ public class AuthApplicationService implements AuthService {
         String verificationCode = operation.getVerifyEmailCommand().code();
 
         String unverifiedCacheName = "unverifiedUsers";
-        Cache unverifiedUsersCache = cacheManager.getCache(unverifiedCacheName);
+        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedCacheName);
 
         if (unverifiedUsersCache == null) {
             return VerifyEmail.Result.cacheNotFound(unverifiedCacheName);
@@ -157,7 +147,7 @@ public class AuthApplicationService implements AuthService {
         }
 
         String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        Cache unverifiedUserPasswordsCache = cacheManager.getCache(unverifiedUserPasswordsCacheName);
+        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
 
         if (unverifiedUserPasswordsCache == null) {
             return VerifyEmail.Result.cacheNotFound(unverifiedUserPasswordsCacheName);
@@ -170,7 +160,7 @@ public class AuthApplicationService implements AuthService {
         }
 
         String verificationCodesCacheName = "verificationCodes";
-        Cache verificationCodesCache = cacheManager.getCache(verificationCodesCacheName);
+        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
 
         if (verificationCodesCache == null) {
             return VerifyEmail.Result.cacheNotFound(verificationCodesCacheName);
@@ -186,7 +176,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.invalidVerificationCode(verificationCode);
         }
 
-        CompletableFuture<Void> asyncOperations = asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword)
+        asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword)
                 .thenCompose(unused -> asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(
                                 operation.getSaveOrUpdateSessionCommand().userAgent(),
                                 operation.getSaveOrUpdateSessionCommand().ipAddress(),

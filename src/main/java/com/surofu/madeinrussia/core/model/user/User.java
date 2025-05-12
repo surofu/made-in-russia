@@ -28,6 +28,12 @@ public final class User implements Serializable {
     private UserLogin login;
 
     @Embedded
+    private UserPhoneNumber phoneNumber;
+
+    @Embedded
+    private UserRegion region;
+
+    @Embedded
     private UserRegistrationDate registrationDate;
 
     @Embedded

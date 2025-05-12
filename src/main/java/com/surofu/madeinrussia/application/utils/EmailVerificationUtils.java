@@ -8,12 +8,12 @@ import java.util.Random;
 @Slf4j
 @Component
 public class EmailVerificationUtils {
-    private final int CODE_LENGTH = 4;
 
     public String generateVerificationCode() {
         StringBuilder verificationCode = new StringBuilder();
         Random random = new Random();
 
+        int CODE_LENGTH = 4;
         for (int i = 0; i < CODE_LENGTH; i++) {
             int randomInt = random.nextInt(10);
             verificationCode.append(randomInt);

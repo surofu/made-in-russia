@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.exception;
 
+import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -18,8 +19,7 @@ import java.util.Objects;
 public class ValidationExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<ValidationExceptionDto> handleConstraintViolation(ConstraintViolationException ex) {
         Map<String, String> errors = new HashMap<>();
 
         ex.getConstraintViolations().forEach(violation -> {
@@ -28,12 +28,14 @@ public class ValidationExceptionHandler {
             errors.put(fieldName, message);
         });
 
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        response.put("errors", errors);
-        response.put("message", "Validation failed");
+        ValidationExceptionDto validationExceptionDto = new ValidationExceptionDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                errors,
+                "Validation failed"
+        );
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(validationExceptionDto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

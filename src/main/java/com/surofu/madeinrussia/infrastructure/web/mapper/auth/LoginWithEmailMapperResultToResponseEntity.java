@@ -20,11 +20,4 @@ public class LoginWithEmailMapperResultToResponseEntity implements LoginWithEmai
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }
-
-    @Override
-    public ResponseEntity<?> processNotVerified(LoginWithEmail.Result.NotVerified result) {
-        String message = "Аккаунт не верифицирован, сначала подтвердите почту";
-        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
-        return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
-    }
 }

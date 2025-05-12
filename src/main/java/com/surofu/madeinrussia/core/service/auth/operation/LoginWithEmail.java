@@ -14,15 +14,13 @@ public class LoginWithEmail {
         <T> T process(Processor<T> processor);
 
         static Result success(LoginSuccessDto loginSuccessDto) {
+            log.info("Successfully processed login with email: {}", loginSuccessDto);
             return Success.of(loginSuccessDto);
         }
 
-        static Result invalidCredentials() {
+        static Result invalidCredentials(String email, String password) {
+            log.warn("Invalid login with email credentials provided: Email: {}, Password: {}", email, password);
             return InvalidCredentials.INSTANCE;
-        }
-
-        static Result notVerified() {
-            return NotVerified.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -45,19 +43,9 @@ public class LoginWithEmail {
             }
         }
 
-        enum NotVerified implements Result {
-            INSTANCE;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processNotVerified(this);
-            }
-        }
-
         interface Processor<T> {
             T processSuccess(Success result);
             T processInvalidCredentials(InvalidCredentials result);
-            T processNotVerified(NotVerified result);
         }
     }
 }

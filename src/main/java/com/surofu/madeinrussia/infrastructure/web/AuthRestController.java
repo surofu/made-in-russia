@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.command.*;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
@@ -45,7 +46,7 @@ public class AuthRestController {
             description = "Creates a new user account with provided credentials",
             responses = {
                     @ApiResponse(
-                            responseCode = "201",
+                            responseCode = "200",
                             description = "User created successfully",
                             content = @Content(
                                     schema = @Schema(implementation = LoginSuccessDto.class)
@@ -55,7 +56,7 @@ public class AuthRestController {
                             responseCode = "400",
                             description = "Invalid registration data",
                             content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -100,13 +101,6 @@ public class AuthRestController {
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "User not found",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
-                    )
             }
     )
     public ResponseEntity<?> loginWithEmail(

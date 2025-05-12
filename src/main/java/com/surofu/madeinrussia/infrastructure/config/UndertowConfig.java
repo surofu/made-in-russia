@@ -12,12 +12,12 @@ public class UndertowConfig {
 
     @Bean
     public WebServerFactoryCustomizer<UndertowServletWebServerFactory> undertowCustomizer() {
-        return factory -> {
-            factory.addDeploymentInfoCustomizers(deploymentInfo -> {
-                WebSocketDeploymentInfo webSocketDeploymentInfo = new WebSocketDeploymentInfo();
-                webSocketDeploymentInfo.setBuffers(new DefaultByteBufferPool(false, 1024));
-                deploymentInfo.addServletContextAttribute("io.undertow.websockets.jsr.WebSocketDeploymentInfo", webSocketDeploymentInfo);
-            });
-        };
+        return factory ->
+                factory.addDeploymentInfoCustomizers(deploymentInfo -> {
+                    WebSocketDeploymentInfo webSocketDeploymentInfo = new WebSocketDeploymentInfo();
+                    webSocketDeploymentInfo.setBuffers(new DefaultByteBufferPool(false, 1024));
+                    deploymentInfo.addServletContextAttribute("io.undertow.websockets.jsr.WebSocketDeploymentInfo", webSocketDeploymentInfo);
+                });
     }
 }
+

@@ -3,7 +3,6 @@ package com.surofu.madeinrussia.infrastructure.filter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,16 +24,16 @@ import java.util.concurrent.TimeUnit;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     @Value("${app.rate.limit.capacity}")
-    private int bucketCapacity = 100;
+    private final int bucketCapacity = 100;
 
     @Value("${app.rate.limit.refill.tokens}")
-    private int refillTokens = 10;
+    private final int refillTokens = 10;
 
     @Value("${app.rate.limit.refill.minutes}")
-    private int refillMinutes = 1;
+    private final int refillMinutes = 1;
 
     @Value("${app.rate.limit.whitelist}")
-    private List<String> whitelist = new ArrayList<>();
+    private final List<String> whitelist = new ArrayList<>();
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
@@ -67,8 +66,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private Bucket createNewBucket() {
-        Refill refill = Refill.intervally(refillTokens, Duration.ofMinutes(refillMinutes));
-        Bandwidth limit = Bandwidth.classic(bucketCapacity, refill);
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(bucketCapacity)
+                .refillIntervally(refillTokens, Duration.ofMinutes(refillMinutes))
+                .build();
+
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
