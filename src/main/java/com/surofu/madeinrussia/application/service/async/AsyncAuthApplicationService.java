@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -35,7 +36,7 @@ public class AsyncAuthApplicationService {
     private final CacheManager cacheManager;
 
     @Async
-    public void saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
+    public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
         String rawEmail = operation.getCommand().email();
         Optional<String> rawLogin = operation.getCommand().login();
 
@@ -130,16 +131,17 @@ public class AsyncAuthApplicationService {
         } catch (Exception ex) {
             log.error("Error while sending email", ex);
         }
+
+        return CompletableFuture.completedFuture(null);
     }
 
     @Async
-    public void saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) {
+    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) {
         Cache unverifiedUsersCache = cacheManager.getCache("unverifiedUsers");
         Cache unverifiedUserPasswordsCache = cacheManager.getCache("unverifiedUserPasswords");
         Cache verificationCodesCache = cacheManager.getCache("verificationCodes");
 
         String email = user.getEmail().getEmail();
-        System.out.println(email);
 
         unverifiedUsersCache.evict(email);
         unverifiedUserPasswordsCache.evict(email);
@@ -147,5 +149,7 @@ public class AsyncAuthApplicationService {
 
         userRepository.saveUser(user);
         passwordRepository.saveUserPassword(userPassword);
+
+        return CompletableFuture.completedFuture(null);
     }
 }

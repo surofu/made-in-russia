@@ -11,7 +11,7 @@ public class VerifyEmailMapperResultToResponseEntity implements VerifyEmail.Resu
 
     @Override
     public ResponseEntity<?> processSuccess(VerifyEmail.Result.Success result) {
-        return new ResponseEntity<>(result.getResponseMessageDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getVerifyEmailSuccessDto(), HttpStatus.OK);
     }
 
     @Override
@@ -26,5 +26,12 @@ public class VerifyEmailMapperResultToResponseEntity implements VerifyEmail.Resu
         String message = "Неверный код подтверждения почты";
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity<?> processCacheNotFound(VerifyEmail.Result.CacheNotFound result) {
+        String message = "Ошибка на стороне сервера";
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

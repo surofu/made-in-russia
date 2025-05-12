@@ -1,21 +1,23 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
+import com.surofu.madeinrussia.application.command.SaveOrUpdateSessionCommand;
 import com.surofu.madeinrussia.application.command.VerifyEmailCommand;
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class VerifyEmail {
-    VerifyEmailCommand command;
+    VerifyEmailCommand verifyEmailCommand;
+    SaveOrUpdateSessionCommand saveOrUpdateSessionCommand;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(SimpleResponseMessageDto responseMessageDto) {
-            log.info("Successfully verified email with message: {}", responseMessageDto.getMessage());
-            return Success.of(responseMessageDto);
+        static Result success(VerifyEmailSuccessDto verifyEmailSuccessDto) {
+            log.info("Successfully verified email with message: {}", verifyEmailSuccessDto);
+            return Success.of(verifyEmailSuccessDto);
         }
 
         static Result accountNotFound(String email) {
@@ -28,9 +30,14 @@ public class VerifyEmail {
             return InvalidVerificationCode.INSTANCE;
         }
 
+        static Result cacheNotFound(String cacheName) {
+            log.error("Cache with name '{}' not found", cacheName);
+            return CacheNotFound.of(cacheName);
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
-            SimpleResponseMessageDto responseMessageDto;
+            VerifyEmailSuccessDto verifyEmailSuccessDto;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -56,10 +63,21 @@ public class VerifyEmail {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class CacheNotFound implements Result {
+            String cacheName;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processCacheNotFound(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processAccountNotFound(AccountNotFound result);
             T processInvalidVerificationCode(InvalidVerificationCode result);
+            T processCacheNotFound(CacheNotFound result);
         }
     }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -15,6 +16,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionLastLoginDate implements Serializable {
 
+    @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private ZonedDateTime lastLoginDate;
 

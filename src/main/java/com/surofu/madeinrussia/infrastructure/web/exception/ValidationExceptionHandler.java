@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.web.exception;
 
-import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

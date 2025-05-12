@@ -1,18 +1,16 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.command.LoginWithEmailCommand;
-import com.surofu.madeinrussia.application.command.LoginWithLoginCommand;
-import com.surofu.madeinrussia.application.command.RegisterCommand;
-import com.surofu.madeinrussia.application.command.VerifyEmailCommand;
+import com.surofu.madeinrussia.application.command.*;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +36,8 @@ public class AuthRestController {
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
+
+    private final IpAddressUtils ipAddressUtils;
 
     @PostMapping("register")
     @Operation(
@@ -201,9 +201,15 @@ public class AuthRestController {
                             schema = @Schema(implementation = VerifyEmailCommand.class)
                     )
             )
-            @RequestBody @Valid VerifyEmailCommand verifyEmailCommand
+            @RequestBody @Valid VerifyEmailCommand verifyEmailCommand,
+            HttpServletRequest request
     ) {
-        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand);
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        SaveOrUpdateSessionCommand saveOrUpdateSessionCommand = new SaveOrUpdateSessionCommand(userAgent, ipAddress);
+        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, saveOrUpdateSessionCommand);
+
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 }

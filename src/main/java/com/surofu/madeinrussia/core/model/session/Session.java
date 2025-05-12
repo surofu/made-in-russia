@@ -30,7 +30,7 @@ public final class Session implements Serializable {
     private SessionDeviceId deviceId;
 
     @Embedded
-    private SessionDeviceName deviceName;
+    private SessionDeviceType deviceType;
 
     @Embedded
     private SessionBrowser browser;

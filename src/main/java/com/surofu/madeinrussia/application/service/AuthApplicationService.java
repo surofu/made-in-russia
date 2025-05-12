@@ -2,7 +2,10 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
+import com.surofu.madeinrussia.application.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
+import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
@@ -15,6 +18,7 @@ import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -28,7 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -36,7 +42,9 @@ public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+
     private final AsyncAuthApplicationService asyncAuthApplicationService;
+    private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     @Qualifier("verificationCacheManager")
     private final CacheManager cacheManager;
@@ -132,10 +140,15 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
-        String email = operation.getCommand().email();
-        String verificationCode = operation.getCommand().code();
+        String email = operation.getVerifyEmailCommand().email();
+        String verificationCode = operation.getVerifyEmailCommand().code();
 
-        Cache unverifiedUsersCache = cacheManager.getCache("unverifiedUsers");
+        String unverifiedCacheName = "unverifiedUsers";
+        Cache unverifiedUsersCache = cacheManager.getCache(unverifiedCacheName);
+
+        if (unverifiedUsersCache == null) {
+            return VerifyEmail.Result.cacheNotFound(unverifiedCacheName);
+        }
 
         User user = unverifiedUsersCache.get(email, User.class);
 
@@ -143,7 +156,12 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.accountNotFound(email);
         }
 
-        Cache unverifiedUserPasswordsCache = cacheManager.getCache("unverifiedUserPasswords");
+        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
+        Cache unverifiedUserPasswordsCache = cacheManager.getCache(unverifiedUserPasswordsCacheName);
+
+        if (unverifiedUserPasswordsCache == null) {
+            return VerifyEmail.Result.cacheNotFound(unverifiedUserPasswordsCacheName);
+        }
 
         UserPassword userPassword = unverifiedUserPasswordsCache.get(email, UserPassword.class);
 
@@ -151,7 +169,12 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.accountNotFound(email);
         }
 
-        Cache verificationCodesCache = cacheManager.getCache("verificationCodes");
+        String verificationCodesCacheName = "verificationCodes";
+        Cache verificationCodesCache = cacheManager.getCache(verificationCodesCacheName);
+
+        if (verificationCodesCache == null) {
+            return VerifyEmail.Result.cacheNotFound(verificationCodesCacheName);
+        }
 
         String verificationCodeFromCache = verificationCodesCache.get(email, String.class);
 
@@ -159,16 +182,30 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.accountNotFound(email);
         }
 
-        System.out.println("code from cache: " + verificationCodeFromCache);
-
-        if (verificationCode.equals(verificationCodeFromCache)) {
-            asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword);
-
-            String message = "Почта успешно подтверждена";
-            SimpleResponseMessageDto responseMessageDto = new SimpleResponseMessageDto(message);
-            return VerifyEmail.Result.success(responseMessageDto);
+        if (!verificationCode.equals(verificationCodeFromCache)) {
+            return VerifyEmail.Result.invalidVerificationCode(verificationCode);
         }
 
-        return VerifyEmail.Result.invalidVerificationCode(verificationCode);
+        CompletableFuture<Void> asyncOperations = asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword)
+                .thenCompose(unused -> asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(
+                                operation.getSaveOrUpdateSessionCommand().userAgent(),
+                                operation.getSaveOrUpdateSessionCommand().ipAddress(),
+                                user
+                        ).exceptionally(ex -> {
+                            log.error("Error while saving session", ex);
+                            return null;
+                        })
+                ).exceptionally(ex -> {
+                    log.error("Error while saving user", ex);
+                    return null;
+                });
+
+        SecurityUser securityUser = new SecurityUser(user, userPassword);
+
+        String accessToken = jwtUtils.generateAccessToken(securityUser);
+        String refreshToken = jwtUtils.generateRefreshToken(securityUser);
+
+        VerifyEmailSuccessDto verifyEmailSuccessDto = VerifyEmailSuccessDto.of(accessToken, refreshToken);
+        return VerifyEmail.Result.success(verifyEmailSuccessDto);
     }
 }

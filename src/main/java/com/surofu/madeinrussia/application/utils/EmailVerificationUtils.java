@@ -8,7 +8,7 @@ import java.util.Random;
 @Slf4j
 @Component
 public class EmailVerificationUtils {
-    private final int CODE_LENGTH = 6;
+    private final int CODE_LENGTH = 4;
 
     public String generateVerificationCode() {
         StringBuilder verificationCode = new StringBuilder();
