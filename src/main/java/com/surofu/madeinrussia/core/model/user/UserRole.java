@@ -5,6 +5,7 @@ public enum UserRole {
     ROLE_ADMIN;
 
     public String getName() {
-        return name().split("_")[1];
+        String name = name().split("_")[1].toLowerCase();
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 }

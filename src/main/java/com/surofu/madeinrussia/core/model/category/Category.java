@@ -4,10 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -23,9 +21,9 @@ public final class Category implements Serializable {
     @Embedded
     private CategoryName name;
 
-    @UpdateTimestamp
-    private ZonedDateTime creationDate;
+    @Embedded
+    private CategoryCreationDate creationDate;
 
-    @UpdateTimestamp
-    private ZonedDateTime lastModificationDate;
+    @Embedded
+    private CategoryLastModificationDate lastModificationDate;
 }

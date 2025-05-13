@@ -30,7 +30,7 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<String> getUserEmailByLogin(UserLogin userLogin) {
+    public Optional<UserEmail> getUserEmailByLogin(UserLogin userLogin) {
         return repository.getUserEmailByLogin(userLogin);
     }
 

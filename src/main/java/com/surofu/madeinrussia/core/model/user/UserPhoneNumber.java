@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,6 +12,8 @@ import java.io.Serializable;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserPhoneNumber implements Serializable {
+
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
 
     private UserPhoneNumber(String phoneNumber) {

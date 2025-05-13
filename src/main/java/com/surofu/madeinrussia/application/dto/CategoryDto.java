@@ -54,8 +54,8 @@ public final class CategoryDto implements Serializable {
         return CategoryDto.builder()
                 .id(category.getId())
                 .name(category.getName().getName())
-                .creationDate(category.getCreationDate())
-                .lastModificationDate(category.getLastModificationDate())
+                .creationDate(category.getCreationDate().getCreationDate())
+                .lastModificationDate(category.getLastModificationDate().getLastModificationDate())
                 .build();
     }
 }

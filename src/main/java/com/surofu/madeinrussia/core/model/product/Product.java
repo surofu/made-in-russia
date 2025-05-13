@@ -6,11 +6,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -38,9 +35,9 @@ public final class Product implements Serializable {
     @Embedded
     private ProductImageUrl imageUrl;
 
-    @CreationTimestamp
-    private ZonedDateTime creationDate;
+    @Embedded
+    private ProductCreationDate creationDate;
 
-    @UpdateTimestamp
-    private ZonedDateTime lastModificationDate;
+    @Embedded
+    private ProductLastModificationDate lastModificationDate;
 }

@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserLogin implements Serializable {
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String login;
 
     private UserLogin(String login) {

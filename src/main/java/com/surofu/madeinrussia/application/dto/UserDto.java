@@ -80,6 +80,8 @@ public final class UserDto implements Serializable {
                 .role(user.getRole().getName())
                 .login(user.getLogin().getLogin())
                 .email(user.getEmail().getEmail())
+                .phoneNumber(user.getPhoneNumber().getPhoneNumber())
+                .region(user.getRegion().getRegion())
                 .registrationDate(user.getRegistrationDate().getRegistrationDate())
                 .lastModificationDate(user.getLastModificationDate().getLastModificationDate())
                 .build();

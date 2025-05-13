@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.application.service.async;
 import com.surofu.madeinrussia.application.utils.EmailVerificationUtils;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
@@ -40,6 +41,7 @@ public class AsyncAuthApplicationService {
         UserEmail userEmail = UserEmail.of(rawEmail);
         UserLogin userLogin = UserLogin.of(rawLogin);
         UserPhoneNumber userPhoneNumber = UserPhoneNumber.of(rawPhoneNumber);
+        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
         UserRegion userRegion = UserRegion.of(rawRegion);
 
         User user = new User();
@@ -51,7 +53,7 @@ public class AsyncAuthApplicationService {
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
-        userPassword.setPassword(rawHashedPassword);
+        userPassword.setPassword(userPasswordPassword);
 
         String unverifiedUsersCacheName = "unverifiedUsers";
         Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);

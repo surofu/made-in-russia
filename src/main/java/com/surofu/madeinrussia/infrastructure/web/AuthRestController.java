@@ -49,7 +49,7 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "User created successfully",
                             content = @Content(
-                                    schema = @Schema(implementation = LoginSuccessDto.class)
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
                             )
                     ),
                     @ApiResponse(

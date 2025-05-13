@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.user;
+package com.surofu.madeinrussia.core.model.category;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,18 +15,18 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class UserRegistrationDate implements Serializable {
-    
+public final class CategoryCreationDate implements Serializable {
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime registrationDate;
+    private ZonedDateTime creationDate;
 
-    private UserRegistrationDate(ZonedDateTime registrationDate) {
-        this.registrationDate = registrationDate;
+    private CategoryCreationDate(ZonedDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
-    public static UserRegistrationDate of(ZonedDateTime registrationDate) {
-        return new UserRegistrationDate(registrationDate);
+    public static CategoryCreationDate of(ZonedDateTime creationDate) {
+        return new CategoryCreationDate(creationDate);
     }
 }

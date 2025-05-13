@@ -12,7 +12,8 @@ import java.io.Serializable;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryMethodName implements Serializable {
-    @Column(name = "name")
+
+    @Column(unique = true, nullable = false)
     private String name;
 
     private DeliveryMethodName(String name) {

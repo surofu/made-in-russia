@@ -21,5 +21,5 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long> {
                 select u.email from User u
                 where u.login = :login
             """)
-    Optional<String> getUserEmailByLogin(UserLogin login);
+    Optional<UserEmail> getUserEmailByLogin(UserLogin login);
 }

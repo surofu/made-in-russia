@@ -54,8 +54,8 @@ public final class DeliveryMethodDto implements Serializable {
         return DeliveryMethodDto.builder()
                 .id(deliveryMethod.getId())
                 .name(deliveryMethod.getName().getName())
-                .creationDate(deliveryMethod.getCreationDate())
-                .lastModificationDate(deliveryMethod.getLastModificationDate())
+                .creationDate(deliveryMethod.getCreationDate().getCreationDate())
+                .lastModificationDate(deliveryMethod.getLastModificationDate().getLastModificationDate())
                 .build();
     }
 }

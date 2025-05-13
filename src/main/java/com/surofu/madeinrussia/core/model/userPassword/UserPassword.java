@@ -5,11 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -25,11 +22,12 @@ public final class UserPassword implements Serializable {
     @OneToOne(fetch = FetchType.EAGER)
     private User user;
 
-    private String password;
+    @Embedded
+    private UserPasswordPassword password;
 
-    @CreationTimestamp
-    private ZonedDateTime creationDate;
+    @Embedded
+    private UserPasswordCreationDate creationDate;
 
-    @UpdateTimestamp
-    private ZonedDateTime lastModificationDate;
+    @Embedded
+    private UserPasswordLastModificationDate lastModificationDate;
 }

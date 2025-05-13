@@ -5,14 +5,5 @@ spring:
     show-sql: false
   flyway:
     enabled: false
-
-app:
-  rate:
-    limit:
-      capacity: 100
-      whitelist: |
-        192.168.1.1
-        127.0.0.1
-      refill:
-        tokens: 5
-        minutes: 1
+    baseline-on-migrate: false
+    validate-on-migrate: false

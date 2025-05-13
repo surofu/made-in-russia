@@ -36,37 +36,37 @@ public class JwtUtils {
         return generateToken(userDetails, refreshTokenSecret, refreshTokenLifetime);
     }
 
-    public Long extractIdFromAccessToken(String token) {
-        return extractClaimFromAccessToken(token, claims -> claims.get("id", Long.class));
+    public Long extractIdFromAccessToken(String accessToken) {
+        return extractClaimFromAccessToken(accessToken, claims -> claims.get("id", Long.class));
     }
 
-    public Long extractIdFromRefreshToken(String token) {
-        return extractClaimFromRefreshToken(token, claims -> claims.get("id", Long.class));
+    public Long extractIdFromRefreshToken(String refreshToken) {
+        return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("id", Long.class));
     }
 
-    public String extractEmailFromAccessToken(String token) {
-        return extractClaimFromAccessToken(token, Claims::getSubject);
+    public String extractEmailFromAccessToken(String accessToken) {
+        return extractClaimFromAccessToken(accessToken, Claims::getSubject);
     }
 
-    public String extractEmailFromRefreshToken(String token) {
-        return extractClaimFromRefreshToken(token, Claims::getSubject);
+    public String extractEmailFromRefreshToken(String refreshToken) {
+        return extractClaimFromRefreshToken(refreshToken, Claims::getSubject);
     }
 
-    public List<?> extractRolesFromAccessToken(String token) {
-        return extractClaimFromAccessToken(token, claims -> claims.get("roles", List.class));
+    public String extractRoleFromAccessToken(String accessToken) {
+        return extractClaimFromAccessToken(accessToken, claims -> claims.get("role", String.class));
     }
 
-    public List<?> extractRolesFromRefreshToken(String token) {
-        return extractClaimFromRefreshToken(token, claims -> claims.get("roles", List.class));
+    public String extractRoleFromRefreshToken(String refreshToken) {
+        return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("role", String.class));
     }
 
-    public <T> T extractClaimFromAccessToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token, accessTokenSecret);
+    public <T> T extractClaimFromAccessToken(String accessToken, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(accessToken, accessTokenSecret);
         return claimsResolver.apply(claims);
     }
 
-    public <T> T extractClaimFromRefreshToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token, refreshTokenSecret);
+    public <T> T extractClaimFromRefreshToken(String refreshToken, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(refreshToken, refreshTokenSecret);
         return claimsResolver.apply(claims);
     }
 

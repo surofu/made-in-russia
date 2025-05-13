@@ -11,6 +11,8 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
@@ -38,6 +40,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
+    private final UserPasswordRepository passwordRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
@@ -96,22 +99,28 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
-        String login = operation.getCommand().login();
-        String password = operation.getCommand().password();
+        String rawLogin = operation.getCommand().login();
+        String rawPassword = operation.getCommand().password();
 
-        Optional<String> email = userRepository.getUserEmailByLogin(UserLogin.of(login));
+        UserLogin userLogin = UserLogin.of(rawLogin);
+        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
 
-        if (email.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials(login, password);
+        Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(userLogin);
+
+        if (userEmail.isEmpty()) {
+            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
 
-        Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(email, password);
+        String rawEmail = userEmail.get().getEmail();
+
+        Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(rawEmail, rawPassword);
         Authentication authenticationResponse;
 
         try {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         } catch (AuthenticationException ex) {
-            return LoginWithLogin.Result.invalidCredentials(login, password);
+            log.warn("Authentication failed", ex);
+            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);

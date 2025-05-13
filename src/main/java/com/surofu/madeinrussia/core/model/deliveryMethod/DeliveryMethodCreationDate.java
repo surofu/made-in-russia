@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.user;
+package com.surofu.madeinrussia.core.model.deliveryMethod;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,18 +15,18 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class UserRegistrationDate implements Serializable {
-    
+public final class DeliveryMethodCreationDate implements Serializable {
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime registrationDate;
+    private ZonedDateTime creationDate;
 
-    private UserRegistrationDate(ZonedDateTime registrationDate) {
-        this.registrationDate = registrationDate;
+    private DeliveryMethodCreationDate(ZonedDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
-    public static UserRegistrationDate of(ZonedDateTime registrationDate) {
-        return new UserRegistrationDate(registrationDate);
+    public static DeliveryMethodCreationDate of(ZonedDateTime creationDate) {
+        return new DeliveryMethodCreationDate(creationDate);
     }
 }

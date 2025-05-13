@@ -16,12 +16,4 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     driver-class-name: org.postgresql.Driver
-
-app:
-  rate:
-    limit:
-      capacity: 100
-      whitelist: 0.0.0.0
-      refill:
-        tokens: 5
-        minutes: 1
+    validate-on-migrate: true

@@ -106,8 +106,8 @@ public final class ProductDto implements Serializable {
                 .discount(product.getPrice().getDiscount())
                 .discountedPrice(product.getPrice().getDiscountedPrice())
                 .imageUrl(product.getImageUrl().getImageUrl())
-                .creationDate(product.getCreationDate())
-                .lastModificationDate(product.getLastModificationDate())
+                .creationDate(product.getCreationDate().getCreationDate())
+                .lastModificationDate(product.getLastModificationDate().getLastModificationDate())
                 .build();
     }
 }

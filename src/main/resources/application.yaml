@@ -2,18 +2,18 @@ server:
   port: ${PORT}
   undertow:
     threads:
-      io: 8                      # Количество IO-потоков (по умолчанию зависит от ядер CPU)
-      worker: 50                 # Максимальное количество рабочих потоков
-    no-request-timeout: 60000    # Таймаут бездействия (60 сек)
+      #      io: 4 Количество IO-потоков (по умолчанию зависит от ядер CPU)
+      worker: 20                 # Максимальное количество рабочих потоков
+    no-request-timeout: 30000    # Таймаут бездействия (60 сек)
     direct-buffers: true         # Использование прямых буферов (лучше для производительности)
-    buffer-size: 1024            # Размер буфера (можно уменьшить, если мало RAM)
+    buffer-size: 256             # Размер буфера (можно уменьшить, если мало RAM)
 
 #========= Spring =========#
 spring:
   application:
     name: MadeInRussia
   profiles:
-    active: dev
+    active: ${PROFILES_ACTIVE}
   mvc:
 
     #========= Cors =========#
@@ -33,6 +33,7 @@ spring:
 
     #========= Hikari Pool =========#
     hikari:
+      initialization-fail-timeout: 30000
       connection-timeout: 30000
       maximum-pool-size: 10
       minimum-idle: 5
@@ -41,6 +42,8 @@ spring:
       auto-commit: true
       pool-name: HikariPool
       transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-test-query: SELECT 1
+      driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
 
@@ -89,3 +92,10 @@ jwt:
 app:
   mail-verification:
     duration-in-minutes: ${MAIL_VERIFICATION_DURATION_IN_MINUTES}
+  rate:
+    limit:
+      capacity: ${RATE_LIMIT_CAPACITY}
+      whitelist: ${RATE_LIMIT_WHITE_LIST}
+      refill:
+        tokens: ${RATE_LIMIT_REFILL_TOKENS}
+        minutes: ${RATE_LIMIT_REFILL_MINUTES}

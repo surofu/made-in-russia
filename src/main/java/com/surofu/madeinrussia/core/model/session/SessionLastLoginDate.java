@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -18,6 +19,7 @@ public final class SessionLastLoginDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime lastLoginDate;
 
     private SessionLastLoginDate(ZonedDateTime lastLoginDate) {

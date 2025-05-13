@@ -13,7 +13,7 @@ public interface UserRepository {
 
     Optional<User> getUserByEmail(UserEmail userEmail);
 
-    Optional<String> getUserEmailByLogin(UserLogin userLogin);
+    Optional<UserEmail> getUserEmailByLogin(UserLogin userLogin);
 
     void saveUser(User user);
 

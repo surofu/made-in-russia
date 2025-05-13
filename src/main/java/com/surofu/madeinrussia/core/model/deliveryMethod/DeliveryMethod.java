@@ -4,11 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -24,9 +21,9 @@ public final class DeliveryMethod implements Serializable {
     @Embedded
     private DeliveryMethodName name;
 
-    @CreationTimestamp
-    private ZonedDateTime creationDate;
+    @Embedded
+    private DeliveryMethodCreationDate creationDate;
 
-    @UpdateTimestamp
-    private ZonedDateTime lastModificationDate;
+    @Embedded
+    private DeliveryMethodLastModificationDate lastModificationDate;
 }

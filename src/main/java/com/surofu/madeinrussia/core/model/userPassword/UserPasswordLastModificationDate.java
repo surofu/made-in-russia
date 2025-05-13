@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.user;
+package com.surofu.madeinrussia.core.model.userPassword;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,18 +15,18 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class UserLastModificationDate implements Serializable {
+public final class UserPasswordLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime lastModificationDate;
 
-    private UserLastModificationDate(ZonedDateTime lastModificationDate) {
+    private UserPasswordLastModificationDate(ZonedDateTime lastModificationDate) {
         this.lastModificationDate = lastModificationDate;
     }
 
-    public static UserLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new UserLastModificationDate(lastModificationDate);
+    public static UserPasswordLastModificationDate of(ZonedDateTime lastModificationDate) {
+        return new UserPasswordLastModificationDate(lastModificationDate);
     }
 }

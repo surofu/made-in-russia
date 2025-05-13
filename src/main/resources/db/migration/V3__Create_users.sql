@@ -10,9 +10,9 @@ $$;
 create table if not exists users
 (
     id                     bigserial primary key,
-    role                   user_role,
+    role                   user_role    not null,
     email                  varchar(255) not null unique,
-    login                  varchar(255) unique,
+    login                  varchar(255) not null unique,
     registration_date      timestamptz  not null default now(),
     last_modification_date timestamptz  not null default now(),
     last_login_date        timestamptz  not null default now()

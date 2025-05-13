@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,7 +14,11 @@ import java.math.BigDecimal;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPrice implements Serializable {
+
+    @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(columnDefinition = "decimal(5, 2) default 0")
     private BigDecimal discount;
 
     @Formula("price * (1 - discount / 100)")

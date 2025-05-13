@@ -19,6 +19,7 @@ public final class User implements Serializable {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole role;
 
     @Embedded

@@ -1,3 +1,3 @@
 alter table users
-    add column phone_number varchar(255),
-    add column region       varchar(255);
+    add column if not exists phone_number varchar(255) not null default '',
+    add column if not exists region       varchar(255) not null default '';
