@@ -51,26 +51,22 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        log.info(authorizationHeader);
-        log.info(email);
-
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             String role = jwtUtils.extractRoleFromAccessToken(accessToken);
             List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(role));
 
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                    email,
-                    null,
-                    authorityList
-            );
-
-            log.info("Jwt authenticated: {}", token);
-
-            SecurityContextHolder.getContext().setAuthentication(token);
-
-            // Update Access Token
             try {
                 UserDetails userDetails = userService.loadUserByUsername(email);
+
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        authorityList
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(token);
+
+                // Update Access Token
                 accessToken = jwtUtils.generateAccessToken(userDetails);
                 response.setHeader("Authorization", "Bearer " + accessToken);
             } catch (UsernameNotFoundException ex) {

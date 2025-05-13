@@ -14,7 +14,7 @@ public class GetMeByJwtMapperResultToResponseEntity implements GetMeByJwt.Result
     }
 
     @Override
-    public ResponseEntity<?> processNotFound(GetMeByJwt.Result.NotFound result) {
+    public ResponseEntity<?> processSessionWithDeviceNotFound(GetMeByJwt.Result.SessionWithDeviceNotFound result) {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 }

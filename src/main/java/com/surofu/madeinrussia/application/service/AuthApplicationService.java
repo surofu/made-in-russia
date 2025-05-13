@@ -11,8 +11,6 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
-import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
@@ -40,7 +38,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
-    private final UserPasswordRepository passwordRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
@@ -71,16 +68,16 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public LoginWithEmail.Result loginWithEmail(LoginWithEmail operation) {
-        String email = operation.getCommand().email();
-        String password = operation.getCommand().password();
+        String rawEmail = operation.getCommand().email();
+        String rawPassword = operation.getCommand().password();
 
-        Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(email, password);
+        Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(rawEmail, rawPassword);
         Authentication authenticationResponse;
 
         try {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         } catch (AuthenticationException ex) {
-            return LoginWithEmail.Result.invalidCredentials(email, password);
+            return LoginWithEmail.Result.invalidCredentials(rawEmail, rawPassword);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
@@ -88,6 +85,19 @@ public class AuthApplicationService implements AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(userDetails);
         String refreshToken = jwtUtils.generateRefreshToken(userDetails);
+
+        UserEmail userEmail = UserEmail.of(rawEmail);
+        Optional<User> user = userRepository.getUserByEmail(userEmail);
+
+        if (user.isEmpty()) {
+            return LoginWithEmail.Result.invalidCredentials(rawEmail, rawPassword);
+        }
+
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(
+                operation.getUserAgent(),
+                operation.getIpAddress(),
+                user.get()
+        );
 
         LoginSuccessDto loginSuccessDto = LoginSuccessDto.builder()
                 .accessToken(accessToken)
@@ -103,12 +113,11 @@ public class AuthApplicationService implements AuthService {
         String rawPassword = operation.getCommand().password();
 
         UserLogin userLogin = UserLogin.of(rawLogin);
-        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
 
         Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(userLogin);
 
         if (userEmail.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
+            return LoginWithLogin.Result.invalidCredentials(rawLogin, rawPassword);
         }
 
         String rawEmail = userEmail.get().getEmail();
@@ -120,7 +129,7 @@ public class AuthApplicationService implements AuthService {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         } catch (AuthenticationException ex) {
             log.warn("Authentication failed", ex);
-            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
+            return LoginWithLogin.Result.invalidCredentials(rawLogin, rawPassword);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
@@ -128,6 +137,18 @@ public class AuthApplicationService implements AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(userDetails);
         String refreshToken = jwtUtils.generateRefreshToken(userDetails);
+
+        Optional<User> user = userRepository.getUserByEmail(userEmail.get());
+
+        if (user.isEmpty()) {
+            return LoginWithLogin.Result.invalidCredentials(rawEmail, rawPassword);
+        }
+
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(
+                operation.getUserAgent(),
+                operation.getIpAddress(),
+                user.get()
+        );
 
         LoginSuccessDto loginSuccessDto = LoginSuccessDto.builder()
                 .accessToken(accessToken)

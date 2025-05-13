@@ -12,8 +12,6 @@ server:
 spring:
   application:
     name: MadeInRussia
-  profiles:
-    active: ${PROFILES_ACTIVE}
   mvc:
 
     #========= Cors =========#

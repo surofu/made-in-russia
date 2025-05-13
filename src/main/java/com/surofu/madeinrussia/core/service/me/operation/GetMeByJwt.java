@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.query.me.GetMeByJwtQuery;
-import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,9 +19,9 @@ public class GetMeByJwt {
             return Success.of(userDto);
         }
 
-        static Result notFound(UserEmail email) {
-            log.warn("User with email '{}' not found.", email.getEmail());
-            return NotFound.of(email);
+        static Result sessionWithDeviceNotFound(SessionDeviceId sessionDeviceId) {
+            log.warn("Session with device id '{}' not found", sessionDeviceId.getDeviceId());
+            return SessionWithDeviceNotFound.of(sessionDeviceId);
         }
 
         @Value(staticConstructor = "of")
@@ -35,18 +35,18 @@ public class GetMeByJwt {
         }
 
         @Value(staticConstructor = "of")
-        class NotFound implements Result {
-            UserEmail email;
+        class SessionWithDeviceNotFound implements Result {
+            SessionDeviceId sessionDeviceId;
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processNotFound(this);
+                return processor.processSessionWithDeviceNotFound(this);
             }
         }
 
         interface Processor<T> {
             T processSuccess(Success result);
-            T processNotFound(NotFound result);
+            T processSessionWithDeviceNotFound(SessionWithDeviceNotFound result);
         }
     }
 }

@@ -111,9 +111,13 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithEmailCommand.class)
                     )
             )
-            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand
+            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand,
+            HttpServletRequest request
     ) {
-        LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand);
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand, userAgent, ipAddress);
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
     }
 
@@ -153,9 +157,13 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithLoginCommand.class)
                     )
             )
-            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand
+            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand,
+            HttpServletRequest request
     ) {
-        LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand);
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand, userAgent, ipAddress);
         return authService.loginWithLogin(operation).process(loginWithLoginProcessor);
     }
 

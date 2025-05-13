@@ -2,8 +2,6 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.command.LoginWithLoginCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class LoginWithLogin {
     LoginWithLoginCommand command;
+    String userAgent;
+    String ipAddress;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -20,8 +20,8 @@ public class LoginWithLogin {
             return Success.of(loginSuccessDto);
         }
 
-        static Result invalidCredentials(UserLogin login, UserPasswordPassword password) {
-            log.warn("Invalid login with email credentials provided: Login: {}, Password: {}", login.getLogin(), password.getPassword());
+        static Result invalidCredentials(String login, String password) {
+            log.warn("Invalid login with email credentials provided: Login: {}, Password: {}", login, password);
             return InvalidCredentials.INSTANCE;
         }
 
