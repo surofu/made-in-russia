@@ -1,6 +1,12 @@
 package com.surofu.madeinrussia.infrastructure.filter;
 
+import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.application.utils.SessionUtils;
+import com.surofu.madeinrussia.core.model.session.Session;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
+import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -13,20 +19,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
+    private final SessionUtils sessionUtils;
+    private final IpAddressUtils ipAddressUtils;
     private final UserService userService;
+    private final SessionRepository sessionRepository;
 
     @Override
     protected void doFilterInternal(
@@ -51,15 +60,22 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        SessionDeviceId deviceId = sessionUtils.getDeviceId(userAgent, ipAddress);
+        Optional<Session> currentSession = sessionRepository.getSessionByDeviceId(deviceId);
+
+        if (currentSession.isPresent() && email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             String role = jwtUtils.extractRoleFromAccessToken(accessToken);
             List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(role));
 
             try {
-                UserDetails userDetails = userService.loadUserByUsername(email);
+                SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(email);
+                securityUser.setSession(currentSession);
 
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        securityUser,
                         null,
                         authorityList
                 );
@@ -67,7 +83,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(token);
 
                 // Update Access Token
-                accessToken = jwtUtils.generateAccessToken(userDetails);
+                accessToken = jwtUtils.generateAccessToken(securityUser);
                 response.setHeader("Authorization", "Bearer " + accessToken);
             } catch (UsernameNotFoundException ex) {
                 log.debug("User with email '{}' not found", email, ex);

@@ -12,4 +12,9 @@ public class GetMeSessionsResultToResponseEntity implements GetMeSessions.Result
     public ResponseEntity<?> processSuccess(GetMeSessions.Result.Success result) {
         return new ResponseEntity<>(result.getSessionDtos(), HttpStatus.OK);
     }
+
+    @Override
+    public ResponseEntity<?> processSessionWithDeviceNotFound(GetMeSessions.Result.SessionWithDeviceNotFound result) {
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
 }

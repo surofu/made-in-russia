@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.application.utils;
 
 import com.surofu.madeinrussia.application.security.SecurityUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -36,36 +37,36 @@ public class JwtUtils {
         return generateToken(userDetails, refreshTokenSecret, refreshTokenLifetime);
     }
 
-    public Long extractIdFromAccessToken(String accessToken) {
+    public Long extractIdFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromAccessToken(accessToken, claims -> claims.get("id", Long.class));
     }
 
-    public Long extractIdFromRefreshToken(String refreshToken) {
+    public Long extractIdFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("id", Long.class));
     }
 
-    public String extractEmailFromAccessToken(String accessToken) {
+    public String extractEmailFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromAccessToken(accessToken, Claims::getSubject);
     }
 
-    public String extractEmailFromRefreshToken(String refreshToken) {
+    public String extractEmailFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromRefreshToken(refreshToken, Claims::getSubject);
     }
 
-    public String extractRoleFromAccessToken(String accessToken) {
+    public String extractRoleFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromAccessToken(accessToken, claims -> claims.get("role", String.class));
     }
 
-    public String extractRoleFromRefreshToken(String refreshToken) {
+    public String extractRoleFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("role", String.class));
     }
 
-    public <T> T extractClaimFromAccessToken(String accessToken, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaimFromAccessToken(String accessToken, Function<Claims, T> claimsResolver) throws JwtException, IllegalArgumentException {
         final Claims claims = extractAllClaims(accessToken, accessTokenSecret);
         return claimsResolver.apply(claims);
     }
 
-    public <T> T extractClaimFromRefreshToken(String refreshToken, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaimFromRefreshToken(String refreshToken, Function<Claims, T> claimsResolver) throws JwtException, IllegalArgumentException {
         final Claims claims = extractAllClaims(refreshToken, refreshTokenSecret);
         return claimsResolver.apply(claims);
     }
@@ -95,7 +96,7 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private Claims extractAllClaims(String token, String secret) {
+    private Claims extractAllClaims(String token, String secret) throws JwtException, IllegalArgumentException {
         return Jwts.parser()
                 .verifyWith(getSignInKey(secret))
                 .build()

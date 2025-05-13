@@ -69,6 +69,6 @@ public class UserApplicationService implements UserService {
         UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
                 .orElseThrow(() -> new UsernameNotFoundException(username));
 
-        return new SecurityUser(user, userPassword);
+        return new SecurityUser(user, userPassword, Optional.empty());
     }
 }

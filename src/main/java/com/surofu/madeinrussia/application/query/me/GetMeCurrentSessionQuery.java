@@ -2,9 +2,5 @@ package com.surofu.madeinrussia.application.query.me;
 
 import com.surofu.madeinrussia.application.security.SecurityUser;
 
-public record GetMeByJwtQuery(
-        SecurityUser securityUser,
-        String userAgent,
-        String ipAddress
-) {
+public record GetMeCurrentSessionQuery(SecurityUser securityUser) {
 }

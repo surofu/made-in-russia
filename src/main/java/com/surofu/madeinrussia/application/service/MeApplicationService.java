@@ -1,18 +1,23 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.application.utils.SessionUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
-import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.me.MeService;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeByJwt;
+import com.surofu.madeinrussia.core.service.me.operation.GetMe;
+import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
-import com.surofu.madeinrussia.core.service.me.operation.UpdateMeAccessToken;
+import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
+import com.surofu.madeinrussia.core.service.user.UserService;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,31 +29,28 @@ import java.util.Optional;
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
     private final SessionUtils sessionUtils;
+    private final UserService userService;
+    private final JwtUtils jwtUtils;
 
     @Override
-    public GetMeByJwt.Result getMeByJwt(GetMeByJwt operation) {
+    public GetMe.Result getMeByJwt(GetMe operation) {
         SecurityUser securityUser = operation.getQuery().securityUser();
-        User user = securityUser.getUser();
-        UserDto userDto = UserDto.of(user);
-
-        SessionDeviceId sessionDeviceId = sessionUtils.getDeviceId(operation.getQuery().userAgent(), operation.getQuery().ipAddress());
-        Optional<Session> existingSession = sessionRepository.getSessionByDeviceId(sessionDeviceId);
+        Optional<Session> existingSession = securityUser.getSession();
 
         if (existingSession.isEmpty()) {
-            return GetMeByJwt.Result.sessionWithDeviceNotFound(sessionDeviceId);
+            return GetMe.Result.sessionIsEmpty();
         }
 
-        return GetMeByJwt.Result.success(userDto);
-    }
+        User user = existingSession.get().getUser();
+        UserDto userDto = UserDto.of(user);
 
-    @Override
-    public UpdateMeAccessToken.Result updateMeAccessToken(UpdateMeAccessToken operation) {
-        return null;
+        return GetMe.Result.success(userDto);
     }
 
     @Override
     public GetMeSessions.Result getMeSessions(GetMeSessions operation) {
         SecurityUser securityUser = operation.getQuery().securityUser();
+
         User user = securityUser.getUser();
         Long userId = user.getId();
         List<Session> sessions = sessionRepository.getSessionsByUserId(userId);
@@ -61,5 +63,42 @@ public class MeApplicationService implements MeService {
         }
 
         return GetMeSessions.Result.success(sessionDtos);
+    }
+
+    @Override
+    public GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation) {
+        Optional<Session> session = operation.getQuery().securityUser().getSession();
+        Optional<SessionDto> sessionDto = session.map(SessionDto::of);
+
+        if (sessionDto.isEmpty()) {
+            return GetMeCurrentSession.Result.sessionIsEmpty();
+        }
+
+        return GetMeCurrentSession.Result.success(sessionDto.get());
+    }
+
+    @Override
+    public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
+        String refreshToken = operation.getCommand().refreshToken();
+        String userEmail;
+
+        try {
+            userEmail = jwtUtils.extractEmailFromRefreshToken(refreshToken);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return RefreshMeCurrentSession.Result.invalidRefreshToken(refreshToken, ex);
+        }
+
+        SecurityUser securityUser;
+
+        try {
+            securityUser = (SecurityUser) userService.loadUserByUsername(userEmail);
+        } catch (UsernameNotFoundException ex) {
+            return RefreshMeCurrentSession.Result.userNotFound(userEmail);
+        }
+
+        String accessToken = jwtUtils.generateAccessToken(securityUser);
+        TokenDto tokenDto = TokenDto.of(accessToken);
+
+        return RefreshMeCurrentSession.Result.success(tokenDto);
     }
 }

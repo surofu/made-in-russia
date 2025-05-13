@@ -220,7 +220,7 @@ public class AuthApplicationService implements AuthService {
                     return null;
                 });
 
-        SecurityUser securityUser = new SecurityUser(user, userPassword);
+        SecurityUser securityUser = new SecurityUser(user, userPassword, Optional.empty());
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);

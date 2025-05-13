@@ -1,15 +1,14 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.query.me.GetMeByJwtQuery;
-import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
+import com.surofu.madeinrussia.application.query.me.GetMeQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetMeByJwt {
-    GetMeByJwtQuery query;
+public class GetMe {
+    GetMeQuery query;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -19,9 +18,9 @@ public class GetMeByJwt {
             return Success.of(userDto);
         }
 
-        static Result sessionWithDeviceNotFound(SessionDeviceId sessionDeviceId) {
-            log.warn("Session with device id '{}' not found", sessionDeviceId.getDeviceId());
-            return SessionWithDeviceNotFound.of(sessionDeviceId);
+        static Result sessionIsEmpty() {
+            log.warn("Session is empty");
+            return SessionIsEmpty.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -34,19 +33,18 @@ public class GetMeByJwt {
             }
         }
 
-        @Value(staticConstructor = "of")
-        class SessionWithDeviceNotFound implements Result {
-            SessionDeviceId sessionDeviceId;
+        enum SessionIsEmpty implements Result {
+            INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processSessionWithDeviceNotFound(this);
+                return processor.processSessionIsEmpty(this);
             }
         }
 
         interface Processor<T> {
             T processSuccess(Success result);
-            T processSessionWithDeviceNotFound(SessionWithDeviceNotFound result);
+            T processSessionIsEmpty(SessionIsEmpty result);
         }
     }
 }

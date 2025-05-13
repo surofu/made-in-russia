@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +12,15 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public final class AccessTokenDto implements Serializable {
+@Schema(
+        name = "SingleToken",
+        description = "Represents a single token DTO"
+)
+public final class TokenDto implements Serializable {
     private String accessToken;
 
-    public static AccessTokenDto of(String accessToken) {
-        return AccessTokenDto.builder()
+    public static TokenDto of(String accessToken) {
+        return TokenDto.builder()
                 .accessToken(accessToken)
                 .build();
     }
