@@ -15,6 +15,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -30,6 +32,7 @@ public class AsyncAuthApplicationService {
     private final CacheManager verificationCacheManager;
 
     @Async
+    @Transactional
     public void saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
         String rawEmail = operation.getCommand().email();
         String rawLogin = operation.getCommand().login();
@@ -154,6 +157,7 @@ public class AsyncAuthApplicationService {
     }
 
     @Async
+    @Transactional
     public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) {
         String unverifiedUsersCacheName = "unverifiedUsers";
         Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);

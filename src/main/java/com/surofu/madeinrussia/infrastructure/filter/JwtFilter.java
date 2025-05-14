@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.filter;
 
 import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.application.utils.SessionUtils;
@@ -36,12 +37,16 @@ public class JwtFilter extends OncePerRequestFilter {
     private final IpAddressUtils ipAddressUtils;
     private final UserService userService;
     private final SessionRepository sessionRepository;
+    private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+        log.info("JWT Filter started");
+
         String authorizationHeader = request.getHeader("Authorization");
         String email = null;
         String accessToken = null;
@@ -85,11 +90,39 @@ public class JwtFilter extends OncePerRequestFilter {
                 // Update Access Token
                 accessToken = jwtUtils.generateAccessToken(securityUser);
                 response.setHeader("Authorization", "Bearer " + accessToken);
+
+                asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(userAgent, ipAddress, securityUser);
             } catch (UsernameNotFoundException ex) {
                 log.debug("User with email '{}' not found", email, ex);
             }
         }
 
+        log.info("JWT Filter finished");
+
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        String[] whiteList = {
+                "/api/v1/auth",
+                "/api/v1/products",
+                "/api/v1/categories",
+                "/api/v1/delivery-methods",
+                "/api/v1/me/current-session/refresh",
+        };
+
+        boolean shouldNotFilter = false;
+
+        for (String pathElement : whiteList) {
+            if (path.startsWith(pathElement)) {
+                shouldNotFilter = true;
+                break;
+            }
+        }
+
+        return shouldNotFilter;
     }
 }

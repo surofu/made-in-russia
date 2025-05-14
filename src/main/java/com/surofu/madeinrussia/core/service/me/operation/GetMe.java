@@ -44,6 +44,7 @@ public class GetMe {
 
         interface Processor<T> {
             T processSuccess(Success result);
+
             T processSessionIsEmpty(SessionIsEmpty result);
         }
     }

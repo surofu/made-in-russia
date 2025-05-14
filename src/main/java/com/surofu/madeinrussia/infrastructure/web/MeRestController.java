@@ -1,33 +1,31 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.nimbusds.oauth2.sdk.AccessTokenResponse;
 import com.surofu.madeinrussia.application.command.RefreshMeCurrentSessionCommand;
-import com.surofu.madeinrussia.application.dto.SessionDto;
-import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
-import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.query.me.GetMeCurrentSessionQuery;
 import com.surofu.madeinrussia.application.query.me.GetMeQuery;
 import com.surofu.madeinrussia.application.query.me.GetMeSessionsQuery;
 import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.GetMe;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
 import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -38,9 +36,9 @@ import java.util.List;
         name = "User Profile",
         description = "API for accessing current user information and session management"
 )
-@SecurityRequirement(name = "Bearer Authentication")
 public class MeRestController {
     private final MeService meService;
+    private final IpAddressUtils ipAddressUtils;
 
     private final GetMe.Result.Processor<ResponseEntity<?>> getMeByJwtProcessor;
     private final GetMeSessions.Result.Processor<ResponseEntity<?>> getMeSessionsProcessor;
@@ -48,6 +46,7 @@ public class MeRestController {
     private final RefreshMeCurrentSession.Result.Processor<ResponseEntity<?>> refreshMeCurrentSessionProcessor;
 
     @GetMapping
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get current user profile",
             description = """
@@ -71,10 +70,7 @@ public class MeRestController {
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - insufficient permissions",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
+                            description = "Forbidden - insufficient permissions"
                     )
             }
     )
@@ -86,6 +82,7 @@ public class MeRestController {
     }
 
     @GetMapping("sessions")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get user sessions",
             description = """
@@ -106,6 +103,10 @@ public class MeRestController {
                             content = @Content(
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions"
                     )
             }
     )
@@ -117,6 +118,7 @@ public class MeRestController {
     }
 
     @GetMapping("current-session")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get current session details",
             description = """
@@ -137,6 +139,10 @@ public class MeRestController {
                             content = @Content(
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions"
                     )
             }
     )
@@ -159,14 +165,14 @@ public class MeRestController {
                             responseCode = "200",
                             description = "Session refreshed successfully",
                             content = @Content(
-                                    schema = @Schema(implementation = AccessTokenResponse.class)
+                                    schema = @Schema(implementation = TokenDto.class)
                             )
                     ),
                     @ApiResponse(
                             responseCode = "400",
                             description = "Invalid refresh token",
                             content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -178,7 +184,7 @@ public class MeRestController {
                     )
             }
     )
-    public ResponseEntity<?> getMeCurrentSessionRefresh(
+    public ResponseEntity<?> refreshMeCurrentSessionRefresh(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Refresh token payload",
                     required = true,
@@ -194,9 +200,13 @@ public class MeRestController {
                             }
                     )
             )
-            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand
+            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand,
+            HttpServletRequest request
     ) {
-        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand);
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand, userAgent, ipAddress);
         return meService.refreshMeCurrentSession(operation).process(refreshMeCurrentSessionProcessor);
     }
 }

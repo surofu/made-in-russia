@@ -20,14 +20,14 @@ public class Register {
             return Success.of(responseMessageDto);
         }
 
-        static Result userWithEmailAlreadyExists(UserEmail email) {
-            log.warn("User with email '{}' already exists", email);
-            return UserWithEmailAlreadyExists.of(email.getEmail());
+        static Result userWithEmailAlreadyExists(UserEmail userEmail) {
+            log.warn("User with email '{}' already exists", userEmail.getEmail());
+            return UserWithEmailAlreadyExists.of(userEmail.getEmail());
         }
 
-        static Result userWithLoginAlreadyExists(UserLogin login) {
-            log.warn("User with login '{}' already exists", login);
-            return UserWithLoginAlreadyExists.of(login.getLogin());
+        static Result userWithLoginAlreadyExists(UserLogin userLogin) {
+            log.warn("User with login '{}' already exists", userLogin.getLogin());
+            return UserWithLoginAlreadyExists.of(userLogin.getLogin());
         }
 
         @Value(staticConstructor = "of")

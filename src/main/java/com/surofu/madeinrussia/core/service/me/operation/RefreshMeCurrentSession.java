@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class RefreshMeCurrentSession {
     RefreshMeCurrentSessionCommand command;
+    String userAgent;
+    String ipAddress;
 
     public interface Result {
         <T> T process(Processor<T> processor);

@@ -11,4 +11,6 @@ public interface SpringDataSessionRepository extends JpaRepository<Session, Long
     List<Session> findByUserId(Long userId);
 
     Optional<Session> findByDeviceId(SessionDeviceId deviceId);
+
+    void deleteByDeviceId(SessionDeviceId deviceId);
 }

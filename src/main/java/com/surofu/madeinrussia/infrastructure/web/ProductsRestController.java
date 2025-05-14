@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.GetProductsDto;
 import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.query.product.GetProductByIdQuery;
 import com.surofu.madeinrussia.application.query.product.GetProductsQuery;
 import com.surofu.madeinrussia.core.service.product.ProductService;
@@ -53,7 +54,9 @@ public class ProductsRestController {
                     @ApiResponse(
                             responseCode = "400",
                             description = "Invalid request parameters",
-                            content = @Content(schema = @Schema(hidden = true))
+                            content = @Content(schema = @Schema(
+                                    implementation = ValidationExceptionDto.class
+                            ))
                     )
             }
     )

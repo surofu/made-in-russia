@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionDeviceId implements Serializable {
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String deviceId;
 
     private SessionDeviceId(String deviceId) {

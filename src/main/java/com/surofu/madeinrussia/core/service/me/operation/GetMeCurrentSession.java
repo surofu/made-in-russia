@@ -38,13 +38,13 @@ public class GetMeCurrentSession {
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processSessionWithDeviceNotFound(this);
+                return processor.processSessionIsEmpty(this);
             }
         }
 
         interface Processor<T> {
             T processSuccess(Success result);
-            T processSessionWithDeviceNotFound(SessionIsEmpty result);
+            T processSessionIsEmpty(SessionIsEmpty result);
         }
     }
 }

@@ -4,9 +4,11 @@ import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.application.utils.SessionUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.me.MeService;
@@ -28,9 +30,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
-    private final SessionUtils sessionUtils;
     private final UserService userService;
     private final JwtUtils jwtUtils;
+    private final SessionUtils sessionUtils;
+    private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     @Override
     public GetMe.Result getMeByJwt(GetMe operation) {
@@ -96,8 +99,20 @@ public class MeApplicationService implements MeService {
             return RefreshMeCurrentSession.Result.userNotFound(userEmail);
         }
 
+        String userAgent = operation.getUserAgent();
+        String ipAddress = operation.getIpAddress();
+
+        SessionDeviceId sessionDeviceId = sessionUtils.getDeviceId(userAgent, ipAddress);
+        Optional<Session> existingSession = sessionRepository.getSessionByDeviceId(sessionDeviceId);
+
+        if (existingSession.isEmpty()) {
+            return RefreshMeCurrentSession.Result.userNotFound(userEmail);
+        }
+
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         TokenDto tokenDto = TokenDto.of(accessToken);
+
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(userAgent, ipAddress, securityUser);
 
         return RefreshMeCurrentSession.Result.success(tokenDto);
     }

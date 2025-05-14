@@ -7,21 +7,20 @@ import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
-import com.surofu.madeinrussia.core.service.auth.operation.LoginWithEmail;
-import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
-import com.surofu.madeinrussia.core.service.auth.operation.Register;
-import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-
+import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +36,7 @@ public class AuthRestController {
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
+    private final Logout.Result.Processor<ResponseEntity<?>> logoutProcessor;
 
     private final IpAddressUtils ipAddressUtils;
 
@@ -183,7 +183,7 @@ public class AuthRestController {
                             responseCode = "400",
                             description = "Invalid or expired verification code",
                             content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -213,5 +213,35 @@ public class AuthRestController {
         VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, saveOrUpdateSessionCommand);
 
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
+    }
+
+    @PostMapping("logout")
+    @Operation(
+            summary = "Logout user",
+            description = "Terminates the current user session",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Logout successful",
+                            content = @Content(
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid session data",
+                            content = @Content(
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+            }
+    )
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+
+        LogoutCommand logoutCommand = new LogoutCommand(userAgent, ipAddress);
+        Logout operation = Logout.of(logoutCommand);
+        return authService.logout(operation).process(logoutProcessor);
     }
 }

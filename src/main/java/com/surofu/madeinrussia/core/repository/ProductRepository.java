@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface ProductRepository {
     Page<Product> findAll(Specification<Product> specification, Pageable pageable);
+
     Optional<Product> findById(Long id);
 }

@@ -14,7 +14,7 @@ public class GetMeCurrentSessionMapperResultToResponseEntity implements GetMeCur
     }
 
     @Override
-    public ResponseEntity<?> processSessionWithDeviceNotFound(GetMeCurrentSession.Result.SessionIsEmpty result) {
+    public ResponseEntity<?> processSessionIsEmpty(GetMeCurrentSession.Result.SessionIsEmpty result) {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 }

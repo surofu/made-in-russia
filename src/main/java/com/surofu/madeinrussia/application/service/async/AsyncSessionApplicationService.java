@@ -1,8 +1,8 @@
 package com.surofu.madeinrussia.application.service.async;
 
+import com.surofu.madeinrussia.application.security.SecurityUser;
 import com.surofu.madeinrussia.application.utils.SessionUtils;
 import com.surofu.madeinrussia.core.model.session.*;
-import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.OperatingSystem;
@@ -10,6 +10,7 @@ import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +22,7 @@ public class AsyncSessionApplicationService {
     private final SessionUtils sessionUtils;
 
     @Async
-    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(String userAgentString, String ipAddress, User user) {
+    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(String userAgentString, String ipAddress, SecurityUser securityUser) {
         UserAgent userAgent = UserAgent.parseUserAgentString(userAgentString);
 
         Browser browser = userAgent.getBrowser();
@@ -38,11 +39,9 @@ public class AsyncSessionApplicationService {
         SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
         SessionLastLoginDate sessionLastLoginDate = SessionLastLoginDate.of(dateNow);
 
-        Session session = sessionRepository
-                .getSessionByDeviceId(sessionDeviceId)
-                .orElseGet(Session::new);
+        Session session = securityUser.getSession().orElseThrow();
 
-        session.setUser(user);
+        session.setUser(securityUser.getUser());
         session.setDeviceId(sessionDeviceId);
         session.setDeviceType(SessionDeviceType.of(deviceType));
         session.setBrowser(SessionBrowser.of(browserName));
@@ -52,6 +51,14 @@ public class AsyncSessionApplicationService {
         session.setLastLoginDate(sessionLastLoginDate);
 
         sessionRepository.saveOrUpdate(session);
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    @Transactional
+    public CompletableFuture<Void> removeSessionByDeviceId(SessionDeviceId sessionDeviceId) {
+        sessionRepository.deleteByDeviceId(sessionDeviceId);
 
         return CompletableFuture.completedFuture(null);
     }

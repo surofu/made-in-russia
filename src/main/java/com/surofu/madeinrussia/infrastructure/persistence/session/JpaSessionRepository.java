@@ -20,11 +20,6 @@ public class JpaSessionRepository implements SessionRepository {
     }
 
     @Override
-    public Optional<Session> getSessionById(Long id) {
-        return repository.findById(id);
-    }
-
-    @Override
     public Optional<Session> getSessionByDeviceId(SessionDeviceId deviceId) {
         return repository.findByDeviceId(deviceId);
     }
@@ -32,5 +27,10 @@ public class JpaSessionRepository implements SessionRepository {
     @Override
     public void saveOrUpdate(Session session) {
         repository.save(session);
+    }
+
+    @Override
+    public void deleteByDeviceId(SessionDeviceId deviceId) {
+        repository.deleteByDeviceId(deviceId);
     }
 }

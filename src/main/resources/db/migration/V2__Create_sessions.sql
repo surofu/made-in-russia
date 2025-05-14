@@ -2,7 +2,7 @@ create table if not exists sessions
 (
     id                     bigserial primary key,
     user_id                bigint       not null,
-    device_id              text         not null unique,
+    device_id              text         not null,
     device_type            varchar(255) not null,
     browser                varchar(255) not null,
     os                     varchar(255) not null,

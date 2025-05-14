@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface CategoryRepository {
     List<Category> getCategories();
+
     Optional<Category> getCategoryById(Long id);
 }
