@@ -1,6 +1,9 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
+import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -15,7 +18,8 @@ public class ProductSpecifications {
                 return cb.conjunction();
             }
 
-            return root.get("deliveryMethod").get("id").in(deliveryMethodIds);
+            Join<Product, DeliveryMethod> deliveryMethodsJoin = root.join("deliveryMethods", JoinType.INNER);
+            return deliveryMethodsJoin.get("id").in(deliveryMethodIds);
         };
     }
 

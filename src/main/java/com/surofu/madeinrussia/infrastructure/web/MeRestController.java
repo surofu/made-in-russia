@@ -1,12 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.command.RefreshMeCurrentSessionCommand;
+import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.model.SecurityUser;
 import com.surofu.madeinrussia.application.query.me.GetMeCurrentSessionQuery;
 import com.surofu.madeinrussia.application.query.me.GetMeQuery;
 import com.surofu.madeinrussia.application.query.me.GetMeSessionsQuery;
-import com.surofu.madeinrussia.application.security.SecurityUser;
-import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.GetMe;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
@@ -19,7 +18,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +36,6 @@ import java.util.List;
 )
 public class MeRestController {
     private final MeService meService;
-    private final IpAddressUtils ipAddressUtils;
 
     private final GetMe.Result.Processor<ResponseEntity<?>> getMeByJwtProcessor;
     private final GetMeSessions.Result.Processor<ResponseEntity<?>> getMeSessionsProcessor;
@@ -200,13 +197,9 @@ public class MeRestController {
                             }
                     )
             )
-            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand,
-            HttpServletRequest request
+            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand
     ) {
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
-
-        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand, userAgent, ipAddress);
+        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand);
         return meService.refreshMeCurrentSession(operation).process(refreshMeCurrentSessionProcessor);
     }
 }

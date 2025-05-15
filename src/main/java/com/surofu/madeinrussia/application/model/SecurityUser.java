@@ -1,6 +1,5 @@
-package com.surofu.madeinrussia.application.security;
+package com.surofu.madeinrussia.application.model;
 
-import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import lombok.AllArgsConstructor;
@@ -10,14 +9,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Data
 @AllArgsConstructor
 public class SecurityUser implements UserDetails {
     private User user;
     private UserPassword userPassword;
-    private Optional<Session> session;
+    private SessionInfo sessionInfo;
 
     @Override
     public String getUsername() {

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.session.Session;
+import com.surofu.madeinrussia.core.model.session.SessionWithUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,13 +18,19 @@ import java.time.ZonedDateTime;
         name = "User Session",
         description = "Represents a user session DTO"
 )
-public final class SessionDto implements Serializable {
+public final class SessionWithUserDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the session",
             example = "12345"
     )
     private Long id;
+
+    @Schema(
+            description = "User Dto of the session",
+            implementation = UserDto.class
+    )
+    private UserDto user;
 
     @Schema(
             description = "Session unique device id",
@@ -81,17 +87,18 @@ public final class SessionDto implements Serializable {
     private ZonedDateTime lastLoginDate;
 
     @Schema(hidden = true)
-    public static SessionDto of(Session session) {
-        return SessionDto.builder()
-                .id(session.getId())
-                .deviceId(session.getDeviceId().getDeviceId())
-                .deviceType(session.getDeviceType().getDeviceType())
-                .browser(session.getBrowser().getBrowser())
-                .os(session.getOs().getOs())
-                .ipAddress(session.getIpAddress().getIpAddress())
-                .creationDate(session.getCreationDate().getCreationDate())
-                .lastModificationDate(session.getLastModificationDate().getLastModificationDate())
-                .lastLoginDate(session.getLastLoginDate().getLastLoginDate())
+    public static SessionWithUserDto of(SessionWithUser sessionWithUser) {
+        return SessionWithUserDto.builder()
+                .id(sessionWithUser.getId())
+                .user(UserDto.of(sessionWithUser.getUser()))
+                .deviceId(sessionWithUser.getDeviceId().getDeviceId())
+                .deviceType(sessionWithUser.getDeviceType().getDeviceType())
+                .browser(sessionWithUser.getBrowser().getBrowser())
+                .os(sessionWithUser.getOs().getOs())
+                .ipAddress(sessionWithUser.getIpAddress().getIpAddress())
+                .creationDate(sessionWithUser.getCreationDate().getCreationDate())
+                .lastModificationDate(sessionWithUser.getLastModificationDate().getLastModificationDate())
+                .lastLoginDate(sessionWithUser.getLastLoginDate().getLastLoginDate())
                 .build();
     }
 }

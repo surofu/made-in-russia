@@ -1,8 +1,8 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.command.SaveOrUpdateSessionCommand;
-import com.surofu.madeinrussia.application.command.VerifyEmailCommand;
+import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
+import com.surofu.madeinrussia.application.model.SessionInfo;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class VerifyEmail {
     VerifyEmailCommand verifyEmailCommand;
-    SaveOrUpdateSessionCommand saveOrUpdateSessionCommand;
+    SessionInfo sessionInfo;
 
     public interface Result {
         <T> T process(Processor<T> processor);

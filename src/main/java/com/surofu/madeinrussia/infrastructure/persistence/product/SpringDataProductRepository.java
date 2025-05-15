@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @EntityGraph(attributePaths = {"category", "deliveryMethod"})
+    @EntityGraph(attributePaths = {"category", "deliveryMethods"})
     Page<Product> findAll(Specification<Product> specification, Pageable pageable);
 }

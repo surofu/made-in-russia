@@ -16,21 +16,16 @@ public class JpaSessionRepository implements SessionRepository {
 
     @Override
     public List<Session> getSessionsByUserId(Long userId) {
-        return repository.findByUserId(userId);
+        return repository.getAllByUserId(userId);
     }
 
     @Override
-    public Optional<Session> getSessionByDeviceId(SessionDeviceId deviceId) {
-        return repository.findByDeviceId(deviceId);
+    public Optional<Session> getSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId) {
+        return repository.getSessionByUserIdAndDeviceId(userId, deviceId);
     }
 
     @Override
-    public void saveOrUpdate(Session session) {
-        repository.save(session);
-    }
-
-    @Override
-    public void deleteByDeviceId(SessionDeviceId deviceId) {
-        repository.deleteByDeviceId(deviceId);
+    public void deleteSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId) {
+        repository.deleteByUserIdAndDeviceId(userId, deviceId);
     }
 }

@@ -17,7 +17,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -91,7 +92,7 @@ public class ProductsRestController {
                             format = "int64",
                             example = "[1, 2]",
                             minLength = 1,
-                            maxLength = 20
+                            maxLength = 40
                     ),
                     explode = Explode.FALSE,
                     examples = {
@@ -102,7 +103,7 @@ public class ProductsRestController {
                             ),
                             @ExampleObject(
                                     name = "Multiple delivery methods",
-                                    value = "1,2,3",
+                                    value = "1,2",
                                     description = "Filter by multiple delivery method IDs"
                             )
                     }
@@ -119,7 +120,7 @@ public class ProductsRestController {
                             format = "int64",
                             example = "[1, 2, 3]",
                             minLength = 1,
-                            maxLength = 20
+                            maxLength = 80
                     ),
                     explode = Explode.FALSE,
                     examples = {
@@ -142,7 +143,7 @@ public class ProductsRestController {
                     name = "minPrice",
                     description = "Minimum price filter (inclusive)",
                     in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "10.50")
+                    schema = @Schema(type = "number", format = "decimal", example = "1")
             )
             @RequestParam(required = false)
             BigDecimal minPrice,
@@ -151,7 +152,7 @@ public class ProductsRestController {
                     name = "maxPrice",
                     description = "Maximum price filter (inclusive)",
                     in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "99.99")
+                    schema = @Schema(type = "number", format = "decimal", example = "100000")
             )
             @RequestParam(required = false)
             BigDecimal maxPrice
@@ -185,7 +186,7 @@ public class ProductsRestController {
                     name = "id",
                     description = "ID of the product to be retrieved",
                     required = true,
-                    example = "123",
+                    example = "20",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable

@@ -9,13 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface SpringDataUserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByLogin(UserLogin login);
 
-    Optional<User> findByEmail(UserEmail email);
+    Optional<User> findByLogin(UserLogin userLogin);
 
-    boolean existsByEmail(UserEmail email);
+    Optional<User> findByEmail(UserEmail userEmail);
 
-    boolean existsByLogin(UserLogin login);
+    boolean existsByEmail(UserEmail userEmail);
+
+    boolean existsByLogin(UserLogin userLogin);
 
     @Query("""
                 select u.email from User u

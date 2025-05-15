@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.model.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
@@ -11,14 +12,19 @@ import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
-import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.SecurityUser;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserApplicationService implements UserService {
@@ -69,6 +75,16 @@ public class UserApplicationService implements UserService {
         UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
                 .orElseThrow(() -> new UsernameNotFoundException(username));
 
-        return new SecurityUser(user, userPassword, Optional.empty());
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (servletRequestAttributes == null) {
+            log.error("Servlet RequestAttributes is null");
+            throw new UsernameNotFoundException(username);
+        }
+
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        SessionInfo sessionInfo = SessionInfo.of(request);
+
+        return new SecurityUser(user, userPassword, sessionInfo);
     }
 }

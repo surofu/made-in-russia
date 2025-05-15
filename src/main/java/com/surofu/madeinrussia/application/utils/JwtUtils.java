@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.utils;
 
-import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.SecurityUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

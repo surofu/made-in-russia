@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
-import com.surofu.madeinrussia.application.command.RefreshMeCurrentSessionCommand;
+import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class RefreshMeCurrentSession {
     RefreshMeCurrentSessionCommand command;
-    String userAgent;
-    String ipAddress;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -28,6 +26,11 @@ public class RefreshMeCurrentSession {
         static Result userNotFound(String userEmail) {
             log.warn("User with email '{}' not found", userEmail);
             return UserNotFound.INSTANCE;
+        }
+
+        static Result sessionNotFound(String deviceId) {
+            log.warn("Session with device id '{}' not found", deviceId);
+            return SessionNotFound.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -58,10 +61,20 @@ public class RefreshMeCurrentSession {
             }
         }
 
+        enum SessionNotFound implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSessionNotFound(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processInvalidRefreshToken(InvalidRefreshToken result);
             T processUserNotFound(UserNotFound result);
+            T processSessionNotFound(SessionNotFound result);
         }
     }
 }

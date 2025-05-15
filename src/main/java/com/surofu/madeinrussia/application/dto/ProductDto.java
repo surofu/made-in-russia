@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -28,10 +30,10 @@ public final class ProductDto implements Serializable {
     private Long id;
 
     @Schema(
-            description = "Delivery method associated with this product",
-            implementation = DeliveryMethodDto.class
+            description = "Delivery method list associated with this product",
+            implementation = List.class
     )
-    private DeliveryMethodDto deliveryMethod;
+    private List<DeliveryMethodDto> deliveryMethods;
 
     @Schema(
             description = "Category this product belongs to",
@@ -99,7 +101,10 @@ public final class ProductDto implements Serializable {
     public static ProductDto of(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
-                .deliveryMethod(DeliveryMethodDto.of(product.getDeliveryMethod()))
+                .deliveryMethods(product.getDeliveryMethods().stream()
+                        .map(DeliveryMethodDto::of)
+                        .collect(Collectors.toList())
+                )
                 .category(CategoryDto.of(product.getCategory()))
                 .title(product.getTitle().getTitle())
                 .price(product.getPrice().getPrice())

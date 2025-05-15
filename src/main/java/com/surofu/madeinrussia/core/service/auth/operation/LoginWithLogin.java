@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.command.LoginWithLoginCommand;
+import com.surofu.madeinrussia.application.command.auth.LoginWithLoginCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class LoginWithLogin {
     LoginWithLoginCommand command;
-    String userAgent;
-    String ipAddress;
 
     public interface Result {
         <T> T process(Processor<T> processor);

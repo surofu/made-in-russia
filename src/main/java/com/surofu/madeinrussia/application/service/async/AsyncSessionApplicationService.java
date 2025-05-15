@@ -1,11 +1,9 @@
 package com.surofu.madeinrussia.application.service.async;
 
-import com.surofu.madeinrussia.application.security.SecurityUser;
-import com.surofu.madeinrussia.application.utils.SessionUtils;
+import com.surofu.madeinrussia.application.model.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.*;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
-import eu.bitwalker.useragentutils.Browser;
-import eu.bitwalker.useragentutils.OperatingSystem;
+import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -19,47 +17,53 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class AsyncSessionApplicationService {
     private final SessionRepository sessionRepository;
-    private final SessionUtils sessionUtils;
+    private final SessionWithUserRepository sessionWithUserRepository;
 
     @Async
-    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(String userAgentString, String ipAddress, SecurityUser securityUser) {
-        UserAgent userAgent = UserAgent.parseUserAgentString(userAgentString);
+    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) {
+        UserAgent userAgent = securityUser.getSessionInfo().getUserAgent();
 
-        Browser browser = userAgent.getBrowser();
-        String browserName = browser.getName();
+        String rawDeviceId = securityUser.getSessionInfo().getDeviceId();
+        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
 
-        OperatingSystem os = userAgent.getOperatingSystem();
-        String osName = os.getName();
+        String rawDeviceType = userAgent.getOperatingSystem().getDeviceType().getName();
+        SessionDeviceType sessionDeviceType = SessionDeviceType.of(rawDeviceType);
 
-        String deviceType = os.getDeviceType().getName();
-        SessionDeviceId sessionDeviceId = sessionUtils.generateDeviceId(userAgentString, ipAddress);
+        String rawBrowserName = userAgent.getBrowser().getName();
+        SessionBrowser sessionBrowser = SessionBrowser.of(rawBrowserName);
+
+        String rawOsName = userAgent.getOperatingSystem().getName();
+        SessionOs sessionOs = SessionOs.of(rawOsName);
+
+        String rawIpAddress = securityUser.getSessionInfo().getIpAddress();
+        SessionIpAddress sessionIpAddress = SessionIpAddress.of(rawIpAddress);
 
         ZonedDateTime dateNow = ZonedDateTime.now();
-
         SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
         SessionLastLoginDate sessionLastLoginDate = SessionLastLoginDate.of(dateNow);
 
-        Session session = securityUser.getSession().orElseThrow();
+        SessionWithUser sessionWithUser = sessionWithUserRepository
+                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                .orElse(new SessionWithUser());
 
-        session.setUser(securityUser.getUser());
-        session.setDeviceId(sessionDeviceId);
-        session.setDeviceType(SessionDeviceType.of(deviceType));
-        session.setBrowser(SessionBrowser.of(browserName));
-        session.setOs(SessionOs.of(osName));
-        session.setIpAddress(SessionIpAddress.of(ipAddress));
-        session.setLastModificationDate(sessionLastModificationDate);
-        session.setLastLoginDate(sessionLastLoginDate);
+        sessionWithUser.setUser(securityUser.getUser());
+        sessionWithUser.setDeviceId(sessionDeviceId);
+        sessionWithUser.setDeviceType(sessionDeviceType);
+        sessionWithUser.setBrowser(sessionBrowser);
+        sessionWithUser.setOs(sessionOs);
+        sessionWithUser.setIpAddress(sessionIpAddress);
+        sessionWithUser.setLastModificationDate(sessionLastModificationDate);
+        sessionWithUser.setLastLoginDate(sessionLastLoginDate);
 
-        sessionRepository.saveOrUpdate(session);
+        sessionWithUserRepository.saveOrUpdate(sessionWithUser);
 
         return CompletableFuture.completedFuture(null);
     }
 
     @Async
     @Transactional
-    public CompletableFuture<Void> removeSessionByDeviceId(SessionDeviceId sessionDeviceId) {
-        sessionRepository.deleteByDeviceId(sessionDeviceId);
-
+    public CompletableFuture<Void> removeSessionByUserIdAndDeviceId(Long userId, SessionDeviceId sessionDeviceId) {
+        sessionRepository.deleteSessionByUserIdAndDeviceId(userId, sessionDeviceId);
         return CompletableFuture.completedFuture(null);
     }
 }

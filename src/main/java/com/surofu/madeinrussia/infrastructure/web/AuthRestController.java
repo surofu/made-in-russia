@@ -1,11 +1,14 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.command.*;
+import com.surofu.madeinrussia.application.command.auth.LoginWithEmailCommand;
+import com.surofu.madeinrussia.application.command.auth.LoginWithLoginCommand;
+import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
+import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
-import com.surofu.madeinrussia.application.utils.IpAddressUtils;
+import com.surofu.madeinrussia.application.model.SecurityUser;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,10 +16,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,8 +40,6 @@ public class AuthRestController {
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
     private final Logout.Result.Processor<ResponseEntity<?>> logoutProcessor;
-
-    private final IpAddressUtils ipAddressUtils;
 
     @PostMapping("register")
     @Operation(
@@ -111,13 +112,9 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithEmailCommand.class)
                     )
             )
-            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand,
-            HttpServletRequest request
+            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand
     ) {
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
-
-        LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand, userAgent, ipAddress);
+        LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand);
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
     }
 
@@ -157,13 +154,9 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithLoginCommand.class)
                     )
             )
-            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand,
-            HttpServletRequest request
+            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand
     ) {
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
-
-        LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand, userAgent, ipAddress);
+        LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand);
         return authService.loginWithLogin(operation).process(loginWithLoginProcessor);
     }
 
@@ -204,14 +197,9 @@ public class AuthRestController {
                     )
             )
             @RequestBody @Valid VerifyEmailCommand verifyEmailCommand,
-            HttpServletRequest request
+            @AuthenticationPrincipal SecurityUser securityUser
     ) {
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
-
-        SaveOrUpdateSessionCommand saveOrUpdateSessionCommand = new SaveOrUpdateSessionCommand(userAgent, ipAddress);
-        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, saveOrUpdateSessionCommand);
-
+        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, securityUser.getSessionInfo());
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 
@@ -236,12 +224,8 @@ public class AuthRestController {
                     ),
             }
     )
-    public ResponseEntity<?> logout(HttpServletRequest request) {
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
-
-        LogoutCommand logoutCommand = new LogoutCommand(userAgent, ipAddress);
-        Logout operation = Logout.of(logoutCommand);
+    public ResponseEntity<?> logout(@AuthenticationPrincipal SecurityUser securityUser) {
+        Logout operation = Logout.of(securityUser);
         return authService.logout(operation).process(logoutProcessor);
     }
 }

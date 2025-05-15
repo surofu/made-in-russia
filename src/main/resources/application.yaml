@@ -96,4 +96,4 @@ app:
       whitelist: ${RATE_LIMIT_WHITE_LIST}
       refill:
         tokens: ${RATE_LIMIT_REFILL_TOKENS}
-        minutes: ${RATE_LIMIT_REFILL_MINUTES}
+        seconds: ${RATE_LIMIT_REFILL_SECONDS}

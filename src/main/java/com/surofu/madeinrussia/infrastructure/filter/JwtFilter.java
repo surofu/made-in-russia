@@ -1,13 +1,9 @@
 package com.surofu.madeinrussia.infrastructure.filter;
 
-import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
-import com.surofu.madeinrussia.application.utils.IpAddressUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.application.utils.SessionUtils;
-import com.surofu.madeinrussia.core.model.session.Session;
-import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
-import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -25,18 +21,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
-    private final SessionUtils sessionUtils;
-    private final IpAddressUtils ipAddressUtils;
     private final UserService userService;
-    private final SessionRepository sessionRepository;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     @Override
@@ -48,14 +41,31 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("JWT Filter started");
 
         String authorizationHeader = request.getHeader("Authorization");
+
+        for (String headerName : Collections.list(request.getHeaderNames())) {
+            log.info("header: {}: {}", headerName, request.getHeader(headerName));
+        }
+
+        log.info("authorizationHeader: {}", authorizationHeader);
+
         String email = null;
         String accessToken = null;
+
+        log.info("Start get access token");
+        log.info("Get access token if param 1 is true: {}", authorizationHeader != null);
+
+        if (authorizationHeader != null) {
+            log.info("Get access token if param 2 is true: {}", authorizationHeader.startsWith("Bearer "));
+        }
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             accessToken = authorizationHeader.substring(7);
 
+            log.info("access token: {}", accessToken);
+
             try {
                 email = jwtUtils.extractEmailFromAccessToken(accessToken);
+                log.info("Email found: {}", email);
             } catch (ExpiredJwtException ex) {
                 log.warn("Jwt has been expired", ex);
             } catch (SignatureException ex) {
@@ -65,33 +75,51 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = ipAddressUtils.getClientIpAddressFromHttpRequest(request);
+        log.info("End get access token with email: {}", email);
 
-        SessionDeviceId deviceId = sessionUtils.getDeviceId(userAgent, ipAddress);
-        Optional<Session> currentSession = sessionRepository.getSessionByDeviceId(deviceId);
+        SessionInfo sessionInfo = SessionInfo.of(request);
 
-        if (currentSession.isPresent() && email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        log.info("Current session user agent: {}", sessionInfo.getUserAgent().toString());
+        log.info("Current session ip address: {}", sessionInfo.getIpAddress());
+        log.info("Current session device id: {}", sessionInfo.getDeviceId());
+
+        log.info("if 1 param is true: {}", email != null);
+        log.info("if 2 param is true: {}", SecurityContextHolder.getContext().getAuthentication() == null);
+        log.info("1 if statement is true: {}", email != null && SecurityContextHolder.getContext().getAuthentication() == null);
+
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             String role = jwtUtils.extractRoleFromAccessToken(accessToken);
+            log.info("Role: {}", role);
             List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(role));
+            log.info("Authority list: {}", authorityList);
 
             try {
+                log.info("Start try get SecurityUser");
                 SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(email);
-                securityUser.setSession(currentSession);
+                log.info("End try get SecurityUser");
+                log.info("SecurityUser user email: {}", securityUser.getUser().getEmail().getEmail());
 
+                log.info("Start creating token");
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         securityUser,
                         null,
                         authorityList
                 );
+                log.info("End creating token");
 
                 SecurityContextHolder.getContext().setAuthentication(token);
+                log.info("End saving to context");
 
                 // Update Access Token
                 accessToken = jwtUtils.generateAccessToken(securityUser);
                 response.setHeader("Authorization", "Bearer " + accessToken);
 
-                asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(userAgent, ipAddress, securityUser);
+                log.info("Start saveOrUpdateSessionFromHttpRequest");
+                asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
+                        .exceptionally(ex -> {
+                            log.error("Error while saving session", ex);
+                            return null;
+                        });
             } catch (UsernameNotFoundException ex) {
                 log.debug("User with email '{}' not found", email, ex);
             }

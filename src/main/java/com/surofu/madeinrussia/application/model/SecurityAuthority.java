@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.security;
+package com.surofu.madeinrussia.application.model;
 
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import lombok.AllArgsConstructor;

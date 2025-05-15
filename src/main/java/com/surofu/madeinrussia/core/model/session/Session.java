@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.model.session;
 
-import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,18 +12,12 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "sessions")
-@NamedEntityGraph(
-        name = "session.with-user",
-        attributeNodes = @NamedAttributeNode("user")
-)
-public final class Session implements Serializable {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public class Session implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
 
     @Embedded
     private SessionDeviceId deviceId;

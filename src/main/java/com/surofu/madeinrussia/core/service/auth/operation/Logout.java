@@ -1,14 +1,14 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.command.LogoutCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.model.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class Logout {
-    LogoutCommand command;
+    SecurityUser securityUser;
 
     public interface Result {
         <T> T process(Processor<T> processor);

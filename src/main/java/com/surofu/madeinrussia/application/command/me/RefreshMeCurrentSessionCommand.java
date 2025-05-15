@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.command;
+package com.surofu.madeinrussia.application.command.me;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @Entity
@@ -20,8 +21,13 @@ public final class Product implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private DeliveryMethod deliveryMethod;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "products_delivery_types",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "delivery_method_id")
+    )
+    private List<DeliveryMethod> deliveryMethods;
 
     @ManyToOne
     private Category category;

@@ -29,8 +29,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${app.rate.limit.refill.tokens}")
     private final int refillTokens = 10;
 
-    @Value("${app.rate.limit.refill.minutes}")
-    private final int refillMinutes = 1;
+    @Value("${app.rate.limit.refill.seconds}")
+    private final int refillSeconds = 1;
 
     @Value("${app.rate.limit.whitelist}")
     private final List<String> whitelist = new ArrayList<>();
@@ -38,9 +38,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         // Игнорируем лимитирование для white-list IP
         if (isWhitelisted(request.getRemoteAddr())) {
@@ -58,22 +60,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } else {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.addHeader("X-Rate-Limit-Retry-After-Seconds",
-                    String.valueOf(TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill())));
-            response.getWriter().write("Rate limit exceeded. Try again in " +
-                    TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()) + " seconds");
+            response.addHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill())));
+            response.getWriter().write("Rate limit exceeded. Try again in " + TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()) + " seconds");
         }
     }
 
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.builder()
-                .capacity(bucketCapacity)
-                .refillIntervally(refillTokens, Duration.ofMinutes(refillMinutes))
-                .build();
+        Bandwidth limit = Bandwidth.builder().capacity(bucketCapacity).refillIntervally(refillTokens, Duration.ofSeconds(refillSeconds)).build();
 
-        return Bucket.builder()
-                .addLimit(limit)
-                .build();
+        return Bucket.builder().addLimit(limit).build();
     }
 
     private String getClientKey(HttpServletRequest request) {

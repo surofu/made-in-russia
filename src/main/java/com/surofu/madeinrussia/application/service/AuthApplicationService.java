@@ -3,11 +3,11 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
-import com.surofu.madeinrussia.application.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.application.utils.SessionUtils;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
@@ -43,7 +43,6 @@ public class AuthApplicationService implements AuthService {
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     private final CacheManager verificationCacheManager;
-    private final SessionUtils sessionUtils;
 
     @Override
     @Transactional
@@ -78,13 +77,11 @@ public class AuthApplicationService implements AuthService {
     public LoginWithEmail.Result loginWithEmail(LoginWithEmail operation) {
         LoginSuccessDto loginSuccessDto;
 
+        String rawEmail = operation.getCommand().email();
+        String rawPassword = operation.getCommand().password();
+
         try {
-            loginSuccessDto = login(
-                    operation.getCommand().email(),
-                    operation.getCommand().password(),
-                    operation.getUserAgent(),
-                    operation.getIpAddress()
-            );
+            loginSuccessDto = login(rawEmail, rawPassword);
         } catch (AuthenticationException ex) {
             return LoginWithEmail.Result.invalidCredentials(
                     operation.getCommand().email(),
@@ -113,12 +110,7 @@ public class AuthApplicationService implements AuthService {
         LoginSuccessDto loginSuccessDto;
 
         try {
-            loginSuccessDto = login(
-                    rawEmail,
-                    rawPassword,
-                    operation.getUserAgent(),
-                    operation.getIpAddress()
-            );
+            loginSuccessDto = login(rawEmail, rawPassword);
         } catch (AuthenticationException ex) {
             log.warn("Authentication failed", ex);
             return LoginWithLogin.Result.invalidCredentials(rawLogin, rawPassword);
@@ -132,6 +124,7 @@ public class AuthApplicationService implements AuthService {
     public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
         String email = operation.getVerifyEmailCommand().email();
         String verificationCode = operation.getVerifyEmailCommand().code();
+        SessionInfo sessionInfo = operation.getSessionInfo();
 
         String unverifiedCacheName = "unverifiedUsers";
         Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedCacheName);
@@ -176,7 +169,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.invalidVerificationCode(verificationCode);
         }
 
-        SecurityUser securityUser = new SecurityUser(user, userPassword, Optional.empty());
+        SecurityUser securityUser = new SecurityUser(user, userPassword, sessionInfo);
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);
@@ -185,11 +178,8 @@ public class AuthApplicationService implements AuthService {
 
         asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword)
                 .thenCompose(unused -> asyncSessionApplicationService
-                        .saveOrUpdateSessionFromHttpRequest(
-                                operation.getSaveOrUpdateSessionCommand().userAgent(),
-                                operation.getSaveOrUpdateSessionCommand().ipAddress(),
-                                securityUser
-                        ).exceptionally(ex -> {
+                        .saveOrUpdateSessionFromHttpRequest(securityUser)
+                        .exceptionally(ex -> {
                             log.error("Error while saving session", ex);
                             return null;
                         })
@@ -204,15 +194,17 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public Logout.Result logout(Logout operation) {
-        String userAgent = operation.getCommand().userAgent();
-        String ipAddress = operation.getCommand().ipAddress();
+        SessionInfo sessionInfo = operation.getSecurityUser().getSessionInfo();
 
-        SessionDeviceId sessionDeviceId = sessionUtils.getDeviceId(userAgent, ipAddress);
+        Long userId = operation.getSecurityUser().getUser().getId();
+
+        String rawDeviceId = sessionInfo.getDeviceId();
+        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
 
         String message = "Успешный выход из аккаунта";
         SimpleResponseMessageDto responseMessage = SimpleResponseMessageDto.of(message);
 
-        asyncSessionApplicationService.removeSessionByDeviceId(sessionDeviceId)
+        asyncSessionApplicationService.removeSessionByUserIdAndDeviceId(userId, sessionDeviceId)
                 .exceptionally(ex -> {
                     log.error("Error while removing session", ex);
                     return null;
@@ -221,12 +213,7 @@ public class AuthApplicationService implements AuthService {
         return Logout.Result.success(responseMessage);
     }
 
-    private LoginSuccessDto login(
-            String email,
-            String password,
-            String userAgent,
-            String ipAddress
-    ) throws AuthenticationException {
+    private LoginSuccessDto login(String email, String password) throws AuthenticationException {
         Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(email, password);
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
 
@@ -236,11 +223,7 @@ public class AuthApplicationService implements AuthService {
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(
-                userAgent,
-                ipAddress,
-                securityUser
-        );
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
 
         return LoginSuccessDto.builder()
                 .accessToken(accessToken)

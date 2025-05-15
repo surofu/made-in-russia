@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.command;
+package com.surofu.madeinrussia.application.command.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
