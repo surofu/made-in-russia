@@ -10,7 +10,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -30,7 +30,7 @@ public final class Product implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "delivery_method_id")
     )
     @Fetch(FetchMode.SUBSELECT)
-    private List<DeliveryMethod> deliveryMethods;
+    private Set<DeliveryMethod> deliveryMethods;
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Category category;

@@ -9,5 +9,3 @@ $$
         END IF;
     END
 $$;
-
-drop table if exists products_delivery_types;
