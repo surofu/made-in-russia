@@ -6,9 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @EntityGraph(attributePaths = {"category", "deliveryMethods"})
-    Page<Product> findAll(Specification<Product> specification, Pageable pageable);
+    @Query("select p from Product p")
+    @EntityGraph(attributePaths = {"category"})
+    Page<Product> findAllWithCategoryAndDeliveryMethods(Specification<Product> specification, Pageable pageable);
 }

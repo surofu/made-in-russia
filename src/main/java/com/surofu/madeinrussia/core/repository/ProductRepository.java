@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.Optional;
 
 public interface ProductRepository {
-    Page<Product> findAll(Specification<Product> specification, Pageable pageable);
+    Page<Product> getAllProductsWithCategoryAndDeliveryMethods(Specification<Product> specification, Pageable pageable);
 
-    Optional<Product> findById(Long id);
+    Optional<Product> getProductById(Long id);
 }

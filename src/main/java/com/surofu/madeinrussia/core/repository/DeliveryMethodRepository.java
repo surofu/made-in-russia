@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DeliveryMethodRepository {
-    List<DeliveryMethod> getDeliveryMethods();
+    List<DeliveryMethod> getAllDeliveryMethods();
 
     Optional<DeliveryMethod> getDeliveryMethodById(Long id);
 }

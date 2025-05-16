@@ -10,33 +10,32 @@ import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 public class ProductApplicationService implements ProductService {
 
-    private final ProductRepository repository;
+    private final ProductRepository productRepository;
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "productsPage",
             key = """
-            {
-             #operation.query.page(), #operation.query.size(),
-             #operation.query.deliveryMethodIds()?.hashCode(),
-             #operation.query.categoryIds()?.hashCode(),
-             #operation.query.minPrice(), #operation.query.maxPrice()
-             }
-            """,
+                    {
+                     #operation.query.page(), #operation.query.size(),
+                     #operation.query.deliveryMethodIds()?.hashCode(),
+                     #operation.query.categoryIds()?.hashCode(),
+                     #operation.query.minPrice(), #operation.query.maxPrice()
+                     }
+                    """,
             unless = "#result.getProductDtoPage().isEmpty()"
     )
     public GetProducts.Result getProducts(GetProducts operation) {
@@ -47,26 +46,21 @@ public class ProductApplicationService implements ProductService {
                 .and(ProductSpecifications.hasCategories(operation.getQuery().categoryIds()))
                 .and(ProductSpecifications.priceBetween(operation.getQuery().minPrice(), operation.getQuery().maxPrice()));
 
-        Page<Product> products = repository.findAll(specification, pageable);
-        List<ProductDto> productDtos = new ArrayList<>(products.getSize());
-
-        for (Product product : products) {
-            productDtos.add(ProductDto.of(product));
-        }
-
-        Page<ProductDto> productDtoPage = new PageImpl<>(productDtos, pageable, products.getTotalElements());
+        Page<Product> productPage = productRepository.getAllProductsWithCategoryAndDeliveryMethods(specification, pageable);
+        Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
 
         return GetProducts.Result.success(productDtoPage);
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "product",
             key = "#operation.query.productId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        Optional<Product> product = repository.findById(operation.getQuery().productId());
+        Optional<Product> product = productRepository.getProductById(operation.getQuery().productId());
         Optional<ProductDto> productDto = product.map(ProductDto::of);
 
         if (productDto.isPresent()) {

@@ -15,7 +15,7 @@ public class GetProducts {
         <T> T process(Processor<T> processor);
 
         static Result success(Page<ProductDto> productDtoPage) {
-            log.info("Successfully processed {} products", productDtoPage.getTotalElements());
+            log.info("Successfully processed get product dto page with total elements: {}", productDtoPage.getTotalElements());
             return Success.of(productDtoPage);
         }
 

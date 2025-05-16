@@ -23,6 +23,7 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,17 +40,21 @@ public class MeApplicationService implements MeService {
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     @Override
+    @Transactional(readOnly = true)
     public GetMe.Result getMeByJwt(GetMe operation) {
         Optional<Session> existingSession = getSessionBySecurityUser(operation.getQuery().securityUser());
 
         if (existingSession.isEmpty()) {
-            return GetMe.Result.sessionIsEmpty();
+            return GetMe.Result.sessionWithUserIdAndDeviceIdNotFound(
+                    operation.getQuery().securityUser().getUser().getId(),
+                    operation.getQuery().securityUser().getSessionInfo().getDeviceId()
+            );
         }
 
         Optional<SessionWithUser> sessionWithUser = sessionWithUserRepository.getSessionById(existingSession.get().getId());
 
         if (sessionWithUser.isEmpty()) {
-            return GetMe.Result.sessionIsEmpty();
+            return GetMe.Result.sessionWithIdNotFound(existingSession.get().getId());
         }
 
         User user = sessionWithUser.get().getUser();
@@ -86,7 +91,7 @@ public class MeApplicationService implements MeService {
         Optional<SessionDto> sessionDto = existingSession.map(SessionDto::of);
 
         if (sessionDto.isEmpty()) {
-            return GetMeCurrentSession.Result.sessionIsEmpty();
+            return GetMeCurrentSession.Result.sessionNotFound(userId, sessionDeviceId);
         }
 
         return GetMeCurrentSession.Result.success(sessionDto.get());

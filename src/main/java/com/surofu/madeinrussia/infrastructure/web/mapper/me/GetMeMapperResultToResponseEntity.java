@@ -14,7 +14,12 @@ public class GetMeMapperResultToResponseEntity implements GetMe.Result.Processor
     }
 
     @Override
-    public ResponseEntity<?> processSessionIsEmpty(GetMe.Result.SessionIsEmpty result) {
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> processSessionWithIdNotFound(GetMe.Result.SessionWithIdNotFound result) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
+    @Override
+    public ResponseEntity<?> processSessionWithUserIdAndDeviceIdNotFound(GetMe.Result.SessionWithUserIdAndDeviceIdNotFound result) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 }

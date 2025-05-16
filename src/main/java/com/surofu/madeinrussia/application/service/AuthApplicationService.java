@@ -13,6 +13,7 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
@@ -80,13 +81,13 @@ public class AuthApplicationService implements AuthService {
         String rawEmail = operation.getCommand().email();
         String rawPassword = operation.getCommand().password();
 
+        UserEmail userEmail = UserEmail.of(rawEmail);
+        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
+
         try {
             loginSuccessDto = login(rawEmail, rawPassword);
         } catch (AuthenticationException ex) {
-            return LoginWithEmail.Result.invalidCredentials(
-                    operation.getCommand().email(),
-                    operation.getCommand().password()
-            );
+            return LoginWithEmail.Result.invalidCredentials(userEmail, userPasswordPassword);
         }
 
         return LoginWithEmail.Result.success(loginSuccessDto);
@@ -97,12 +98,14 @@ public class AuthApplicationService implements AuthService {
     public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
         String rawLogin = operation.getCommand().login();
         UserLogin userLogin = UserLogin.of(rawLogin);
+
         String rawPassword = operation.getCommand().password();
+        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
 
         Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(userLogin);
 
         if (userEmail.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials(rawLogin, rawPassword);
+            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
 
         String rawEmail = userEmail.get().getEmail();
@@ -113,7 +116,7 @@ public class AuthApplicationService implements AuthService {
             loginSuccessDto = login(rawEmail, rawPassword);
         } catch (AuthenticationException ex) {
             log.warn("Authentication failed", ex);
-            return LoginWithLogin.Result.invalidCredentials(rawLogin, rawPassword);
+            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
 
         return LoginWithLogin.Result.success(loginSuccessDto);
@@ -122,7 +125,9 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
-        String email = operation.getVerifyEmailCommand().email();
+        String rawEmail = operation.getVerifyEmailCommand().email();
+        UserEmail userEmail = UserEmail.of(rawEmail);
+
         String verificationCode = operation.getVerifyEmailCommand().code();
         SessionInfo sessionInfo = operation.getSessionInfo();
 
@@ -133,10 +138,10 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.cacheNotFound(unverifiedCacheName);
         }
 
-        User user = unverifiedUsersCache.get(email, User.class);
+        User user = unverifiedUsersCache.get(rawEmail, User.class);
 
         if (user == null) {
-            return VerifyEmail.Result.accountNotFound(email);
+            return VerifyEmail.Result.accountNotFound(userEmail);
         }
 
         String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
@@ -146,10 +151,10 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.cacheNotFound(unverifiedUserPasswordsCacheName);
         }
 
-        UserPassword userPassword = unverifiedUserPasswordsCache.get(email, UserPassword.class);
+        UserPassword userPassword = unverifiedUserPasswordsCache.get(rawEmail, UserPassword.class);
 
         if (userPassword == null) {
-            return VerifyEmail.Result.accountNotFound(email);
+            return VerifyEmail.Result.accountNotFound(userEmail);
         }
 
         String verificationCodesCacheName = "verificationCodes";
@@ -159,10 +164,10 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.cacheNotFound(verificationCodesCacheName);
         }
 
-        String verificationCodeFromCache = verificationCodesCache.get(email, String.class);
+        String verificationCodeFromCache = verificationCodesCache.get(rawEmail, String.class);
 
         if (verificationCodeFromCache == null) {
-            return VerifyEmail.Result.accountNotFound(email);
+            return VerifyEmail.Result.accountNotFound(userEmail);
         }
 
         if (!verificationCode.equals(verificationCodeFromCache)) {

@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.query.me.GetMeCurrentSessionQuery;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,9 +19,9 @@ public class GetMeCurrentSession {
             return Success.of(sessionDto);
         }
 
-        static Result sessionIsEmpty() {
-            log.warn("Session is empty");
-            return SessionIsEmpty.INSTANCE;
+        static Result sessionNotFound(Long userId, SessionDeviceId deviceId) {
+            log.warn("Session not found: userId={}, deviceId={}", userId, deviceId);
+            return SessionNotFound.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -33,18 +34,18 @@ public class GetMeCurrentSession {
             }
         }
 
-        enum SessionIsEmpty implements Result {
+        enum SessionNotFound implements Result {
             INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processSessionIsEmpty(this);
+                return processor.processSessionNotFound(this);
             }
         }
 
         interface Processor<T> {
             T processSuccess(Success result);
-            T processSessionIsEmpty(SessionIsEmpty result);
+            T processSessionNotFound(SessionNotFound result);
         }
     }
 }

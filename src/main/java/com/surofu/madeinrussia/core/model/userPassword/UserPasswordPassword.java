@@ -21,6 +21,18 @@ public final class UserPasswordPassword implements Serializable {
     }
 
     public static UserPasswordPassword of(String password) {
+        if (password == null) {
+            throw new IllegalArgumentException("Пароль не может быть пустым");
+        }
+
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException("Пароль не может быть пустым");
+        }
+
+        if (password.length() < 4) {
+            throw new IllegalArgumentException("Пароль не может быть менее 4 символов");
+        }
+
         return new UserPasswordPassword(password);
     }
 }

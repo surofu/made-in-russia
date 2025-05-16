@@ -11,7 +11,15 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "sessions")
+@Table(
+        name = "sessions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_session_device_user",
+                        columnNames = {"device_id", "user_id"}
+                )
+        }
+)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Session implements Serializable {
 

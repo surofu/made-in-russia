@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDelivery
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +22,13 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     private final DeliveryMethodRepository repository;
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "deliveryMethods",
             unless = "#result.getDeliveryMethodDtos().isEmpty()"
     )
     public GetDeliveryMethods.Result getDeliveryMethods() {
-        List<DeliveryMethod> deliveryMethods = repository.getDeliveryMethods();
+        List<DeliveryMethod> deliveryMethods = repository.getAllDeliveryMethods();
         List<DeliveryMethodDto> deliveryMethodDtos = new ArrayList<>(deliveryMethods.size());
 
         for (DeliveryMethod deliveryMethod : deliveryMethods) {
@@ -37,6 +39,7 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "deliveryMethod",
             key = "#operation.query.deliveryMethodId()",

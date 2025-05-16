@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,11 +21,6 @@ public class JpaSessionWithUserRepository implements SessionWithUserRepository {
     @Override
     public Optional<SessionWithUser> getSessionByUserIdAndDeviceId(Long id, SessionDeviceId sessionDeviceId) {
         return repository.findByUserIdAndDeviceId(id, sessionDeviceId);
-    }
-
-    @Override
-    public List<SessionWithUser> getSessionsByUserId(Long userId) {
-        return repository.findByUserId(userId);
     }
 
     @Override

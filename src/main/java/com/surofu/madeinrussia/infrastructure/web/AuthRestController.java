@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.SessionInfo;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -148,10 +150,17 @@ public class AuthRestController {
     )
     public ResponseEntity<?> loginWithLogin(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Username login credentials",
+                    description = "User login credentials",
                     required = true,
                     content = @Content(
-                            schema = @Schema(implementation = LoginWithLoginCommand.class)
+                            schema = @Schema(
+                                    implementation = LoginWithLoginCommand.class,
+                                    example = """
+                                            {
+                                                "login": "user123",
+                                                "password": "password123"
+                                            }
+                                            """)
                     )
             )
             @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand
@@ -197,9 +206,10 @@ public class AuthRestController {
                     )
             )
             @RequestBody @Valid VerifyEmailCommand verifyEmailCommand,
-            @AuthenticationPrincipal SecurityUser securityUser
+            HttpServletRequest request
     ) {
-        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, securityUser.getSessionInfo());
+        SessionInfo sessionInfo = SessionInfo.of(request);
+        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, sessionInfo);
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 

@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
 import com.surofu.madeinrussia.application.model.SessionInfo;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,13 +21,13 @@ public class VerifyEmail {
             return Success.of(verifyEmailSuccessDto);
         }
 
-        static Result accountNotFound(String email) {
-            log.warn("Account with email '{}' not found", email);
+        static Result accountNotFound(UserEmail email) {
+            log.warn("Account with email '{}' not found", email.getEmail());
             return AccountNotFound.INSTANCE;
         }
 
-        static Result invalidVerificationCode(String code) {
-            log.warn("Invalid verification code: {}", code);
+        static Result invalidVerificationCode(String verificationCode) {
+            log.warn("Invalid verification code: {}", verificationCode);
             return InvalidVerificationCode.INSTANCE;
         }
 

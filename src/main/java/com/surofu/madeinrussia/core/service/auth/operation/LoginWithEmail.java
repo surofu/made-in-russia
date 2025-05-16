@@ -2,6 +2,8 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.command.auth.LoginWithEmailCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,8 +20,12 @@ public class LoginWithEmail {
             return Success.of(loginSuccessDto);
         }
 
-        static Result invalidCredentials(String email, String password) {
-            log.warn("Invalid login with email credentials provided: Email: {}, Password: {}", email, password);
+        static Result invalidCredentials(UserEmail email, UserPasswordPassword password) {
+            log.warn(
+                    "Invalid login with email credentials provided: Email: {}, Password: {}",
+                    email.getEmail(),
+                    password.getPassword()
+            );
             return InvalidCredentials.INSTANCE;
         }
 

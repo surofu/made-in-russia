@@ -18,9 +18,14 @@ public class GetMe {
             return Success.of(userDto);
         }
 
-        static Result sessionIsEmpty() {
-            log.warn("Session is empty");
-            return SessionIsEmpty.INSTANCE;
+        static Result sessionWithIdNotFound(Long sessionId) {
+            log.warn("Session with id '{}' not found", sessionId);
+            return SessionWithIdNotFound.INSTANCE;
+        }
+
+        static Result sessionWithUserIdAndDeviceIdNotFound(Long userId, String deviceId) {
+            log.warn("Session not found: userId={}, deviceId={}", userId, deviceId);
+            return SessionWithIdNotFound.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -33,19 +38,30 @@ public class GetMe {
             }
         }
 
-        enum SessionIsEmpty implements Result {
+        enum SessionWithIdNotFound implements Result {
             INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processSessionIsEmpty(this);
+                return processor.processSessionWithIdNotFound(this);
+            }
+        }
+
+        enum SessionWithUserIdAndDeviceIdNotFound implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSessionWithUserIdAndDeviceIdNotFound(this);
             }
         }
 
         interface Processor<T> {
             T processSuccess(Success result);
 
-            T processSessionIsEmpty(SessionIsEmpty result);
+            T processSessionWithIdNotFound(SessionWithIdNotFound result);
+
+            T processSessionWithUserIdAndDeviceIdNotFound(SessionWithUserIdAndDeviceIdNotFound result);
         }
     }
 }

@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class CategoryApplicationService implements CategoryService {
     private final CategoryRepository repository;
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "categories",
             unless = "#result.getCategoryDtos().isEmpty()"
@@ -37,6 +39,7 @@ public class CategoryApplicationService implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "category",
             key = "#operation.query.categoryId()",

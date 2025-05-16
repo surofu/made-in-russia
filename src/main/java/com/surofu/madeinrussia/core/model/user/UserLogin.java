@@ -21,6 +21,18 @@ public final class UserLogin implements Serializable {
     }
 
     public static UserLogin of(String login) {
+        if (login == null) {
+            throw new IllegalArgumentException("Логин не может быть пустым");
+        }
+
+        if (login.isEmpty()) {
+            throw new IllegalArgumentException("Логин не может быть пустым");
+        }
+
+        if (login.length() < 3) {
+            throw new IllegalArgumentException("Логин не может быть менее 3 символов");
+        }
+
         return new UserLogin(login);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class AsyncSessionApplicationService {
     private final SessionWithUserRepository sessionWithUserRepository;
 
     @Async
+    @Transactional
     public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) {
         UserAgent userAgent = securityUser.getSessionInfo().getUserAgent();
 
@@ -55,7 +57,11 @@ public class AsyncSessionApplicationService {
         sessionWithUser.setLastModificationDate(sessionLastModificationDate);
         sessionWithUser.setLastLoginDate(sessionLastLoginDate);
 
-        sessionWithUserRepository.saveOrUpdate(sessionWithUser);
+        try {
+            sessionWithUserRepository.saveOrUpdate(sessionWithUser);
+        } catch (Exception ex) {
+            throw new CompletionException(ex);
+        }
 
         return CompletableFuture.completedFuture(null);
     }

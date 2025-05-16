@@ -25,7 +25,9 @@ public final class SessionInfo implements Serializable {
         String userAgentString = request.getHeader("User-Agent");
         UserAgent userAgent = UserAgent.parseUserAgentString(userAgentString);
         String ipAddress = getClientIpAddressFromHttpRequest(request);
-        String deviceId = getDeviceIdFrom(userAgentString, ipAddress);
+        String deviceId = generateDeviceId(userAgent);
+
+        System.out.println(userAgentString);
 
         return SessionInfo.builder()
                 .userAgent(userAgent)
@@ -75,12 +77,22 @@ public final class SessionInfo implements Serializable {
         return ip.split(",")[0].trim();
     }
 
-    private static String getDeviceIdFrom(String userAgentString, String ipAddress) {
-        String combined = ipAddress + userAgentString;
+    private static String generateDeviceId(UserAgent userAgent) {
+
+        String deviceIdString = userAgent.getOperatingSystem().getName() +
+                userAgent.getOperatingSystem().getDeviceType().getName() +
+                userAgent.getOperatingSystem().getManufacturer().getId() +
+                userAgent.getOperatingSystem().getManufacturer().getName() +
+                userAgent.getBrowser().getId() +
+                userAgent.getBrowser().getName() +
+                userAgent.getBrowser().getBrowserType().getName() +
+                userAgent.getBrowser().getGroup() +
+                userAgent.getBrowser().getManufacturer().getId() +
+                userAgent.getBrowser().getManufacturer().getName();
 
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(combined.getBytes());
+            byte[] hashBytes = digest.digest(deviceIdString.getBytes());
 
             // Преобразуем байты в HEX-строку
             StringBuilder hexString = new StringBuilder();
@@ -92,7 +104,7 @@ public final class SessionInfo implements Serializable {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            return UUID.nameUUIDFromBytes(combined.getBytes()).toString();
+            return UUID.nameUUIDFromBytes(deviceIdString.getBytes()).toString();
         }
     }
 }

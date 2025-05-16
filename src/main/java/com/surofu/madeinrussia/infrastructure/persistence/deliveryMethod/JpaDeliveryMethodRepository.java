@@ -15,7 +15,7 @@ public class JpaDeliveryMethodRepository implements DeliveryMethodRepository {
     private final SpringDataDeliveryMethodRepository repository;
 
     @Override
-    public List<DeliveryMethod> getDeliveryMethods() {
+    public List<DeliveryMethod> getAllDeliveryMethods() {
         return repository.findAll();
     }
 
