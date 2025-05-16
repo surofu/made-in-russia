@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.model.deliveryMethod;
 
-import com.surofu.madeinrussia.core.model.product.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

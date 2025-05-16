@@ -21,14 +21,15 @@ import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
@@ -69,14 +70,10 @@ public class MeApplicationService implements MeService {
 
         User user = securityUser.getUser();
         Long userId = user.getId();
-        List<Session> sessions = sessionRepository.getSessionsByUserId(userId);
 
-        List<SessionDto> sessionDtos = new ArrayList<>(sessions.size());
-
-        for (Session session : sessions) {
-            SessionDto sessionDto = SessionDto.of(session);
-            sessionDtos.add(sessionDto);
-        }
+        List<SessionDto> sessionDtos = sessionRepository.getSessionsByUserId(userId).stream()
+                .map(SessionDto::of)
+                .toList();
 
         return GetMeSessions.Result.success(sessionDtos);
     }
@@ -87,8 +84,9 @@ public class MeApplicationService implements MeService {
         String rawDeviceId = operation.getQuery().securityUser().getSessionInfo().getDeviceId();
         SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
 
-        Optional<Session> existingSession = sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
-        Optional<SessionDto> sessionDto = existingSession.map(SessionDto::of);
+        Optional<SessionDto> sessionDto = sessionRepository
+                .getSessionByUserIdAndDeviceId(userId, sessionDeviceId)
+                .map(SessionDto::of);
 
         if (sessionDto.isEmpty()) {
             return GetMeCurrentSession.Result.sessionNotFound(userId, sessionDeviceId);
@@ -125,17 +123,18 @@ public class MeApplicationService implements MeService {
 
         Optional<Session> session = sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
 
-        String userAgentString = sessionInfo.getUserAgent().toString();
-        boolean isSessionValid = "Next.js Middleware".equals(userAgentString);
-
-        if (session.isEmpty() && !isSessionValid) {
+        if (session.isEmpty() && !sessionInfo.isInWhitelist()) {
             return RefreshMeCurrentSession.Result.sessionNotFound(sessionDeviceId.getDeviceId());
         }
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         TokenDto tokenDto = TokenDto.of(accessToken);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
+                .exceptionally(ex -> {
+                    log.error("Error saving session", ex);
+                    return null;
+                });
 
         return RefreshMeCurrentSession.Result.success(tokenDto);
     }

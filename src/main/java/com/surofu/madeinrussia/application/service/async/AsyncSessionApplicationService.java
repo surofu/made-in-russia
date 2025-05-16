@@ -22,7 +22,7 @@ public class AsyncSessionApplicationService {
 
     @Async
     @Transactional
-    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) {
+    public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) throws CompletionException {
         UserAgent userAgent = securityUser.getSessionInfo().getUserAgent();
 
         String rawDeviceId = securityUser.getSessionInfo().getDeviceId();
@@ -68,8 +68,13 @@ public class AsyncSessionApplicationService {
 
     @Async
     @Transactional
-    public CompletableFuture<Void> removeSessionByUserIdAndDeviceId(Long userId, SessionDeviceId sessionDeviceId) {
-        sessionRepository.deleteSessionByUserIdAndDeviceId(userId, sessionDeviceId);
+    public CompletableFuture<Void> removeSessionByUserIdAndDeviceId(Long userId, SessionDeviceId sessionDeviceId) throws CompletionException {
+        try {
+            sessionRepository.deleteSessionByUserIdAndDeviceId(userId, sessionDeviceId);
+        } catch (Exception ex) {
+            throw new CompletionException(ex);
+        }
+
         return CompletableFuture.completedFuture(null);
     }
 }

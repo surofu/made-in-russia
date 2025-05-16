@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.application.model;
 import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.Serializable;
 import java.security.MessageDigest;
@@ -15,11 +16,16 @@ import java.util.UUID;
 @AllArgsConstructor
 public final class SessionInfo implements Serializable {
 
+    @Value("${app.session.secret}")
+    private static String sessionSecret;
+
     private UserAgent userAgent;
 
     private String ipAddress;
 
     private String deviceId;
+
+    private boolean isInWhitelist;
 
     public static SessionInfo of(HttpServletRequest request) {
         String userAgentString = request.getHeader("User-Agent");
@@ -27,37 +33,15 @@ public final class SessionInfo implements Serializable {
         String ipAddress = getClientIpAddressFromHttpRequest(request);
         String deviceId = generateDeviceId(userAgent);
 
-        System.out.println(userAgentString);
+        String xInternalRequestHeader = request.getHeader("X-Internal-Request");
+        boolean isInWhitelist = sessionSecret.equals(xInternalRequestHeader);
 
         return SessionInfo.builder()
                 .userAgent(userAgent)
                 .ipAddress(ipAddress)
                 .deviceId(deviceId)
+                .isInWhitelist(isInWhitelist)
                 .build();
-    }
-
-    public static boolean compareDevices(SessionInfo firstSessionInfo, SessionInfo secondSessionInfo) {
-        String firstDeviceId = firstSessionInfo.getDeviceId();
-        String secondDeviceId = secondSessionInfo.getDeviceId();
-
-        return firstDeviceId.equals(secondDeviceId);
-    }
-
-    public static boolean compareDevices(HttpServletRequest firstRequest, HttpServletRequest secondRequest) {
-        SessionInfo firstSessionInfo = SessionInfo.of(firstRequest);
-        SessionInfo secondSessionInfo = SessionInfo.of(secondRequest);
-
-        return compareDevices(firstSessionInfo, secondSessionInfo);
-    }
-
-    public boolean compareDevice(SessionInfo sessionInfo) {
-        String firstDeviceId = sessionInfo.getDeviceId();
-        return firstDeviceId.equals(deviceId);
-    }
-
-    public boolean compareDevice(HttpServletRequest request) {
-        SessionInfo firstSessionInfo = SessionInfo.of(request);
-        return compareDevice(firstSessionInfo);
     }
 
     // ---------- Private ---------- //

@@ -9,7 +9,6 @@ import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
@@ -18,8 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AsyncAuthApplicationService {
@@ -33,7 +32,7 @@ public class AsyncAuthApplicationService {
 
     @Async
     @Transactional
-    public void saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) {
+    public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
         String rawEmail = operation.getCommand().email();
         String rawLogin = operation.getCommand().login();
         String rawPhoneNumber = operation.getCommand().phoneNumber();
@@ -59,28 +58,12 @@ public class AsyncAuthApplicationService {
         userPassword.setPassword(userPasswordPassword);
 
         String unverifiedUsersCacheName = "unverifiedUsers";
-        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);
-
-        if (unverifiedUsersCache == null) {
-            logCacheError(unverifiedUsersCacheName);
-            return;
-        }
-
         String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
-
-        if (unverifiedUserPasswordsCache == null) {
-            logCacheError(unverifiedUserPasswordsCacheName);
-            return;
-        }
-
         String verificationCodesCacheName = "verificationCodes";
-        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
 
-        if (verificationCodesCache == null) {
-            logCacheError(verificationCodesCacheName);
-            return;
-        }
+        Cache unverifiedUsersCache = getCacheSafe(unverifiedUsersCacheName);
+        Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
+        Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
 
         unverifiedUsersCache.put(rawEmail, user);
         unverifiedUserPasswordsCache.put(rawEmail, userPassword);
@@ -152,36 +135,22 @@ public class AsyncAuthApplicationService {
         try {
             mailService.sendEmail(rawEmail, messageSubject, messageText);
         } catch (Exception ex) {
-            log.error("Error while sending email", ex);
+            throw new CompletionException(ex);
         }
+
+        return CompletableFuture.completedFuture(null);
     }
 
     @Async
     @Transactional
-    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) {
+    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) throws CompletionException {
         String unverifiedUsersCacheName = "unverifiedUsers";
-        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedUsersCacheName);
-
-        if (unverifiedUsersCache == null) {
-            logCacheError(unverifiedUsersCacheName);
-            return CompletableFuture.completedFuture(null);
-        }
-
         String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
-
-        if (unverifiedUserPasswordsCache == null) {
-            logCacheError(unverifiedUserPasswordsCacheName);
-            return CompletableFuture.completedFuture(null);
-        }
-
         String verificationCodesCacheName = "verificationCodes";
-        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
 
-        if (verificationCodesCache == null) {
-            logCacheError(verificationCodesCacheName);
-            return CompletableFuture.completedFuture(null);
-        }
+        Cache unverifiedUsersCache = getCacheSafe(unverifiedUsersCacheName);
+        Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
+        Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
 
         String email = user.getEmail().getEmail();
 
@@ -195,7 +164,24 @@ public class AsyncAuthApplicationService {
         return CompletableFuture.completedFuture(null);
     }
 
-    private void logCacheError(String cacheName) {
-        log.error("Error while sending email. Cache with name '{}' not found", cacheName);
+    private Cache getCacheSafe(String cacheName) throws CompletionException {
+        Cache cache = verificationCacheManager.getCache(cacheName);
+
+        if (cache == null) {
+            throw CacheNotFoundException.of(cacheName);
+        }
+
+        return cache;
+    }
+
+    private static final class CacheNotFoundException extends CompletionException {
+
+        private CacheNotFoundException(String cacheName) {
+            super( String.format("Error while sending email. Cache with name '%s' not found", cacheName));
+        }
+
+        public static CacheNotFoundException of(String cacheName) {
+            return new CacheNotFoundException(cacheName);
+        }
     }
 }

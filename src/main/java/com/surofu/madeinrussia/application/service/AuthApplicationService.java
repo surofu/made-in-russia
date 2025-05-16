@@ -68,7 +68,11 @@ public class AuthApplicationService implements AuthService {
                 .message(registerSuccessMessage)
                 .build();
 
-        asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation);
+        asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation)
+                .exceptionally(ex -> {
+                    log.error("Error while saving register code", ex);
+                    return null;
+                });
 
         return Register.Result.success(registerSuccessMessageDto);
     }
@@ -202,7 +206,6 @@ public class AuthApplicationService implements AuthService {
         SessionInfo sessionInfo = operation.getSecurityUser().getSessionInfo();
 
         Long userId = operation.getSecurityUser().getUser().getId();
-
         String rawDeviceId = sessionInfo.getDeviceId();
         SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
 
@@ -228,7 +231,11 @@ public class AuthApplicationService implements AuthService {
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
+                .exceptionally(ex -> {
+                    log.error("Error saving session", ex);
+                    return null;
+                });
 
         return LoginSuccessDto.builder()
                 .accessToken(accessToken)

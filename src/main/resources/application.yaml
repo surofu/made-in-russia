@@ -97,3 +97,5 @@ app:
       refill:
         tokens: ${RATE_LIMIT_REFILL_TOKENS}
         seconds: ${RATE_LIMIT_REFILL_SECONDS}
+  session:
+    secret: ${INTERNAL_REQUEST_SECRET}
