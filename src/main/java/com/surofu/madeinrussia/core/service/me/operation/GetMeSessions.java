@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.SessionDto;
-import com.surofu.madeinrussia.application.query.me.GetMeSessionsQuery;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +10,7 @@ import java.util.List;
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetMeSessions {
-    GetMeSessionsQuery query;
+    SecurityUser securityUser;
 
     public interface Result {
         static Result success(List<SessionDto> sessionDtos) {

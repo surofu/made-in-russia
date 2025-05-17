@@ -35,4 +35,9 @@ public final class UserLogin implements Serializable {
 
         return new UserLogin(login);
     }
+
+    @Override
+    public String toString() {
+        return login;
+    }
 }

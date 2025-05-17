@@ -2,10 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.dto.*;
-import com.surofu.madeinrussia.application.model.SecurityUser;
-import com.surofu.madeinrussia.application.query.me.GetMeCurrentSessionQuery;
-import com.surofu.madeinrussia.application.query.me.GetMeQuery;
-import com.surofu.madeinrussia.application.query.me.GetMeSessionsQuery;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.GetMe;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
@@ -73,8 +70,7 @@ public class MeRestController {
     )
     @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<?> getMeByJwt(@AuthenticationPrincipal SecurityUser securityUser) {
-        GetMeQuery query = new GetMeQuery(securityUser);
-        GetMe operation = GetMe.of(query);
+        GetMe operation = GetMe.of(securityUser);
         return meService.getMeByJwt(operation).process(getMeByJwtProcessor);
     }
 
@@ -109,8 +105,7 @@ public class MeRestController {
     )
     @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<?> getMeSessions(@AuthenticationPrincipal SecurityUser securityUser) {
-        GetMeSessionsQuery query = new GetMeSessionsQuery(securityUser);
-        GetMeSessions operation = GetMeSessions.of(query);
+        GetMeSessions operation = GetMeSessions.of(securityUser);
         return meService.getMeSessions(operation).process(getMeSessionsProcessor);
     }
 
@@ -145,8 +140,7 @@ public class MeRestController {
     )
     @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<?> getMeCurrentSession(@AuthenticationPrincipal SecurityUser securityUser) {
-        GetMeCurrentSessionQuery query = new GetMeCurrentSessionQuery(securityUser);
-        GetMeCurrentSession operation = GetMeCurrentSession.of(query);
+        GetMeCurrentSession operation = GetMeCurrentSession.of(securityUser);
         return meService.getMeCurrentSession(operation).process(getMeCurrentSessionProcessor);
     }
 

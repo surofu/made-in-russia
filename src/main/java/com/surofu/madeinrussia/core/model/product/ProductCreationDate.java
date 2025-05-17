@@ -29,4 +29,9 @@ public final class ProductCreationDate implements Serializable {
     public static ProductCreationDate of(ZonedDateTime creationDate) {
         return new ProductCreationDate(creationDate);
     }
+
+    @Override
+    public String toString() {
+        return creationDate.toString();
+    }
 }

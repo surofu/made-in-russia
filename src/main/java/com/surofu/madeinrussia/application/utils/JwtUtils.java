@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.application.utils;
 
-import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -37,28 +39,32 @@ public class JwtUtils {
         return generateToken(userDetails, refreshTokenSecret, refreshTokenLifetime);
     }
 
-    public Long extractIdFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
+    public Long extractUserIdFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromAccessToken(accessToken, claims -> claims.get("id", Long.class));
     }
 
-    public Long extractIdFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
+    public Long extractUserIdFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
         return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("id", Long.class));
     }
 
-    public String extractEmailFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
-        return extractClaimFromAccessToken(accessToken, Claims::getSubject);
+    public UserEmail extractUserEmailFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
+        String rawEmail = extractClaimFromAccessToken(accessToken, Claims::getSubject);
+        return UserEmail.of(rawEmail);
     }
 
-    public String extractEmailFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
-        return extractClaimFromRefreshToken(refreshToken, Claims::getSubject);
+    public UserEmail extractUserEmailFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
+        String rawUserEmail = extractClaimFromRefreshToken(refreshToken, Claims::getSubject);
+        return UserEmail.of(rawUserEmail);
     }
 
-    public String extractRoleFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
-        return extractClaimFromAccessToken(accessToken, claims -> claims.get("role", String.class));
+    public UserRole extractUserRoleFromAccessToken(String accessToken) throws JwtException, IllegalArgumentException {
+        String rawRole = extractClaimFromAccessToken(accessToken, claims -> claims.get("role", String.class));
+        return UserRole.valueOf(rawRole.toUpperCase());
     }
 
-    public String extractRoleFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
-        return extractClaimFromRefreshToken(refreshToken, claims -> claims.get("role", String.class));
+    public UserRole extractUserRoleFromRefreshToken(String refreshToken) throws JwtException, IllegalArgumentException {
+        String rawUserRole = extractClaimFromRefreshToken(refreshToken, claims -> claims.get("role", String.class));
+        return UserRole.valueOf(rawUserRole.toUpperCase());
     }
 
     public <T> T extractClaimFromAccessToken(String accessToken, Function<Claims, T> claimsResolver) throws JwtException, IllegalArgumentException {

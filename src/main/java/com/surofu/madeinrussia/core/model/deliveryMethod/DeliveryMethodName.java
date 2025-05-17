@@ -23,4 +23,9 @@ public final class DeliveryMethodName implements Serializable {
     public static DeliveryMethodName of(String name) {
         return new DeliveryMethodName(name);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

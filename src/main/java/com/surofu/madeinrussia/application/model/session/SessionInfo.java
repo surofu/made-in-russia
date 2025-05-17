@@ -1,46 +1,44 @@
-package com.surofu.madeinrussia.application.model;
+package com.surofu.madeinrussia.application.model.session;
 
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
+import com.surofu.madeinrussia.core.model.session.SessionIpAddress;
 import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+@Slf4j
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public final class SessionInfo implements Serializable {
-
-    @Value("${app.session.secret}")
-    private static String sessionSecret;
-
     private UserAgent userAgent;
 
-    private String ipAddress;
+    private SessionIpAddress ipAddress;
 
-    private String deviceId;
+    private SessionDeviceId deviceId;
 
-    private boolean isInWhitelist;
+    private String sessionKey;
 
     public static SessionInfo of(HttpServletRequest request) {
         String userAgentString = request.getHeader("User-Agent");
+        String xInternalRequestHeader = request.getHeader("X-Internal-Request");
+
         UserAgent userAgent = UserAgent.parseUserAgentString(userAgentString);
         String ipAddress = getClientIpAddressFromHttpRequest(request);
         String deviceId = generateDeviceId(userAgent);
 
-        String xInternalRequestHeader = request.getHeader("X-Internal-Request");
-        boolean isInWhitelist = sessionSecret.equals(xInternalRequestHeader);
-
         return SessionInfo.builder()
                 .userAgent(userAgent)
-                .ipAddress(ipAddress)
-                .deviceId(deviceId)
-                .isInWhitelist(isInWhitelist)
+                .ipAddress(SessionIpAddress.of(ipAddress))
+                .deviceId(SessionDeviceId.of(deviceId))
+                .sessionKey(xInternalRequestHeader)
                 .build();
     }
 

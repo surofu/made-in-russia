@@ -16,14 +16,14 @@ public class RegisterMapperResultToResponseEntity implements Register.Result.Pro
 
     @Override
     public ResponseEntity<?> processUserWithEmailAlreadyExists(Register.Result.UserWithEmailAlreadyExists result) {
-        String message = String.format("Пользователь с почтой '%s' уже существует", result.getEmail());
+        String message = String.format("Пользователь с почтой '%s' уже существует", result.getUserEmail());
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }
 
     @Override
     public ResponseEntity<?> processUserWithLoginAlreadyExists(Register.Result.UserWithLoginAlreadyExists result) {
-        String message = String.format("Пользователь с логином '%s' уже существует", result.getLogin());
+        String message = String.format("Пользователь с логином '%s' уже существует", result.getUserLogin());
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }

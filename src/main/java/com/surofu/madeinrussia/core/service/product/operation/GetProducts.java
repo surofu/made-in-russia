@@ -1,15 +1,22 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
 import com.surofu.madeinrussia.application.dto.ProductDto;
-import com.surofu.madeinrussia.application.query.product.GetProductsQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetProducts {
-    GetProductsQuery query;
+    int page;
+    int size;
+    List<Long> deliveryMethodIds;
+    List<Long> categoryIds;
+    BigDecimal minPrice;
+    BigDecimal maxPrice;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -22,7 +29,6 @@ public class GetProducts {
         @Value(staticConstructor = "of")
         class Success implements Result {
             Page<ProductDto> productDtoPage;
-
 
             @Override
             public <T> T process(Processor<T> processor) {

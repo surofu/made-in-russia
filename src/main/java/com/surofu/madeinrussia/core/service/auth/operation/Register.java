@@ -21,13 +21,13 @@ public class Register {
         }
 
         static Result userWithEmailAlreadyExists(UserEmail userEmail) {
-            log.warn("User with email '{}' already exists", userEmail.getEmail());
-            return UserWithEmailAlreadyExists.of(userEmail.getEmail());
+            log.warn("User with email '{}' already exists", userEmail);
+            return UserWithEmailAlreadyExists.of(userEmail);
         }
 
         static Result userWithLoginAlreadyExists(UserLogin userLogin) {
-            log.warn("User with login '{}' already exists", userLogin.getLogin());
-            return UserWithLoginAlreadyExists.of(userLogin.getLogin());
+            log.warn("User with login '{}' already exists", userLogin);
+            return UserWithLoginAlreadyExists.of(userLogin);
         }
 
         @Value(staticConstructor = "of")
@@ -42,7 +42,7 @@ public class Register {
 
         @Value(staticConstructor = "of")
         class UserWithEmailAlreadyExists implements Result {
-            String email;
+            UserEmail userEmail;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -52,7 +52,7 @@ public class Register {
 
         @Value(staticConstructor = "of")
         class UserWithLoginAlreadyExists implements Result {
-            String login;
+            UserLogin userLogin;
 
             @Override
             public <T> T process(Processor<T> processor) {

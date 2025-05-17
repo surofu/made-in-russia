@@ -1,14 +1,13 @@
 package com.surofu.madeinrussia.core.service.category.operation;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
-import com.surofu.madeinrussia.application.query.category.GetCategoryByIdQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetCategoryById {
-    GetCategoryByIdQuery query;
+    Long categoryId;
 
     public interface Result {
         <T> T process(Processor<T> processor);

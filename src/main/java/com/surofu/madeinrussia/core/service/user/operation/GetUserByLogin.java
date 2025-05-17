@@ -1,14 +1,14 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.query.user.GetUserByLoginQuery;
+import com.surofu.madeinrussia.core.model.user.UserLogin;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetUserByLogin {
-    GetUserByLoginQuery query;
+    UserLogin userLogin;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -18,7 +18,7 @@ public class GetUserByLogin {
             return Success.of(userDto);
         }
 
-        static Result notFound(String userLogin) {
+        static Result notFound(UserLogin userLogin) {
             log.warn("User with login '{}' not found", userLogin);
             return NotFound.of(userLogin);
         }
@@ -35,7 +35,7 @@ public class GetUserByLogin {
 
         @Value(staticConstructor = "of")
         class NotFound implements Result {
-            String userLogin;
+            UserLogin userLogin;
 
             @Override
             public <T> T process(Processor<T> processor) {

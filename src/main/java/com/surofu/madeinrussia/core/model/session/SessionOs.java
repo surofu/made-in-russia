@@ -23,4 +23,9 @@ public final class SessionOs implements Serializable {
     public static SessionOs of(String os) {
         return new SessionOs(os);
     }
+
+    @Override
+    public String toString() {
+        return os;
+    }
 }

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.service.async;
 
-import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.*;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
@@ -25,8 +25,8 @@ public class AsyncSessionApplicationService {
     public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) throws CompletionException {
         UserAgent userAgent = securityUser.getSessionInfo().getUserAgent();
 
-        String rawDeviceId = securityUser.getSessionInfo().getDeviceId();
-        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+        SessionIpAddress sessionIpAddress = securityUser.getSessionInfo().getIpAddress();
 
         String rawDeviceType = userAgent.getOperatingSystem().getDeviceType().getName();
         SessionDeviceType sessionDeviceType = SessionDeviceType.of(rawDeviceType);
@@ -36,9 +36,6 @@ public class AsyncSessionApplicationService {
 
         String rawOsName = userAgent.getOperatingSystem().getName();
         SessionOs sessionOs = SessionOs.of(rawOsName);
-
-        String rawIpAddress = securityUser.getSessionInfo().getIpAddress();
-        SessionIpAddress sessionIpAddress = SessionIpAddress.of(rawIpAddress);
 
         ZonedDateTime dateNow = ZonedDateTime.now();
         SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);

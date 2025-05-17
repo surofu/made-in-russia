@@ -23,4 +23,9 @@ public final class CategoryName implements Serializable {
     public static CategoryName of(String name) {
         return new CategoryName(name);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

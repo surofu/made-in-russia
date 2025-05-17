@@ -42,17 +42,17 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "deliveryMethod",
-            key = "#operation.query.deliveryMethodId()",
+            key = "#operation.getDeliveryMethodId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethodById$Result$NotFound)"
     )
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
-        Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getQuery().deliveryMethodId());
+        Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getDeliveryMethodId());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);
 
         if (deliveryMethodDto.isPresent()) {
             return GetDeliveryMethodById.Result.success(deliveryMethodDto.get());
         }
 
-        return GetDeliveryMethodById.Result.notFound(operation.getQuery().deliveryMethodId());
+        return GetDeliveryMethodById.Result.notFound(operation.getDeliveryMethodId());
     }
 }

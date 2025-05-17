@@ -42,17 +42,17 @@ public class CategoryApplicationService implements CategoryService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "category",
-            key = "#operation.query.categoryId()",
+            key = "#operation.getCategoryId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.category.operation.GetCategoryById$Result$NotFound)"
     )
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
-        Optional<Category> category = repository.getCategoryById(operation.getQuery().categoryId());
+        Optional<Category> category = repository.getCategoryById(operation.getCategoryId());
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
 
         if (categoryDto.isPresent()) {
             return GetCategoryById.Result.success(categoryDto.get());
         }
 
-        return GetCategoryById.Result.notFound(operation.getQuery().categoryId());
+        return GetCategoryById.Result.notFound(operation.getCategoryId());
     }
 }

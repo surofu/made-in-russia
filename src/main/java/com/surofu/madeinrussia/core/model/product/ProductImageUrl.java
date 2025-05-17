@@ -23,4 +23,9 @@ public final class ProductImageUrl implements Serializable {
     public static ProductImageUrl of(String imageUrl) {
         return new ProductImageUrl(imageUrl);
     }
+
+    @Override
+    public String toString() {
+        return imageUrl;
+    }
 }

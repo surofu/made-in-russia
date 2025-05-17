@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
-import com.surofu.madeinrussia.application.query.deliveryMethod.GetDeliveryMethodByIdQuery;
 import com.surofu.madeinrussia.core.service.deliveryMethod.DeliveryMethodService;
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethodById;
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethods;
@@ -52,7 +51,7 @@ public class DeliveryMethodRestController {
         return deliveryMethodService.getDeliveryMethods().process(getDeliveryMethodsProcessor);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{deliveryMethodId}")
     @Operation(
             summary = "Get delivery method by ID",
             description = "Retrieves a specific delivery method by its unique identifier",
@@ -80,10 +79,9 @@ public class DeliveryMethodRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            Long id
+            Long deliveryMethodId
     ) {
-        GetDeliveryMethodByIdQuery query = new GetDeliveryMethodByIdQuery(id);
-        GetDeliveryMethodById operation = GetDeliveryMethodById.of(query);
+        GetDeliveryMethodById operation = GetDeliveryMethodById.of(deliveryMethodId);
         return deliveryMethodService.getDeliveryMethodById(operation).process(getDeliveryMethodByIdProcessor);
     }
 }

@@ -23,4 +23,9 @@ public final class ProductTitle implements Serializable {
     public static ProductTitle of(String title) {
         return new ProductTitle(title);
     }
+
+    @Override
+    public String toString() {
+        return title;
+    }
 }

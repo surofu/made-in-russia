@@ -1,14 +1,13 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.query.user.GetUserByIdQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetUserById {
-    GetUserByIdQuery query;
+    Long userId;
 
     public interface Result {
         <T> T process(Processor<T> processor);

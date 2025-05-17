@@ -29,4 +29,9 @@ public final class CategoryCreationDate implements Serializable {
     public static CategoryCreationDate of(ZonedDateTime creationDate) {
         return new CategoryCreationDate(creationDate);
     }
+
+    @Override
+    public String toString() {
+        return creationDate.toString();
+    }
 }

@@ -29,4 +29,9 @@ public final class UserRegistrationDate implements Serializable {
     public static UserRegistrationDate of(ZonedDateTime registrationDate) {
         return new UserRegistrationDate(registrationDate);
     }
+
+    @Override
+    public String toString() {
+        return registrationDate.toString();
+    }
 }

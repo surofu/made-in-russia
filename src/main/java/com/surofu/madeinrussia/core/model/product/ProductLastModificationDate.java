@@ -29,4 +29,9 @@ public final class ProductLastModificationDate implements Serializable {
     public static ProductLastModificationDate of(ZonedDateTime lastModificationDate) {
         return new ProductLastModificationDate(lastModificationDate);
     }
+
+    @Override
+    public String toString() {
+        return lastModificationDate.toString();
+    }
 }

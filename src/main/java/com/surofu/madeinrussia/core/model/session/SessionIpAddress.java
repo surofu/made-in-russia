@@ -23,4 +23,9 @@ public final class SessionIpAddress implements Serializable {
     public static SessionIpAddress of(String ipAddress) {
         return new SessionIpAddress(ipAddress);
     }
+
+    @Override
+    public String toString() {
+        return ipAddress;
+    }
 }

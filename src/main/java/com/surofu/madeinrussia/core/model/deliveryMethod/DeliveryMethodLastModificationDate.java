@@ -29,4 +29,9 @@ public final class DeliveryMethodLastModificationDate implements Serializable {
     public static DeliveryMethodLastModificationDate of(ZonedDateTime lastModificationDate) {
         return new DeliveryMethodLastModificationDate(lastModificationDate);
     }
+
+    @Override
+    public String toString() {
+        return lastModificationDate.toString();
+    }
 }

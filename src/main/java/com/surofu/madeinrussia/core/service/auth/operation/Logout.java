@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
-import com.surofu.madeinrussia.application.model.SecurityUser;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

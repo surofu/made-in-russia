@@ -1,14 +1,14 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.query.user.GetUserByEmailQuery;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetUserByEmail {
-    GetUserByEmailQuery query;
+    UserEmail userEmail;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -18,7 +18,7 @@ public class GetUserByEmail {
             return Success.of(userDto);
         }
 
-        static Result notFound(String userEmail) {
+        static Result notFound(UserEmail userEmail) {
             log.warn("User with email '{}' not found", userEmail);
             return NotFound.of(userEmail);
         }
@@ -35,7 +35,7 @@ public class GetUserByEmail {
 
         @Value(staticConstructor = "of")
         class NotFound implements Result {
-            String userEmail;
+            UserEmail userEmail;
 
             @Override
             public <T> T process(Processor<T> processor) {

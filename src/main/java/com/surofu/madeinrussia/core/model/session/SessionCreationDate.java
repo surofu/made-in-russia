@@ -29,4 +29,9 @@ public final class SessionCreationDate implements Serializable {
     public static SessionCreationDate of(ZonedDateTime creationDate) {
         return new SessionCreationDate(creationDate);
     }
+
+    @Override
+    public String toString() {
+        return creationDate.toString();
+    }
 }

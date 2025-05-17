@@ -22,4 +22,9 @@ public final class UserEmail implements Serializable {
     public static UserEmail of(String email) {
         return new UserEmail(email);
     }
+
+    @Override
+    public String toString() {
+        return email;
+    }
 }

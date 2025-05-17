@@ -3,8 +3,8 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
-import com.surofu.madeinrussia.application.model.SecurityUser;
-import com.surofu.madeinrussia.application.model.SessionInfo;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
@@ -62,7 +62,7 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithLoginAlreadyExists(userLogin);
         }
 
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", rawEmail);
+        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", userEmail);
 
         SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
                 .message(registerSuccessMessage)
@@ -89,7 +89,7 @@ public class AuthApplicationService implements AuthService {
         UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
 
         try {
-            loginSuccessDto = login(rawEmail, rawPassword);
+            loginSuccessDto = login(userEmail, userPasswordPassword);
         } catch (AuthenticationException ex) {
             return LoginWithEmail.Result.invalidCredentials(userEmail, userPasswordPassword);
         }
@@ -112,12 +112,10 @@ public class AuthApplicationService implements AuthService {
             return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
 
-        String rawEmail = userEmail.get().getEmail();
-
         LoginSuccessDto loginSuccessDto;
 
         try {
-            loginSuccessDto = login(rawEmail, rawPassword);
+            loginSuccessDto = login(userEmail.get(), userPasswordPassword);
         } catch (AuthenticationException ex) {
             log.warn("Authentication failed", ex);
             return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
@@ -204,10 +202,8 @@ public class AuthApplicationService implements AuthService {
     @Transactional
     public Logout.Result logout(Logout operation) {
         SessionInfo sessionInfo = operation.getSecurityUser().getSessionInfo();
-
         Long userId = operation.getSecurityUser().getUser().getId();
-        String rawDeviceId = sessionInfo.getDeviceId();
-        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
+        SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
 
         String message = "Успешный выход из аккаунта";
         SimpleResponseMessageDto responseMessage = SimpleResponseMessageDto.of(message);
@@ -221,8 +217,8 @@ public class AuthApplicationService implements AuthService {
         return Logout.Result.success(responseMessage);
     }
 
-    private LoginSuccessDto login(String email, String password) throws AuthenticationException {
-        Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(email, password);
+    private LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
+        Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(userEmail.toString(), userPasswordPassword.toString());
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);

@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.SessionDto;
-import com.surofu.madeinrussia.application.query.me.GetMeCurrentSessionQuery;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetMeCurrentSession {
-    GetMeCurrentSessionQuery query;
+    SecurityUser securityUser;
 
     public interface Result {
         <T> T process(Processor<T> processor);

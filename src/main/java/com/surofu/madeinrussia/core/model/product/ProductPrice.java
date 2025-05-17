@@ -9,6 +9,7 @@ import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 
 @Getter
 @Embeddable
@@ -31,5 +32,15 @@ public final class ProductPrice implements Serializable {
 
     public static ProductPrice of(BigDecimal price, BigDecimal discount) {
         return new ProductPrice(price, discount);
+    }
+
+    @Override
+    public String toString() {
+        DecimalFormat decimalFormat = new DecimalFormat();
+        decimalFormat.setMaximumFractionDigits(2);
+        decimalFormat.setMinimumFractionDigits(0);
+        decimalFormat.setGroupingUsed(false);
+
+        return decimalFormat.format(price);
     }
 }

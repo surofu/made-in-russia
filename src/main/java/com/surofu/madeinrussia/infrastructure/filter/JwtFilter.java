@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.filter;
 
-import com.surofu.madeinrussia.application.model.SecurityUser;
-import com.surofu.madeinrussia.application.model.SessionInfo;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -48,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         log.info("authorizationHeader: {}", authorizationHeader);
 
-        String email = null;
+        UserEmail userEmail = null;
         String accessToken = null;
 
         log.info("Start get access token");
@@ -64,8 +66,8 @@ public class JwtFilter extends OncePerRequestFilter {
             log.info("access token: {}", accessToken);
 
             try {
-                email = jwtUtils.extractEmailFromAccessToken(accessToken);
-                log.info("Email found: {}", email);
+                userEmail = jwtUtils.extractUserEmailFromAccessToken(accessToken);
+                log.info("Email found: {}", userEmail);
             } catch (ExpiredJwtException ex) {
                 log.warn("Jwt has been expired", ex);
             } catch (SignatureException ex) {
@@ -75,7 +77,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        log.info("End get access token with email: {}", email);
+        log.info("End get access token with email: {}", userEmail);
 
         SessionInfo sessionInfo = SessionInfo.of(request);
 
@@ -83,21 +85,21 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("Current session ip address: {}", sessionInfo.getIpAddress());
         log.info("Current session device id: {}", sessionInfo.getDeviceId());
 
-        log.info("if 1 param is true: {}", email != null);
+        log.info("if 1 param is true: {}", userEmail != null);
         log.info("if 2 param is true: {}", SecurityContextHolder.getContext().getAuthentication() == null);
-        log.info("1 if statement is true: {}", email != null && SecurityContextHolder.getContext().getAuthentication() == null);
+        log.info("1 if statement is true: {}", userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null);
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String role = jwtUtils.extractRoleFromAccessToken(accessToken);
-            log.info("Role: {}", role);
-            List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(role));
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserRole userRole = jwtUtils.extractUserRoleFromAccessToken(accessToken);
+            log.info("Role: {}", userRole);
+            List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(userRole.toString()));
             log.info("Authority list: {}", authorityList);
 
             try {
                 log.info("Start try get SecurityUser");
-                SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(email);
+                SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(userEmail.toString());
                 log.info("End try get SecurityUser");
-                log.info("SecurityUser user email: {}", securityUser.getUser().getEmail().getEmail());
+                log.info("SecurityUser user email: {}", securityUser.getUser().getEmail().toString());
 
                 log.info("Start creating token");
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -121,7 +123,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             return null;
                         });
             } catch (UsernameNotFoundException ex) {
-                log.debug("User with email '{}' not found", email, ex);
+                log.debug("User with email '{}' not found", userEmail, ex);
             }
         }
 

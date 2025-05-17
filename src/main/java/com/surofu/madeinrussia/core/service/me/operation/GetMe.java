@@ -1,18 +1,17 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.query.me.GetMeQuery;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetMe {
-    GetMeQuery query;
+    SecurityUser securityUser;
 
     public interface Result {
-        <T> T process(Processor<T> processor);
-
         static Result success(UserDto userDto) {
             log.info("Successfully processed get me by jwt: {}", userDto);
             return Success.of(userDto);
@@ -23,20 +22,12 @@ public class GetMe {
             return SessionWithIdNotFound.INSTANCE;
         }
 
-        static Result sessionWithUserIdAndDeviceIdNotFound(Long userId, String deviceId) {
-            log.warn("Session not found: userId={}, deviceId={}", userId, deviceId);
+        static Result sessionWithUserIdAndDeviceIdNotFound(Long userId, SessionDeviceId sessionDeviceId) {
+            log.warn("Session not found: userId={}, deviceId={}", userId, sessionDeviceId);
             return SessionWithIdNotFound.INSTANCE;
         }
 
-        @Value(staticConstructor = "of")
-        class Success implements Result {
-            UserDto userDto;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processSuccess(this);
-            }
-        }
+        <T> T process(Processor<T> processor);
 
         enum SessionWithIdNotFound implements Result {
             INSTANCE;
@@ -62,6 +53,16 @@ public class GetMe {
             T processSessionWithIdNotFound(SessionWithIdNotFound result);
 
             T processSessionWithUserIdAndDeviceIdNotFound(SessionWithUserIdAndDeviceIdNotFound result);
+        }
+
+        @Value(staticConstructor = "of")
+        class Success implements Result {
+            UserDto userDto;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSuccess(this);
+            }
         }
     }
 }

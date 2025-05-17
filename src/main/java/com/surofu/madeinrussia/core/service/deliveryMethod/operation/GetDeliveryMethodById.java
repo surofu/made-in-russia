@@ -1,14 +1,13 @@
 package com.surofu.madeinrussia.core.service.deliveryMethod.operation;
 
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
-import com.surofu.madeinrussia.application.query.deliveryMethod.GetDeliveryMethodByIdQuery;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetDeliveryMethodById {
-    GetDeliveryMethodByIdQuery query;
+    Long deliveryMethodId;
 
     public interface Result {
         <T> T process(Processor<T> processor);

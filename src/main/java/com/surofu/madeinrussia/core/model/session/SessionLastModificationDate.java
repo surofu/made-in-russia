@@ -29,4 +29,9 @@ public final class SessionLastModificationDate implements Serializable {
     public static SessionLastModificationDate of(ZonedDateTime lastModificationDate) {
         return new SessionLastModificationDate(lastModificationDate);
     }
+
+    @Override
+    public String toString() {
+        return lastModificationDate.toString();
+    }
 }

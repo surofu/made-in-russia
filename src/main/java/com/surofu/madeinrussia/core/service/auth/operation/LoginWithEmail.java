@@ -21,11 +21,7 @@ public class LoginWithEmail {
         }
 
         static Result invalidCredentials(UserEmail email, UserPasswordPassword password) {
-            log.warn(
-                    "Invalid login with email credentials provided: Email: {}, Password: {}",
-                    email.getEmail(),
-                    password.getPassword()
-            );
+            log.warn("Invalid login with email credentials provided: Email: {}, Password: {}",  email, password);
             return InvalidCredentials.INSTANCE;
         }
 

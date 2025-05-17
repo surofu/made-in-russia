@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
-import com.surofu.madeinrussia.application.query.category.GetCategoryByIdQuery;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
@@ -50,7 +49,7 @@ public class CategoryRestController {
         return service.getCategories().process(getCategoriesProcessor);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{categoryId}")
     @Operation(
             summary = "Get category by ID",
             description = "Retrieves a single category by its unique identifier",
@@ -78,10 +77,9 @@ public class CategoryRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            Long id
+            Long categoryId
     ) {
-        GetCategoryByIdQuery query = new GetCategoryByIdQuery(id);
-        GetCategoryById operation = GetCategoryById.of(query);
+        GetCategoryById operation = GetCategoryById.of(categoryId);
         return service.getCategoryById(operation).process(getCategoryByIdProcessor);
     }
 }

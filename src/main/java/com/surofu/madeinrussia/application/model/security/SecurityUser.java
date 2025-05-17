@@ -1,5 +1,6 @@
-package com.surofu.madeinrussia.application.model;
+package com.surofu.madeinrussia.application.model.security;
 
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import lombok.AllArgsConstructor;

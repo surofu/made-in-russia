@@ -23,4 +23,9 @@ public final class SessionDeviceId implements Serializable {
     public static SessionDeviceId of(String deviceId) {
         return new SessionDeviceId(deviceId);
     }
+
+    @Override
+    public String toString() {
+        return deviceId;
+    }
 }

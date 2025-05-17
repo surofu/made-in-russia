@@ -3,14 +3,15 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.model.SecurityUser;
-import com.surofu.madeinrussia.application.model.SessionInfo;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.session.SessionWithUser;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
 import com.surofu.madeinrussia.core.service.me.MeService;
@@ -22,6 +23,7 @@ import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,15 +42,19 @@ public class MeApplicationService implements MeService {
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
+    @Value("${app.session.secret}")
+    private String sessionSecret;
+
     @Override
     @Transactional(readOnly = true)
     public GetMe.Result getMeByJwt(GetMe operation) {
-        Optional<Session> existingSession = getSessionBySecurityUser(operation.getQuery().securityUser());
+        SecurityUser securityUser = operation.getSecurityUser();
+        Optional<Session> existingSession = getSessionBySecurityUser(securityUser);
 
         if (existingSession.isEmpty()) {
             return GetMe.Result.sessionWithUserIdAndDeviceIdNotFound(
-                    operation.getQuery().securityUser().getUser().getId(),
-                    operation.getQuery().securityUser().getSessionInfo().getDeviceId()
+                    securityUser.getUser().getId(),
+                    securityUser.getSessionInfo().getDeviceId()
             );
         }
 
@@ -66,7 +72,7 @@ public class MeApplicationService implements MeService {
 
     @Override
     public GetMeSessions.Result getMeSessions(GetMeSessions operation) {
-        SecurityUser securityUser = operation.getQuery().securityUser();
+        SecurityUser securityUser = operation.getSecurityUser();
 
         User user = securityUser.getUser();
         Long userId = user.getId();
@@ -80,9 +86,9 @@ public class MeApplicationService implements MeService {
 
     @Override
     public GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation) {
-        Long userId = operation.getQuery().securityUser().getUser().getId();
-        String rawDeviceId = operation.getQuery().securityUser().getSessionInfo().getDeviceId();
-        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
+        SecurityUser securityUser = operation.getSecurityUser();
+        Long userId = securityUser.getUser().getId();
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
 
         Optional<SessionDto> sessionDto = sessionRepository
                 .getSessionByUserIdAndDeviceId(userId, sessionDeviceId)
@@ -99,10 +105,10 @@ public class MeApplicationService implements MeService {
     public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
         String refreshToken = operation.getCommand().refreshToken();
 
-        String rawEmail;
+        UserEmail userEmail;
 
         try {
-            rawEmail = jwtUtils.extractEmailFromRefreshToken(refreshToken);
+            userEmail = jwtUtils.extractUserEmailFromRefreshToken(refreshToken);
         } catch (JwtException | IllegalArgumentException ex) {
             return RefreshMeCurrentSession.Result.invalidRefreshToken(refreshToken, ex);
         }
@@ -110,21 +116,20 @@ public class MeApplicationService implements MeService {
         SecurityUser securityUser;
 
         try {
-            securityUser = (SecurityUser) userService.loadUserByUsername(rawEmail);
+            securityUser = (SecurityUser) userService.loadUserByUsername(userEmail.toString());
         } catch (UsernameNotFoundException ex) {
-            return RefreshMeCurrentSession.Result.userNotFound(rawEmail);
+            return RefreshMeCurrentSession.Result.userNotFound(userEmail);
         }
 
         Long userId = securityUser.getUser().getId();
 
         SessionInfo sessionInfo = securityUser.getSessionInfo();
-        String rawDeviceId = sessionInfo.getDeviceId();
-        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
+        SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
 
         Optional<Session> session = sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
 
-        if (session.isEmpty() && !sessionInfo.isInWhitelist()) {
-            return RefreshMeCurrentSession.Result.sessionNotFound(sessionDeviceId.getDeviceId());
+        if (session.isEmpty() && !sessionSecret.equals(sessionInfo.getSessionKey())) {
+            return RefreshMeCurrentSession.Result.sessionNotFound(sessionDeviceId);
         }
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
@@ -141,8 +146,7 @@ public class MeApplicationService implements MeService {
 
     private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
         Long userId = securityUser.getUser().getId();
-        String rawDeviceId = securityUser.getSessionInfo().getDeviceId();
-        SessionDeviceId sessionDeviceId = SessionDeviceId.of(rawDeviceId);
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
         return sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
 
     }

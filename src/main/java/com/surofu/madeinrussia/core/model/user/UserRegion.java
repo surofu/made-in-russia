@@ -23,4 +23,9 @@ public final class UserRegion implements Serializable {
     public static UserRegion of(String region) {
         return new UserRegion(region);
     }
+
+    @Override
+    public String toString() {
+        return region;
+    }
 }

@@ -3,8 +3,6 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.dto.GetProductsDto;
 import com.surofu.madeinrussia.application.dto.ProductDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
-import com.surofu.madeinrussia.application.query.product.GetProductByIdQuery;
-import com.surofu.madeinrussia.application.query.product.GetProductsQuery;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
@@ -157,11 +155,11 @@ public class ProductsRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        GetProductsQuery query = new GetProductsQuery(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
-        return productService.getProducts(GetProducts.of(query)).process(getProductsProcessor);
+        GetProducts operation = GetProducts.of(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        return productService.getProducts(operation).process(getProductsProcessor);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("{productId}")
     @Operation(
             summary = "Get product by ID",
             description = "Retrieves a single product by its unique identifier",
@@ -190,10 +188,9 @@ public class ProductsRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            Long id
+            Long productId
     ) {
-        GetProductByIdQuery query = new GetProductByIdQuery(id);
-        GetProductById operation = GetProductById.of(query);
+        GetProductById operation = GetProductById.of(productId);
         return productService.getProductById(operation).process(getProductByIdProcessor);
     }
 }

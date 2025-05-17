@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
-import com.surofu.madeinrussia.application.model.SessionInfo;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class VerifyEmail {
         }
 
         static Result accountNotFound(UserEmail email) {
-            log.warn("Account with email '{}' not found", email.getEmail());
+            log.warn("Account with email '{}' not found", email);
             return AccountNotFound.INSTANCE;
         }
 

@@ -30,21 +30,21 @@ public class ProductApplicationService implements ProductService {
             value = "productsPage",
             key = """
                     {
-                     #operation.query.page(), #operation.query.size(),
-                     #operation.query.deliveryMethodIds()?.hashCode(),
-                     #operation.query.categoryIds()?.hashCode(),
-                     #operation.query.minPrice(), #operation.query.maxPrice()
+                     #operation.getPage(), #operation.getSize(),
+                     #operation.getDeliveryMethodIds()?.hashCode(),
+                     #operation.getCategoryIds()?.hashCode(),
+                     #operation.getMinPrice(), #operation.getMaxPrice()
                      }
                     """,
             unless = "#result.getProductDtoPage().isEmpty()"
     )
     public GetProducts.Result getProducts(GetProducts operation) {
-        Pageable pageable = PageRequest.of(operation.getQuery().page(), operation.getQuery().size());
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
         Specification<Product> specification = Specification
-                .where(ProductSpecifications.hasDeliveryMethods(operation.getQuery().deliveryMethodIds()))
-                .and(ProductSpecifications.hasCategories(operation.getQuery().categoryIds()))
-                .and(ProductSpecifications.priceBetween(operation.getQuery().minPrice(), operation.getQuery().maxPrice()));
+                .where(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+                .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
+                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
 
         Page<Product> productPage = productRepository.getAllProductsWithCategoryAndDeliveryMethods(specification, pageable);
         Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
@@ -56,17 +56,17 @@ public class ProductApplicationService implements ProductService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "product",
-            key = "#operation.query.productId()",
+            key = "#operation.getProductId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        Optional<Product> product = productRepository.getProductById(operation.getQuery().productId());
+        Optional<Product> product = productRepository.getProductById(operation.getProductId());
         Optional<ProductDto> productDto = product.map(ProductDto::of);
 
         if (productDto.isPresent()) {
             return GetProductById.Result.success(productDto.get());
         }
 
-        return GetProductById.Result.notFound(operation.getQuery().productId());
+        return GetProductById.Result.notFound(operation.getProductId());
     }
 }

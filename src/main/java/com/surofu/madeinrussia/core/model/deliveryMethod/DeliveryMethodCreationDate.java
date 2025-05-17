@@ -29,4 +29,9 @@ public final class DeliveryMethodCreationDate implements Serializable {
     public static DeliveryMethodCreationDate of(ZonedDateTime creationDate) {
         return new DeliveryMethodCreationDate(creationDate);
     }
+
+    @Override
+    public String toString() {
+        return creationDate.toString();
+    }
 }

@@ -29,4 +29,9 @@ public final class UserPasswordCreationDate implements Serializable {
     public static UserPasswordCreationDate of(ZonedDateTime creationDate) {
         return new UserPasswordCreationDate(creationDate);
     }
+
+    @Override
+    public String toString() {
+        return creationDate.toString();
+    }
 }

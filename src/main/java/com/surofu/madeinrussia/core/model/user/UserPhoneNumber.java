@@ -23,4 +23,9 @@ public final class UserPhoneNumber implements Serializable {
     public static UserPhoneNumber of(String phoneNumber) {
         return new UserPhoneNumber(phoneNumber);
     }
+
+    @Override
+    public String toString() {
+        return phoneNumber;
+    }
 }

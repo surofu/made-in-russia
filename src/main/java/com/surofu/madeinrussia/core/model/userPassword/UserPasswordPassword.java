@@ -35,4 +35,9 @@ public final class UserPasswordPassword implements Serializable {
 
         return new UserPasswordPassword(password);
     }
+
+    @Override
+    public String toString() {
+        return password;
+    }
 }

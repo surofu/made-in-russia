@@ -23,4 +23,9 @@ public final class SessionBrowser implements Serializable {
     public static SessionBrowser of(String browser) {
         return new SessionBrowser(browser);
     }
+
+    @Override
+    public String toString() {
+        return browser;
+    }
 }
