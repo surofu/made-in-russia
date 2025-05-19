@@ -64,7 +64,7 @@ public class CategoryRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Category not found",
-                            content = @Content(schema = @Schema(hidden = true))
+                            content = @Content
                     )
             }
     )

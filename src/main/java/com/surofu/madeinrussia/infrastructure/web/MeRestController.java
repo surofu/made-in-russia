@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
 import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -58,13 +59,12 @@ public class MeRestController {
                     @ApiResponse(
                             responseCode = "401",
                             description = "Unauthorized - invalid or missing JWT token",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
+                            content = @Content
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - insufficient permissions"
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
                     )
             }
     )
@@ -87,19 +87,19 @@ public class MeRestController {
                             responseCode = "200",
                             description = "Successfully retrieved sessions",
                             content = @Content(
-                                    schema = @Schema(implementation = List.class)
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = SessionDto.class))
                             )
                     ),
                     @ApiResponse(
                             responseCode = "401",
                             description = "Unauthorized - invalid or missing JWT token",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
+                            content = @Content
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - insufficient permissions"
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
                     )
             }
     )
@@ -128,13 +128,12 @@ public class MeRestController {
                     @ApiResponse(
                             responseCode = "401",
                             description = "Unauthorized - invalid or missing JWT token",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
+                            content = @Content
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - insufficient permissions"
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
                     )
             }
     )
@@ -156,6 +155,7 @@ public class MeRestController {
                             responseCode = "200",
                             description = "Session refreshed successfully",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = TokenDto.class)
                             )
                     ),
@@ -163,15 +163,14 @@ public class MeRestController {
                             responseCode = "400",
                             description = "Invalid refresh token",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
                     @ApiResponse(
                             responseCode = "401",
                             description = "Unauthorized - invalid or expired refresh token",
-                            content = @Content(
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
+                            content = @Content
                     )
             }
     )

@@ -66,7 +66,7 @@ public class DeliveryMethodRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Delivery method not found",
-                            content = @Content(schema = @Schema(hidden = true))
+                            content = @Content
                     )
             }
     )

@@ -52,6 +52,7 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "User created successfully",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseMessageDto.class)
                             )
                     ),
@@ -59,6 +60,7 @@ public class AuthRestController {
                             responseCode = "400",
                             description = "Invalid registration data",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
@@ -66,6 +68,7 @@ public class AuthRestController {
                             responseCode = "409",
                             description = "Email or login already exists",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     )
@@ -76,6 +79,7 @@ public class AuthRestController {
                     description = "Registration data",
                     required = true,
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = RegisterCommand.class)
                     )
             )
@@ -94,6 +98,7 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "Authentication successful",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = LoginSuccessDto.class)
                             )
                     ),
@@ -101,6 +106,7 @@ public class AuthRestController {
                             responseCode = "401",
                             description = "Invalid credentials",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     ),
@@ -111,6 +117,7 @@ public class AuthRestController {
                     description = "Email login credentials",
                     required = true,
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = LoginWithEmailCommand.class)
                     )
             )
@@ -129,6 +136,7 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "Authentication successful",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = LoginSuccessDto.class)
                             )
                     ),
@@ -136,6 +144,7 @@ public class AuthRestController {
                             responseCode = "401",
                             description = "Invalid credentials",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     ),
@@ -143,6 +152,7 @@ public class AuthRestController {
                             responseCode = "404",
                             description = "User not found",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     )
@@ -153,6 +163,7 @@ public class AuthRestController {
                     description = "User login credentials",
                     required = true,
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(
                                     implementation = LoginWithLoginCommand.class,
                                     example = """
@@ -178,6 +189,7 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "Email verified successfully",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseMessageDto.class)
                             )
                     ),
@@ -185,6 +197,7 @@ public class AuthRestController {
                             responseCode = "400",
                             description = "Invalid or expired verification code",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
@@ -192,6 +205,7 @@ public class AuthRestController {
                             responseCode = "404",
                             description = "User not found",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     )
@@ -202,6 +216,7 @@ public class AuthRestController {
                     description = "Email verification data",
                     required = true,
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = VerifyEmailCommand.class)
                     )
             )
@@ -222,14 +237,8 @@ public class AuthRestController {
                             responseCode = "200",
                             description = "Logout successful",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseMessageDto.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid session data",
-                            content = @Content(
-                                    schema = @Schema(implementation = ValidationExceptionDto.class)
                             )
                     ),
             }

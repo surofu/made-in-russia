@@ -53,9 +53,11 @@ public class ProductsRestController {
                     @ApiResponse(
                             responseCode = "400",
                             description = "Invalid request parameters",
-                            content = @Content(schema = @Schema(
-                                    implementation = ValidationExceptionDto.class
-                            ))
+                            content = @Content(
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -175,7 +177,7 @@ public class ProductsRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content(schema = @Schema(hidden = true))
+                            content = @Content
                     )
             }
     )
