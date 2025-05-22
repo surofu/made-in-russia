@@ -8,9 +8,12 @@ build:
 run:
   image: sutanisurofu/madeinrussia
   command: java org.springframework.boot.loader.launch.JarLauncher
-  args: -XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -Xms512m
-    -Xmx512m -XX:+HeapDumpOnOutOfMemoryError
+  args:
+    -XX:+UseZGC
+    -XX:+ZUncommitDelay=300
+    -XX:ZCollectionInterval=30
+    -XX:+HeapDumpOnOutOfMemoryError
     -Djava.security.egd=file:/dev/./urandom
   persistenceMount: /data
-  containerPort: "80"
+  containerPort: "8080"
   servicePort: "80"
