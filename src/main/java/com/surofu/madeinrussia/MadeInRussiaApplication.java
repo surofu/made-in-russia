@@ -13,5 +13,4 @@ public class MadeInRussiaApplication {
     public static void main(String[] args) {
         SpringApplication.run(MadeInRussiaApplication.class, args);
     }
-
 }

@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeliveryMethodApplicationServiceTest {
 
-    ZonedDateTime TEST_DATE_TIME = ZonedDateTime.now();
+    final ZonedDateTime TEST_DATE_TIME = ZonedDateTime.now();
 
     @Mock
     DeliveryMethodRepository deliveryMethodRepository;

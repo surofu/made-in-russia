@@ -10,7 +10,7 @@ import java.util.List;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetProducts {
+public class GetProductPage {
     int page;
     int size;
     List<Long> deliveryMethodIds;

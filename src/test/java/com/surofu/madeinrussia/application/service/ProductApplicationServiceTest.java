@@ -12,8 +12,7 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodName;
 import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
-import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
-import lombok.extern.slf4j.Slf4j;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductPage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,14 +33,13 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Slf4j
 @ExtendWith(MockitoExtension.class)
 class ProductApplicationServiceTest {
 
-    BigDecimal MIN_PRICE = BigDecimal.ZERO;
-    BigDecimal MAX_PRICE = BigDecimal.TEN.multiply(BigDecimal.valueOf(2));
+    final BigDecimal MIN_PRICE = BigDecimal.ZERO;
+    final BigDecimal MAX_PRICE = BigDecimal.TEN.multiply(BigDecimal.valueOf(2));
 
-    ZonedDateTime TEST_DATE_TIME = ZonedDateTime.now();
+    final ZonedDateTime TEST_DATE_TIME = ZonedDateTime.now();
 
     @Mock
     ProductRepository productRepository;
@@ -103,8 +101,8 @@ class ProductApplicationServiceTest {
             }
 
             mockProduct.setTitle(ProductTitle.of(String.format("Product %s", i)));
-            mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN));
-            mockProduct.setImageUrl(ProductImageUrl.of(String.format("Product %s image url", i)));
+            mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN, "USD / kg"));
+            mockProduct.setPreviewImageUrl(ProductPreviewImageUrl.of(String.format("Product %s image url", i)));
             mockProduct.setCreationDate(ProductCreationDate.of(TEST_DATE_TIME));
             mockProduct.setLastModificationDate(ProductLastModificationDate.of(TEST_DATE_TIME));
 
@@ -120,13 +118,13 @@ class ProductApplicationServiceTest {
         ArgumentCaptor<Specification<Product>> specificationArgumentCaptor = ArgumentCaptor.forClass(Specification.class);
 
         doReturn(productPage)
-                .when(productRepository).getAllProductsWithCategoryAndDeliveryMethods(
+                .when(productRepository).getProductPage(
                         specificationArgumentCaptor.capture(),
                         productPageableArgumentCaptor.capture()
                 );
 
         // when
-        GetProducts operation = GetProducts.of(
+        GetProductPage operation = GetProductPage.of(
                 0,
                 10,
                 List.of(),
@@ -135,14 +133,14 @@ class ProductApplicationServiceTest {
                 MAX_PRICE
         );
 
-        GetProducts.Result getProductsResult = productApplicationService.getProducts(operation);
+        GetProductPage.Result getProductsResult = productApplicationService.getProductPage(operation);
 
         // then
         assertNotNull(getProductsResult);
-        assertInstanceOf(GetProducts.Result.class, getProductsResult);
-        assertInstanceOf(GetProducts.Result.Success.class, getProductsResult);
+        assertInstanceOf(GetProductPage.Result.class, getProductsResult);
+        assertInstanceOf(GetProductPage.Result.Success.class, getProductsResult);
 
-        GetProducts.Result.Success getProductsSuccessResult = (GetProducts.Result.Success) getProductsResult;
+        GetProductPage.Result.Success getProductsSuccessResult = (GetProductPage.Result.Success) getProductsResult;
         Page<ProductDto> resultProductDtoPage = getProductsSuccessResult.getProductDtoPage();
 
         assertNotNull(resultProductDtoPage);
@@ -158,13 +156,13 @@ class ProductApplicationServiceTest {
             assertEquals(mockProductDtos.get(i).getCategory().getId(), resultProductDto.getCategory().getId());
             assertEquals(mockProductDtos.get(i).getDeliveryMethods().size(), resultProductDto.getDeliveryMethods().size());
             assertEquals(mockProductDtos.get(i).getTitle(), resultProductDto.getTitle());
-            assertEquals(mockProductDtos.get(i).getPrice(), resultProductDto.getPrice());
-            assertEquals(mockProductDtos.get(i).getImageUrl(), resultProductDto.getImageUrl());
+            assertEquals(mockProductDtos.get(i).getOriginalPrice(), resultProductDto.getOriginalPrice());
+            assertEquals(mockProductDtos.get(i).getPreviewImageUrl(), resultProductDto.getPreviewImageUrl());
             assertEquals(mockProductDtos.get(i).getCreationDate(), resultProductDto.getCreationDate());
             assertEquals(mockProductDtos.get(i).getLastModificationDate(), resultProductDto.getLastModificationDate());
         });
 
-        verify(productRepository, times(1)).getAllProductsWithCategoryAndDeliveryMethods(
+        verify(productRepository, times(1)).getProductPage(
                 specificationArgumentCaptor.capture(),
                 productPageableArgumentCaptor.capture()
         );
@@ -250,8 +248,8 @@ class ProductApplicationServiceTest {
         mockProduct.setCategory(category);
         mockProduct.setDeliveryMethods(Set.of(deliveryMethod));
         mockProduct.setTitle(ProductTitle.of(String.format("Product %s", mockProductId)));
-        mockProduct.setImageUrl(ProductImageUrl.of(String.format("Product %s image url", mockProductId)));
-        mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN));
+        mockProduct.setPreviewImageUrl(ProductPreviewImageUrl.of(String.format("Product %s image url", mockProductId)));
+        mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN, "USD / kg"));
         mockProduct.setCreationDate(ProductCreationDate.of(TEST_DATE_TIME));
         mockProduct.setLastModificationDate(ProductLastModificationDate.of(TEST_DATE_TIME));
         return mockProduct;

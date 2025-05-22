@@ -1,0 +1,16 @@
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+build:
+  dockerfile: Dockerfile
+  skip: false
+run:
+  image: sutanisurofu/madeinrussia
+  command: java org.springframework.boot.loader.launch.JarLauncher
+  args: -XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -Xms512m
+    -Xmx512m -XX:+HeapDumpOnOutOfMemoryError
+    -Djava.security.egd=file:/dev/./urandom
+  persistenceMount: /data
+  containerPort: "80"
+  servicePort: "80"

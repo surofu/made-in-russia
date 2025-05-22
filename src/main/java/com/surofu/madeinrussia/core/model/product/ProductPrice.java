@@ -16,8 +16,8 @@ import java.text.DecimalFormat;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPrice implements Serializable {
 
-    @Column(nullable = false)
-    private BigDecimal price;
+    @Column(name = "price", nullable = false)
+    private BigDecimal originalPrice;
 
     @Column(columnDefinition = "decimal(5, 2) default 0")
     private BigDecimal discount;
@@ -25,13 +25,17 @@ public final class ProductPrice implements Serializable {
     @Formula("price * (1 - discount / 100)")
     private BigDecimal discountedPrice;
 
-    private ProductPrice(BigDecimal price, BigDecimal discount) {
-        this.price = price;
+    @Column(name = "price_unit", nullable = false, columnDefinition = "default ''")
+    private String unit;
+
+    private ProductPrice(BigDecimal originalPrice, BigDecimal discount, String unit) {
+        this.originalPrice = originalPrice;
         this.discount = discount;
+        this.unit = unit;
     }
 
-    public static ProductPrice of(BigDecimal price, BigDecimal discount) {
-        return new ProductPrice(price, discount);
+    public static ProductPrice of(BigDecimal originalPrice, BigDecimal discount, String unit) {
+        return new ProductPrice(originalPrice, discount, unit);
     }
 
     @Override
@@ -41,6 +45,6 @@ public final class ProductPrice implements Serializable {
         decimalFormat.setMinimumFractionDigits(0);
         decimalFormat.setGroupingUsed(false);
 
-        return decimalFormat.format(price);
+        return decimalFormat.format(discountedPrice);
     }
 }

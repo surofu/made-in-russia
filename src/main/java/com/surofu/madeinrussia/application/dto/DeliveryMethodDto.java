@@ -22,30 +22,34 @@ public final class DeliveryMethodDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the delivery method",
-            example = "1"
+            example = "1",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private Long id;
 
     @Schema(
             description = "Name of the delivery method",
             example = "Express Shipping",
-            maxLength = 100
+            maxLength = 100,
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String name;
 
     @Schema(
             description = "Timestamp when the delivery method was created",
-            example = "2023-07-15T14:30:00",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime creationDate;
 
     @Schema(
             description = "Timestamp when the delivery method was last modified",
-            example = "2023-07-20T09:15:30",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime lastModificationDate;
 

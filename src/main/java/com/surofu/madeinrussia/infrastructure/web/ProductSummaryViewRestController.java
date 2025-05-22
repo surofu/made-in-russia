@@ -1,11 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.dto.GetProductsDto;
-import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
-import com.surofu.madeinrussia.core.service.product.ProductService;
-import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
-import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
+import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -28,26 +28,26 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/products")
-@Tag(name = "Products", description = "API for managing product")
-public class ProductsRestController {
+@RequestMapping("api/v1/products-summary")
+@Tag(name = "Products Summary", description = "API for managing product summary")
+public class ProductSummaryViewRestController {
 
-    private final ProductService productService;
+    private final ProductSummaryService productSummaryService;
 
-    private final GetProducts.Result.Processor<ResponseEntity<?>> getProductsProcessor;
-    private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
+    private final GetProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getProductSummaryPageProcessor;
+    private final GetProductSummaryViewById.Result.Processor<ResponseEntity<?>> getProductSummaryByIdProcessor;
 
     @GetMapping
     @Operation(
-            summary = "Get filtered and paginated list of products",
+            summary = "Get filtered and paginated list of products summary",
             description = "Retrieves a page of products with optional filtering by category and price range",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "Successfully retrieved page of products",
+                            description = "Successfully retrieved page of products summary",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = GetProductsDto.class)
+                                    schema = @Schema(implementation = GetProductSummaryViewPageDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -157,13 +157,13 @@ public class ProductsRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        GetProducts operation = GetProducts.of(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
-        return productService.getProducts(operation).process(getProductsProcessor);
+        GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        return productSummaryService.getProductSummaryPage(operation).process(getProductSummaryPageProcessor);
     }
 
     @GetMapping("{productId}")
     @Operation(
-            summary = "Get product by ID",
+            summary = "Get product summary by ID",
             description = "Retrieves a single product by its unique identifier",
             responses = {
                     @ApiResponse(
@@ -171,7 +171,7 @@ public class ProductsRestController {
                             description = "Product found and returned",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = ProductDto.class)
+                                    schema = @Schema(implementation = ProductSummaryViewDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -183,7 +183,7 @@ public class ProductsRestController {
     )
     public ResponseEntity<?> getProductById(
             @Parameter(
-                    name = "id",
+                    name = "productId",
                     description = "ID of the product to be retrieved",
                     required = true,
                     example = "20",
@@ -192,7 +192,7 @@ public class ProductsRestController {
             @PathVariable
             Long productId
     ) {
-        GetProductById operation = GetProductById.of(productId);
-        return productService.getProductById(operation).process(getProductByIdProcessor);
+        GetProductSummaryViewById operation = GetProductSummaryViewById.of(productId);
+        return productSummaryService.getProductSummaryViewById(operation).process(getProductSummaryByIdProcessor);
     }
 }

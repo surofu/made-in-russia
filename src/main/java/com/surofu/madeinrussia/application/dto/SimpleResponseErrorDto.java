@@ -25,7 +25,7 @@ public final class SimpleResponseErrorDto implements Serializable {
 
     @Schema(
             description = "Error message describing what went wrong",
-            example = "Product with id '123' not found"
+            example = "Product with ID '123' not found"
     )
     private String message;
 

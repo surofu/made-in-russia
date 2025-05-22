@@ -1,0 +1,196 @@
+package com.surofu.madeinrussia.application.dto;
+
+import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(
+        name = "ProductSummary",
+        description = "Compact representation of product information for listings and summary views",
+        example = """
+                {
+                  "id": 42,
+                  "category": {
+                    "id": 5,
+                    "name": "Electronics",
+                    "creationDate": "2025-05-04T09:17:20.767615Z",
+                    "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                  },
+                  "deliveryMethods": [
+                    {
+                      "id": 1,
+                      "name": "Express Delivery",
+                      "creationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                    },
+                    {
+                      "id": 2,
+                      "name": "Standard Delivery",
+                      "creationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                    }
+                  ],
+                  "title": "Premium Wireless Headphones",
+                  "originalPrice": 199.99,
+                  "discount": 15.00,
+                  "discountedPrice": 169.99,
+                  "priceUnit": "USD",
+                  "previewImageUrl": "https://example.com/images/headphones-preview.jpg",
+                  "creationDate": "2025-05-04T09:17:20.767615Z",
+                  "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                }
+                """
+)
+public final class ProductSummaryViewDto implements Serializable {
+
+    @Schema(
+            description = "Unique identifier of the product",
+            example = "12345",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Long id;
+
+    @Schema(
+            description = "Category this product belongs to",
+            implementation = CategoryDto.class,
+            example = """
+                    {
+                      "id": 5,
+                      "name": "Electronics",
+                      "creationDate": "2023-01-10T10:00:00Z",
+                      "lastModificationDate": "2023-06-15T14:30:00Z"
+                    }
+                    """
+    )
+    private CategoryDto category;
+
+    @Schema(
+            description = "Available delivery methods for this product",
+            type = "array",
+            implementation = DeliveryMethodDto[].class,
+            example = """
+                    [
+                      {
+                        "id": 1,
+                        "name": "Express Delivery",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 2,
+                        "name": "Standard Delivery",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      }
+                    ]
+                    """
+    )
+    private List<DeliveryMethodDto> deliveryMethods;
+
+    @Schema(
+            description = "Title/name of the product",
+            example = "Premium Wireless Headphones with Noise Cancellation",
+            minLength = 3,
+            maxLength = 255,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String title;
+
+    @Schema(
+            description = "Original price of the product before discounts",
+            example = "199.99",
+            type = "number",
+            format = "decimal",
+            minimum = "0",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private BigDecimal originalPrice;
+
+    @Schema(
+            description = "Current discount percentage applied (0-100)",
+            example = "15.00",
+            minimum = "0",
+            maximum = "100",
+            type = "number",
+            format = "decimal",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private BigDecimal discount;
+
+    @Schema(
+            description = "Final price after applying discounts",
+            example = "169.99",
+            type = "number",
+            format = "decimal",
+            minimum = "0",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private BigDecimal discountedPrice;
+
+    @Schema(
+            description = "Price unit (currency or measurement unit)",
+            example = "USD",
+            maxLength = 10,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String priceUnit;
+
+    @Schema(
+            description = "URL of the product's preview image",
+            example = "https://example.com/images/headphones-preview.jpg",
+            format = "uri",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String previewImageUrl;
+
+    @Schema(
+            description = "Timestamp when the product was created",
+            example = "2025-05-04T09:17:20.767615Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private ZonedDateTime creationDate;
+
+    @Schema(
+            description = "Timestamp when the product was last modified",
+            example = "2025-05-10T11:30:45.123456Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private ZonedDateTime lastModificationDate;
+
+    public static ProductSummaryViewDto of(ProductSummaryView productSummaryView) {
+        return ProductSummaryViewDto.builder()
+                .id(productSummaryView.getId())
+                .category(CategoryDto.builder()
+                        .id(productSummaryView.getCategoryId())
+                        .name(productSummaryView.getCategoryName())
+                        .creationDate(productSummaryView.getCreationDate())
+                        .lastModificationDate(productSummaryView.getLastModificationDate())
+                        .build())
+                .deliveryMethods(productSummaryView.getDeliveryMethods())
+                .title(productSummaryView.getTitle())
+                .originalPrice(productSummaryView.getPrice())
+                .discount(productSummaryView.getDiscount())
+                .discountedPrice(productSummaryView.getDiscount())
+                .priceUnit(productSummaryView.getPriceUnit())
+                .previewImageUrl(productSummaryView.getPreviewImageUrl())
+                .creationDate(productSummaryView.getCreationDate())
+                .lastModificationDate(productSummaryView.getLastModificationDate())
+                .build();
+    }
+}

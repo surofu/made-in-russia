@@ -1,9 +1,17 @@
 package com.surofu.madeinrussia.core.service.product;
 
-import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
-import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
+import com.surofu.madeinrussia.core.service.product.operation.*;
 
 public interface ProductService {
-    GetProducts.Result getProducts(GetProducts operation);
+    GetProductPage.Result getProductPage(GetProductPage operation);
+
     GetProductById.Result getProductById(GetProductById operation);
+
+    GetProductCategoryByProductId.Result getProductCategoryByProductId(GetProductCategoryByProductId operation);
+
+    GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation);
+
+    GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation);
+
+    GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation);
 }

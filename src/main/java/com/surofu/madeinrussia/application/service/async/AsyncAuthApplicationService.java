@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.service.async;
 
-import com.surofu.madeinrussia.application.utils.EmailVerificationUtils;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
@@ -9,6 +8,7 @@ import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
@@ -16,16 +16,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AsyncAuthApplicationService {
     private final UserRepository userRepository;
     private final UserPasswordRepository passwordRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationUtils emailVerificationUtils;
     private final MailService mailService;
 
     private final CacheManager verificationCacheManager;
@@ -68,7 +69,7 @@ public class AsyncAuthApplicationService {
         unverifiedUsersCache.put(rawEmail, user);
         unverifiedUserPasswordsCache.put(rawEmail, userPassword);
 
-        String verificationCode = emailVerificationUtils.generateVerificationCode();
+        String verificationCode = generateVerificationCode();
         verificationCodesCache.put(rawEmail, verificationCode);
 
         String expiration = "через 30 минут";
@@ -174,10 +175,24 @@ public class AsyncAuthApplicationService {
         return cache;
     }
 
+    private String generateVerificationCode() {
+        StringBuilder verificationCode = new StringBuilder();
+        Random random = new Random();
+
+        int CODE_LENGTH = 4;
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            int randomInt = random.nextInt(10);
+            verificationCode.append(randomInt);
+        }
+
+        log.info("Generated verification code: {}", verificationCode);
+        return verificationCode.toString();
+    }
+
     private static final class CacheNotFoundException extends CompletionException {
 
         private CacheNotFoundException(String cacheName) {
-            super( String.format("Error while sending email. Cache with name '%s' not found", cacheName));
+            super(String.format("Error while sending email. Cache with name '%s' not found", cacheName));
         }
 
         public static CacheNotFoundException of(String cacheName) {

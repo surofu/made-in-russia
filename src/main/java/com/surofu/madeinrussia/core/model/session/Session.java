@@ -18,7 +18,8 @@ import java.io.Serializable;
                         name = "uk_session_device_user",
                         columnNames = {"device_id", "user_id"}
                 )
-        }
+        },
+        indexes = @Index(columnList = "deviceId")
 )
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Session implements Serializable {

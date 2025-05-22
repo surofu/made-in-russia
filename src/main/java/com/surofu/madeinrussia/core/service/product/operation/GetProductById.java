@@ -13,7 +13,7 @@ public class GetProductById {
         <T> T process(Processor<T> processor);
 
         static Result success(ProductDto productDto) {
-            log.info("Successfully processed product: {}", productDto.getId());
+            log.info("Successfully processed get product by id: {}", productDto.getId());
             return Success.of(productDto);
         }
 

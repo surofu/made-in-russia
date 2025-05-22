@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product;
+package com.surofu.madeinrussia.core.model.product.productMedia;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -11,21 +11,21 @@ import java.io.Serializable;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductImageUrl implements Serializable {
+public final class ProductMediaUrl implements Serializable {
 
     @Column(nullable = false)
-    private String imageUrl;
+    private String url;
 
-    private ProductImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    private ProductMediaUrl(String url) {
+        this.url = url;
     }
 
-    public static ProductImageUrl of(String imageUrl) {
-        return new ProductImageUrl(imageUrl);
+    public static ProductMediaUrl of(String url) {
+        return new ProductMediaUrl(url);
     }
 
     @Override
     public String toString() {
-        return imageUrl;
+        return url;
     }
 }

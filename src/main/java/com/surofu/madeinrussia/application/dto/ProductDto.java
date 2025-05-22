@@ -3,9 +3,9 @@ package com.surofu.madeinrussia.application.dto;
 import com.surofu.madeinrussia.core.model.product.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -14,47 +14,176 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
         name = "Product",
         description = "Represents a product DTO"
 )
-public final class ProductDto implements Serializable {
+public class ProductDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the product",
-            example = "12345"
+            example = "42",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private Long id;
 
     @Schema(
-            description = "Delivery method list associated with this product",
-            implementation = List.class
-    )
-    private List<DeliveryMethodDto> deliveryMethods;
-
-    @Schema(
             description = "Category this product belongs to",
-            implementation = CategoryDto.class
+            implementation = CategoryDto.class,
+            example = """
+                    {
+                      "id": 5,
+                      "name": "Electronics",
+                      "creationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                    }
+                    """
     )
     private CategoryDto category;
 
     @Schema(
+            description = "Delivery method list associated with this product",
+            type = "array",
+            implementation = DeliveryMethodDto[].class,
+            example = """
+                    [
+                      {
+                        "id": 1,
+                        "name": "Express Delivery",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 2,
+                        "name": "Standard Delivery",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      }
+                    ]
+                    """
+    )
+    private List<DeliveryMethodDto> deliveryMethods;
+
+    @Schema(
+            description = "List of product media (images, videos)",
+            type = "array",
+            implementation = ProductMediaDto[].class,
+            example = """
+                    [
+                      {
+                        "id": 1,
+                        "mediaType": "image",
+                        "mimeType": "image/jpeg",
+                        "url": "https://cdn.example.com/products/123/image1.jpg",
+                        "altText": "Front view of the product",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 2,
+                        "mediaType": "video",
+                        "mimeType": "video/mp4",
+                        "url": "https://cdn.example.com/products/123/video.mp4",
+                        "altText": "Product demonstration video",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      }
+                    ]
+                    """
+    )
+    private List<ProductMediaDto> media;
+
+    @Schema(
+            description = "Technical specifications and product characteristics",
+            type = "array",
+            implementation = ProductCharacteristicDto[].class,
+            example = """
+                    [
+                      {
+                        "id": 101,
+                        "name": "Weight",
+                        "value": "1.2 kg",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 102,
+                        "name": "Dimensions",
+                        "value": "30 x 20 x 5 cm",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 103,
+                        "name": "Material",
+                        "value": "Aluminum alloy",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      },
+                      {
+                        "id": 104,
+                        "name": "Warranty",
+                        "value": "2 years",
+                        "creationDate": "2025-05-04T09:17:20.767615Z",
+                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      }
+                    ]
+                    """
+    )
+    private List<ProductCharacteristicDto> characteristics;
+
+    @Schema(
+            description = "Unique Article of the product",
+            example = "drJo-3286",
+            minLength = 9,
+            maxLength = 9,
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private String article;
+
+    @Schema(
             description = "Title/name of the product",
             example = "Premium Wireless Headphones",
-            maxLength = 255
+            maxLength = 255,
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String title;
 
     @Schema(
-            description = "Base price of the product before discounts",
+            description = "Full product description with features, specifications and usage details. HTML supported.",
+            example = "<p>Flagship smartphone with 6.7\" AMOLED 120Hz display, Snapdragon 8 Gen 2 and 108MP triple camera.</p>",
+            maxLength = 20000,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String mainDescription;
+
+    @Schema(
+            description = "Additional technical specifications and compatibility details",
+            example = "- 5G/Wi-Fi 6 support\n- IP68 water resistance\n- Dolby Atmos stereo speakers",
+            maxLength = 5000,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String furtherDescription;
+
+    @Schema(
+            description = "Short product summary for cards and previews (1-2 sentences)",
+            example = "2023 flagship smartphone with best-in-class camera and performance",
+            maxLength = 5000,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String summaryDescription;
+
+    @Schema(
+            description = "Original price of the product before discounts",
             example = "199.99",
             type = "number",
-            format = "decimal"
+            format = "decimal",
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private BigDecimal price;
+    private BigDecimal originalPrice;
 
     @Schema(
             description = "Current discount percentage applied (0-100)",
@@ -62,7 +191,8 @@ public final class ProductDto implements Serializable {
             minimum = "0",
             maximum = "100",
             type = "number",
-            format = "decimal"
+            format = "decimal",
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private BigDecimal discount;
 
@@ -70,30 +200,41 @@ public final class ProductDto implements Serializable {
             description = "Final price after applying discounts",
             example = "169.99",
             type = "number",
-            format = "decimal"
+            format = "decimal",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private BigDecimal discountedPrice;
 
     @Schema(
-            description = "URL of the product's main image",
-            example = "https://example.com/images/headphones.jpg",
-            format = "uri"
+            description = "Price unit",
+            example = "USD / kg",
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private String imageUrl;
+    private String priceUnit;
+
+    @Schema(
+            description = "URL of the product's preview image",
+            example = "https://example.com/images/headphones.jpg",
+            format = "uri",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String previewImageUrl;
 
     @Schema(
             description = "Timestamp when the product was created",
-            example = "2023-05-15T09:30:00",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime creationDate;
 
     @Schema(
             description = "Timestamp when the product was last modified",
-            example = "2023-06-20T14:15:30",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime lastModificationDate;
 
@@ -101,16 +242,23 @@ public final class ProductDto implements Serializable {
     public static ProductDto of(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
+                .category(CategoryDto.of(product.getCategory()))
                 .deliveryMethods(product.getDeliveryMethods().stream()
                         .map(DeliveryMethodDto::of)
                         .collect(Collectors.toList())
                 )
-                .category(CategoryDto.of(product.getCategory()))
+                .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
+                .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
+                .article(product.getArticleCode().toString())
                 .title(product.getTitle().getTitle())
-                .price(product.getPrice().getPrice())
+                .mainDescription(product.getDescription().getMainDescription())
+                .furtherDescription(product.getDescription().getFurtherDescription())
+                .summaryDescription(product.getDescription().getSummaryDescription())
+                .originalPrice(product.getPrice().getOriginalPrice())
                 .discount(product.getPrice().getDiscount())
                 .discountedPrice(product.getPrice().getDiscountedPrice())
-                .imageUrl(product.getImageUrl().getImageUrl())
+                .priceUnit(product.getPrice().getUnit())
+                .previewImageUrl(product.getPreviewImageUrl().getPreviewImageUrl())
                 .creationDate(product.getCreationDate().getCreationDate())
                 .lastModificationDate(product.getLastModificationDate().getLastModificationDate())
                 .build();

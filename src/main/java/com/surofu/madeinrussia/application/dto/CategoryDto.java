@@ -16,36 +16,48 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Schema(
         name = "Category",
-        description = "Represents a product category DTO"
+        description = "Represents a product category with metadata",
+        example = """
+                {
+                  "id": 5,
+                  "name": "Smartphones & Accessories",
+                  "creationDate": "2025-05-04T09:17:20.767615Z",
+                  "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                }
+                """
 )
 public final class CategoryDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the category",
-            example = "1"
+            example = "5",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private Long id;
 
     @Schema(
-            description = "Name of the category",
-            example = "Electronics",
-            maxLength = 100
+            description = "Display name of the category",
+            example = "Home Appliances",
+            maxLength = 100,
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String name;
 
     @Schema(
-            description = "Timestamp when the category was created",
-            example = "2023-07-15T14:30:00",
+            description = "Timestamp when the category was created in the system",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime creationDate;
 
     @Schema(
-            description = "Timestamp when the category was last modified",
-            example = "2023-07-20T09:15:30",
+            description = "Timestamp when the category was last updated",
+            example = "2025-05-04T09:17:20.767615Z",
             type = "string",
-            format = "date-time"
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
     )
     private ZonedDateTime lastModificationDate;
 

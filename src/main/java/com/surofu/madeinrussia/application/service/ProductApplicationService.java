@@ -1,12 +1,16 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
+import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSpecifications;
 import com.surofu.madeinrussia.core.service.product.ProductService;
-import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
-import com.surofu.madeinrussia.core.service.product.operation.GetProducts;
+import com.surofu.madeinrussia.core.service.product.operation.*;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -16,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,7 +32,7 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "productsPage",
+            value = "productPage",
             key = """
                     {
                      #operation.getPage(), #operation.getSize(),
@@ -38,7 +43,7 @@ public class ProductApplicationService implements ProductService {
                     """,
             unless = "#result.getProductDtoPage().isEmpty()"
     )
-    public GetProducts.Result getProducts(GetProducts operation) {
+    public GetProductPage.Result getProductPage(GetProductPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
         Specification<Product> specification = Specification
@@ -46,16 +51,16 @@ public class ProductApplicationService implements ProductService {
                 .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
                 .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
 
-        Page<Product> productPage = productRepository.getAllProductsWithCategoryAndDeliveryMethods(specification, pageable);
+        Page<Product> productPage = productRepository.getProductPage(specification, pageable);
         Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
 
-        return GetProducts.Result.success(productDtoPage);
+        return GetProductPage.Result.success(productDtoPage);
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "product",
+            value = "productById",
             key = "#operation.getProductId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
@@ -64,9 +69,99 @@ public class ProductApplicationService implements ProductService {
         Optional<ProductDto> productDto = product.map(ProductDto::of);
 
         if (productDto.isPresent()) {
+            System.out.println("Product  ch: " + productDto.get().getCharacteristics().size());
             return GetProductById.Result.success(productDto.get());
         }
 
         return GetProductById.Result.notFound(operation.getProductId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productCategoryByProductId",
+            key = "#operation.getProductId()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCategoryByProductId$Result$NotFound)"
+    )
+    public GetProductCategoryByProductId.Result getProductCategoryByProductId(GetProductCategoryByProductId operation) {
+        Long productId = operation.getProductId();
+        Optional<Category> category = productRepository.getProductCategoryByProductId(productId);
+        Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
+
+        if (categoryDto.isPresent()) {
+            return GetProductCategoryByProductId.Result.success(categoryDto.get());
+        }
+
+        return GetProductCategoryByProductId.Result.notFound(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productDeliveryMethodsByProductId",
+            key = "#operation.getProductId()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound)"
+    )
+    public GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation) {
+        Long productId = operation.getProductId();
+
+        Optional<List<DeliveryMethod>> deliveryMethods = productRepository.getProductDeliveryMethodsByProductId(productId);
+        Optional<List<DeliveryMethodDto>> deliveryMethodDtos = deliveryMethods.map(list -> list.stream().map(DeliveryMethodDto::of).toList());
+
+        if (deliveryMethodDtos.isPresent()) {
+            return GetProductDeliveryMethodsByProductId.Result.success(deliveryMethodDtos.get());
+        }
+
+        return GetProductDeliveryMethodsByProductId.Result.notFound(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productCharacteristicsByProductId",
+            key = "#operation.getProductId()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound)"
+    )
+    public GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation) {
+        Long productId = operation.getProductId();
+        Optional<List<ProductCharacteristic>> productCharacteristics = productRepository.getProductCharacteristicsByProductId(productId);
+        Optional<List<ProductCharacteristicDto>> productCharacteristicDtos = productCharacteristics.map(list -> list.stream().map(ProductCharacteristicDto::of).toList());
+
+        if (productCharacteristicDtos.isPresent()) {
+            return GetProductCharacteristicsByProductId.Result.success(productCharacteristicDtos.get());
+        }
+
+        return GetProductCharacteristicsByProductId.Result.notFound(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productReviewPage",
+            key = """
+                    {
+                     #operation.getProductId(),
+                     #operation.getPage(), #operation.getSize(),
+                     #operation.getMinRating(), #operation.getMaxRating()
+                     }
+                    """,
+            unless = "#result.getProductReviewDtoPage().isEmpty()"
+    )
+    public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
+        Long productId = operation.getProductId();
+
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+        Specification<ProductReview> specification = Specification
+                .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+
+        Optional<Page<ProductReview>> productReviewPage = productRepository.getProductReviewsByProductId(productId, specification, pageable);
+        Optional<Page<ProductReviewDto>> productReviewDtoPage = productReviewPage.map(page -> page.map(ProductReviewDto::of));
+
+        if (productReviewDtoPage.isPresent()) {
+            return GetProductReviewPageByProductId.Result.success(productReviewDtoPage.get());
+        }
+
+        return GetProductReviewPageByProductId.Result.notFound(productId);
     }
 }
