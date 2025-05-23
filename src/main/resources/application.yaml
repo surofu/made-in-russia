@@ -44,6 +44,7 @@ spring:
       driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
+    database-platform: org.hibernate.Dialect.PostgreSQLDialect
 
   #========= Mail =========#
   mail:
