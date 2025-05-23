@@ -92,6 +92,11 @@ class ProductApplicationServiceTest {
 
             Product mockProduct = new Product();
             mockProduct.setId((long) i);
+            mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
+            mockProduct.setDescription(ProductDescription.of("", "", ""));
+            mockProduct.setMedia(new HashSet<>());
+            mockProduct.setReviews(new HashSet<>());
+            mockProduct.setCharacteristics(new HashSet<>());
             mockProduct.setCategory(randomMockCategory);
             mockProduct.setDeliveryMethods(Set.of(randomMockDeliveryMethod));
 
@@ -245,6 +250,11 @@ class ProductApplicationServiceTest {
     private Product getProduct(long mockProductId, Category category, DeliveryMethod deliveryMethod) {
         Product mockProduct = new Product();
         mockProduct.setId(mockProductId);
+        mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
+        mockProduct.setDescription(ProductDescription.of("", "", ""));
+        mockProduct.setMedia(new HashSet<>());
+        mockProduct.setReviews(new HashSet<>());
+        mockProduct.setCharacteristics(new HashSet<>());
         mockProduct.setCategory(category);
         mockProduct.setDeliveryMethods(Set.of(deliveryMethod));
         mockProduct.setTitle(ProductTitle.of(String.format("Product %s", mockProductId)));
