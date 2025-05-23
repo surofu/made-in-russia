@@ -7,7 +7,7 @@ build:
   skip: false
 run:
   image: sutanisurofu/madeinrussia
-  command: java org.springframework.boot.loader.launch.JarLauncher
+  command: java -jar /app/app.jar
   args:
     -XX:+UseZGC
     -XX:+ZUncommitDelay=300

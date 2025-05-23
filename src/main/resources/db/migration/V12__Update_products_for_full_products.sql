@@ -12,6 +12,6 @@ $$;
 
 alter table products
     add column if not exists main_description    text check ( length(main_description) < 20000 ) not null default '',
-    add column if not exists further_description text check ( length(small_description) < 5000 ) not null default '',
-    add column if not exists summary_description text check ( length(small_description) < 5000 ) not null default '',
+    add column if not exists further_description text check ( length(further_description) < 5000 ) not null default '',
+    add column if not exists summary_description text check ( length(summary_description) < 5000 ) not null default '',
     add column if not exists dtype               varchar(255)                                    not null default 'FullProduct';

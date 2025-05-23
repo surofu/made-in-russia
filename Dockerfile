@@ -27,6 +27,6 @@ COPY --from=builder app/snapshot-dependencies/ ./
 COPY --from=builder app/application/ ./
 
 # Оптимизированные JVM параметры
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -Xms512m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+ENV JAVA_OPTS="-XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -XX:+HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8080
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
