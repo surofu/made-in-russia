@@ -1,17 +1,16 @@
----
-version: null
 meta:
-  environment: docker
+  environment: jvm
   toolchain:
-    name: docker
-    version: latest
+    name: maven
+    version: "17"
 build:
-  dockerfile: Dockerfile
-  skip: false
+  image: maven:3.8.6-eclipse-temurin-17
+  args: null
+  artifacts:
+    target/*.jar: /
 run:
-  image: sutanisurofu/madeinrussia
-  command: java org.springframework.boot.loader.JarLauncher
-  args: -XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -XX:+HeapDumpOnOutOfMemoryError
-    -Djava.security.egd=file:/dev/./urandom
+  image: eclipse-temurin:17.0.6_10-jre-jammy
+  jarName: app.jar
   persistenceMount: /data
-  containerPort: 8080
+  containerPort: "8080"
+  servicePort: "80"
