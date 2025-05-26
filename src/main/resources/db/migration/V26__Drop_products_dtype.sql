@@ -1,2 +1,2 @@
 alter table products
-    drop column dtype;
+    drop column if exists dtype;

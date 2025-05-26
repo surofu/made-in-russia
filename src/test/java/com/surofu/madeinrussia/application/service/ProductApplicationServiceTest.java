@@ -93,7 +93,7 @@ class ProductApplicationServiceTest {
             Product mockProduct = new Product();
             mockProduct.setId((long) i);
             mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
-            mockProduct.setDescription(ProductDescription.of("", "", ""));
+            mockProduct.setDescription(ProductDescription.of("", "", "", ""));
             mockProduct.setMedia(new HashSet<>());
             mockProduct.setReviews(new HashSet<>());
             mockProduct.setCharacteristics(new HashSet<>());
@@ -251,7 +251,7 @@ class ProductApplicationServiceTest {
         Product mockProduct = new Product();
         mockProduct.setId(mockProductId);
         mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
-        mockProduct.setDescription(ProductDescription.of("", "", ""));
+        mockProduct.setDescription(ProductDescription.of("", "", "", ""));
         mockProduct.setMedia(new HashSet<>());
         mockProduct.setReviews(new HashSet<>());
         mockProduct.setCharacteristics(new HashSet<>());

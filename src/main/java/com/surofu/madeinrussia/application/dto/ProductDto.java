@@ -177,6 +177,14 @@ public class ProductDto implements Serializable {
     private String summaryDescription;
 
     @Schema(
+            description = "Primary short product description for cards",
+            example = "2023 flagship smartphone with best-in-class camera and performance",
+            maxLength = 5000,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String primaryDescription;
+
+    @Schema(
             description = "Original price of the product before discounts",
             example = "199.99",
             type = "number",

@@ -26,6 +26,10 @@ import io.swagger.v3.oas.annotations.servers.Server;
         ),
         servers = {
                 @Server(
+                        description = "Amvera Environment",
+                        url = "https://exporteru-prorumble.amvera.io"
+                ),
+                @Server(
                         description = "Production Environment",
                         url = "https://madeinrussia.onrender.com"
                 ),

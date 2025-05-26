@@ -22,18 +22,22 @@ public final class ProductDescription implements Serializable {
     @Column(nullable = false)
     private String summaryDescription;
 
-    private ProductDescription(String mainDescription, String furtherDescription, String summaryDescription) {
+    @Column(nullable = false)
+    private String primaryDescription;
+
+    private ProductDescription(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {
         this.mainDescription = mainDescription;
         this.furtherDescription = furtherDescription;
         this.summaryDescription = summaryDescription;
+        this.primaryDescription = primaryDescription;
     }
 
-    public static ProductDescription of(String mainDescription, String furtherDescription, String summaryDescription) {
-        return new ProductDescription(mainDescription, furtherDescription, summaryDescription);
+    public static ProductDescription of(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {
+        return new ProductDescription(mainDescription, furtherDescription, summaryDescription, primaryDescription);
     }
 
     @Override
     public String toString() {
-        return mainDescription + " - " + furtherDescription + " - " + summaryDescription;
+        return mainDescription + " - " + furtherDescription + " - " + summaryDescription + " - " + primaryDescription;
     }
 }
