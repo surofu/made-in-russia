@@ -262,6 +262,7 @@ public class ProductDto implements Serializable {
                 .mainDescription(product.getDescription().getMainDescription())
                 .furtherDescription(product.getDescription().getFurtherDescription())
                 .summaryDescription(product.getDescription().getSummaryDescription())
+                .primaryDescription(product.getDescription().getPrimaryDescription())
                 .originalPrice(product.getPrice().getOriginalPrice())
                 .discount(product.getPrice().getDiscount())
                 .discountedPrice(product.getPrice().getDiscountedPrice())
