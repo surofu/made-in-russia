@@ -22,7 +22,7 @@ public final class ProductPrice implements Serializable {
     @Column(columnDefinition = "decimal(5, 2) default 0")
     private BigDecimal discount;
 
-    @Formula("originalPrice * (1 - discount / 100)")
+    @Formula("price * (1 - discount / 100)")
     private BigDecimal discountedPrice;
 
     @Column(name = "price_unit", nullable = false, columnDefinition = "default ''")
