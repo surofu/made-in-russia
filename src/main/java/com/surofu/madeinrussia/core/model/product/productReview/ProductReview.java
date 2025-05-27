@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.core.model.product.productReview;
 
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.ProductLastModificationDate;
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
@@ -10,8 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 import java.io.Serializable;
 import java.util.HashSet;

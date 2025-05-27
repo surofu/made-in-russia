@@ -36,6 +36,7 @@ public class ProductRestController {
     private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
     private final GetProductCategoryByProductId.Result.Processor<ResponseEntity<?>> getProductCategoryByProductIdProcessor;
     private final GetProductDeliveryMethodsByProductId.Result.Processor<ResponseEntity<?>> getProductDeliveryMethodsByProductIdProcessor;
+    private final GetProductMediaByProductId.Result.Processor<ResponseEntity<?>> getProductMediaByProductIdProcessor;
     private final GetProductCharacteristicsByProductId.Result.Processor<ResponseEntity<?>> getProductCharacteristicsByProductIdProcessor;
     private final GetProductReviewPageByProductId.Result.Processor<ResponseEntity<?>> getProductReviewPageByProductIdProcessor;
 
@@ -264,6 +265,39 @@ public class ProductRestController {
     ) {
         GetProductDeliveryMethodsByProductId operation = GetProductDeliveryMethodsByProductId.of(productId);
         return productService.getProductDeliveryMethodsByProductId(operation).process(getProductDeliveryMethodsByProductIdProcessor);
+    }
+
+    @GetMapping("{productId}/media")
+    @Operation(
+            summary = "Get product media by product ID",
+            description = "Retrieves a array of images and videos by product's unique identifier",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product media found and returned",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = ProductMediaDto.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content
+                    )
+            }
+    )
+    public ResponseEntity<?> getProductMediaByProductId(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product to be retrieved",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productId) {
+        GetProductMediaByProductId operation = GetProductMediaByProductId.of(productId);
+        return productService.getProductMediaByProductId(operation).process(getProductMediaByProductIdProcessor);
     }
 
     @GetMapping("{productId}/characteristics")

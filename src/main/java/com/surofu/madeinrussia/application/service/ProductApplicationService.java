@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
@@ -99,7 +100,7 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(
             value = "productDeliveryMethodsByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound)"
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound) or #result.getProductDeliveryMethodDtos().isEmpty()"
     )
     public GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation) {
         Long productId = operation.getProductId();
@@ -117,15 +118,33 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(
+            value = "productMediaByProductId",
+            key = "#operation.getProductId()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductMediaByProductId$Result$NotFound) or #result.getProductMediaDtos().isEmpty()"
+    )
+    public GetProductMediaByProductId.Result getProductMediaByProductId(GetProductMediaByProductId operation) {
+        Long productId = operation.getProductId();
+        Optional<List<ProductMedia>> productMedia = productRepository.getProductMediaByProductId(productId);
+        Optional<List<ProductMediaDto>> productMediaDtos = productMedia.map(list -> list.stream().map(ProductMediaDto::of).toList());
+
+        if (productMediaDtos.isPresent()) {
+            return GetProductMediaByProductId.Result.success(productMediaDtos.get());
+        }
+
+        return GetProductMediaByProductId.Result.notFound(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
             value = "productCharacteristicsByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound)"
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound) or #result.getProductCharacteristicDtos().isEmpty()"
     )
     public GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation) {
         Long productId = operation.getProductId();
         Optional<List<ProductCharacteristic>> productCharacteristics = productRepository.getProductCharacteristicsByProductId(productId);
         Optional<List<ProductCharacteristicDto>> productCharacteristicDtos = productCharacteristics.map(list -> list.stream().map(ProductCharacteristicDto::of).toList());
-
         if (productCharacteristicDtos.isPresent()) {
             return GetProductCharacteristicsByProductId.Result.success(productCharacteristicDtos.get());
         }
@@ -136,7 +155,7 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "productReviewPage",
+            value = "productReviewPageByProductId",
             key = """
                     {
                      #operation.getProductId(),
@@ -144,7 +163,7 @@ public class ProductApplicationService implements ProductService {
                      #operation.getMinRating(), #operation.getMaxRating()
                      }
                     """,
-            unless = "#result.getProductReviewDtoPage().isEmpty()"
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductReviewPageByProductId$Result$NotFound) or #result.getProductReviewDtoPage().isEmpty()"
     )
     public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
         Long productId = operation.getProductId();

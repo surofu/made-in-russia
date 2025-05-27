@@ -1,14 +1,9 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
-import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
-import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 

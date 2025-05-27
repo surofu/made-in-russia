@@ -35,14 +35,14 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "price")
-    private BigDecimal price;
+    @Column(name = "original_price")
+    private BigDecimal originPrice;
 
     @Column(name = "discount")
     private BigDecimal discount;
 
-    @Formula("price * (1 - discount / 100)")
-    private BigDecimal discounted_price;
+    @Formula("original_price * (1 - discount / 100)")
+    private BigDecimal discountedPrice;
 
     @Column(name = "price_unit")
     private String priceUnit;

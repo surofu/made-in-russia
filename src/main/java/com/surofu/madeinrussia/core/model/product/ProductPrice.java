@@ -16,13 +16,13 @@ import java.text.DecimalFormat;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPrice implements Serializable {
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "original_price", nullable = false)
     private BigDecimal originalPrice;
 
     @Column(columnDefinition = "decimal(5, 2) default 0")
     private BigDecimal discount;
 
-    @Formula("price * (1 - discount / 100)")
+    @Formula("original_price * (1 - discount / 100)")
     private BigDecimal discountedPrice;
 
     @Column(name = "price_unit", nullable = false, columnDefinition = "default ''")

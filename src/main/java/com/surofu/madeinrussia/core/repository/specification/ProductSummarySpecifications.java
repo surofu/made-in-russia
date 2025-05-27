@@ -39,10 +39,10 @@ public class ProductSummarySpecifications {
 
             List<Predicate> predicates = new ArrayList<>();
             if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("price").get("discountedPrice"), minPrice));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("discountedPrice"), minPrice));
             }
             if (maxPrice != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("price").get("discountedPrice"), maxPrice));
+                predicates.add(cb.lessThanOrEqualTo(root.get("discountedPrice"), maxPrice));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

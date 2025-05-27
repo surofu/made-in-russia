@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.core.model.product.productMedia;
 
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

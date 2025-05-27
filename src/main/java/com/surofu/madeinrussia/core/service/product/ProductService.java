@@ -11,6 +11,8 @@ public interface ProductService {
 
     GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation);
 
+    GetProductMediaByProductId.Result getProductMediaByProductId(GetProductMediaByProductId operation);
+
     GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation);
 
     GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation);
