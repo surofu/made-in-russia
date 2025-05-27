@@ -26,7 +26,7 @@ public class GetProductDeliveryMethodsByProductId {
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            List<DeliveryMethodDto> deliveryMethodDtos;
+            List<DeliveryMethodDto> productDeliveryMethodDtos;
 
             @Override
             public <T> T process(Processor<T> processor) {

@@ -12,7 +12,7 @@ public class GetProductDeliveryMethodsByProductIdMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(GetProductDeliveryMethodsByProductId.Result.Success result) {
-        return new ResponseEntity<>(result.getDeliveryMethodDtos(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getProductDeliveryMethodDtos(), HttpStatus.OK);
     }
 
     @Override

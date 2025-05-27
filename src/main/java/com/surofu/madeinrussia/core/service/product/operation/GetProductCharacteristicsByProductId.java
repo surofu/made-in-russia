@@ -26,7 +26,7 @@ public class GetProductCharacteristicsByProductId {
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            List<ProductCharacteristicDto> characteristicDtos;
+            List<ProductCharacteristicDto> productCharacteristicDtos;
 
             @Override
             public <T> T process(Processor<T> processor) {

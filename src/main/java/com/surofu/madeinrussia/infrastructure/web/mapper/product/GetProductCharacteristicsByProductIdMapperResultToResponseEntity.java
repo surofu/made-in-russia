@@ -12,7 +12,7 @@ public class GetProductCharacteristicsByProductIdMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(GetProductCharacteristicsByProductId.Result.Success result) {
-        return new ResponseEntity<>(result.getCharacteristicDtos(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getProductCharacteristicDtos(), HttpStatus.OK);
     }
 
     @Override
