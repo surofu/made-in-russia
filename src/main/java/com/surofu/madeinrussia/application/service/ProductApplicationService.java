@@ -69,7 +69,6 @@ public class ProductApplicationService implements ProductService {
         Optional<ProductDto> productDto = product.map(ProductDto::of);
 
         if (productDto.isPresent()) {
-            System.out.println("Product  ch: " + productDto.get().getCharacteristics().size());
             return GetProductById.Result.success(productDto.get());
         }
 

@@ -18,7 +18,10 @@ import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("select p from Product p")
+    @Query(
+            value = "select p from Product p",
+            countQuery = "select count(*) from Product p"
+    )
     @EntityGraph(attributePaths = {"category", "media", "characteristics"})
     Page<Product> getProductPage(Specification<Product> specification, Pageable pageable);
 
@@ -38,6 +41,9 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     @Query("select p.characteristics from Product p where p.id = :productId")
     Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId);
 
-    @Query("select p.reviews from Product p where p.id = :productId")
+    @Query(
+            value = "select p.reviews from Product p where p.id = :productId",
+            countQuery = "select count(*) from ProductReview pr where pr.product.id = :productId"
+    )
     Optional<Page<ProductReview>> getProductReviewsByProductId(Long productId, Specification<ProductReview> specification, Pageable pageable);
 }

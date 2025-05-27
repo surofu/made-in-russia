@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 
@@ -19,8 +20,9 @@ public final class ProductCharacteristic implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", nullable = false, updatable = false)
     private Product product;
 
     @Embedded
@@ -34,4 +36,16 @@ public final class ProductCharacteristic implements Serializable {
 
     @Embedded
     private ProductCharacteristicLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductCharacteristic)) return false;
+        return id != null && id.equals(((ProductCharacteristic)o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

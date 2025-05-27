@@ -1,6 +1,12 @@
 logging:
   level:
     org:
+      hibernate:
+        sql: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
       springframework:
         cache: DEBUG
 spring:

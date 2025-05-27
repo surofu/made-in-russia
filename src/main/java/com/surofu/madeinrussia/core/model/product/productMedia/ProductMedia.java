@@ -2,10 +2,12 @@ package com.surofu.madeinrussia.core.model.product.productMedia;
 
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 
@@ -20,6 +22,7 @@ public final class ProductMedia implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
@@ -45,4 +48,16 @@ public final class ProductMedia implements Serializable {
 
     @Embedded
     private ProductMediaLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductMedia)) return false;
+        return id != null && id.equals(((ProductMedia)o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

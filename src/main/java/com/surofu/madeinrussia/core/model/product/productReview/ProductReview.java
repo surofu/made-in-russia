@@ -2,12 +2,14 @@ package com.surofu.madeinrussia.core.model.product.productReview;
 
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.ProductLastModificationDate;
+import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -30,6 +32,7 @@ public final class ProductReview implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
@@ -52,4 +55,16 @@ public final class ProductReview implements Serializable {
 
     @Embedded
     private ProductLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductReview)) return false;
+        return id != null && id.equals(((ProductReview)o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
