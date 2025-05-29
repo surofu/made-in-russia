@@ -40,34 +40,34 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        log.info("JWT Filter started");
+        log.debug("JWT Filter started");
 
         String authorizationHeader = request.getHeader("Authorization");
 
         for (String headerName : Collections.list(request.getHeaderNames())) {
-            log.info("header: {}: {}", headerName, request.getHeader(headerName));
+            log.debug("header: {}: {}", headerName, request.getHeader(headerName));
         }
 
-        log.info("authorizationHeader: {}", authorizationHeader);
+        log.debug("authorizationHeader: {}", authorizationHeader);
 
         UserEmail userEmail = null;
         String accessToken = null;
 
-        log.info("Start get access token");
-        log.info("Get access token if param 1 is true: {}", authorizationHeader != null);
+        log.debug("Start get access token");
+        log.debug("Get access token if param 1 is true: {}", authorizationHeader != null);
 
         if (authorizationHeader != null) {
-            log.info("Get access token if param 2 is true: {}", authorizationHeader.startsWith("Bearer "));
+            log.debug("Get access token if param 2 is true: {}", authorizationHeader.startsWith("Bearer "));
         }
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             accessToken = authorizationHeader.substring(7);
 
-            log.info("access token: {}", accessToken);
+            log.debug("access token: {}", accessToken);
 
             try {
                 userEmail = jwtUtils.extractUserEmailFromAccessToken(accessToken);
-                log.info("Email found: {}", userEmail);
+                log.debug("Email found: {}", userEmail);
             } catch (ExpiredJwtException ex) {
                 log.warn("Jwt has been expired", ex);
             } catch (SignatureException ex) {
@@ -77,57 +77,57 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        log.info("End get access token with email: {}", userEmail);
+        log.debug("End get access token with email: {}", userEmail);
 
         SessionInfo sessionInfo = SessionInfo.of(request);
 
-        log.info("Current session user agent: {}", sessionInfo.getUserAgent().toString());
-        log.info("Current session ip address: {}", sessionInfo.getIpAddress());
-        log.info("Current session device id: {}", sessionInfo.getDeviceId());
+        log.debug("Current session user agent: {}", sessionInfo.getUserAgent().toString());
+        log.debug("Current session ip address: {}", sessionInfo.getIpAddress());
+        log.debug("Current session device id: {}", sessionInfo.getDeviceId());
 
-        log.info("if 1 param is true: {}", userEmail != null);
-        log.info("if 2 param is true: {}", SecurityContextHolder.getContext().getAuthentication() == null);
-        log.info("1 if statement is true: {}", userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null);
+        log.debug("if 1 param is true: {}", userEmail != null);
+        log.debug("if 2 param is true: {}", SecurityContextHolder.getContext().getAuthentication() == null);
+        log.debug("1 if statement is true: {}", userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null);
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserRole userRole = jwtUtils.extractUserRoleFromAccessToken(accessToken);
-            log.info("Role: {}", userRole);
+            log.debug("Role: {}", userRole);
             List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority(userRole.toString()));
-            log.info("Authority list: {}", authorityList);
+            log.debug("Authority list: {}", authorityList);
 
             try {
-                log.info("Start try get SecurityUser");
+                log.debug("Start try get SecurityUser");
                 SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(userEmail.toString());
-                log.info("End try get SecurityUser");
-                log.info("SecurityUser user email: {}", securityUser.getUser().getEmail().toString());
+                log.debug("End try get SecurityUser");
+                log.debug("SecurityUser user email: {}", securityUser.getUser().getEmail().toString());
 
-                log.info("Start creating token");
+                log.debug("Start creating token");
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         securityUser,
                         null,
                         authorityList
                 );
-                log.info("End creating token");
+                log.debug("End creating token");
 
                 SecurityContextHolder.getContext().setAuthentication(token);
-                log.info("End saving to context");
+                log.debug("End saving to context");
 
                 // Update Access Token
                 accessToken = jwtUtils.generateAccessToken(securityUser);
                 response.setHeader("Authorization", "Bearer " + accessToken);
 
-                log.info("Start saveOrUpdateSessionFromHttpRequest");
+                log.debug("Start saveOrUpdateSessionFromHttpRequest");
                 asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
                         .exceptionally(ex -> {
                             log.error("Error while saving session", ex);
                             return null;
                         });
             } catch (UsernameNotFoundException ex) {
-                log.debug("User with email '{}' not found", userEmail, ex);
+                log.warn("User with email '{}' not found", userEmail, ex);
             }
         }
 
-        log.info("JWT Filter finished");
+        log.debug("JWT Filter finished");
 
         filterChain.doFilter(request, response);
     }
@@ -139,6 +139,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String[] whiteList = {
                 "/api/v1/auth",
                 "/api/v1/products",
+                "/api/v1/products-summary",
                 "/api/v1/categories",
                 "/api/v1/delivery-methods",
                 "/api/v1/me/current-session/refresh",

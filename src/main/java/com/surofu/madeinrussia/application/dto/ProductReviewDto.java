@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -55,6 +56,44 @@ public final class ProductReviewDto implements Serializable {
     private String text;
 
     @Schema(
+            description = "Media attachments for the product review (images, videos etc.) sorted by position in descending order",
+            type = "array",
+            implementation = ProductReviewMediaDto.class,
+            example = """
+        [
+          {
+            "id": 1,
+            "mediaType": "video",
+            "mimeType": "video/mp4",
+            "url": "https://example.com/media/reviews/wood_video1.mp4",
+            "altText": "Обзор партии красного дерева",
+            "creationDate": "2025-05-04T09:17:20.767615Z",
+            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+          },
+          {
+            "id": 2,
+            "mediaType": "image",
+            "mimeType": "image/jpeg",
+            "url": "https://example.com/media/reviews/wood2.jpg",
+            "altText": "Текстура красного дерева крупным планом",
+            "creationDate": "2025-05-04T09:17:20.767615Z",
+            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+          },
+          {
+            "id": 3,
+            "mediaType": "image",
+            "mimeType": "image/jpeg",
+            "url": "https://example.com/media/reviews/wood1.jpg",
+            "altText": "Красное дерево - общий вид партии",
+            "creationDate": "2025-05-04T09:17:20.767615Z",
+            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+          }
+        ]
+        """
+    )
+    private List<ProductReviewMediaDto> media;
+
+    @Schema(
             description = "Numeric rating of the product (1-5 stars)",
             example = "5",
             minimum = "1",
@@ -87,6 +126,7 @@ public final class ProductReviewDto implements Serializable {
                 .id(productReview.getId())
                 .author(UserDto.of(productReview.getUser()))
                 .text(productReview.getText().toString())
+                .media(productReview.getMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .rating(productReview.getRating().getRating())
                 .creationDate(productReview.getCreationDate().getCreationDate())
                 .lastModificationDate(productReview.getLastModificationDate().getLastModificationDate())

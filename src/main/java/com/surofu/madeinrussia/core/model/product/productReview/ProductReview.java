@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -34,12 +34,13 @@ public final class ProductReview implements Serializable {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @OrderBy("position.position asc")
     @OneToMany(
             mappedBy = "productReview",
             fetch = FetchType.LAZY,
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    private Set<ProductReviewMedia> media = new HashSet<>();
+    private List<ProductReviewMedia> media = new ArrayList<>();
 
     @Embedded
     private ProductReviewText text;

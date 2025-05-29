@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,30 +21,30 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query(
             value = "select p from Product p",
-            countQuery = "select count(*) from Product p"
+            countQuery = "select count(p) from Product p"
     )
     @EntityGraph(attributePaths = {"category", "media", "characteristics"})
     Page<Product> getProductPage(Specification<Product> specification, Pageable pageable);
 
     @Query("select p from Product p where p.id = :productId")
     @EntityGraph(attributePaths = {"category", "media", "characteristics"})
-    Optional<Product> getProductById(Long productId);
+    Optional<Product> getProductById(@Param("productId") Long productId);
 
     @Query("select p.category from Product p where p.id = :productId")
-    Optional<Category> getProductCategoryByProductId(Long productId);
+    Optional<Category> getProductCategoryByProductId(@Param("productId") Long productId);
 
     @Query("select p.deliveryMethods from Product p where p.id = :productId")
-    Optional<List<DeliveryMethod>> getProductDeliveryMethodsByProductId(Long productId);
+    Optional<List<DeliveryMethod>> getProductDeliveryMethodsByProductId(@Param("productId") Long productId);
 
     @Query("select p.media from Product p where p.id = :productId")
-    Optional<List<ProductMedia>> getProductMediaByProductId(Long productId);
+    Optional<List<ProductMedia>> getProductMediaByProductId(@Param("productId") Long productId);
 
     @Query("select p.characteristics from Product p where p.id = :productId")
-    Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId);
+    Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(@Param("productId") Long productId);
 
     @Query(
-            value = "select p.reviews from Product p where p.id = :productId",
-            countQuery = "select count(*) from ProductReview pr where pr.product.id = :productId"
+            value = "select pr from ProductReview pr left join fetch pr.media where pr.product.id = :productId",
+            countQuery = "select count(pr) from ProductReview pr where pr.product.id = :productId"
     )
-    Optional<Page<ProductReview>> getProductReviewsByProductId(Long productId, Specification<ProductReview> specification, Pageable pageable);
+    Optional<Page<ProductReview>> getProductReviewsByProductId(@Param("productId") Long productId, Specification<ProductReview> specification, Pageable pageable);
 }

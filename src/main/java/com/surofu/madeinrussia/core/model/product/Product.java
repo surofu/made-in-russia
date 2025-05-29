@@ -39,7 +39,6 @@ public final class Product implements Serializable {
     )
     private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
 
-    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -47,7 +46,6 @@ public final class Product implements Serializable {
     )
     private Set<ProductMedia> media = new HashSet<>();
 
-    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -55,7 +53,6 @@ public final class Product implements Serializable {
     )
     private Set<ProductCharacteristic> characteristics = new HashSet<>();
 
-    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,

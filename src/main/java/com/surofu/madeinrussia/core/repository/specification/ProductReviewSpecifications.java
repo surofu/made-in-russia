@@ -19,6 +19,7 @@ public class ProductReviewSpecifications {
             if (maxRating != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("rating").get("rating"), maxRating));
             }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
