@@ -47,6 +47,9 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "price_unit")
     private String priceUnit;
 
+    @Column(name = "rating")
+    private Double rating;
+
     @Column(name = "preview_image_url")
     private String previewImageUrl;
 

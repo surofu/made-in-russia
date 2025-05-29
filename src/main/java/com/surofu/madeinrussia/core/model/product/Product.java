@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -71,6 +72,22 @@ public final class Product implements Serializable {
 
     @Embedded
     private ProductPrice price;
+
+    @Formula("""
+                (SELECT
+                         CASE
+                             WHEN COUNT(r.rating) = 0 THEN NULL
+                             ELSE CAST(ROUND(
+                                 CASE
+                                     WHEN AVG(r.rating) < 1.0 THEN 1.0
+                                     WHEN AVG(r.rating) > 5.0 THEN 5.0
+                                     ELSE AVG(r.rating)
+                                 END, 1) AS DOUBLE PRECISION)
+                         END
+                     FROM product_reviews r
+                     WHERE r.product_id = id)
+            """)
+    private Double rating;
 
     @Embedded
     private ProductPreviewImageUrl previewImageUrl;

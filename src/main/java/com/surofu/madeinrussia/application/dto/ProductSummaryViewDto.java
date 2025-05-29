@@ -1,7 +1,12 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -148,6 +153,38 @@ public final class ProductSummaryViewDto implements Serializable {
     private String priceUnit;
 
     @Schema(
+            description = """
+        Product's average rating based on customer reviews.
+        Calculated as arithmetic mean of all review ratings.
+        Minimum possible value: 1.0 (all 1-star reviews)
+        Maximum possible value: 5.0 (all 5-star reviews)
+        Returns null if product has no reviews.
+        Automatically updated when new reviews are added.""",
+            example = "4.2",
+            type = "number",
+            format = "double",
+            minimum = "1.0",
+            maximum = "5.0",
+            multipleOf = 0.1,
+            nullable = true,
+            accessMode = Schema.AccessMode.READ_ONLY,
+            extensions = {
+                    @Extension(
+                            name = "x-validation",
+                            properties = {
+                                    @ExtensionProperty(name = "minRating", value = "1"),
+                                    @ExtensionProperty(name = "maxRating", value = "5"),
+                                    @ExtensionProperty(name = "rounding", value = "nearest 0.1")
+                            }
+                    )
+            }
+    )
+    @DecimalMin("1.0")
+    @DecimalMax("5.0")
+    @Digits(integer = 1, fraction = 1)
+    private Double rating;
+
+    @Schema(
             description = "URL of the product's preview image",
             example = "https://example.com/images/headphones-preview.jpg",
             format = "uri",
@@ -188,6 +225,7 @@ public final class ProductSummaryViewDto implements Serializable {
                 .discount(productSummaryView.getDiscount())
                 .discountedPrice(productSummaryView.getDiscountedPrice())
                 .priceUnit(productSummaryView.getPriceUnit())
+                .rating(productSummaryView.getRating())
                 .previewImageUrl(productSummaryView.getPreviewImageUrl())
                 .creationDate(productSummaryView.getCreationDate())
                 .lastModificationDate(productSummaryView.getLastModificationDate())
