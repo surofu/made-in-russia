@@ -1,19 +1,14 @@
-logging:
-  level:
-    org:
-      springframework:
-        cache: DEBUG
 spring:
+  datasource:
+      username: ${CONTAINER.USERNAME}
+      password: ${CONTAINER.PASSWORD}
+      url: ${CONTAINER.URL}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: false
   flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    driver-class-name: org.postgresql.Driver
-    validate-on-migrate: true
+    user: ${CONTAINER.USERNAME}
+    password: ${CONTAINER.PASSWORD}
+    url: ${CONTAINER.URL}
+    enabled: false
