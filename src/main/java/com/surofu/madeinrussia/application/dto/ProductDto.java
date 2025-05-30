@@ -1,5 +1,9 @@
 package com.surofu.madeinrussia.application.dto;
 
+import com.surofu.madeinrussia.application.dto.temp.TempProductDeliveryMethodDetails;
+import com.surofu.madeinrussia.application.dto.temp.TempProductPackagingOptionDetails;
+import com.surofu.madeinrussia.application.dto.temp.TempProductPriceDetails;
+import com.surofu.madeinrussia.application.dto.temp.TempVendorDetails;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
 import io.swagger.v3.oas.annotations.extensions.Extension;
@@ -275,6 +279,8 @@ public class ProductDto implements Serializable {
     @Digits(integer = 1, fraction = 1)
     private Double rating;
 
+    private Integer reviewsCount;
+
     @Schema(
             description = "URL of the product's preview image",
             example = "https://example.com/images/headphones.jpg",
@@ -303,9 +309,6 @@ public class ProductDto implements Serializable {
 
     // TODO: !!! Заглушки
 
-
-    private Integer reviewsCount = new Random().nextInt(100);
-
     private Integer ordersCount = new Random().nextInt(100);
 
     private List<ProductReviewMediaDto> reviewsMedia = List.of(
@@ -320,6 +323,14 @@ public class ProductDto implements Serializable {
             new ProductReviewMediaDto(9L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
             new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
     );
+
+    private TempVendorDetails aboutVendor;
+
+    private List<TempProductPriceDetails> prices;
+
+    private List<TempProductDeliveryMethodDetails> deliveryMethodsDetails;
+
+    private List<TempProductPackagingOptionDetails> packagingOptions;
 
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
@@ -361,6 +372,15 @@ public class ProductDto implements Serializable {
                         new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
                 ))
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
+                .reviewsCount(product.getReviewsCount())
+                .aboutVendor(new TempVendorDetails())
+                .prices(List.of(
+                        new TempProductPriceDetails(1, 5),
+                        new TempProductPriceDetails(5, 20),
+                        new TempProductPriceDetails(20, null)
+                ))
+                .deliveryMethodsDetails(List.of(new TempProductDeliveryMethodDetails(), new TempProductDeliveryMethodDetails()))
+                .packagingOptions(List.of(new TempProductPackagingOptionDetails(), new TempProductPackagingOptionDetails()))
                 .build();
     }
 }

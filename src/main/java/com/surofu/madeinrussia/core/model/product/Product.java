@@ -97,6 +97,9 @@ public final class Product implements Serializable {
             """)
     private Double rating;
 
+    @Formula("(select count(*) from product_reviews r where r.product_id = id)")
+    private Integer reviewsCount;
+
     @Embedded
     private ProductPreviewImageUrl previewImageUrl;
 
