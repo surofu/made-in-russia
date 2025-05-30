@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
@@ -57,5 +58,10 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<Page<ProductReview>> getProductReviewsByProductId(Long productId, Specification<ProductReview> specification, Pageable pageable) {
         return repository.getProductReviewsByProductId(productId, specification, pageable);
+    }
+
+    @Override
+    public Optional<List<ProductFaq>> getProductFaqByProductId(Long productId) {
+        return repository.getProductFaqByProductId(productId);
     }
 }

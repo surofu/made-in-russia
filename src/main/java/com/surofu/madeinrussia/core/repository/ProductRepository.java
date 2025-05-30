@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,6 @@ public interface ProductRepository {
     Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId);
 
     Optional<Page<ProductReview>> getProductReviewsByProductId(Long productId, Specification<ProductReview> specification, Pageable pageable);
+
+    Optional<List<ProductFaq>> getProductFaqByProductId(Long productId);
 }

@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.core.model.product;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import jakarta.persistence.*;
@@ -60,6 +61,13 @@ public final class Product implements Serializable {
             cascade = {CascadeType.PERSIST, CascadeType.MERGE}
     )
     private Set<ProductReview> reviews = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "product",
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+    )
+    private Set<ProductFaq> faq = new HashSet<>();
 
     @Embedded
     private ProductArticleCode articleCode;

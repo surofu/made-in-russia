@@ -39,6 +39,7 @@ public class ProductRestController {
     private final GetProductMediaByProductId.Result.Processor<ResponseEntity<?>> getProductMediaByProductIdProcessor;
     private final GetProductCharacteristicsByProductId.Result.Processor<ResponseEntity<?>> getProductCharacteristicsByProductIdProcessor;
     private final GetProductReviewPageByProductId.Result.Processor<ResponseEntity<?>> getProductReviewPageByProductIdProcessor;
+    private final GetProductFaqByProductId.Result.Processor<ResponseEntity<?>> getProductFaqByProductIdProcessor;
 
     @GetMapping
     @Operation(
@@ -180,7 +181,12 @@ public class ProductRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -215,7 +221,12 @@ public class ProductRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -249,7 +260,12 @@ public class ProductRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -283,7 +299,12 @@ public class ProductRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -316,7 +337,12 @@ public class ProductRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )
@@ -407,5 +433,43 @@ public class ProductRestController {
     ) {
         GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating);
         return productService.getProductReviewPageByProductId(operation).process(getProductReviewPageByProductIdProcessor);
+    }
+
+    @GetMapping("{productId}/faq")
+    @Operation(
+            summary = "Get list of product faq (question and answer)",
+            description = "Retrieves a list of product faq by product ID",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved list of product faq",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = GetProductReviewPageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> getProductFaqByProductId(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product to be retrieved",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productId) {
+        GetProductFaqByProductId operation = GetProductFaqByProductId.of(productId);
+        return productService.getProductFaqByProductId(operation).process(getProductFaqByProductIdProcessor);
     }
 }

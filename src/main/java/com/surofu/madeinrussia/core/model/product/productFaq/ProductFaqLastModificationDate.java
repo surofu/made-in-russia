@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productMedia;
+package com.surofu.madeinrussia.core.model.product.productFaq;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,19 +15,19 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductMediaLastModificationDate implements Serializable {
+public final class ProductFaqLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private ZonedDateTime lastModificationDate;
 
-    private ProductMediaLastModificationDate(ZonedDateTime lastModificationDate) {
+    private ProductFaqLastModificationDate(ZonedDateTime lastModificationDate) {
         this.lastModificationDate = lastModificationDate;
     }
 
-    public static ProductMediaLastModificationDate of(ZonedDateTime date) {
-        return new ProductMediaLastModificationDate(date);
+    public static ProductFaqLastModificationDate of(ZonedDateTime date) {
+        return new ProductFaqLastModificationDate(date);
     }
 
     @Override

@@ -16,4 +16,6 @@ public interface ProductService {
     GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation);
 
     GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation);
+
+    GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation);
 }

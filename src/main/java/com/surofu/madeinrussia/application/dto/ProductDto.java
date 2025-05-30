@@ -16,7 +16,6 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -144,6 +143,22 @@ public class ProductDto implements Serializable {
     private List<ProductCharacteristicDto> characteristics;
 
     @Schema(
+            description = "Represents a frequently asked question and answer for a product",
+            type = "array",
+            implementation = ProductFaqDto[].class,
+            example = """
+                    {
+                      "id": 42,
+                      "question": "What is the warranty period for this product?",
+                      "answer": "This product comes with a 2-year manufacturer warranty.",
+                      "creationDate": "2025-05-15T10:30:00Z",
+                      "lastModificationDate": "2025-06-20T14:15:00Z"
+                    }
+                    """
+    )
+    private List<ProductFaqDto> faq;
+
+    @Schema(
             description = "Unique Article of the product",
             example = "drJo-3286",
             minLength = 9,
@@ -230,12 +245,12 @@ public class ProductDto implements Serializable {
 
     @Schema(
             description = """
-        Product's average rating based on customer reviews.
-        Calculated as arithmetic mean of all review ratings.
-        Minimum possible value: 1.0 (all 1-star reviews)
-        Maximum possible value: 5.0 (all 5-star reviews)
-        Returns null if product has no reviews.
-        Automatically updated when new reviews are added.""",
+                    Product's average rating based on customer reviews.
+                    Calculated as arithmetic mean of all review ratings.
+                    Minimum possible value: 1.0 (all 1-star reviews)
+                    Maximum possible value: 5.0 (all 5-star reviews)
+                    Returns null if product has no reviews.
+                    Automatically updated when new reviews are added.""",
             example = "4.2",
             type = "number",
             format = "double",
@@ -306,19 +321,6 @@ public class ProductDto implements Serializable {
             new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
     );
 
-    private List<TempFaqDto> faq = List.of(
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto(),
-            new TempFaqDto()
-    );
-
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
         return ProductDto.builder()
@@ -358,18 +360,7 @@ public class ProductDto implements Serializable {
                         new ProductReviewMediaDto(9L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
                         new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
                 ))
-                .faq(List.of(
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto(),
-                        new TempFaqDto()
-                ))
+                .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
                 .build();
     }
 }

@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
@@ -181,5 +182,25 @@ public class ProductApplicationService implements ProductService {
         }
 
         return GetProductReviewPageByProductId.Result.notFound(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productFaqByProductId",
+            key = "#operation.getProductId()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductFaqByProductId) or #result.getProductFaqDtos().isEmpty()"
+    )
+    public GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation) {
+        Long productId = operation.getProductId();
+
+        Optional<List<ProductFaq>> productFaq = productRepository.getProductFaqByProductId(productId);
+        Optional<List<ProductFaqDto>> productFaqDtos = productFaq.map(list -> list.stream().map(ProductFaqDto::of).toList());
+
+        if (productFaqDtos.isPresent()) {
+            return GetProductFaqByProductId.Result.success(productFaqDtos.get());
+        }
+
+        return GetProductFaqByProductId.Result.notFound(productId);
     }
 }

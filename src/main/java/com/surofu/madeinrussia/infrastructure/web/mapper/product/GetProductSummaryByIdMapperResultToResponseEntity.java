@@ -16,7 +16,7 @@ public class GetProductSummaryByIdMapperResultToResponseEntity implements GetPro
 
     @Override
     public ResponseEntity<?> processNotFound(GetProductSummaryViewById.Result.NotFound result) {
-        String message = String.format("Продукт с ID '%s' не найден", result.getProductSummaryId());
+        String message = String.format("Product with ID '%s' not found", result.getProductSummaryId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

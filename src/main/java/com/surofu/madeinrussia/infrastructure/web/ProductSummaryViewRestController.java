@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
@@ -177,7 +178,12 @@ public class ProductSummaryViewRestController {
                     @ApiResponse(
                             responseCode = "404",
                             description = "Product not found",
-                            content = @Content
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
                     )
             }
     )

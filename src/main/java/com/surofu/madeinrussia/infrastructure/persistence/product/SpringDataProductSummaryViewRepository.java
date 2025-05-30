@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SpringDataProductSummaryViewRepository extends JpaRepository<ProductSummaryView, Long> {
 
-    @Query("select psv from ProductSummaryView psv")
+    @Query("select p from ProductSummaryView p")
     Page<ProductSummaryView> getProductSummaryViewPage(Specification<ProductSummaryView> specification, Pageable pageable);
 }
