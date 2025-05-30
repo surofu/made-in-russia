@@ -13,16 +13,16 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDescription implements Serializable {
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String mainDescription;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String furtherDescription;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String summaryDescription;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String primaryDescription;
 
     private ProductDescription(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {

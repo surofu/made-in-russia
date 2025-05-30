@@ -103,3 +103,7 @@ app:
         seconds: ${RATE_LIMIT_REFILL_SECONDS}
   session:
     secret: ${INTERNAL_REQUEST_SECRET}
+  cache:
+    expires-after-write-in-minutes: ${CACHE_EXPIRES_AFTER_WRITE_IN_MINUTES}
+    expires-after-access-in-minutes: ${CACHE_EXPIRES_AFTER_ACCESS_IN_MINUTES}
+    maximum-size: ${CACHE_MAXIMUM_SIZE}

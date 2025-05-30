@@ -16,14 +16,23 @@ public class CaffeineConfig {
     @Value("${app.mail-verification.duration-in-minutes}")
     private int durationInMinutes;
 
+    @Value("${app.cache.expires-after-write-in-minutes}")
+    private int expireAfterWriteInMinutes;
+
+    @Value("${app.cache.expires-after-access-in-minutes}")
+    private int expireAfterAccessInMinutes;
+
+    @Value("${app.cache.maximum-size}")
+    private int maximumSize;
+
     @Bean
     @Primary
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS)
-                .expireAfterAccess(30, TimeUnit.MINUTES)
-                .maximumSize(100)
+                .expireAfterWrite(expireAfterWriteInMinutes, TimeUnit.MINUTES)
+                .expireAfterAccess(expireAfterAccessInMinutes, TimeUnit.MINUTES)
+                .maximumSize(maximumSize)
         );
 
         return cacheManager;

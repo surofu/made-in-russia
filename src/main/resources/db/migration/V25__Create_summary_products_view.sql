@@ -1,7 +1,7 @@
 CREATE OR REPLACE VIEW product_summary_view AS
 SELECT p.id,
        p.title,
-       p.price,
+       p.original_price,
        p.discount,
        p.price_unit,
        p.preview_image_url,

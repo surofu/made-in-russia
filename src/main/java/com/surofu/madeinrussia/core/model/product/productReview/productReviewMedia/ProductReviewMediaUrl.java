@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductReviewMediaUrl implements Serializable {
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String url;
 
     private ProductReviewMediaUrl(String url) {
