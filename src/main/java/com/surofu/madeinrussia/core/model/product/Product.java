@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -69,6 +70,13 @@ public final class Product implements Serializable {
     )
     private Set<ProductFaq> faq = new HashSet<>();
 
+    @OneToMany(
+            mappedBy = "product",
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+    )
+    private Set<ProductPrice> prices = new HashSet<>();
+
     @Embedded
     private ProductArticleCode articleCode;
 
@@ -77,9 +85,6 @@ public final class Product implements Serializable {
 
     @Embedded
     private ProductDescription description;
-
-    @Embedded
-    private ProductPrice price;
 
     @Formula("""
                 (SELECT

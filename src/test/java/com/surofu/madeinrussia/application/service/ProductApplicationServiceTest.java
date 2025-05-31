@@ -94,9 +94,9 @@ class ProductApplicationServiceTest {
             mockProduct.setId((long) i);
             mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
             mockProduct.setDescription(ProductDescription.of("", "", "", ""));
-            mockProduct.setMedia(new HashSet<>());
-            mockProduct.setReviews(new HashSet<>());
-            mockProduct.setCharacteristics(new HashSet<>());
+            mockProduct.setMedia(Set.of());
+            mockProduct.setReviews(Set.of());
+            mockProduct.setCharacteristics(Set.of());
             mockProduct.setCategory(randomMockCategory);
             mockProduct.setDeliveryMethods(Set.of(randomMockDeliveryMethod));
 
@@ -106,7 +106,7 @@ class ProductApplicationServiceTest {
             }
 
             mockProduct.setTitle(ProductTitle.of(String.format("Product %s", i)));
-            mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN, "USD / kg"));
+            mockProduct.setPrices(Set.of());
             mockProduct.setPreviewImageUrl(ProductPreviewImageUrl.of(String.format("Product %s image url", i)));
             mockProduct.setCreationDate(ProductCreationDate.of(TEST_DATE_TIME));
             mockProduct.setLastModificationDate(ProductLastModificationDate.of(TEST_DATE_TIME));
@@ -161,7 +161,6 @@ class ProductApplicationServiceTest {
             assertEquals(mockProductDtos.get(i).getCategory().getId(), resultProductDto.getCategory().getId());
             assertEquals(mockProductDtos.get(i).getDeliveryMethods().size(), resultProductDto.getDeliveryMethods().size());
             assertEquals(mockProductDtos.get(i).getTitle(), resultProductDto.getTitle());
-            assertEquals(mockProductDtos.get(i).getOriginalPrice(), resultProductDto.getOriginalPrice());
             assertEquals(mockProductDtos.get(i).getPreviewImageUrl(), resultProductDto.getPreviewImageUrl());
             assertEquals(mockProductDtos.get(i).getCreationDate(), resultProductDto.getCreationDate());
             assertEquals(mockProductDtos.get(i).getLastModificationDate(), resultProductDto.getLastModificationDate());
@@ -252,14 +251,14 @@ class ProductApplicationServiceTest {
         mockProduct.setId(mockProductId);
         mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
         mockProduct.setDescription(ProductDescription.of("", "", "", ""));
-        mockProduct.setMedia(new HashSet<>());
-        mockProduct.setReviews(new HashSet<>());
-        mockProduct.setCharacteristics(new HashSet<>());
+        mockProduct.setMedia(Set.of());
+        mockProduct.setReviews(Set.of());
+        mockProduct.setCharacteristics(Set.of());
         mockProduct.setCategory(category);
         mockProduct.setDeliveryMethods(Set.of(deliveryMethod));
         mockProduct.setTitle(ProductTitle.of(String.format("Product %s", mockProductId)));
         mockProduct.setPreviewImageUrl(ProductPreviewImageUrl.of(String.format("Product %s image url", mockProductId)));
-        mockProduct.setPrice(ProductPrice.of(BigDecimal.ONE, BigDecimal.TEN, "USD / kg"));
+        mockProduct.setPrices(Set.of());
         mockProduct.setCreationDate(ProductCreationDate.of(TEST_DATE_TIME));
         mockProduct.setLastModificationDate(ProductLastModificationDate.of(TEST_DATE_TIME));
         return mockProduct;

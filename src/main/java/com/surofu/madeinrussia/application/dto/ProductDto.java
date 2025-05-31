@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.application.dto.temp.TempProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.application.dto.temp.TempProductPackagingOptionDetails;
-import com.surofu.madeinrussia.application.dto.temp.TempProductPriceDetails;
 import com.surofu.madeinrussia.application.dto.temp.TempVendorDetails;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
@@ -18,7 +17,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
@@ -163,6 +161,29 @@ public class ProductDto implements Serializable {
     private List<ProductFaqDto> faq;
 
     @Schema(
+            description = "Represents pricing information for a product including discounts and quantity ranges",
+            type = "array",
+            implementation = ProductPriceDto[].class,
+            example = """
+                    {
+                      "id": 123,
+                      "from": 1.0,
+                      "to": 10.0,
+                      "currency": "USD",
+                      "unit": "kg",
+                      "originalPrice": 99.99,
+                      "discount": 15.00,
+                      "discountedPrice": 84.99,
+                      "minimumOrderQuantity": 5,
+                      "discountExpiryDate": "2025-12-31T23:59:59Z",
+                      "creationDate": "2025-05-01T10:00:00Z",
+                      "lastModificationDate": "2025-05-15T14:30:00Z"
+                    }
+                    """
+    )
+    private List<ProductPriceDto> prices;
+
+    @Schema(
             description = "Unique Article of the product",
             example = "drJo-3286",
             minLength = 9,
@@ -210,42 +231,6 @@ public class ProductDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String primaryDescription;
-
-    @Schema(
-            description = "Original price of the product before discounts",
-            example = "199.99",
-            type = "number",
-            format = "decimal",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private BigDecimal originalPrice;
-
-    @Schema(
-            description = "Current discount percentage applied (0-100)",
-            example = "15.00",
-            minimum = "0",
-            maximum = "100",
-            type = "number",
-            format = "decimal",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private BigDecimal discount;
-
-    @Schema(
-            description = "Final price after applying discounts",
-            example = "169.99",
-            type = "number",
-            format = "decimal",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private BigDecimal discountedPrice;
-
-    @Schema(
-            description = "Price unit",
-            example = "USD / kg",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String priceUnit;
 
     @Schema(
             description = """
@@ -326,8 +311,6 @@ public class ProductDto implements Serializable {
 
     private TempVendorDetails aboutVendor;
 
-    private List<TempProductPriceDetails> prices;
-
     private List<TempProductDeliveryMethodDetails> deliveryMethodsDetails;
 
     private List<TempProductPackagingOptionDetails> packagingOptions;
@@ -343,16 +326,13 @@ public class ProductDto implements Serializable {
                 )
                 .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
                 .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
+                .prices(product.getPrices().stream().map(ProductPriceDto::of).toList())
                 .article(product.getArticleCode().toString())
                 .title(product.getTitle().getTitle())
                 .mainDescription(product.getDescription().getMainDescription())
                 .furtherDescription(product.getDescription().getFurtherDescription())
                 .summaryDescription(product.getDescription().getSummaryDescription())
                 .primaryDescription(product.getDescription().getPrimaryDescription())
-                .originalPrice(product.getPrice().getOriginalPrice())
-                .discount(product.getPrice().getDiscount())
-                .discountedPrice(product.getPrice().getDiscountedPrice())
-                .priceUnit(product.getPrice().getUnit())
                 .previewImageUrl(product.getPreviewImageUrl().getPreviewImageUrl())
                 .creationDate(product.getCreationDate().getCreationDate())
                 .lastModificationDate(product.getLastModificationDate().getLastModificationDate())
@@ -374,11 +354,6 @@ public class ProductDto implements Serializable {
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
                 .reviewsCount(product.getReviewsCount())
                 .aboutVendor(new TempVendorDetails())
-                .prices(List.of(
-                        new TempProductPriceDetails(1, 5),
-                        new TempProductPriceDetails(5, 20),
-                        new TempProductPriceDetails(20, null)
-                ))
                 .deliveryMethodsDetails(List.of(new TempProductDeliveryMethodDetails(), new TempProductDeliveryMethodDetails()))
                 .packagingOptions(List.of(new TempProductPackagingOptionDetails(), new TempProductPackagingOptionDetails()))
                 .build();
