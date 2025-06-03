@@ -13,11 +13,15 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionIpAddress implements Serializable {
 
-    @Column(nullable = false)
-    private String ipAddress;
+    @Column(name = "ip_address", nullable = false, updatable = false, columnDefinition = "cidr")
+    private String value;
 
     private SessionIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("IP адрес сессии не может быть пустым");
+        }
+
+        this.value = ipAddress;
     }
 
     public static SessionIpAddress of(String ipAddress) {
@@ -26,6 +30,6 @@ public final class SessionIpAddress implements Serializable {
 
     @Override
     public String toString() {
-        return ipAddress;
+        return value;
     }
 }

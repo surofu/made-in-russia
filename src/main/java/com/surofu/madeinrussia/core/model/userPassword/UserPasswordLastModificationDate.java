@@ -19,19 +19,23 @@ public final class UserPasswordLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private UserPasswordLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private UserPasswordLastModificationDate(ZonedDateTime date) {
+        this.value = date;
     }
 
-    public static UserPasswordLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new UserPasswordLastModificationDate(lastModificationDate);
+    public static UserPasswordLastModificationDate of(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения пароля пользователя не может быть пустой");
+        }
+
+        return new UserPasswordLastModificationDate(date);
     }
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

@@ -13,15 +13,23 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceUnit implements Serializable {
 
-    @Column(name = "unit", nullable = false)
+    @Column(name = "quantity_unit", nullable = false)
     private String value;
 
-    private ProductPriceUnit(String priceUnit) {
-        this.value = priceUnit;
+    private ProductPriceUnit(String unit) {
+        if (unit == null || unit.trim().isEmpty()) {
+            throw new IllegalArgumentException("Единицы измерения цены товара не могут быть пустыми");
+        }
+
+        if (unit.length() > 255) {
+            throw new IllegalArgumentException("Единицы измерения цены товара не могут быть больше 255 символов");
+        }
+
+        this.value = unit;
     }
 
-    public static ProductPriceUnit of(String priceUnit) {
-        return new ProductPriceUnit(priceUnit);
+    public static ProductPriceUnit of(String unit) {
+        return new ProductPriceUnit(unit);
     }
 
     @Override

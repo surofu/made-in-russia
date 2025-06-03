@@ -19,11 +19,15 @@ public final class ProductCharacteristicLastModificationDate implements Serializ
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductCharacteristicLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private ProductCharacteristicLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего обновления характеристики не может быть пустой");
+        }
+
+        this.value = date;
     }
 
     public static ProductCharacteristicLastModificationDate of(ZonedDateTime date) {
@@ -32,6 +36,6 @@ public final class ProductCharacteristicLastModificationDate implements Serializ
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

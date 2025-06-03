@@ -15,6 +15,11 @@ public class JpaSessionRepository implements SessionRepository {
     private final SpringDataSessionRepository repository;
 
     @Override
+    public Optional<Session> getSessionById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
     public List<Session> getSessionsByUserId(Long userId) {
         return repository.getAllByUserId(userId);
     }
@@ -27,5 +32,10 @@ public class JpaSessionRepository implements SessionRepository {
     @Override
     public void deleteSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId) {
         repository.deleteByUserIdAndDeviceId(userId, deviceId);
+    }
+
+    @Override
+    public void save(Session session) {
+        repository.save(session);
     }
 }

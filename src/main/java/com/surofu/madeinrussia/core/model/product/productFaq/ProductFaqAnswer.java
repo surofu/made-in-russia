@@ -13,10 +13,18 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductFaqAnswer implements Serializable {
 
-    @Column(name = "answer", columnDefinition = "text", nullable = false)
+    @Column(name = "answer", nullable = false, columnDefinition = "text")
     private String value;
 
     private ProductFaqAnswer(String answer) {
+        if (answer == null || answer.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ответ не может быть пустым");
+        }
+
+        if (answer.length() > 20000) {
+            throw new IllegalArgumentException("Ответ не может быть больше 20,000 символов");
+        }
+
         this.value = answer;
     }
 

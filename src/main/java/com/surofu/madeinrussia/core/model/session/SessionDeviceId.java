@@ -13,19 +13,23 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionDeviceId implements Serializable {
 
-    @Column(nullable = false)
-    private String deviceId;
+    @Column(name = "device_id", nullable = false, updatable = false)
+    private String value;
 
     private SessionDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
+        if (deviceId == null || deviceId.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID устройства сессии не может быть пустым");
+        }
 
+        this.value = deviceId;
+    }
+ 
     public static SessionDeviceId of(String deviceId) {
         return new SessionDeviceId(deviceId);
     }
 
     @Override
     public String toString() {
-        return deviceId;
+        return value;
     }
 }

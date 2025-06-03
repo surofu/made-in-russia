@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductCharacteristicName implements Serializable {
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "name", nullable = false)
+    private String value;
 
     private ProductCharacteristicName(String name) {
-        this.name = name;
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Название характеристики не может быть пустой");
+        }
+
+        if (name.length() > 255) {
+            throw new IllegalArgumentException("Название характеристики не может быть больше 255 символов");
+        }
+
+        this.value = name;
     }
 
     public static ProductCharacteristicName of(String name) {
@@ -26,6 +34,6 @@ public final class ProductCharacteristicName implements Serializable {
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
 }

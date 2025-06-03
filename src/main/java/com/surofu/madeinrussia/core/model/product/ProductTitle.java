@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductTitle implements Serializable {
 
-    @Column(nullable = false)
-    private String title;
+    @Column(name = "title", nullable = false)
+    private String value;
 
     private ProductTitle(String title) {
-        this.title = title;
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Название товара не должно быть пустым");
+        }
+
+        if (title.length() > 255) {
+            throw new IllegalArgumentException("Название товара не должно быть больше 255 символов");
+        }
+
+        this.value = title;
     }
 
     public static ProductTitle of(String title) {
@@ -26,6 +34,6 @@ public final class ProductTitle implements Serializable {
 
     @Override
     public String toString() {
-        return title;
+        return value;
     }
 }

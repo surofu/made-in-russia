@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionDeviceType implements Serializable {
 
-    @Column(nullable = false)
-    private String deviceType;
+    @Column(name = "device_type", nullable = false, updatable = false)
+    private String value;
 
     private SessionDeviceType(String deviceType) {
-        this.deviceType = deviceType;
+        if (deviceType == null || deviceType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Тип устройства сессии не может быть пустым");
+        }
+
+        if (deviceType.length() > 255) {
+            throw new IllegalArgumentException("Тип устройства сессии не может быть больше 255 символов");
+        }
+
+        this.value = deviceType;
     }
 
     public static SessionDeviceType of(String deviceType) {
@@ -26,6 +34,6 @@ public final class SessionDeviceType implements Serializable {
 
     @Override
     public String toString() {
-        return deviceType;
+        return value;
     }
 }

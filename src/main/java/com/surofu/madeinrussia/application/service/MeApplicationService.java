@@ -9,11 +9,9 @@ import com.surofu.madeinrussia.application.service.async.AsyncSessionApplication
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
-import com.surofu.madeinrussia.core.model.session.SessionWithUser;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
-import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.GetMe;
 import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
@@ -36,7 +34,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
-    private final SessionWithUserRepository sessionWithUserRepository;
     private final UserService userService;
     private final JwtUtils jwtUtils;
 
@@ -58,7 +55,7 @@ public class MeApplicationService implements MeService {
             );
         }
 
-        Optional<SessionWithUser> sessionWithUser = sessionWithUserRepository.getSessionById(existingSession.get().getId());
+        Optional<Session> sessionWithUser = sessionRepository.getSessionById(existingSession.get().getId());
 
         if (sessionWithUser.isEmpty()) {
             return GetMe.Result.sessionWithIdNotFound(existingSession.get().getId());

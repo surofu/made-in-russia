@@ -13,7 +13,15 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_prices")
+@Table(
+        name = "product_prices",
+        indexes = {
+                @Index(
+                        name = "idx_product_prices_product_id",
+                        columnList = "product_id"
+                )
+        }
+)
 public final class ProductPrice implements Serializable {
 
     @Id
@@ -22,7 +30,11 @@ public final class ProductPrice implements Serializable {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false, updatable = false)
+    @JoinColumn(
+            name = "product_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_prices_product_id")
+    )
     private Product product;
 
     @Embedded
@@ -47,7 +59,7 @@ public final class ProductPrice implements Serializable {
     private ProductPriceMinimumOrderQuantity minimumOrderQuantity;
 
     @Embedded
-    private ProductPriceDiscountExpiryDate expiryDate;
+    private ProductPriceDiscountExpirationDate expirationDate;
 
     @Embedded
     private ProductPriceCreationDate creationDate;

@@ -13,15 +13,15 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductReviewRating implements Serializable {
 
-    @Column(nullable = false)
-    private Integer rating;
+    @Column(name = "rating", nullable = false, columnDefinition = "int default 1")
+    private Integer value = 1;
 
     private ProductReviewRating(Integer rating) {
         if (rating < 0 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 0 and 5");
+            throw new IllegalArgumentException("Рейтинг отзыва должен быть между 0 и 5");
         }
 
-        this.rating = rating;
+        this.value = rating == 0 ? 1 : rating;
     }
 
     public static ProductReviewRating of(Integer rating) {
@@ -30,6 +30,6 @@ public final class ProductReviewRating implements Serializable {
 
     @Override
     public String toString() {
-        return rating.toString();
+        return value.toString();
     }
 }

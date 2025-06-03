@@ -13,19 +13,51 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDescription implements Serializable {
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(name = "main_description", nullable = false, columnDefinition = "text")
     private String mainDescription;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(name = "further_description", nullable = false, columnDefinition = "text")
     private String furtherDescription;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(name = "summary_description", nullable = false, columnDefinition = "text")
     private String summaryDescription;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(name = "primary_description", nullable = false, columnDefinition = "text")
     private String primaryDescription;
 
     private ProductDescription(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {
+        if (mainDescription == null || mainDescription.trim().isEmpty()) {
+            throw new IllegalArgumentException("Главное описание не может быть пустым");
+        }
+
+        if (furtherDescription == null || furtherDescription.trim().isEmpty()) {
+            throw new IllegalArgumentException("Второстепенное описание не может быть пустым");
+        }
+
+        if (summaryDescription == null || summaryDescription.trim().isEmpty()) {
+            throw new IllegalArgumentException("Краткое описание не может быть пустым");
+        }
+
+        if (primaryDescription == null || primaryDescription.trim().isEmpty()) {
+            throw new IllegalArgumentException("Описание продавца не может быть пустым");
+        }
+
+        if (mainDescription.length() > 50_000) {
+            throw new IllegalArgumentException("Главное описание не может быть больше 50,000 символов");
+        }
+
+        if (furtherDescription.length() > 20_000) {
+            throw new IllegalArgumentException("Второстепенное описание не может быть больше 20,000 символов");
+        }
+
+        if (summaryDescription.length() > 20_000) {
+            throw new IllegalArgumentException("Краткое описание не может быть больше 20,000 символов");
+        }
+
+        if (primaryDescription.length() > 20_000) {
+            throw new IllegalArgumentException("Описание продавца не может быть больше 20,000 символов");
+        }
+
         this.mainDescription = mainDescription;
         this.furtherDescription = furtherDescription;
         this.summaryDescription = summaryDescription;

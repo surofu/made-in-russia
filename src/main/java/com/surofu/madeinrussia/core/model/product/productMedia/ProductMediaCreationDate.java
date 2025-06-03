@@ -18,12 +18,16 @@ import java.time.ZonedDateTime;
 public final class ProductMediaCreationDate implements Serializable {
 
     @CreationTimestamp
-    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductMediaCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private ProductMediaCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания медиа не может быть пустой");
+        }
+
+        this.value = date;
     }
 
     public static ProductMediaCreationDate of(ZonedDateTime date) {
@@ -32,6 +36,6 @@ public final class ProductMediaCreationDate implements Serializable {
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

@@ -13,19 +13,15 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserLogin implements Serializable {
 
-    @Column(unique = true, nullable = false)
-    private String login;
+    @Column(name = "login", nullable = false, unique = true)
+    private String value;
 
     private UserLogin(String login) {
-        this.login = login;
+        this.value = login;
     }
 
     public static UserLogin of(String login) {
-        if (login == null) {
-            throw new IllegalArgumentException("Логин не может быть пустым");
-        }
-
-        if (login.isEmpty()) {
+        if (login == null || login.trim().isEmpty()) {
             throw new IllegalArgumentException("Логин не может быть пустым");
         }
 
@@ -33,11 +29,15 @@ public final class UserLogin implements Serializable {
             throw new IllegalArgumentException("Логин не может быть менее 3 символов");
         }
 
+        if (login.length() > 255) {
+            throw new IllegalArgumentException("Логин не может быть больше 255 символов");
+        }
+
         return new UserLogin(login);
     }
 
     @Override
     public String toString() {
-        return login;
+        return value;
     }
 }

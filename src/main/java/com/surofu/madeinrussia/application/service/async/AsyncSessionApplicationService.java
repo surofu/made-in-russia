@@ -3,7 +3,6 @@ package com.surofu.madeinrussia.application.service.async;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.*;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
-import com.surofu.madeinrussia.core.repository.SessionWithUserRepository;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -18,7 +17,6 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 public class AsyncSessionApplicationService {
     private final SessionRepository sessionRepository;
-    private final SessionWithUserRepository sessionWithUserRepository;
 
     @Async
     @Transactional
@@ -39,23 +37,23 @@ public class AsyncSessionApplicationService {
 
         ZonedDateTime dateNow = ZonedDateTime.now();
         SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
-        SessionLastLoginDate sessionLastLoginDate = SessionLastLoginDate.of(dateNow);
+        SessionCreationDate sessionCreationDate = SessionCreationDate.of(dateNow);
 
-        SessionWithUser sessionWithUser = sessionWithUserRepository
+        Session session = sessionRepository
                 .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
-                .orElse(new SessionWithUser());
+                .orElse(new Session());
 
-        sessionWithUser.setUser(securityUser.getUser());
-        sessionWithUser.setDeviceId(sessionDeviceId);
-        sessionWithUser.setDeviceType(sessionDeviceType);
-        sessionWithUser.setBrowser(sessionBrowser);
-        sessionWithUser.setOs(sessionOs);
-        sessionWithUser.setIpAddress(sessionIpAddress);
-        sessionWithUser.setLastModificationDate(sessionLastModificationDate);
-        sessionWithUser.setLastLoginDate(sessionLastLoginDate);
+        session.setUser(securityUser.getUser());
+        session.setDeviceId(sessionDeviceId);
+        session.setDeviceType(sessionDeviceType);
+        session.setBrowser(sessionBrowser);
+        session.setOs(sessionOs);
+        session.setIpAddress(sessionIpAddress);
+        session.setCreationDate(sessionCreationDate);
+        session.setLastModificationDate(sessionLastModificationDate);
 
         try {
-            sessionWithUserRepository.saveOrUpdate(sessionWithUser);
+            sessionRepository.save(session);
         } catch (Exception ex) {
             throw new CompletionException(ex);
         }

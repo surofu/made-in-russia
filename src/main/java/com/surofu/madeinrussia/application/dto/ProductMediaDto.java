@@ -75,8 +75,8 @@ public final class ProductMediaDto {
                 .mimeType(productMedia.getMimeType().toString())
                 .url(productMedia.getUrl().toString())
                 .altText(productMedia.getAltText().toString())
-                .creationDate(productMedia.getCreationDate().getCreationDate())
-                .lastModificationDate(productMedia.getLastModificationDate().getLastModificationDate())
+                .creationDate(productMedia.getCreationDate().getValue())
+                .lastModificationDate(productMedia.getLastModificationDate().getValue())
                 .build();
     }
 }

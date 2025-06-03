@@ -108,12 +108,12 @@ public final class UserDto implements Serializable {
         return UserDto.builder()
                 .id(user.getId())
                 .role(user.getRole().getName())
-                .login(user.getLogin().getLogin())
-                .email(user.getEmail().getEmail())
-                .phoneNumber(user.getPhoneNumber().getPhoneNumber())
-                .region(user.getRegion().getRegion())
-                .registrationDate(user.getRegistrationDate().getRegistrationDate())
-                .lastModificationDate(user.getLastModificationDate().getLastModificationDate())
+                .login(user.getLogin().getValue())
+                .email(user.getEmail().getValue())
+                .phoneNumber(user.getPhoneNumber().getValue())
+                .region(user.getRegion().getValue())
+                .registrationDate(user.getRegistrationDate().getValue())
+                .lastModificationDate(user.getLastModificationDate().getValue())
                 .build();
     }
 }

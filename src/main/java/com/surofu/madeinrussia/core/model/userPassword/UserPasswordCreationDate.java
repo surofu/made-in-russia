@@ -19,19 +19,23 @@ public final class UserPasswordCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private UserPasswordCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private UserPasswordCreationDate(ZonedDateTime date) {
+        this.value = date;
     }
 
-    public static UserPasswordCreationDate of(ZonedDateTime creationDate) {
-        return new UserPasswordCreationDate(creationDate);
+    public static UserPasswordCreationDate of(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания пароля пользователя не может быть пустой");
+        }
+
+        return new UserPasswordCreationDate(date);
     }
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

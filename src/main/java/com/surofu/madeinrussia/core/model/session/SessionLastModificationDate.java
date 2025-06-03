@@ -19,19 +19,23 @@ public final class SessionLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private SessionLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private SessionLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения сессии не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static SessionLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new SessionLastModificationDate(lastModificationDate);
+    public static SessionLastModificationDate of(ZonedDateTime date) {
+        return new SessionLastModificationDate(date);
     }
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

@@ -19,8 +19,20 @@ public final class ProductPriceCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "creation_date", nullable = false, updatable = false)
-    private ZonedDateTime value;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
+
+    private ProductPriceCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания цены продукта не может быть пустой");
+        }
+
+        this.value = date;
+    }
+
+    public static ProductPriceCreationDate of(ZonedDateTime date) {
+        return new ProductPriceCreationDate(date);
+    }
 
     @Override
     public String toString() {

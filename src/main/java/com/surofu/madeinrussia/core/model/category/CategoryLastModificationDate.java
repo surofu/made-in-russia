@@ -19,19 +19,23 @@ public final class CategoryLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private CategoryLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private CategoryLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения категории не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static CategoryLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new CategoryLastModificationDate(lastModificationDate);
+    public static CategoryLastModificationDate of(ZonedDateTime date) {
+        return new CategoryLastModificationDate(date);
     }
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

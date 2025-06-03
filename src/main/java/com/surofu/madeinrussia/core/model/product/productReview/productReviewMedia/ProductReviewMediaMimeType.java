@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductReviewMediaMimeType implements Serializable {
 
-    @Column(nullable = false)
-    private String mimeType;
+    @Column(name = "mime_type", nullable = false)
+    private String value;
 
     private ProductReviewMediaMimeType(String mimeType) {
-        this.mimeType = mimeType;
+        if (mimeType == null || mimeType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Тип контента медиа отзыва не может быть пустым");
+        }
+
+        if (mimeType.length() > 255) {
+            throw new IllegalArgumentException("Тип контента медиа отзыва не может быть больше 255 символов");
+        }
+
+        this.value = mimeType;
     }
 
     public static ProductReviewMediaMimeType of(String mimeType) {
@@ -26,6 +34,6 @@ public final class ProductReviewMediaMimeType implements Serializable {
 
     @Override
     public String toString() {
-        return mimeType;
+        return value;
     }
 }

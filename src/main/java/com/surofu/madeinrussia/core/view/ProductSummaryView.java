@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Subselect;
 import org.hibernate.annotations.Synchronize;
@@ -35,17 +34,17 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "original_price")
+    @Column(name = "price_original_price")
     private BigDecimal originPrice;
 
-    @Column(name = "discount")
+    @Column(name = "price_discount")
     private BigDecimal discount;
 
-    @Formula("original_price * (1 - discount / 100)")
+    @Column(name = "price_discounted_price")
     private BigDecimal discountedPrice;
 
-    @Column(name = "price_unit")
-    private String priceUnit;
+    @Column(name = "price_currency")
+    private String priceCurrency;
 
     @Column(name = "rating")
     private Double rating;

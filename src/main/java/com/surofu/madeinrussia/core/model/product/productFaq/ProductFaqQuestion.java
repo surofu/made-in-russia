@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductFaqQuestion implements Serializable {
 
-    @Column(name = "question", columnDefinition = "text", nullable = false)
-    private String question;
+    @Column(name = "question", nullable = false, columnDefinition = "text")
+    private String value;
 
     private ProductFaqQuestion(String question) {
-        this.question = question;
+        if (question == null || question.trim().isEmpty()) {
+            throw new IllegalArgumentException("Вопрос не может быть пустым");
+        }
+
+        if (question.length() > 20000) {
+            throw new IllegalArgumentException("Вопрос не может быть больше 20,000 символов");
+        }
+
+        this.value = question;
     }
 
     public static ProductFaqQuestion of(String question) {
@@ -26,6 +34,6 @@ public final class ProductFaqQuestion implements Serializable {
 
     @Override
     public String toString() {
-        return question;
+        return value;
     }
 }

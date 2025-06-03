@@ -13,7 +13,15 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_review_media")
+@Table(
+        name = "product_review_media",
+        indexes = {
+                @Index(
+                        name = "idx_product_review_media_product_review_id",
+                        columnList = "product_review_id"
+                )
+        }
+)
 public final class ProductReviewMedia implements Serializable {
 
     @Id
@@ -21,7 +29,11 @@ public final class ProductReviewMedia implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_review_id")
+    @JoinColumn(
+            name = "product_review_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_review_media_product_review_id")
+    )
     private ProductReview productReview;
 
     @Column(nullable = false)

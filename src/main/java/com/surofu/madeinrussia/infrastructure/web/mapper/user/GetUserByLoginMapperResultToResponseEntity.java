@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.user;
 
-import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

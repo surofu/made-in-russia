@@ -18,12 +18,12 @@ import java.time.ZonedDateTime;
 public final class ProductFaqLastModificationDate implements Serializable {
 
     @UpdateTimestamp
-    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductFaqLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private ProductFaqLastModificationDate(ZonedDateTime date) {
+        this.value = date;
     }
 
     public static ProductFaqLastModificationDate of(ZonedDateTime date) {
@@ -32,6 +32,6 @@ public final class ProductFaqLastModificationDate implements Serializable {
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

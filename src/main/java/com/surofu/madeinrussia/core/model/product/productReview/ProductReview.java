@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.productReview;
 
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.ProductLastModificationDate;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
@@ -18,7 +17,19 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_reviews")
+@Table(
+        name = "product_reviews",
+        indexes = {
+                @Index(
+                        name = "idx_product_reviews_product_id",
+                        columnList = "product_id"
+                ),
+                @Index(
+                        name = "idx_product_reviews_user_id",
+                        columnList = "user_id"
+                )
+        }
+)
 public final class ProductReview implements Serializable {
 
     @Id
@@ -27,24 +38,32 @@ public final class ProductReview implements Serializable {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(
+            name = "product_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_reviews_product_id")
+    )
+    private Product product;
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_reviews_user_id")
+    )
+    private User user;
 
-    @OrderBy("position.position asc")
+    @OrderBy("position.value asc")
     @OneToMany(
             mappedBy = "productReview",
             fetch = FetchType.LAZY,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
     )
     private List<ProductReviewMedia> media = new ArrayList<>();
 
     @Embedded
-    private ProductReviewText text;
+    private ProductReviewContent text;
 
     @Embedded
     private ProductReviewRating rating;
@@ -53,13 +72,13 @@ public final class ProductReview implements Serializable {
     private ProductReviewCreationDate creationDate;
 
     @Embedded
-    private ProductLastModificationDate lastModificationDate;
+    private ProductReviewLastModificationDate lastModificationDate;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ProductReview)) return false;
-        return id != null && id.equals(((ProductReview)o).id);
+        return id != null && id.equals(((ProductReview) o).id);
     }
 
     @Override

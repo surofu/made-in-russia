@@ -12,20 +12,20 @@ import java.util.Optional;
 public interface SpringDataSessionRepository extends JpaRepository<Session, Long> {
 
     @Query("""
-            select s from SessionWithUser s
+            select s from Session s
             where s.user.id = :userId
             """)
     List<Session> getAllByUserId(Long userId);
 
     @Query("""
-            select s from SessionWithUser s
+            select s from Session s
             where s.user.id = :userId and s.deviceId = :deviceId
             """)
     Optional<Session> getSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId);
 
     @Modifying
     @Query("""
-            delete from SessionWithUser s
+            delete from Session s
             where s.user.id = :userId and s.deviceId = :deviceId
             """)
     void deleteByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId);

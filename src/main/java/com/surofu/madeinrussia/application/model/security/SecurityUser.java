@@ -20,12 +20,12 @@ public class SecurityUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail().getEmail();
+        return user.getEmail().getValue();
     }
 
     @Override
     public String getPassword() {
-        return userPassword.getPassword().getPassword();
+        return userPassword.getPassword().getValue();
     }
 
     @Override

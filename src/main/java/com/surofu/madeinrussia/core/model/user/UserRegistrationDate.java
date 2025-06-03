@@ -19,19 +19,23 @@ public final class UserRegistrationDate implements Serializable {
     
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime registrationDate;
+    @Column(name = "registration_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private UserRegistrationDate(ZonedDateTime registrationDate) {
-        this.registrationDate = registrationDate;
+    private UserRegistrationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата регистрации пользователя не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static UserRegistrationDate of(ZonedDateTime registrationDate) {
-        return new UserRegistrationDate(registrationDate);
+    public static UserRegistrationDate of(ZonedDateTime date) {
+        return new UserRegistrationDate(date);
     }
 
     @Override
     public String toString() {
-        return registrationDate.toString();
+        return value.toString();
     }
 }

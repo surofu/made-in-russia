@@ -90,15 +90,7 @@ class ProductApplicationServiceTest {
             int randomDeliveryMethodIndex = random.nextInt(mockDeliveryMethodCount);
             DeliveryMethod randomMockDeliveryMethod = mockDeliveryMethods.get(randomDeliveryMethodIndex);
 
-            Product mockProduct = new Product();
-            mockProduct.setId((long) i);
-            mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
-            mockProduct.setDescription(ProductDescription.of("", "", "", ""));
-            mockProduct.setMedia(Set.of());
-            mockProduct.setReviews(Set.of());
-            mockProduct.setCharacteristics(Set.of());
-            mockProduct.setCategory(randomMockCategory);
-            mockProduct.setDeliveryMethods(Set.of(randomMockDeliveryMethod));
+            Product mockProduct = getProduct((long) i+1, randomMockCategory, randomMockDeliveryMethod);
 
             if (random.nextBoolean()) {
                 Set<DeliveryMethod> deliveryMethodSet = new HashSet<>(mockDeliveryMethods);
@@ -250,7 +242,7 @@ class ProductApplicationServiceTest {
         Product mockProduct = new Product();
         mockProduct.setId(mockProductId);
         mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
-        mockProduct.setDescription(ProductDescription.of("", "", "", ""));
+        mockProduct.setDescription(ProductDescription.of("Главное описание", "Вторичное описание", "Кратное описание", "Важное описание"));
         mockProduct.setMedia(Set.of());
         mockProduct.setReviews(Set.of());
         mockProduct.setCharacteristics(Set.of());

@@ -127,9 +127,9 @@ public final class ProductReviewDto implements Serializable {
                 .author(UserDto.of(productReview.getUser()))
                 .text(productReview.getText().toString())
                 .media(productReview.getMedia().stream().map(ProductReviewMediaDto::of).toList())
-                .rating(productReview.getRating().getRating())
-                .creationDate(productReview.getCreationDate().getCreationDate())
-                .lastModificationDate(productReview.getLastModificationDate().getLastModificationDate())
+                .rating(productReview.getRating().getValue())
+                .creationDate(productReview.getCreationDate().getValue())
+                .lastModificationDate(productReview.getLastModificationDate().getValue())
                 .build();
     }
 }

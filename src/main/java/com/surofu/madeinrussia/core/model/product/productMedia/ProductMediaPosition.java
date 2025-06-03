@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductMediaPosition implements Serializable {
 
-    @Column(nullable = false)
-    private Integer position;
+    @Column(name = "position", nullable = false, columnDefinition = "int default 0")
+    private Integer value = 0;
 
     private ProductMediaPosition(Integer position) {
-        this.position = position;
+        if (position == null) {
+            throw new IllegalArgumentException("Позиция медиа не может быть пустой");
+        }
+
+        if (position < 0) {
+            throw new IllegalArgumentException("Позиция медиа не может быть отрицательной");
+        }
+
+        this.value = position;
     }
 
     public static ProductMediaPosition of(Integer position) {
@@ -26,6 +34,6 @@ public final class ProductMediaPosition implements Serializable {
 
     @Override
     public String toString() {
-        return position.toString();
+        return value.toString();
     }
 }

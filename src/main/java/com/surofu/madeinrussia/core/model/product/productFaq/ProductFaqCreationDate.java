@@ -18,12 +18,12 @@ import java.time.ZonedDateTime;
 public final class ProductFaqCreationDate implements Serializable {
 
     @CreationTimestamp
-    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductFaqCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private ProductFaqCreationDate(ZonedDateTime date) {
+        this.value = date;
     }
 
     public static ProductFaqCreationDate of(ZonedDateTime date) {
@@ -32,6 +32,6 @@ public final class ProductFaqCreationDate implements Serializable {
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

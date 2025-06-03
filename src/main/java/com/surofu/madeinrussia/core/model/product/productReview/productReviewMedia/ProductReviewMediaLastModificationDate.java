@@ -19,11 +19,15 @@ public final class ProductReviewMediaLastModificationDate implements Serializabl
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductReviewMediaLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private ProductReviewMediaLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения медиа отзыва не может быть пустой");
+        }
+
+        this.value = date;
     }
 
     public static ProductReviewMediaLastModificationDate of(ZonedDateTime date) {
@@ -32,6 +36,6 @@ public final class ProductReviewMediaLastModificationDate implements Serializabl
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

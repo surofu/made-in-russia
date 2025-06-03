@@ -12,14 +12,27 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users_passwords")
+@Table(
+        name = "user_passwords",
+        indexes = {
+                @Index(
+                        name = "idx_user_passwords_user_id",
+                        columnList = "user_id"
+                )
+        }
+)
 public final class UserPassword implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_user_passwords_user_id")
+    )
     private User user;
 
     @Embedded

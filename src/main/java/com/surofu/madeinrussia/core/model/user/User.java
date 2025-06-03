@@ -23,7 +23,7 @@ public final class User implements Serializable {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private UserRole role = UserRole.ROLE_USER;
 
     @Embedded
     private UserEmail email;

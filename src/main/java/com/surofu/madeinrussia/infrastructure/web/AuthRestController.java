@@ -5,7 +5,7 @@ import com.surofu.madeinrussia.application.command.auth.LoginWithLoginCommand;
 import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
 import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
-import com.surofu.madeinrussia.application.dto.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;

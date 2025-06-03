@@ -14,16 +14,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceOriginalPrice implements Serializable {
 
-    @Column(name = "original_price", nullable = false)
+    @Column(name = "original_price", nullable = false, columnDefinition = "decimal(10, 2)")
     private BigDecimal value;
 
     private ProductPriceOriginalPrice(BigDecimal originalPrice) {
         if (originalPrice == null) {
-            throw new IllegalArgumentException("The original price cannot be null.");
+            throw new IllegalArgumentException("Оригинальная цена товара не может быть пустой");
         }
 
         if (originalPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("The original price cannot be negative.");
+            throw new IllegalArgumentException("Оригинальная цена товара не может быть отрицательной");
         }
 
         this.value = originalPrice;

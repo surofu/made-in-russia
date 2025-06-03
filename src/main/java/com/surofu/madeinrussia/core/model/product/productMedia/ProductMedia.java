@@ -14,7 +14,15 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_media")
+@Table(
+        name = "product_media",
+        indexes = {
+                @Index(
+                        name = "idx_product_media_product_id",
+                        columnList = "product_id"
+                )
+        }
+)
 public final class ProductMedia implements Serializable {
 
     @Id
@@ -23,7 +31,11 @@ public final class ProductMedia implements Serializable {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(
+            name = "product_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_media_product_id")
+    )
     private Product product;
 
     @Column(nullable = false)

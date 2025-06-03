@@ -145,12 +145,12 @@ public final class ProductSummaryViewDto implements Serializable {
     private BigDecimal discountedPrice;
 
     @Schema(
-            description = "Price unit (currency or measurement unit)",
+            description = "Price currency",
             example = "USD",
             maxLength = 10,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private String priceUnit;
+    private String priceCurrency;
 
     @Schema(
             description = """
@@ -224,7 +224,7 @@ public final class ProductSummaryViewDto implements Serializable {
                 .originalPrice(productSummaryView.getOriginPrice())
                 .discount(productSummaryView.getDiscount())
                 .discountedPrice(productSummaryView.getDiscountedPrice())
-                .priceUnit(productSummaryView.getPriceUnit())
+                .priceCurrency(productSummaryView.getPriceCurrency())
                 .rating(productSummaryView.getRating())
                 .previewImageUrl(productSummaryView.getPreviewImageUrl())
                 .creationDate(productSummaryView.getCreationDate())

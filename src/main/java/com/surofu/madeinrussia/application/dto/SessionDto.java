@@ -72,15 +72,6 @@ public final class SessionDto implements Serializable {
     private ZonedDateTime creationDate;
 
     @Schema(
-            description = "Timestamp when session was last modified",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime lastModificationDate;
-
-    @Schema(
             description = "Timestamp when user was last login",
             example = "2025-05-04T09:17:20.767615Z",
             type = "string",
@@ -93,14 +84,13 @@ public final class SessionDto implements Serializable {
     public static SessionDto of(Session session) {
         return SessionDto.builder()
                 .id(session.getId())
-                .deviceId(session.getDeviceId().getDeviceId())
-                .deviceType(session.getDeviceType().getDeviceType())
-                .browser(session.getBrowser().getBrowser())
-                .os(session.getOs().getOs())
-                .ipAddress(session.getIpAddress().getIpAddress())
-                .creationDate(session.getCreationDate().getCreationDate())
-                .lastModificationDate(session.getLastModificationDate().getLastModificationDate())
-                .lastLoginDate(session.getLastLoginDate().getLastLoginDate())
+                .deviceId(session.getDeviceId().getValue())
+                .deviceType(session.getDeviceType().getValue())
+                .browser(session.getBrowser().getValue())
+                .os(session.getOs().getValue())
+                .ipAddress(session.getIpAddress().getValue())
+                .creationDate(session.getCreationDate().getValue())
+                .lastLoginDate(session.getLastModificationDate().getValue())
                 .build();
     }
 }

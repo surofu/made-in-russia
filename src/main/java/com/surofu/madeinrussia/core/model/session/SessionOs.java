@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionOs implements Serializable {
 
-    @Column(nullable = false)
-    private String os;
+    @Column(name = "os", nullable = false, updatable = false)
+    private String value;
 
     private SessionOs(String os) {
-        this.os = os;
+        if (os == null || os.trim().isEmpty()) {
+            throw new IllegalArgumentException("Операционная система сессии не может быть пустой");
+        }
+
+        if (os.length() > 255) {
+            throw new IllegalArgumentException("Операционная система сессии не может быть больше 255 символов");
+        }
+
+        this.value = os;
     }
 
     public static SessionOs of(String os) {
@@ -26,6 +34,6 @@ public final class SessionOs implements Serializable {
 
     @Override
     public String toString() {
-        return os;
+        return value;
     }
 }

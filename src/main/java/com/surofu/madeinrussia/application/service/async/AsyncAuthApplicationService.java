@@ -153,7 +153,7 @@ public class AsyncAuthApplicationService {
         Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
         Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
 
-        String email = user.getEmail().getEmail();
+        String email = user.getEmail().getValue();
 
         unverifiedUsersCache.evict(email);
         unverifiedUserPasswordsCache.evict(email);

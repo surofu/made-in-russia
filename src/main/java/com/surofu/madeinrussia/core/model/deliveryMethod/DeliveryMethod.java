@@ -11,7 +11,21 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "delivery_methods")
+@Table(
+        name = "delivery_methods",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_delivery_methods_name",
+                        columnNames = "name"
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_delivery_methods_name",
+                        columnList = "name"
+                )
+        }
+)
 public final class DeliveryMethod implements Serializable {
 
     @Id

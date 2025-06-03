@@ -5,5 +5,5 @@ spring:
     show-sql: false
   flyway:
     enabled: false
-    baseline-on-migrate: false
-    validate-on-migrate: false
+    baseline-on-migrate: true
+    validate-on-migrate: true

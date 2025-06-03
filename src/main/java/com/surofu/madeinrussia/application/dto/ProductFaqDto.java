@@ -78,8 +78,8 @@ public final class ProductFaqDto implements Serializable {
                 .id(productFaq.getId())
                 .question(productFaq.getQuestion().toString())
                 .answer(productFaq.getAnswer().toString())
-                .creationDate(productFaq.getCreationDate().getCreationDate())
-                .lastModificationDate(productFaq.getLastModificationDate().getLastModificationDate())
+                .creationDate(productFaq.getCreationDate().getValue())
+                .lastModificationDate(productFaq.getLastModificationDate().getValue())
                 .build();
     }
 }

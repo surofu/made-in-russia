@@ -13,16 +13,16 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceMinimumOrderQuantity implements Serializable {
 
-    @Column(name = "minimum_order_quantity", nullable = false)
+    @Column(name = "minimum_order_quantity", nullable = false, columnDefinition = "int")
     private Integer value;
 
     private ProductPriceMinimumOrderQuantity(Integer minimumOrderQuantity) {
         if (minimumOrderQuantity == null) {
-            throw new IllegalArgumentException("The price discount cannot be null.");
+            throw new IllegalArgumentException("Минимальное количество товара для скидки не может быть пустым");
         }
 
         if (minimumOrderQuantity < 0) {
-            throw new IllegalArgumentException("The price discount cannot be negative.");
+            throw new IllegalArgumentException("Минимальное количество товара для скидки не может быть отрицательным");
         }
 
         this.value = minimumOrderQuantity;

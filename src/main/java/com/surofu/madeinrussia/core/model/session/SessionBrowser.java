@@ -13,11 +13,11 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionBrowser implements Serializable {
 
-    @Column(nullable = false)
-    private String browser;
+    @Column(name = "browser", nullable = false, updatable = false)
+    private String value;
 
     private SessionBrowser(String browser) {
-        this.browser = browser;
+        this.value = browser;
     }
 
     public static SessionBrowser of(String browser) {
@@ -26,6 +26,6 @@ public final class SessionBrowser implements Serializable {
 
     @Override
     public String toString() {
-        return browser;
+        return value;
     }
 }

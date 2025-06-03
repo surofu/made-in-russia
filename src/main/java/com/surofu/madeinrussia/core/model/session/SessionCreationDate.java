@@ -19,19 +19,23 @@ public final class SessionCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private SessionCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private SessionCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания сессии не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static SessionCreationDate of(ZonedDateTime creationDate) {
-        return new SessionCreationDate(creationDate);
+    public static SessionCreationDate of(ZonedDateTime date) {
+        return new SessionCreationDate(date);
     }
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

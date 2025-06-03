@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryName implements Serializable {
 
-    @Column(unique = true, nullable = false)
-    private String name;
+    @Column(name = "name", unique = true, nullable = false)
+    private String value;
 
     private CategoryName(String name) {
-        this.name = name;
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Название категории не может быть пустым");
+        }
+
+        if (name.length() > 255) {
+            throw new IllegalArgumentException("Название категории не может быть больше 255 символов");
+        }
+
+        this.value = name;
     }
 
     public static CategoryName of(String name) {
@@ -26,6 +34,6 @@ public final class CategoryName implements Serializable {
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
 }

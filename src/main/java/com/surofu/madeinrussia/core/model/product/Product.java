@@ -23,7 +23,25 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "products")
+@Table(
+        name = "products",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_products_article_code",
+                        columnNames = "article_code"
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_products_category_id",
+                        columnList = "category_id"
+                ),
+                @Index(
+                        name = "idx_products_article_code",
+                        columnList = "article_code"
+                )
+        }
+)
 public final class Product implements Serializable {
 
     @Id
@@ -31,6 +49,11 @@ public final class Product implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "category_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_products_category_id")
+    )
     private Category category;
 
     @Fetch(FetchMode.SUBSELECT)

@@ -44,10 +44,10 @@ spring:
       driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    url: ${POSTGRES_URL}
+    user: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
 
   #========= Mail =========#
   mail:

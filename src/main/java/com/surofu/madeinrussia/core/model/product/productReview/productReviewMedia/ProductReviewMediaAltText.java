@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductReviewMediaAltText implements Serializable {
 
-    @Column(nullable = false)
-    private String altText;
+    @Column(name = "alt_text", nullable = false)
+    private String value;
 
     private ProductReviewMediaAltText(String altText) {
-        this.altText = altText;
+        if (altText == null || altText.trim().isEmpty()) {
+            throw new IllegalArgumentException("Альтернативное описание медиа отзыва не может быть пустым");
+        }
+
+        if (altText.length() > 255) {
+            throw new IllegalArgumentException("Альтернативное описание медиа отзыва не может быть больше 255 символов");
+        }
+
+        this.value = altText;
     }
 
     public static ProductReviewMediaAltText of(String altText) {
@@ -26,6 +34,6 @@ public final class ProductReviewMediaAltText implements Serializable {
 
     @Override
     public String toString() {
-        return altText;
+        return value;
     }
 }

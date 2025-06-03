@@ -19,10 +19,14 @@ public final class ProductPriceLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "last_modification_date", nullable = false)
-    private ZonedDateTime value;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
     private ProductPriceLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения цены товара не может быть пустой");
+        }
+
         this.value = date;
     }
 

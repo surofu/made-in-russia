@@ -19,19 +19,23 @@ public final class ProductCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private ProductCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания товара не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static ProductCreationDate of(ZonedDateTime creationDate) {
-        return new ProductCreationDate(creationDate);
+    public static ProductCreationDate of(ZonedDateTime date) {
+        return new ProductCreationDate(date);
     }
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

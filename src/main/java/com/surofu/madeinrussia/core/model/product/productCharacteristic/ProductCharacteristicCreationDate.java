@@ -19,11 +19,15 @@ public final class ProductCharacteristicCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime creationDate;
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductCharacteristicCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = creationDate;
+    private ProductCharacteristicCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания характеристики не может быть пустой");
+        }
+        
+        this.value = date;
     }
 
     public static ProductCharacteristicCreationDate of(ZonedDateTime date) {
@@ -32,6 +36,6 @@ public final class ProductCharacteristicCreationDate implements Serializable {
 
     @Override
     public String toString() {
-        return creationDate.toString();
+        return value.toString();
     }
 }

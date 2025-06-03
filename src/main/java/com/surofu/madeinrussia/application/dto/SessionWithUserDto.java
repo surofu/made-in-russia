@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.session.SessionWithUser;
+import com.surofu.madeinrussia.core.model.session.Session;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -78,15 +78,6 @@ public final class SessionWithUserDto implements Serializable {
     private ZonedDateTime creationDate;
 
     @Schema(
-            description = "Timestamp when session was last modified",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime lastModificationDate;
-
-    @Schema(
             description = "Timestamp when user was last login",
             example = "2025-05-04T09:17:20.767615Z",
             type = "string",
@@ -96,18 +87,17 @@ public final class SessionWithUserDto implements Serializable {
     private ZonedDateTime lastLoginDate;
 
     @Schema(hidden = true)
-    public static SessionWithUserDto of(SessionWithUser sessionWithUser) {
+    public static SessionWithUserDto of(Session session) {
         return SessionWithUserDto.builder()
-                .id(sessionWithUser.getId())
-                .user(UserDto.of(sessionWithUser.getUser()))
-                .deviceId(sessionWithUser.getDeviceId().getDeviceId())
-                .deviceType(sessionWithUser.getDeviceType().getDeviceType())
-                .browser(sessionWithUser.getBrowser().getBrowser())
-                .os(sessionWithUser.getOs().getOs())
-                .ipAddress(sessionWithUser.getIpAddress().getIpAddress())
-                .creationDate(sessionWithUser.getCreationDate().getCreationDate())
-                .lastModificationDate(sessionWithUser.getLastModificationDate().getLastModificationDate())
-                .lastLoginDate(sessionWithUser.getLastLoginDate().getLastLoginDate())
+                .id(session.getId())
+                .user(UserDto.of(session.getUser()))
+                .deviceId(session.getDeviceId().getValue())
+                .deviceType(session.getDeviceType().getValue())
+                .browser(session.getBrowser().getValue())
+                .os(session.getOs().getValue())
+                .ipAddress(session.getIpAddress().getValue())
+                .creationDate(session.getCreationDate().getValue())
+                .lastLoginDate(session.getCreationDate().getValue())
                 .build();
     }
 }

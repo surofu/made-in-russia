@@ -29,7 +29,7 @@ import java.time.ZonedDateTime;
                   "discount": 15.00,
                   "discountedPrice": 84.99,
                   "minimumOrderQuantity": 5,
-                  "discountExpiryDate": "2025-12-31T23:59:59Z",
+                  "discountExpirationDate": "2025-12-31T23:59:59Z",
                   "creationDate": "2025-05-01T10:00:00Z",
                   "lastModificationDate": "2025-05-15T14:30:00Z"
                 }
@@ -161,7 +161,7 @@ public final class ProductPriceDto implements Serializable {
                 .discount(productPrice.getDiscount().getValue())
                 .discountedPrice(productPrice.getDiscount().getValue())
                 .minimumOrderQuantity(productPrice.getMinimumOrderQuantity().getValue())
-                .expiryDate(productPrice.getExpiryDate().getValue())
+                .expiryDate(productPrice.getExpirationDate().getValue())
                 .creationDate(productPrice.getCreationDate().getValue())
                 .lastModificationDate(productPrice.getLastModificationDate().getValue())
                 .build();

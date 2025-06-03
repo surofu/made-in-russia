@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductReviewMediaUrl implements Serializable {
 
-    @Column(nullable = false, columnDefinition = "text")
-    private String url;
+    @Column(name = "url", nullable = false, columnDefinition = "text")
+    private String value;
 
     private ProductReviewMediaUrl(String url) {
-        this.url = url;
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ссылка медиа отзыва не может быть пустой");
+        }
+
+        if (url.length() > 20000) {
+            throw new IllegalArgumentException("Ссылка медиа отзыва не может быть больше 20,000 символов");
+        }
+
+        this.value = url;
     }
 
     public static ProductReviewMediaUrl of(String url) {
@@ -26,6 +34,6 @@ public final class ProductReviewMediaUrl implements Serializable {
 
     @Override
     public String toString() {
-        return url;
+        return value;
     }
 }

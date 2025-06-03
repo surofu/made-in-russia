@@ -175,7 +175,7 @@ public class ProductDto implements Serializable {
                       "discount": 15.00,
                       "discountedPrice": 84.99,
                       "minimumOrderQuantity": 5,
-                      "discountExpiryDate": "2025-12-31T23:59:59Z",
+                      "discountExpirationDate": "2025-12-31T23:59:59Z",
                       "creationDate": "2025-05-01T10:00:00Z",
                       "lastModificationDate": "2025-05-15T14:30:00Z"
                     }
@@ -328,14 +328,14 @@ public class ProductDto implements Serializable {
                 .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
                 .prices(product.getPrices().stream().map(ProductPriceDto::of).toList())
                 .article(product.getArticleCode().toString())
-                .title(product.getTitle().getTitle())
+                .title(product.getTitle().getValue())
                 .mainDescription(product.getDescription().getMainDescription())
                 .furtherDescription(product.getDescription().getFurtherDescription())
                 .summaryDescription(product.getDescription().getSummaryDescription())
                 .primaryDescription(product.getDescription().getPrimaryDescription())
-                .previewImageUrl(product.getPreviewImageUrl().getPreviewImageUrl())
-                .creationDate(product.getCreationDate().getCreationDate())
-                .lastModificationDate(product.getLastModificationDate().getLastModificationDate())
+                .previewImageUrl(product.getPreviewImageUrl().getValue())
+                .creationDate(product.getCreationDate().getValue())
+                .lastModificationDate(product.getLastModificationDate().getValue())
                 .rating(product.getRating())
                 .reviewsCount(new Random().nextInt(100))
                 .ordersCount(new Random().nextInt(100))

@@ -75,8 +75,8 @@ public final class ProductReviewMediaDto {
                 .mimeType(productReviewMedia.getMimeType().toString())
                 .url(productReviewMedia.getUrl().toString())
                 .altText(productReviewMedia.getAltText().toString())
-                .creationDate(productReviewMedia.getCreationDate().getCreationDate())
-                .lastModificationDate(productReviewMedia.getLastModificationDate().getLastModificationDate())
+                .creationDate(productReviewMedia.getCreationDate().getValue())
+                .lastModificationDate(productReviewMedia.getLastModificationDate().getValue())
                 .build();
     }
 }

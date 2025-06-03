@@ -13,11 +13,19 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserRegion implements Serializable {
 
-    @Column(nullable = false)
-    private String region;
+    @Column(name = "region", nullable = false)
+    private String value;
 
     private UserRegion(String region) {
-        this.region = region;
+        if (region == null || region.trim().isEmpty()) {
+            throw new IllegalArgumentException("Регион не может быть пустым");
+        }
+
+        if (region.length() > 255) {
+            throw new IllegalArgumentException("Регион не может быть больше 255 символов");
+        }
+
+        this.value = region;
     }
 
     public static UserRegion of(String region) {
@@ -26,6 +34,6 @@ public final class UserRegion implements Serializable {
 
     @Override
     public String toString() {
-        return region;
+        return value;
     }
 }

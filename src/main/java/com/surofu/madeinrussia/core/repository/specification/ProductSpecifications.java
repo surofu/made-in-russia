@@ -19,6 +19,11 @@ public class ProductSpecifications {
             }
 
             Join<Product, DeliveryMethod> deliveryMethodsJoin = root.join("deliveryMethods", JoinType.INNER);
+
+            if (deliveryMethodsJoin.get("id") == null) {
+                return cb.conjunction();
+            }
+
             return deliveryMethodsJoin.get("id").in(deliveryMethodIds);
         };
     }
@@ -29,21 +34,30 @@ public class ProductSpecifications {
                 return cb.conjunction();
             }
 
+            if (root.get("category").get("id") == null) {
+                return cb.conjunction();
+            }
+
             return root.get("category").get("id").in(categoryIds);
         };
     }
 
     public static Specification<Product> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, cb) -> {
-            if (minPrice == null && maxPrice == null) return null;
+            if (minPrice == null && maxPrice == null) {
+                return cb.conjunction();
+            }
 
             List<Predicate> predicates = new ArrayList<>();
+
             if (minPrice != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("price").get("discountedPrice"), minPrice));
             }
+
             if (maxPrice != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("price").get("discountedPrice"), maxPrice));
             }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

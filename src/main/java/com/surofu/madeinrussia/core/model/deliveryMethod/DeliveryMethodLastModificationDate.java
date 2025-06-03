@@ -19,19 +19,23 @@ public final class DeliveryMethodLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime lastModificationDate;
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private DeliveryMethodLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.lastModificationDate = lastModificationDate;
+    private DeliveryMethodLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения способа доставки не может быть пустой");
+        }
+
+        this.value = date;
     }
 
-    public static DeliveryMethodLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new DeliveryMethodLastModificationDate(lastModificationDate);
+    public static DeliveryMethodLastModificationDate of(ZonedDateTime date) {
+        return new DeliveryMethodLastModificationDate(date);
     }
 
     @Override
     public String toString() {
-        return lastModificationDate.toString();
+        return value.toString();
     }
 }

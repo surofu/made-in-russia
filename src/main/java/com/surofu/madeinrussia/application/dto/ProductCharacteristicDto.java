@@ -66,8 +66,8 @@ public final class ProductCharacteristicDto implements Serializable {
                 .id(productCharacteristic.getId())
                 .name(productCharacteristic.getName().toString())
                 .value(productCharacteristic.getValue().toString())
-                .creationDate(productCharacteristic.getCreationDate().getCreationDate())
-                .lastModificationDate(productCharacteristic.getLastModificationDate().getLastModificationDate())
+                .creationDate(productCharacteristic.getCreationDate().getValue())
+                .lastModificationDate(productCharacteristic.getLastModificationDate().getValue())
                 .build();
     }
 }
