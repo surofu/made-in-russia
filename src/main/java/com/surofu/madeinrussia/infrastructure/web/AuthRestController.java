@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.command.auth.LoginWithEmailCommand;
-import com.surofu.madeinrussia.application.command.auth.LoginWithLoginCommand;
-import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
-import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
+import com.surofu.madeinrussia.application.command.auth.*;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
@@ -15,6 +12,10 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsCompanyName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,11 +27,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +47,7 @@ public class AuthRestController {
     private final AuthService authService;
 
     private final Register.Result.Processor<ResponseEntity<?>> registerProcessor;
+    private final RegisterVendor.Result.Processor<ResponseEntity<?>> registerVendorProcessor;
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
@@ -98,6 +103,23 @@ public class AuthRestController {
                 UserPhoneNumber.of(registerCommand.phoneNumber())
         );
         return authService.register(operation).process(registerProcessor);
+    }
+
+    @PostMapping("register-vendor")
+    public ResponseEntity<?> registerVendor(@RequestBody RegisterVendorCommand registerVendorCommand) {
+        RegisterVendor operation = RegisterVendor.of(
+                UserEmail.of(registerVendorCommand.email()),
+                UserLogin.of(registerVendorCommand.login()),
+                UserPasswordPassword.of(registerVendorCommand.password()),
+                UserRegion.of(registerVendorCommand.region()),
+                UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
+                VendorDetailsInn.of(registerVendorCommand.inn()),
+                VendorDetailsCompanyName.of(registerVendorCommand.companyName()),
+                registerVendorCommand.countries().stream().map(VendorCountryName::of).collect(Collectors.toSet()),
+                registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).collect(Collectors.toSet())
+        );
+
+        return authService.registerVendor(operation).process(registerVendorProcessor);
     }
 
     @PostMapping("login-with-email")
@@ -239,6 +261,7 @@ public class AuthRestController {
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("logout")
     @Operation(
             summary = "Logout user",

@@ -145,15 +145,22 @@ public class JwtFilter extends OncePerRequestFilter {
                 "/api/v1/me/current-session/refresh",
         };
 
-        boolean shouldNotFilter = false;
+        String[] blackList = {
+                "/api/v1/auth/logout",
+        };
 
-        for (String pathElement : whiteList) {
-            if (path.startsWith(pathElement)) {
-                shouldNotFilter = true;
-                break;
+        for (String blackListElement : blackList) {
+            if (path.startsWith(blackListElement)) {
+                return false;
             }
         }
 
-        return shouldNotFilter;
+        for (String whiteListElement : whiteList) {
+            if (path.startsWith(whiteListElement)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
