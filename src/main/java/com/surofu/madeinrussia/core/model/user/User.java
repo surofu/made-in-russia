@@ -21,8 +21,8 @@ public final class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, columnDefinition = "user_role")
     private UserRole role = UserRole.ROLE_USER;
 
     @Embedded
