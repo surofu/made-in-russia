@@ -1,16 +1,22 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class Register {
-    RegisterCommand command;
+    UserEmail userEmail;
+    UserLogin userLogin;
+    UserPasswordPassword userPasswordPassword;
+    UserRegion userRegion;
+    UserPhoneNumber userPhoneNumber;
 
     public interface Result {
         <T> T process(Processor<T> processor);

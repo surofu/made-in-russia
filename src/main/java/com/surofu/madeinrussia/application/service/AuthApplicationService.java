@@ -48,21 +48,16 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public Register.Result register(Register operation) {
-        String rawEmail = operation.getCommand().email();
-        UserEmail userEmail = UserEmail.of(rawEmail);
 
-        String rawLogin = operation.getCommand().login();
-        UserLogin userLogin = UserLogin.of(rawLogin);
-
-        if (userRepository.existsUserByEmail(userEmail)) {
-            return Register.Result.userWithEmailAlreadyExists(userEmail);
+        if (userRepository.existsUserByEmail(operation.getUserEmail())) {
+            return Register.Result.userWithEmailAlreadyExists(operation.getUserEmail());
         }
 
-        if (userRepository.existsUserByLogin(userLogin)) {
-            return Register.Result.userWithLoginAlreadyExists(userLogin);
+        if (userRepository.existsUserByLogin(operation.getUserLogin())) {
+            return Register.Result.userWithLoginAlreadyExists(operation.getUserLogin());
         }
 
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", userEmail);
+        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", operation.getUserEmail().toString());
 
         SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
                 .message(registerSuccessMessage)

@@ -19,10 +19,10 @@ import java.util.Objects;
 public class ValidationExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ValidationExceptionDto> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ValidationExceptionDto> handleConstraintViolation(ConstraintViolationException exception) {
         Map<String, String> errors = new HashMap<>();
 
-        ex.getConstraintViolations().forEach(violation -> {
+        exception.getConstraintViolations().forEach(violation -> {
             String fieldName = extractFieldName(violation);
             String message = violation.getMessage();
             errors.put(fieldName, message);
@@ -47,6 +47,22 @@ public class ValidationExceptionHandler {
         );
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ValidationExceptionDto> handleIllegalArgumentException(IllegalArgumentException exception) {
+        Map<String, String> errors = new HashMap<>();
+
+        errors.put("message", exception.getMessage());
+
+        ValidationExceptionDto validationExceptionDto = new ValidationExceptionDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                errors,
+                "Validation failed"
+        );
+
+        return new ResponseEntity<>(validationExceptionDto, HttpStatus.BAD_REQUEST);
     }
 
     private String extractFieldName(ConstraintViolation<?> violation) {

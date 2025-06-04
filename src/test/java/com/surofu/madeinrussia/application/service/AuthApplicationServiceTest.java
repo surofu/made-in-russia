@@ -64,15 +64,14 @@ class AuthApplicationServiceTest {
                 .saveRegisterDataInCacheAndSendVerificationCodeToEmail(registerOperationArgumentCaptor.capture());
 
         // when
-        RegisterCommand registerCommand = Instancio.of(RegisterCommand.class)
+        Register registerOperation = Instancio.of(Register.class)
                 .generate(field(RegisterCommand::email), generators -> generators.net().email())
+                .generate(field(RegisterCommand::login), generators -> generators.text().pattern("^[a-zA-Z0-9_-]+$"))
                 .generate(field(RegisterCommand::phoneNumber), generators -> generators.text().pattern("+#d#d#d#d#d#d#d#d#d#d#d#d"))
                 .generate(field(RegisterCommand::password), generators -> generators.text().pattern("#a#a#a#a#a#a"))
+                .generate(field(RegisterCommand::region), generators -> generators.text().pattern("#a#a#a#a#a#a"))
                 .create();
 
-        System.out.println(registerCommand);
-
-        Register registerOperation = Register.of(registerCommand);
         Register.Result registerResult = authApplicationService.register(registerOperation);
 
         // then
@@ -85,7 +84,7 @@ class AuthApplicationServiceTest {
 
         assertNotNull(simpleResponseMessageDto);
 
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", registerCommand.email());
+        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", registerOperation.getUserEmail().toString());
         assertEquals(registerSuccessMessage, simpleResponseMessageDto.getMessage());
 
         verify(userRepository, times(1)).existsUserByEmail(userEmailArgumentCaptor.capture());

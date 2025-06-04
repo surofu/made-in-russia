@@ -5,11 +5,16 @@ import com.surofu.madeinrussia.application.command.auth.LoginWithLoginCommand;
 import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
 import com.surofu.madeinrussia.application.command.auth.VerifyEmailCommand;
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
-import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,7 +90,13 @@ public class AuthRestController {
             )
             @RequestBody RegisterCommand registerCommand
     ) {
-        Register operation = Register.of(registerCommand);
+        Register operation = Register.of(
+                UserEmail.of(registerCommand.email()),
+                UserLogin.of(registerCommand.login()),
+                UserPasswordPassword.of(registerCommand.password()),
+                UserRegion.of(registerCommand.region()),
+                UserPhoneNumber.of(registerCommand.phoneNumber())
+        );
         return authService.register(operation).process(registerProcessor);
     }
 

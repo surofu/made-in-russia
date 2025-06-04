@@ -34,29 +34,19 @@ public class AsyncAuthApplicationService {
     @Async
     @Transactional
     public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
-        String rawEmail = operation.getCommand().email();
-        String rawLogin = operation.getCommand().login();
-        String rawPhoneNumber = operation.getCommand().phoneNumber();
-        String rawPassword = operation.getCommand().password();
-        String rawHashedPassword = passwordEncoder.encode(rawPassword);
-        String rawRegion = operation.getCommand().region();
-
-        UserEmail userEmail = UserEmail.of(rawEmail);
-        UserLogin userLogin = UserLogin.of(rawLogin);
-        UserPhoneNumber userPhoneNumber = UserPhoneNumber.of(rawPhoneNumber);
-        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
-        UserRegion userRegion = UserRegion.of(rawRegion);
+        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
+        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
 
         User user = new User();
         user.setRole(UserRole.ROLE_USER);
-        user.setEmail(userEmail);
-        user.setLogin(userLogin);
-        user.setPhoneNumber(userPhoneNumber);
-        user.setRegion(userRegion);
+        user.setEmail(operation.getUserEmail());
+        user.setLogin(operation.getUserLogin());
+        user.setPhoneNumber(operation.getUserPhoneNumber());
+        user.setRegion(operation.getUserRegion());
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
-        userPassword.setPassword(userPasswordPassword);
+        userPassword.setPassword(hashedUserPasswordPassword);
 
         String unverifiedUsersCacheName = "unverifiedUsers";
         String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
@@ -66,11 +56,11 @@ public class AsyncAuthApplicationService {
         Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
         Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
 
-        unverifiedUsersCache.put(rawEmail, user);
-        unverifiedUserPasswordsCache.put(rawEmail, userPassword);
+        unverifiedUsersCache.put(operation.getUserEmail().toString(), user);
+        unverifiedUserPasswordsCache.put(operation.getUserEmail().toString(), userPassword);
 
         String verificationCode = generateVerificationCode();
-        verificationCodesCache.put(rawEmail, verificationCode);
+        verificationCodesCache.put(operation.getUserEmail().toString(), verificationCode);
 
         String expiration = "через 30 минут";
 
@@ -134,7 +124,7 @@ public class AsyncAuthApplicationService {
                 """, verificationCode, expiration);
 
         try {
-            mailService.sendEmail(rawEmail, messageSubject, messageText);
+            mailService.sendEmail(operation.getUserEmail().toString(), messageSubject, messageText);
         } catch (Exception ex) {
             throw new CompletionException(ex);
         }
