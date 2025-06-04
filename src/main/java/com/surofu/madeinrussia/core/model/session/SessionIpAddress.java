@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionIpAddress implements Serializable {
 
-    @Column(name = "ip_address", nullable = false, updatable = false, columnDefinition = "cidr")
+    @Column(name = "ip_address", nullable = false, updatable = false)
     private String value;
 
     private SessionIpAddress(String ipAddress) {
