@@ -27,4 +27,11 @@ public class RegisterMapperResultToResponseEntity implements Register.Result.Pro
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }
+
+    @Override
+    public ResponseEntity<?> processUserWithPhoneNumberAlreadyExists(Register.Result.UserWithPhoneNumberAlreadyExists result) {
+        String message = String.format("Пользователь с телефоном '%s' уже существует", result.getUserPhoneNumber());
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
+    }
 }

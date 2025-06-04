@@ -6,23 +6,35 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsCompanyName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
 @Value(staticConstructor = "of")
-public class Register {
+public class RegisterVendor {
     UserEmail userEmail;
     UserLogin userLogin;
     UserPasswordPassword userPasswordPassword;
     UserRegion userRegion;
     UserPhoneNumber userPhoneNumber;
 
+    VendorDetailsInn vendorDetailsInn;
+    VendorDetailsCompanyName vendorDetailsCompanyName;
+
+    List<VendorCountryName> vendorCountryNames;
+    List<VendorProductCategoryName> vendorProductCategoryNames;
+
     public interface Result {
         <T> T process(Processor<T> processor);
 
         static Result success(SimpleResponseMessageDto responseMessageDto) {
-            log.info("Successfully processed register user with message: {}", responseMessageDto.getMessage());
+            log.info("Successfully processed register vendor with message: {}", responseMessageDto.getMessage());
             return Success.of(responseMessageDto);
         }
 

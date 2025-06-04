@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.core.repository;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 
 import java.util.Optional;
 
@@ -20,4 +21,6 @@ public interface UserRepository {
     boolean existsUserByEmail(UserEmail userEmail);
 
     boolean existsUserByLogin(UserLogin userLogin);
+
+    boolean existsUserByPhoneNumber(UserPhoneNumber userPhoneNumber);
 }

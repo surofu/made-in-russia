@@ -2,38 +2,40 @@ package com.surofu.madeinrussia.core.model.vendorDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorDetailsInn implements Serializable {
+public final class VendorDetailsCreationDate implements Serializable {
 
-    @Column(name = "inn", nullable = false, unique = true)
-    private String value;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorDetailsInn(String inn) {
-        if (inn == null || inn.trim().isEmpty()) {
-            throw new IllegalArgumentException("ИНН продавца не может быть пустым");
+    private VendorDetailsCreationDate(ZonedDateTime creationDate) {
+        if (creationDate == null) {
+            throw new IllegalArgumentException("Дата создания информации о продавце не может быть пустой");
         }
 
-        if (inn.length() < 7) {
-            throw new IllegalArgumentException("ИНН продавца не может быть меньше 7 символов");
-        }
-
-        this.value = inn;
+        this.value = creationDate;
     }
 
-    public static VendorDetailsInn of(String inn) {
-        return new VendorDetailsInn(inn);
+    public static VendorDetailsCreationDate of(ZonedDateTime creationDate) {
+        return new VendorDetailsCreationDate(creationDate);
     }
 
     @Override
     public String toString() {
-        return value;
+        return value.toString();
     }
 }

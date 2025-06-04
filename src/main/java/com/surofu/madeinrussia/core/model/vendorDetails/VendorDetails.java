@@ -1,12 +1,17 @@
 package com.surofu.madeinrussia.core.model.vendorDetails;
 
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -37,11 +42,51 @@ public final class VendorDetails implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
             nullable = false,
+            unique = true,
             foreignKey = @ForeignKey(name = "fk_vendor_details_user_id")
     )
     private User user;
+
+    @Embedded
+    private VendorDetailsInn inn;
+
+    @Embedded
+    private VendorDetailsCompanyName companyName;
+
+    @OneToMany(
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorCountry> vendorCountries = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+
+    @Embedded
+    private VendorDetailsCreationDate creationDate;
+
+    @Embedded
+    private VendorDetailsLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VendorDetails)) return false;
+        return id != null && id.equals(((VendorDetails) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

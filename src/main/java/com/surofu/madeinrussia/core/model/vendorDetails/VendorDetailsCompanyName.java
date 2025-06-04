@@ -11,25 +11,21 @@ import java.io.Serializable;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorDetailsInn implements Serializable {
+public final class VendorDetailsCompanyName implements Serializable {
 
-    @Column(name = "inn", nullable = false)
+    @Column(name = "company_name", nullable = false, unique = true)
     private String value;
 
-    private VendorDetailsInn(String inn) {
-        if (inn == null || inn.trim().isEmpty()) {
-            throw new IllegalArgumentException("ИНН продавца не может быть пустым");
+    private VendorDetailsCompanyName(String companyName) {
+        if (companyName == null || companyName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Название компании продавца не может быть пустым");
         }
-
-        if (inn.length() < 7) {
-            throw new IllegalArgumentException("ИНН продавца не может быть меньше 7 символов");
-        }
-
-        this.value = inn;
+        
+        this.value = companyName;
     }
 
-    public static VendorDetailsInn of(String inn) {
-        return new VendorDetailsInn(inn);
+    public static VendorDetailsCompanyName of(String companyName) {
+        return new VendorDetailsCompanyName(companyName);
     }
 
     @Override

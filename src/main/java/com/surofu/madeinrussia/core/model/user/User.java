@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,12 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Table(
         name = "users",
-        indexes = @Index(columnList = "email, login, phoneNumber")
+        indexes = {
+                @Index(name = "idx_users_login", columnList = "login"),
+                @Index(name = "idx_users_email", columnList = "email"),
+                @Index(name = "idx_users_phone_number", columnList = "phone_number"),
+                @Index(name = "idx_users_vendor_details_id", columnList = "vendor_details_id")
+        }
 )
 public final class User implements Serializable {
 
@@ -24,6 +30,17 @@ public final class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, columnDefinition = "user_role")
     private UserRole role = UserRole.ROLE_USER;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JoinColumn(
+            name = "vendor_details_id",
+            foreignKey = @ForeignKey(name = "fk_users_vendor_details_id")
+    )
+    private VendorDetails vendorDetails;
 
     @Embedded
     private UserEmail email;

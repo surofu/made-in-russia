@@ -4,5 +4,6 @@ import jakarta.mail.MessagingException;
 import org.springframework.mail.MailException;
 
 public interface MailService {
+    void sendVerificationMail(String to, String verificationCode, String expiration) throws MailException, MessagingException;
     void sendEmail(String to, String subject, String text) throws MailException, MessagingException;
 }

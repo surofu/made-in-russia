@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public final class VendorCountryDto implements Serializable {
+public final class VendorProductCategoryDto implements Serializable {
 
     private Long id;
 
@@ -23,12 +23,12 @@ public final class VendorCountryDto implements Serializable {
 
     private ZonedDateTime lastModificationDate;
 
-    public static VendorCountryDto of(VendorCountry vendorCountry) {
-        return VendorCountryDto.builder()
-                .id(vendorCountry.getId())
-                .name(vendorCountry.getName().getValue())
-                .creationDate(vendorCountry.getCreationDate().getValue())
-                .lastModificationDate(vendorCountry.getLastModificationDate().getValue())
+    public static VendorProductCategoryDto of(VendorProductCategory vendorProductCategory) {
+        return VendorProductCategoryDto.builder()
+                .id(vendorProductCategory.getId())
+                .name(vendorProductCategory.getName().getValue())
+                .creationDate(vendorProductCategory.getCreationDate().getValue())
+                .lastModificationDate(vendorProductCategory.getLastModificationDate().getValue())
                 .build();
     }
 }

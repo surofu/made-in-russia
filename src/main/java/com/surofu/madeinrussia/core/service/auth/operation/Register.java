@@ -36,6 +36,11 @@ public class Register {
             return UserWithLoginAlreadyExists.of(userLogin);
         }
 
+        static Result userWithPhoneNumberAlreadyExists(UserPhoneNumber userPhoneNumber) {
+            log.warn("User with phone number '{}' already exists", userPhoneNumber);
+            return UserWithPhoneNumberAlreadyExists.of(userPhoneNumber);
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             SimpleResponseMessageDto responseMessageDto;
@@ -66,10 +71,21 @@ public class Register {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class UserWithPhoneNumberAlreadyExists implements Result {
+            UserPhoneNumber userPhoneNumber;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processUserWithPhoneNumberAlreadyExists(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processUserWithEmailAlreadyExists(UserWithEmailAlreadyExists result);
             T processUserWithLoginAlreadyExists(UserWithLoginAlreadyExists result);
+            T processUserWithPhoneNumberAlreadyExists(UserWithPhoneNumberAlreadyExists result);
         }
     }
 }

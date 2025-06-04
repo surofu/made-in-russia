@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.infrastructure.persistence.user;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -47,5 +48,10 @@ public class JpaUserRepository implements UserRepository {
     @Override
     public boolean existsUserByLogin(UserLogin userLogin) {
         return repository.existsByLogin(userLogin);
+    }
+
+    @Override
+    public boolean existsUserByPhoneNumber(UserPhoneNumber userPhoneNumber) {
+        return repository.existsByPhoneNumber(userPhoneNumber);
     }
 }

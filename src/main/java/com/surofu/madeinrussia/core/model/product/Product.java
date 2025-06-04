@@ -68,35 +68,40 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL},
+            orphanRemoval = true
     )
     private Set<ProductMedia> media = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL},
+            orphanRemoval = true
     )
     private Set<ProductCharacteristic> characteristics = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL},
+            orphanRemoval = true
     )
     private Set<ProductReview> reviews = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL},
+            orphanRemoval = true
     )
     private Set<ProductFaq> faq = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL},
+            orphanRemoval = true
     )
     private Set<ProductPrice> prices = new HashSet<>();
 

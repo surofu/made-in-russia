@@ -37,7 +37,7 @@ public class MadeInRussiaApplicationTests {
     private static final String DATABASE_PASSWORD = "made-in-russia-test-container-database-password";
 
     @Container
-    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16")
+    public static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16")
             .withReuse(true)
             .withDatabaseName(DATABASE_NAME)
             .withUsername(DATABASE_USERNAME)

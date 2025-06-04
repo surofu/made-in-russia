@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
@@ -19,8 +20,6 @@ import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -43,7 +42,7 @@ public class AuthApplicationService implements AuthService {
     private final AsyncAuthApplicationService asyncAuthApplicationService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
-    private final CacheManager verificationCacheManager;
+    private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
 
     @Override
     @Transactional
@@ -55,6 +54,10 @@ public class AuthApplicationService implements AuthService {
 
         if (userRepository.existsUserByLogin(operation.getUserLogin())) {
             return Register.Result.userWithLoginAlreadyExists(operation.getUserLogin());
+        }
+
+        if (userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
+            return Register.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
         String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", operation.getUserEmail().toString());
@@ -70,6 +73,35 @@ public class AuthApplicationService implements AuthService {
                 });
 
         return Register.Result.success(registerSuccessMessageDto);
+    }
+
+    @Override
+    public RegisterVendor.Result registerVendor(RegisterVendor operation) {
+        if (userRepository.existsUserByEmail(operation.getUserEmail())) {
+            return RegisterVendor.Result.userWithEmailAlreadyExists(operation.getUserEmail());
+        }
+
+        if (userRepository.existsUserByLogin(operation.getUserLogin())) {
+            return RegisterVendor.Result.userWithLoginAlreadyExists(operation.getUserLogin());
+        }
+
+        if (userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
+            return RegisterVendor.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
+        }
+
+        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", operation.getUserEmail().toString());
+
+        SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
+                .message(registerSuccessMessage)
+                .build();
+
+        asyncAuthApplicationService.saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(operation)
+                .exceptionally(ex -> {
+                    log.error("Error while saving register code", ex);
+                    return null;
+                });
+
+        return RegisterVendor.Result.success(registerSuccessMessageDto);
     }
 
     @Override
@@ -122,56 +154,31 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
-        String rawEmail = operation.getVerifyEmailCommand().email();
-        UserEmail userEmail = UserEmail.of(rawEmail);
-
-        String verificationCode = operation.getVerifyEmailCommand().code();
-        SessionInfo sessionInfo = operation.getSessionInfo();
-
-        String unverifiedCacheName = "unverifiedUsers";
-        Cache unverifiedUsersCache = verificationCacheManager.getCache(unverifiedCacheName);
-
-        if (unverifiedUsersCache == null) {
-            return VerifyEmail.Result.cacheNotFound(unverifiedCacheName);
-        }
-
-        User user = unverifiedUsersCache.get(rawEmail, User.class);
-
-        if (user == null) {
-            return VerifyEmail.Result.accountNotFound(userEmail);
-        }
-
-        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        Cache unverifiedUserPasswordsCache = verificationCacheManager.getCache(unverifiedUserPasswordsCacheName);
-
-        if (unverifiedUserPasswordsCache == null) {
-            return VerifyEmail.Result.cacheNotFound(unverifiedUserPasswordsCacheName);
-        }
-
-        UserPassword userPassword = unverifiedUserPasswordsCache.get(rawEmail, UserPassword.class);
-
-        if (userPassword == null) {
-            return VerifyEmail.Result.accountNotFound(userEmail);
-        }
-
-        String verificationCodesCacheName = "verificationCodes";
-        Cache verificationCodesCache = verificationCacheManager.getCache(verificationCodesCacheName);
-
-        if (verificationCodesCache == null) {
-            return VerifyEmail.Result.cacheNotFound(verificationCodesCacheName);
-        }
-
-        String verificationCodeFromCache = verificationCodesCache.get(rawEmail, String.class);
+        String verificationCodeFromCache = userVerificationCaffeineCacheManager.getVerificationCode(operation.getUserEmail());
 
         if (verificationCodeFromCache == null) {
-            return VerifyEmail.Result.accountNotFound(userEmail);
+            return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
         }
 
-        if (!verificationCode.equals(verificationCodeFromCache)) {
-            return VerifyEmail.Result.invalidVerificationCode(verificationCode);
+        if (!verificationCodeFromCache.equals(operation.getVerificationCode())) {
+            return VerifyEmail.Result.invalidVerificationCode(operation.getVerificationCode());
         }
 
-        SecurityUser securityUser = new SecurityUser(user, userPassword, sessionInfo);
+        User user = userVerificationCaffeineCacheManager.getUser(operation.getUserEmail());
+
+        if (user == null) {
+            log.error("User with email {} not found in cache", operation.getUserEmail());
+            return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
+        }
+
+        UserPassword userPassword = userVerificationCaffeineCacheManager.getUserPassword(operation.getUserEmail());
+
+        if (userPassword == null) {
+            log.error("User password with email {} not found in cache", operation.getUserEmail());
+            return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
+        }
+
+        SecurityUser securityUser = new SecurityUser(user, userPassword, operation.getSessionInfo());
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);

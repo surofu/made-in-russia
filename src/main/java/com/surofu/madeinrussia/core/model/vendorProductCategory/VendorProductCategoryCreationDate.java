@@ -2,34 +2,40 @@ package com.surofu.madeinrussia.core.model.vendorProductCategory;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorProductCategoryName implements Serializable {
+public final class VendorProductCategoryCreationDate implements Serializable {
 
-    @Column(name = "name", nullable = false)
-    private String value;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorProductCategoryName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название категории товаров продавца не может быть пустым");
+    private VendorProductCategoryCreationDate(ZonedDateTime creationDate) {
+        if (creationDate == null) {
+            throw new IllegalArgumentException("Дата создания категории товаров продавца не может быть пустой");
         }
 
-        this.value = value;
+        this.value = creationDate;
     }
 
-    public static VendorProductCategoryName of(String name) {
-        return new VendorProductCategoryName(name);
+    public static VendorProductCategoryCreationDate of(ZonedDateTime creationDate) {
+        return new VendorProductCategoryCreationDate(creationDate);
     }
 
     @Override
     public String toString() {
-        return value;
+        return value.toString();
     }
 }

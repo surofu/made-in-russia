@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.web.exception;
+package com.surofu.madeinrussia.application.exception;
 
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import io.swagger.v3.oas.annotations.Hidden;

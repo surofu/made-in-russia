@@ -41,8 +41,8 @@ public final class UserDto implements Serializable {
 
     @Schema(
             description = "User's role with permissions",
-            example = "ROLE_CUSTOMER",
-            allowableValues = {"ROLE_ADMIN", "ROLE_MODERATOR", "ROLE_CUSTOMER", "ROLE_VENDOR"},
+            example = "ROLE_USER",
+            allowableValues = {"ROLE_ADMIN", "ROLE_USER", "ROLE_VENDOR"},
             maxLength = 50,
             accessMode = Schema.AccessMode.READ_ONLY
     )
@@ -85,6 +85,8 @@ public final class UserDto implements Serializable {
     )
     private String region;
 
+    private VendorDetailsDto vendorDetails;
+
     @Schema(
             description = "Timestamp when user account was created",
             example = "2025-05-04T09:17:20.767615Z",
@@ -105,6 +107,10 @@ public final class UserDto implements Serializable {
 
     @Schema(hidden = true)
     public static UserDto of(User user) {
+        if (user == null) {
+            return null;
+        }
+
         return UserDto.builder()
                 .id(user.getId())
                 .role(user.getRole().getName())
@@ -112,6 +118,7 @@ public final class UserDto implements Serializable {
                 .email(user.getEmail().getValue())
                 .phoneNumber(user.getPhoneNumber().getValue())
                 .region(user.getRegion().getValue())
+                .vendorDetails(VendorDetailsDto.of(user.getVendorDetails()))
                 .registrationDate(user.getRegistrationDate().getValue())
                 .lastModificationDate(user.getLastModificationDate().getValue())
                 .build();

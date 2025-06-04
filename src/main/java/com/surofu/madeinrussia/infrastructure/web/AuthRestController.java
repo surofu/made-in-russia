@@ -34,8 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.stream.Collectors;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/auth")
@@ -115,8 +113,8 @@ public class AuthRestController {
                 UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
                 VendorDetailsInn.of(registerVendorCommand.inn()),
                 VendorDetailsCompanyName.of(registerVendorCommand.companyName()),
-                registerVendorCommand.countries().stream().map(VendorCountryName::of).collect(Collectors.toSet()),
-                registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).collect(Collectors.toSet())
+                registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
+                registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
         );
 
         return authService.registerVendor(operation).process(registerVendorProcessor);
@@ -257,7 +255,11 @@ public class AuthRestController {
             HttpServletRequest request
     ) {
         SessionInfo sessionInfo = SessionInfo.of(request);
-        VerifyEmail operation = VerifyEmail.of(verifyEmailCommand, sessionInfo);
+        VerifyEmail operation = VerifyEmail.of(
+                UserEmail.of(verifyEmailCommand.email()),
+                verifyEmailCommand.code(),
+                sessionInfo
+        );
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 

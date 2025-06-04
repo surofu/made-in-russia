@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
 
-public record RegisterCommand(
+import java.util.List;
+
+public record RegisterVendorCommand(
         @Validated
         @NotNull(message = "Почта не может быть пустой")
         @NotBlank(message = "Почта не может быть пустой")
@@ -36,6 +38,14 @@ public record RegisterCommand(
         @NotNull(message = "Номер телефона не может быть пустым")
         @NotBlank(message = "Номер телефона не может быть пустым")
         @Length(max = 255, message = "Длинна номера телефона не должна превышать 254 символа")
-        String phoneNumber
+        String phoneNumber,
+
+        String inn,
+
+        String companyName,
+
+        List<String> countries,
+
+        List<String> productCategories
 ) {
 }

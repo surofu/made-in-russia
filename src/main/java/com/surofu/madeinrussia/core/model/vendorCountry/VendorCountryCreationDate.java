@@ -1,33 +1,41 @@
 package com.surofu.madeinrussia.core.model.vendorCountry;
 
-import com.surofu.madeinrussia.core.model.user.User;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorCountryName implements Serializable {
+public final class VendorCountryCreationDate implements Serializable {
 
-    @Column(name = "name", nullable = false)
-    private String value;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorCountryName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название страны продавца не может быть пустым");
+    private VendorCountryCreationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата создания страны продавца не может быть пустой");
         }
 
-        this.value = name;
+        this.value = date;
     }
 
-    public static VendorCountryName of(String name) {
-        return new VendorCountryName(name);
+    public static VendorCountryCreationDate of(ZonedDateTime date) {
+        return new VendorCountryCreationDate(date);
     }
 
     @Override
     public String toString() {
-        return value;
+        return value.toString();
     }
 }

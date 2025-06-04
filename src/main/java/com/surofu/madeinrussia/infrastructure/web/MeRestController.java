@@ -66,7 +66,7 @@ public class MeRestController {
                     )
             }
     )
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeByJwt(@AuthenticationPrincipal SecurityUser securityUser) {
         GetMe operation = GetMe.of(securityUser);
         return meService.getMeByJwt(operation).process(getMeByJwtProcessor);
@@ -101,7 +101,7 @@ public class MeRestController {
                     )
             }
     )
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeSessions(@AuthenticationPrincipal SecurityUser securityUser) {
         GetMeSessions operation = GetMeSessions.of(securityUser);
         return meService.getMeSessions(operation).process(getMeSessionsProcessor);
@@ -135,7 +135,7 @@ public class MeRestController {
                     )
             }
     )
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeCurrentSession(@AuthenticationPrincipal SecurityUser securityUser) {
         GetMeCurrentSession operation = GetMeCurrentSession.of(securityUser);
         return meService.getMeCurrentSession(operation).process(getMeCurrentSessionProcessor);

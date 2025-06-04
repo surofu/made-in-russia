@@ -1,12 +1,14 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.command.auth.RegisterCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import org.instancio.Instancio;
@@ -64,13 +66,27 @@ class AuthApplicationServiceTest {
                 .saveRegisterDataInCacheAndSendVerificationCodeToEmail(registerOperationArgumentCaptor.capture());
 
         // when
-        Register registerOperation = Instancio.of(Register.class)
-                .generate(field(RegisterCommand::email), generators -> generators.net().email())
-                .generate(field(RegisterCommand::login), generators -> generators.text().pattern("^[a-zA-Z0-9_-]+$"))
-                .generate(field(RegisterCommand::phoneNumber), generators -> generators.text().pattern("+#d#d#d#d#d#d#d#d#d#d#d#d"))
-                .generate(field(RegisterCommand::password), generators -> generators.text().pattern("#a#a#a#a#a#a"))
-                .generate(field(RegisterCommand::region), generators -> generators.text().pattern("#a#a#a#a#a#a"))
+        UserEmail userEmail = Instancio.of(UserEmail.class)
+                .generate(field(UserEmail::getValue), generators -> generators.net().email())
                 .create();
+
+        UserLogin userLogin = Instancio.of(UserLogin.class)
+                .generate(field(UserLogin::getValue), generators -> generators.text().pattern("^[a-zA-Z0-9_-]+$"))
+                .create();
+
+        UserPhoneNumber userPhoneNumber = Instancio.of(UserPhoneNumber.class)
+                .generate(field(UserPhoneNumber::getValue), generators -> generators.text().pattern("+#d#d#d#d#d#d#d#d#d#d#d#d"))
+                .create();
+
+        UserPasswordPassword userPassword = Instancio.of(UserPasswordPassword.class)
+                .generate(field(UserPasswordPassword::getValue), generators -> generators.text().pattern("#a#a#a#a#a#a"))
+                .create();
+
+        UserRegion userRegion = Instancio.of(UserRegion.class)
+                .generate(field(UserRegion::getValue), generators -> generators.text().pattern("#a#a#a#a#a#a"))
+                .create();
+
+        Register registerOperation = Register.of(userEmail, userLogin, userPassword, userRegion, userPhoneNumber);
 
         Register.Result registerResult = authApplicationService.register(registerOperation);
 

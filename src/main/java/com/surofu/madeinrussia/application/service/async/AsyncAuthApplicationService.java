@@ -1,22 +1,30 @@
 package com.surofu.madeinrussia.application.service.async;
 
-import com.surofu.madeinrussia.core.model.user.*;
+import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
+import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
+import com.surofu.madeinrussia.core.service.auth.operation.RegisterVendor;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -29,14 +37,11 @@ public class AsyncAuthApplicationService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    private final CacheManager verificationCacheManager;
+    private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
 
     @Async
     @Transactional
     public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
-        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
-        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
-
         User user = new User();
         user.setRole(UserRole.ROLE_USER);
         user.setEmail(operation.getUserEmail());
@@ -46,123 +51,99 @@ public class AsyncAuthApplicationService {
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
+
+        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
+        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
         userPassword.setPassword(hashedUserPasswordPassword);
 
-        String unverifiedUsersCacheName = "unverifiedUsers";
-        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        String verificationCodesCacheName = "verificationCodes";
+        return saveUserInCacheAndSendMessage(user, userPassword);
+    }
 
-        Cache unverifiedUsersCache = getCacheSafe(unverifiedUsersCacheName);
-        Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
-        Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
+    @Async
+    @Transactional
+    public CompletableFuture<Void> saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(RegisterVendor operation) throws CompletionException {
+        User user = new User();
+        user.setRole(UserRole.ROLE_VENDOR);
+        user.setEmail(operation.getUserEmail());
+        user.setLogin(operation.getUserLogin());
+        user.setPhoneNumber(operation.getUserPhoneNumber());
+        user.setRegion(operation.getUserRegion());
 
-        unverifiedUsersCache.put(operation.getUserEmail().toString(), user);
-        unverifiedUserPasswordsCache.put(operation.getUserEmail().toString(), userPassword);
+        VendorDetails vendorDetails = new VendorDetails();
+        vendorDetails.setInn(operation.getVendorDetailsInn());
+        vendorDetails.setCompanyName(operation.getVendorDetailsCompanyName());
 
-        String verificationCode = generateVerificationCode();
-        verificationCodesCache.put(operation.getUserEmail().toString(), verificationCode);
+        Set<VendorCountry> vendorCountries = new HashSet<>();
 
-        String expiration = "через 30 минут";
-
-        String messageSubject = "Подтверждение вашей электронной почты для MadeInRussia";
-        String messageText = String.format("""
-                <!DOCTYPE html>
-                <html lang="ru">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Подтверждение электронной почты</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background-color: #f4f4f4;
-                            color: #333;
-                            padding: 20px;
-                        }
-                        .container {
-                            background-color: #fff;
-                            border-radius: 8px;
-                            padding: 20px;
-                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                        }
-                        h1 {
-                            font-size: 72px;
-                            color: #4CAF50;
-                            text-align: center;
-                        }
-                        .footer {
-                            margin-top: 20px;
-                            font-size: 14px;
-                            text-align: center;
-                        }
-                        img {
-                            display: block;
-                            margin: 0 auto 20px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h2>Здравствуйте!</h2>
-                        <p>Спасибо за регистрацию в MadeInRussia! Чтобы завершить процесс регистрации, пожалуйста, подтвердите свою электронную почту, введя код ниже:</p>
-                       \s
-                        <strong>Ваш код подтверждения:</strong>
-                        <h1>%s</h1>
-                       \s
-                        <p>Пожалуйста, введите этот код в соответствующее поле на нашем сайте. Если вы не регистрировались в MadeInRussia, просто проигнорируйте это сообщение.</p>
-                       \s
-                        <p>Код истечет %s</p>
-                       \s
-                        <p>Спасибо, что выбрали MadeInRussia!</p>
-                       \s
-                        <div class="footer">
-                            <p>С уважением,<br>Команда MadeInRussia</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """, verificationCode, expiration);
-
-        try {
-            mailService.sendEmail(operation.getUserEmail().toString(), messageSubject, messageText);
-        } catch (Exception ex) {
-            throw new CompletionException(ex);
+        for (VendorCountryName vendorCountryName : operation.getVendorCountryNames()) {
+            VendorCountry vendorCountry = new VendorCountry();
+            vendorCountry.setVendorDetails(vendorDetails);
+            vendorCountry.setName(vendorCountryName);
+            vendorCountries.add(vendorCountry);
         }
 
-        return CompletableFuture.completedFuture(null);
+        vendorDetails.setVendorCountries(vendorCountries);
+
+        Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+
+        for (VendorProductCategoryName vendorProductCategoryName : operation.getVendorProductCategoryNames()) {
+            VendorProductCategory vendorProductCategory = new VendorProductCategory();
+            vendorProductCategory.setVendorDetails(vendorDetails);
+            vendorProductCategory.setName(vendorProductCategoryName);
+            vendorProductCategories.add(vendorProductCategory);
+        }
+
+        vendorDetails.setVendorProductCategories(vendorProductCategories);
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setUser(user);
+
+        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
+        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
+
+        userPassword.setPassword(hashedUserPasswordPassword);
+
+        user.setVendorDetails(vendorDetails);
+        vendorDetails.setUser(user);
+
+        return saveUserInCacheAndSendMessage(user, userPassword);
     }
 
     @Async
     @Transactional
     public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) throws CompletionException {
-        String unverifiedUsersCacheName = "unverifiedUsers";
-        String unverifiedUserPasswordsCacheName = "unverifiedUserPasswords";
-        String verificationCodesCacheName = "verificationCodes";
+        try {
+            userRepository.saveUser(user);
+            passwordRepository.saveUserPassword(userPassword);
+        } catch (Exception ex) {
+            log.error("Error saving user or password: {}", ex.getMessage(), ex);
+        }
 
-        Cache unverifiedUsersCache = getCacheSafe(unverifiedUsersCacheName);
-        Cache unverifiedUserPasswordsCache = getCacheSafe(unverifiedUserPasswordsCacheName);
-        Cache verificationCodesCache = getCacheSafe(verificationCodesCacheName);
-
-        String email = user.getEmail().getValue();
-
-        unverifiedUsersCache.evict(email);
-        unverifiedUserPasswordsCache.evict(email);
-        verificationCodesCache.evict(email);
-
-        userRepository.saveUser(user);
-        passwordRepository.saveUserPassword(userPassword);
+        userVerificationCaffeineCacheManager.clearCache(user.getEmail());
 
         return CompletableFuture.completedFuture(null);
     }
 
-    private Cache getCacheSafe(String cacheName) throws CompletionException {
-        Cache cache = verificationCacheManager.getCache(cacheName);
+    private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword) throws CompletionException {
+        try {
+            String verificationCode = generateVerificationCode();
 
-        if (cache == null) {
-            throw CacheNotFoundException.of(cacheName);
+            userVerificationCaffeineCacheManager.setUser(user.getEmail(), user);
+            userVerificationCaffeineCacheManager.setUserPassword(user.getEmail(), userPassword);
+            userVerificationCaffeineCacheManager.setVerificationCode(user.getEmail(), verificationCode);
+
+            String expiration = "через 30 минут";
+
+            try {
+                mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration);
+            } catch (Exception ex) {
+                log.error("Error sending verification mail", ex);
+            }
+
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception ex) {
+            return CompletableFuture.completedFuture(null);
         }
-
-        return cache;
     }
 
     private String generateVerificationCode() {
@@ -177,16 +158,5 @@ public class AsyncAuthApplicationService {
 
         log.info("Generated verification code: {}", verificationCode);
         return verificationCode.toString();
-    }
-
-    private static final class CacheNotFoundException extends CompletionException {
-
-        private CacheNotFoundException(String cacheName) {
-            super(String.format("Error while sending email. Cache with name '%s' not found", cacheName));
-        }
-
-        public static CacheNotFoundException of(String cacheName) {
-            return new CacheNotFoundException(cacheName);
-        }
     }
 }

@@ -7,7 +7,7 @@ import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -15,23 +15,23 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorProductCategoryCreationDate implements Serializable {
+public final class VendorProductCategoryLastModificationDate implements Serializable {
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorProductCategoryCreationDate(ZonedDateTime creationDate) {
-        if (creationDate == null) {
-            throw new IllegalArgumentException("Дата создания категории товаров продавца не может быть пустой");
+    private VendorProductCategoryLastModificationDate(ZonedDateTime lastModificationDate) {
+        if (lastModificationDate == null) {
+            throw new IllegalArgumentException("Дата последнего изменения категории товаров продавца не может быть пустой");
         }
 
-        this.value = creationDate;
+        this.value = lastModificationDate;
     }
 
-    public static VendorProductCategoryCreationDate of(ZonedDateTime creationDate) {
-        return new VendorProductCategoryCreationDate(creationDate);
+    public static VendorProductCategoryLastModificationDate of(ZonedDateTime lastModificationDate) {
+        return new VendorProductCategoryLastModificationDate(lastModificationDate);
     }
 
     @Override

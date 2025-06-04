@@ -10,7 +10,7 @@ $$
                 device_type            varchar(255) not null,
                 browser                varchar(255) not null,
                 os                     varchar(255) not null,
-                ip_address             cidr         not null,
+                ip_address             varchar(255) not null,
                 creation_date          timestamptz  not null default now(),
                 last_modification_date timestamptz  not null default now(),
 

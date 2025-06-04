@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.infrastructure.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -11,17 +13,16 @@ import org.springframework.context.annotation.Primary;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
+@RequiredArgsConstructor
 public class CaffeineConfig {
 
+    private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
     @Value("${app.mail-verification.duration-in-minutes}")
     private int durationInMinutes;
-
     @Value("${app.cache.expires-after-write-in-minutes}")
     private int expireAfterWriteInMinutes;
-
     @Value("${app.cache.expires-after-access-in-minutes}")
     private int expireAfterAccessInMinutes;
-
     @Value("${app.cache.maximum-size}")
     private int maximumSize;
 
@@ -40,7 +41,9 @@ public class CaffeineConfig {
 
     @Bean
     public CacheManager verificationCacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("unverifiedUsers", "unverifiedUserPasswords", "verificationCodes");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
+                userVerificationCaffeineCacheManager.getCacheName()
+        );
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(durationInMinutes, TimeUnit.MINUTES)
                 .maximumSize(1000)
