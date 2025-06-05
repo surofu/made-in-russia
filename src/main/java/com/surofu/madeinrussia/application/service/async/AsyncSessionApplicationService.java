@@ -6,14 +6,14 @@ import com.surofu.madeinrussia.core.repository.SessionRepository;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class AsyncSessionApplicationService {
     private final SessionRepository sessionRepository;

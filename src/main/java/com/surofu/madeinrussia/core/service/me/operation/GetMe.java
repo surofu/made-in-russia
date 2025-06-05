@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
-import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
@@ -12,9 +12,9 @@ public class GetMe {
     SecurityUser securityUser;
 
     public interface Result {
-        static Result success(UserDto userDto) {
-            log.info("Successfully processed get me by jwt: {}", userDto);
-            return Success.of(userDto);
+        static Result success(AbstractAccountDto abstractAccountDto) {
+            log.info("Successfully processed get me by jwt: {}", abstractAccountDto);
+            return Success.of(abstractAccountDto);
         }
 
         static Result sessionWithIdNotFound(Long sessionId) {
@@ -57,7 +57,7 @@ public class GetMe {
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            UserDto userDto;
+            AbstractAccountDto abstractAccountDto;
 
             @Override
             public <T> T process(Processor<T> processor) {

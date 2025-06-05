@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.core.service.me;
 
-import com.surofu.madeinrussia.core.service.me.operation.GetMe;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
-import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
+import com.surofu.madeinrussia.core.service.me.operation.*;
 
 public interface MeService {
     GetMe.Result getMeByJwt(GetMe operation);
@@ -13,4 +10,6 @@ public interface MeService {
     GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation);
 
     RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation);
+
+    UpdateMe.Result updateMe(UpdateMe operation);
 }

@@ -1,13 +1,15 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
-import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
+import com.surofu.madeinrussia.application.dto.SessionDto;
+import com.surofu.madeinrussia.application.dto.TokenDto;
+import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.service.me.MeService;
-import com.surofu.madeinrussia.core.service.me.operation.GetMe;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
-import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
+import com.surofu.madeinrussia.core.service.me.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,6 +39,7 @@ public class MeRestController {
     private final GetMeSessions.Result.Processor<ResponseEntity<?>> getMeSessionsProcessor;
     private final GetMeCurrentSession.Result.Processor<ResponseEntity<?>> getMeCurrentSessionProcessor;
     private final RefreshMeCurrentSession.Result.Processor<ResponseEntity<?>> refreshMeCurrentSessionProcessor;
+    private final UpdateMe.Result.Processor<ResponseEntity<?>> updateMeProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -192,5 +195,12 @@ public class MeRestController {
     ) {
         RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand);
         return meService.refreshMeCurrentSession(operation).process(refreshMeCurrentSessionProcessor);
+    }
+
+    @PatchMapping()
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateMe(@AuthenticationPrincipal SecurityUser securityUser, @RequestBody UpdateMeCommand updateMeCommand) {
+        UpdateMe operation = UpdateMe.of(securityUser, UserRegion.of(updateMeCommand.region()));
+        return meService.updateMe(operation).process(updateMeProcessor);
     }
 }

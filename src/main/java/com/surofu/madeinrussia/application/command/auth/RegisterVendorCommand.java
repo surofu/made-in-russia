@@ -29,20 +29,12 @@ public record RegisterVendorCommand(
         String password,
 
         @Validated
-        @NotNull(message = "Регион не может быть пустым")
-        @NotBlank(message = "Регион не может быть пустым")
-        @Length(max = 255, message = "Длинна региона не должна превышать 254 символа")
-        String region,
-
-        @Validated
         @NotNull(message = "Номер телефона не может быть пустым")
         @NotBlank(message = "Номер телефона не может быть пустым")
         @Length(max = 255, message = "Длинна номера телефона не должна превышать 254 символа")
         String phoneNumber,
 
         String inn,
-
-        String companyName,
 
         List<String> countries,
 

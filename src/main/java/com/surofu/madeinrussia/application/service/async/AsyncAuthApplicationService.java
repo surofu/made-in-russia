@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class AsyncAuthApplicationService {
     private final UserRepository userRepository;
@@ -71,7 +71,6 @@ public class AsyncAuthApplicationService {
 
         VendorDetails vendorDetails = new VendorDetails();
         vendorDetails.setInn(operation.getVendorDetailsInn());
-        vendorDetails.setCompanyName(operation.getVendorDetailsCompanyName());
 
         Set<VendorCountry> vendorCountries = new HashSet<>();
 

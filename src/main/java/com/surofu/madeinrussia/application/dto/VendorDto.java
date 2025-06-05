@@ -26,31 +26,25 @@ import java.io.Serializable;
                 """
 )
 @EqualsAndHashCode(callSuper = true)
-public final class UserDto extends AbstractAccountDto implements Serializable {
-    @Schema(
-            description = "User's geographical region or location",
-            example = "Moscow, Russia",
-            maxLength = 100,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String region;
+public final class VendorDto extends AbstractAccountDto implements Serializable {
+    private VendorDetailsDto vendorDetails;
 
     @Schema(hidden = true)
-    public static UserDto of(User user) {
+    public static VendorDto of(User user) {
         if (user == null) {
             return null;
         }
 
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setRole(user.getRole().getName());
-        userDto.setLogin(user.getLogin().getValue());
-        userDto.setEmail(user.getEmail().getValue());
-        userDto.setPhoneNumber(user.getPhoneNumber().getValue());
-        userDto.setRegion(user.getRegion().getValue());
-        userDto.setRegistrationDate(user.getRegistrationDate().getValue());
-        userDto.setLastModificationDate(user.getLastModificationDate().getValue());
+        VendorDto vendorDto = new VendorDto();
+        vendorDto.setId(user.getId());
+        vendorDto.setRole(user.getRole().getName());
+        vendorDto.setLogin(user.getLogin().getValue());
+        vendorDto.setEmail(user.getEmail().getValue());
+        vendorDto.setPhoneNumber(user.getPhoneNumber().getValue());
+        vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails()));
+        vendorDto.setRegistrationDate(user.getRegistrationDate().getValue());
+        vendorDto.setLastModificationDate(user.getLastModificationDate().getValue());
 
-        return userDto;
+        return vendorDto;
     }
 }

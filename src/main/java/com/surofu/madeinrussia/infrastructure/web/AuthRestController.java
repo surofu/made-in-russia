@@ -13,7 +13,6 @@ import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsCompanyName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
@@ -109,10 +108,9 @@ public class AuthRestController {
                 UserEmail.of(registerVendorCommand.email()),
                 UserLogin.of(registerVendorCommand.login()),
                 UserPasswordPassword.of(registerVendorCommand.password()),
-                UserRegion.of(registerVendorCommand.region()),
+                UserRegion.of(registerVendorCommand.countries().get(0)),
                 UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
                 VendorDetailsInn.of(registerVendorCommand.inn()),
-                VendorDetailsCompanyName.of(registerVendorCommand.companyName()),
                 registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
                 registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
         );

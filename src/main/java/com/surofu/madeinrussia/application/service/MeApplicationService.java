@@ -3,20 +3,20 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.me.MeService;
-import com.surofu.madeinrussia.core.service.me.operation.GetMe;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeCurrentSession;
-import com.surofu.madeinrussia.core.service.me.operation.GetMeSessions;
-import com.surofu.madeinrussia.core.service.me.operation.RefreshMeCurrentSession;
+import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,7 @@ public class MeApplicationService implements MeService {
     private final JwtUtils jwtUtils;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
+    private final AsyncMeApplicationService asyncMeApplicationService;
 
     @Value("${app.session.secret}")
     private String sessionSecret;
@@ -62,6 +63,12 @@ public class MeApplicationService implements MeService {
         }
 
         User user = sessionWithUser.get().getUser();
+
+        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+            VendorDto vendorDto = VendorDto.of(user);
+            return GetMe.Result.success(vendorDto);
+        }
+
         UserDto userDto = UserDto.of(user);
 
         return GetMe.Result.success(userDto);
@@ -139,6 +146,27 @@ public class MeApplicationService implements MeService {
                 });
 
         return RefreshMeCurrentSession.Result.success(tokenDto);
+    }
+
+    @Override
+    public UpdateMe.Result updateMe(UpdateMe operation) {
+        log.info("Before getting user from security user");
+
+        User user = operation.getSecurityUser().getUser();
+
+        log.info("After getting user from security user");
+
+        if (operation.getUserRegion() != null) {
+            user.setRegion(operation.getUserRegion());
+        }
+
+        log.info("Before updating user");
+
+        asyncMeApplicationService.updateUser(user);
+
+        log.info("After updating user");
+
+        return UpdateMe.Result.success(UserDto.of(user));
     }
 
     private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {

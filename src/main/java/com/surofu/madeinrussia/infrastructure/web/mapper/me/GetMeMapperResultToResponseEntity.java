@@ -10,7 +10,7 @@ public class GetMeMapperResultToResponseEntity implements GetMe.Result.Processor
 
     @Override
     public ResponseEntity<?> processSuccess(GetMe.Result.Success result) {
-        return new ResponseEntity<>(result.getUserDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getAbstractAccountDto(), HttpStatus.OK);
     }
 
     @Override

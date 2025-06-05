@@ -20,8 +20,6 @@ public final class VendorDetailsDto implements Serializable {
 
     private String inn;
 
-    private String companyName;
-
     private List<VendorCountryDto> countries;
 
     private List<VendorProductCategoryDto> productCategories;
@@ -38,7 +36,6 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(vendorDetails.getId())
                 .inn(vendorDetails.getInn().getValue())
-                .companyName(vendorDetails.getCompanyName().getValue())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .creationDate(vendorDetails.getCreationDate().getValue())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
