@@ -7,9 +7,7 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
-import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSpecifications;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
@@ -151,37 +149,6 @@ public class ProductApplicationService implements ProductService {
         }
 
         return GetProductCharacteristicsByProductId.Result.notFound(productId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productReviewPageByProductId",
-            key = """
-                    {
-                     #operation.getProductId(),
-                     #operation.getPage(), #operation.getSize(),
-                     #operation.getMinRating(), #operation.getMaxRating()
-                     }
-                    """,
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductReviewPageByProductId$Result$NotFound) or #result.getProductReviewDtoPage().isEmpty()"
-    )
-    public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
-        Long productId = operation.getProductId();
-
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-
-        Specification<ProductReview> specification = Specification
-                .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
-
-        Optional<Page<ProductReview>> productReviewPage = productRepository.getProductReviewsByProductId(productId, specification, pageable);
-        Optional<Page<ProductReviewDto>> productReviewDtoPage = productReviewPage.map(page -> page.map(ProductReviewDto::of));
-
-        if (productReviewDtoPage.isPresent()) {
-            return GetProductReviewPageByProductId.Result.success(productReviewDtoPage.get());
-        }
-
-        return GetProductReviewPageByProductId.Result.notFound(productId);
     }
 
     @Override

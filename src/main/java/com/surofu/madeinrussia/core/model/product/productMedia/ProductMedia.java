@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
 
@@ -23,6 +24,7 @@ import java.io.Serializable;
                 )
         }
 )
+@BatchSize(size = 20)
 public final class ProductMedia implements Serializable {
 
     @Id

@@ -18,13 +18,13 @@ public class CaffeineConfig {
 
     private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
     @Value("${app.mail-verification.duration-in-minutes}")
-    private int durationInMinutes;
+    private Integer durationInMinutes;
     @Value("${app.cache.expires-after-write-in-minutes}")
-    private int expireAfterWriteInMinutes;
+    private Integer expireAfterWriteInMinutes;
     @Value("${app.cache.expires-after-access-in-minutes}")
-    private int expireAfterAccessInMinutes;
+    private Integer expireAfterAccessInMinutes;
     @Value("${app.cache.maximum-size}")
-    private int maximumSize;
+    private Integer maximumSize;
 
     @Bean
     @Primary

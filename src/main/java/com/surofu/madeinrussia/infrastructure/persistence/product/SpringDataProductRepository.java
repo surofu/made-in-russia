@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,10 +44,4 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select faq from ProductFaq faq where faq.product.id = :productId")
     Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
-
-    @Query(
-            value = "select pr from ProductReview pr left join fetch pr.media where pr.product.id = :productId",
-            countQuery = "select count(pr) from ProductReview pr where pr.product.id = :productId"
-    )
-    Optional<Page<ProductReview>> getProductReviewsByProductId(@Param("productId") Long productId, Specification<ProductReview> specification, Pageable pageable);
 }

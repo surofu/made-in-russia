@@ -33,7 +33,7 @@ public class SimpleResponseErrorDto implements Serializable {
             description = "HTTP status code",
             example = "404"
     )
-    private int status;
+    private Integer status;
 
     @Schema(hidden = true)
     public static SimpleResponseErrorDto of(String errorMessage, HttpStatus httpStatus) {

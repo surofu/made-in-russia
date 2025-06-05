@@ -1,30 +1,27 @@
-package com.surofu.madeinrussia.core.service.product.operation;
+package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.ProductReviewDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetProductReviewPageByProductId {
-    Long productId;
-    int page;
-    int size;
+public class GetMeReviewPage {
+    SecurityUser securityUser;
+    Integer page;
+    Integer size;
     Integer minRating;
     Integer maxRating;
 
     public interface Result {
+
         <T> T process(Processor<T> processor);
 
         static Result success(Page<ProductReviewDto> productReviewDtoPage) {
-            log.info("Successfully processed get product review dto page with total elements: {}", productReviewDtoPage.getTotalElements());
+            log.info("Successfully processed get me product reviews with total elements: {}", productReviewDtoPage.getTotalElements());
             return Success.of(productReviewDtoPage);
-        }
-
-        static Result notFound(Long productId) {
-            log.warn("Product with ID '{}' not found", productId);
-            return NotFound.of(productId);
         }
 
         @Value(staticConstructor = "of")
@@ -37,19 +34,8 @@ public class GetProductReviewPageByProductId {
             }
         }
 
-        @Value(staticConstructor = "of")
-        class NotFound implements Result {
-            Long productId;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processNotFound(this);
-            }
-        }
-
         interface Processor<T> {
             T processSuccess(Success result);
-            T processNotFound(NotFound result);
         }
     }
 }

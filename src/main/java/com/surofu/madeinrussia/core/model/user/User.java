@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -41,6 +44,9 @@ public final class User implements Serializable {
             foreignKey = @ForeignKey(name = "fk_users_vendor_details_id")
     )
     private VendorDetails vendorDetails;
+
+    @OneToMany(mappedBy = "user")
+    private Set<ProductReview> productReviews = new HashSet<>();
 
     @Embedded
     private UserEmail email;

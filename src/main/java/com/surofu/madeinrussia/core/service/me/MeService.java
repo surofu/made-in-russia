@@ -9,6 +9,8 @@ public interface MeService {
 
     GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation);
 
+    GetMeReviewPage.Result getMeReviews(GetMeReviewPage operation);
+
     RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation);
 
     UpdateMe.Result updateMe(UpdateMe operation);

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
@@ -11,13 +12,14 @@ import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
-import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -31,6 +33,12 @@ public class UserApplicationService implements UserService {
     private final UserPasswordRepository userPasswordRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "userById",
+            key = "#operation.userId",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserById$Result$NotFound)"
+    )
     public GetUserById.Result getUserById(GetUserById operation) {
         Optional<User> user = userRepository.getUserById(operation.getUserId());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -43,6 +51,12 @@ public class UserApplicationService implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "userByLogin",
+            key = "#operation.userLogin",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin$Result$NotFound)"
+    )
     public GetUserByLogin.Result getUserByLogin(GetUserByLogin operation) {
         Optional<User> user = userRepository.getUserByLogin(operation.getUserLogin());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -55,6 +69,12 @@ public class UserApplicationService implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "userByEmail",
+            key = "#operation.userEmail",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail$Result$NotFound)"
+    )
     public GetUserByEmail.Result getUserByEmail(GetUserByEmail operation) {
         Optional<User> user = userRepository.getUserByEmail(operation.getUserEmail());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -67,6 +87,11 @@ public class UserApplicationService implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "userByUsername",
+            key = "#username"
+    )
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.getUserByEmail(UserEmail.of(username))
                 .orElseThrow(() -> new UsernameNotFoundException(username));

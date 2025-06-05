@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
 
@@ -26,6 +27,7 @@ import java.io.Serializable;
                 )
         }
 )
+@BatchSize(size = 20)
 public final class Category implements Serializable {
 
     @Id

@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,11 +52,6 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId) {
         return repository.getProductCharacteristicsByProductId(productId);
-    }
-
-    @Override
-    public Optional<Page<ProductReview>> getProductReviewsByProductId(Long productId, Specification<ProductReview> specification, Pageable pageable) {
-        return repository.getProductReviewsByProductId(productId, specification, pageable);
     }
 
     @Override

@@ -1,34 +1,30 @@
-package com.surofu.madeinrussia.core.service.product.operation;
+package com.surofu.madeinrussia.core.service.productReview.operation;
 
-import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.ProductReviewDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetProductPage {
+public class GetProductReviewPageByProductId {
+    Long productId;
     Integer page;
     Integer size;
-    List<Long> deliveryMethodIds;
-    List<Long> categoryIds;
-    BigDecimal minPrice;
-    BigDecimal maxPrice;
+    Integer minRating;
+    Integer maxRating;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(Page<ProductDto> productDtoPage) {
-            log.info("Successfully processed get product dto page with total elements: {}", productDtoPage.getTotalElements());
-            return Success.of(productDtoPage);
+        static Result success(Page<ProductReviewDto> productReviewDtoPage) {
+            log.info("Successfully processed get product review dto page with total elements: {}", productReviewDtoPage.getTotalElements());
+            return Success.of(productReviewDtoPage);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            Page<ProductDto> productDtoPage;
+            Page<ProductReviewDto> productReviewDtoPage;
 
             @Override
             public <T> T process(Processor<T> processor) {

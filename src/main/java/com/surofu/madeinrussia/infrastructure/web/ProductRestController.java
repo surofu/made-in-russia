@@ -4,6 +4,8 @@ import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
+import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
+import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -32,6 +34,7 @@ import java.util.List;
 public class ProductRestController {
 
     private final ProductService productService;
+    private final ProductReviewService productReviewService;
 
     private final GetProductPage.Result.Processor<ResponseEntity<?>> getProductPageProcessor;
     private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
@@ -433,7 +436,7 @@ public class ProductRestController {
             Integer maxRating
     ) {
         GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating);
-        return productService.getProductReviewPageByProductId(operation).process(getProductReviewPageByProductIdProcessor);
+        return productReviewService.getProductReviewPageByProductId(operation).process(getProductReviewPageByProductIdProcessor);
     }
 
     @GetMapping("{productId}/faq")

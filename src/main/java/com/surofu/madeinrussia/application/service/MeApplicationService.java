@@ -1,20 +1,20 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.TokenDto;
-import com.surofu.madeinrussia.application.dto.SessionDto;
-import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.dto.VendorDto;
+import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
+import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
@@ -22,18 +22,27 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
+    private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
     private final JwtUtils jwtUtils;
 
@@ -75,13 +84,11 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetMeSessions.Result getMeSessions(GetMeSessions operation) {
-        SecurityUser securityUser = operation.getSecurityUser();
-
-        User user = securityUser.getUser();
-        Long userId = user.getId();
-
-        List<SessionDto> sessionDtos = sessionRepository.getSessionsByUserId(userId).stream()
+        List<SessionDto> sessionDtos = sessionRepository
+                .getSessionsByUserId(operation.getSecurityUser().getUser().getId())
+                .stream()
                 .map(SessionDto::of)
                 .toList();
 
@@ -89,6 +96,7 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation) {
         SecurityUser securityUser = operation.getSecurityUser();
         Long userId = securityUser.getUser().getId();
@@ -103,6 +111,46 @@ public class MeApplicationService implements MeService {
         }
 
         return GetMeCurrentSession.Result.success(sessionDto.get());
+    }
+
+    @Override
+    @Cacheable(
+            value = "meReviews",
+            key = """
+                    {
+                     #operation.securityUser.user.id,
+                     #operation.page, #operation.size,
+                     #operation.minRating, #operation.maxRating
+                    }
+                    """,
+            unless = "#result.getProductReviewDtoPage().isEmpty()"
+    )
+    public GetMeReviewPage.Result getMeReviews(GetMeReviewPage operation) {
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+        Specification<ProductReview> specification = Specification
+                .where(ProductReviewSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
+                .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+
+        Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.findAll(specification, pageable);
+
+        if (!productReviewPageWithoutMedia.isEmpty()) {
+            List<Long> productReviewIds = productReviewPageWithoutMedia.map(ProductReview::getId).toList();
+
+            List<ProductReview> productReviewPageWithMedia = productReviewRepository.findByIdInWithMedia(productReviewIds);
+
+            Map<Long, ProductReview> productReviewMap = productReviewPageWithMedia.stream()
+                    .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
+
+            Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithoutMedia.map(r -> {
+                r.setMedia(productReviewMap.get(r.getId()).getMedia());
+                return ProductReviewDto.of(r);
+            });
+
+            return GetMeReviewPage.Result.success(productReviewDtoPage);
+        }
+
+        return GetMeReviewPage.Result.success(Page.empty());
     }
 
     @Override
