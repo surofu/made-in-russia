@@ -93,6 +93,13 @@ public class ProductRestController {
             int size,
 
             @Parameter(
+                    name = "title",
+                    description = "Title of the product",
+                    in = ParameterIn.QUERY
+            )
+            String title,
+
+            @Parameter(
                     name = "deliveryMethodIds",
                     description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
                     in = ParameterIn.QUERY,
@@ -166,7 +173,7 @@ public class ProductRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        GetProductPage operation = GetProductPage.of(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        GetProductPage operation = GetProductPage.of(page, size, title, deliveryMethodIds, categoryIds, minPrice, maxPrice);
         return productService.getProductPage(operation).process(getProductPageProcessor);
     }
 

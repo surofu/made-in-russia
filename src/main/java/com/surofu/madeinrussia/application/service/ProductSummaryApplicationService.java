@@ -30,6 +30,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
             key = """
                     {
                      #operation.getPage(), #operation.getSize(),
+                     #operation.getTitle(),
                      #operation.getDeliveryMethodIds()?.hashCode(),
                      #operation.getCategoryIds()?.hashCode(),
                      #operation.getMinPrice(), #operation.getMaxPrice()
@@ -43,7 +44,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSummarySpecifications.hasCategories(operation.getCategoryIds()))
-                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
+                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
+                .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);

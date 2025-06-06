@@ -13,6 +13,7 @@ import java.util.List;
 public class GetProductPage {
     Integer page;
     Integer size;
+    String title;
     List<Long> deliveryMethodIds;
     List<Long> categoryIds;
     BigDecimal minPrice;

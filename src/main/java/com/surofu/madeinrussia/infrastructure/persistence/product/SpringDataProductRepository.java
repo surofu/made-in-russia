@@ -19,12 +19,8 @@ import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @Query(
-            value = "select p from Product p",
-            countQuery = "select count(p) from Product p"
-    )
-    @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq"})
-    Page<Product> getProductPage(Specification<Product> specification, Pageable pageable);
+    @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq", "prices"})
+    Page<Product> findAll(Specification<Product> specification, Pageable pageable);
 
     @Query("select p from Product p where p.id = :productId")
     @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq"})

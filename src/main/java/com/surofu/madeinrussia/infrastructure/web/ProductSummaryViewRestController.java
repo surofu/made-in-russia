@@ -85,6 +85,13 @@ public class ProductSummaryViewRestController {
             int size,
 
             @Parameter(
+                    name = "title",
+                    description = "Title of the product",
+                    in = ParameterIn.QUERY
+            )
+            String title,
+
+            @Parameter(
                     name = "deliveryMethodIds",
                     description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
                     in = ParameterIn.QUERY,
@@ -158,7 +165,7 @@ public class ProductSummaryViewRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(page, size, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(page, size, title, deliveryMethodIds, categoryIds, minPrice, maxPrice);
         return productSummaryService.getProductSummaryPage(operation).process(getProductSummaryPageProcessor);
     }
 

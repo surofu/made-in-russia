@@ -12,6 +12,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductSpecifications {
+
+    public static Specification<Product> byTitle(String title) {
+        return (root, query, criteriaBuilder) -> {
+            if (title == null || title.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.like(root.get("title").get("value"), "%" + title.trim() + "%");
+        };
+    }
+
     public static Specification<Product> hasDeliveryMethods(List<Long> deliveryMethodIds) {
         return (root, query, cb) -> {
             if (deliveryMethodIds == null || deliveryMethodIds.isEmpty()) {

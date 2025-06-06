@@ -36,6 +36,7 @@ public class ProductApplicationService implements ProductService {
             key = """
                     {
                      #operation.getPage(), #operation.getSize(),
+                     #operation.getTitle(),
                      #operation.getDeliveryMethodIds()?.hashCode(),
                      #operation.getCategoryIds()?.hashCode(),
                      #operation.getMinPrice(), #operation.getMaxPrice()
@@ -49,7 +50,8 @@ public class ProductApplicationService implements ProductService {
         Specification<Product> specification = Specification
                 .where(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
-                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
+                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
+                .and(ProductSpecifications.byTitle(operation.getTitle()));
 
         Page<Product> productPage = productRepository.getProductPage(specification, pageable);
         Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);

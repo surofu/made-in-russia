@@ -124,6 +124,7 @@ class ProductApplicationServiceTest {
         GetProductPage operation = GetProductPage.of(
                 0,
                 10,
+                "",
                 List.of(),
                 List.of(),
                 MIN_PRICE,

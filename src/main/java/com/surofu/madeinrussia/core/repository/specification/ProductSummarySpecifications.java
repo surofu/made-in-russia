@@ -33,6 +33,16 @@ public class ProductSummarySpecifications {
         };
     }
 
+    public static Specification<ProductSummaryView> byTitle(String title) {
+        return (root, query, criteriaBuilder) -> {
+            if (title == null || title.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.like(root.get("title"), "%" + title.trim() + "%");
+        };
+    }
+
     public static Specification<ProductSummaryView> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, cb) -> {
             if (minPrice == null && maxPrice == null) return null;

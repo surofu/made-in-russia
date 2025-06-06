@@ -17,7 +17,7 @@ public class JpaProductSummaryViewRepository implements ProductSummaryViewReposi
 
     @Override
     public Page<ProductSummaryView> getProductSummaryViewPage(Specification<ProductSummaryView> specification, Pageable pageable) {
-        return repository.getProductSummaryViewPage(specification, pageable);
+        return repository.findAll(specification, pageable);
     }
 
     @Override

@@ -25,7 +25,7 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public Page<Product> getProductPage(Specification<Product> specification, Pageable pageable) {
-        return repository.getProductPage(specification, pageable);
+        return repository.findAll(specification, pageable);
     }
 
     @Override
