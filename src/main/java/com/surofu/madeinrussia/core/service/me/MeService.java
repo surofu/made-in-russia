@@ -9,7 +9,9 @@ public interface MeService {
 
     GetMeCurrentSession.Result getMeCurrentSession(GetMeCurrentSession operation);
 
-    GetMeReviewPage.Result getMeReviews(GetMeReviewPage operation);
+    GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation);
+
+    GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(GetMeVendorProductReviewPage operation);
 
     RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation);
 

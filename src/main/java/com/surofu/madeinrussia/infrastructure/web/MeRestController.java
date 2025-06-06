@@ -45,6 +45,7 @@ public class MeRestController {
     private final RefreshMeCurrentSession.Result.Processor<ResponseEntity<?>> refreshMeCurrentSessionProcessor;
     private final UpdateMe.Result.Processor<ResponseEntity<?>> updateMeProcessor;
     private final GetMeReviewPage.Result.Processor<ResponseEntity<?>> getMeReviewsProcessor;
+    private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -249,6 +250,49 @@ public class MeRestController {
             Integer maxRating,
             @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeReviewPage operation = GetMeReviewPage.of(securityUser, page, size, minRating, maxRating);
-        return meService.getMeReviews(operation).process(getMeReviewsProcessor);
+        return meService.getMeReviewPage(operation).process(getMeReviewsProcessor);
+    }
+
+    @GetMapping("product-reviews")
+    public ResponseEntity<?> getMeVendorProductReviewPage(
+            @Parameter(
+                    name = "page",
+                    description = "Zero-based page index (0..N)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
+            )
+            @RequestParam(defaultValue = "0")
+            @Min(0)
+            int page,
+
+            @Parameter(
+                    name = "size",
+                    description = "Number of product reviews per page",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
+            )
+            @RequestParam(defaultValue = "10")
+            @Min(1)
+            @Max(100)
+            int size,
+
+            @Parameter(
+                    name = "minRating",
+                    description = "Minimum product review rating filter (inclusive)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "number", example = "1")
+            )
+            Integer minRating,
+
+            @Parameter(
+                    name = "maxRating",
+                    description = "Maximum product review rating filter (inclusive)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "number", example = "10000")
+            )
+            Integer maxRating,
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        GetMeVendorProductReviewPage operation = GetMeVendorProductReviewPage.of(securityUser, page, size, minRating, maxRating);
+        return meService.getMeVendorProductReviewPage(operation).process(getMeVendorProductReviewPageProcessor);
     }
 }

@@ -29,6 +29,16 @@ public class ProductReviewSpecifications {
         };
     }
 
+    public static Specification<ProductReview> byProductUserId(@Param("productUserId") Long productUserId) {
+        return (root, query, criteriaBuilder) -> {
+            if (productUserId == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.equal(root.get("product").get("user").get("id"), productUserId);
+        };
+    }
+
     public static Specification<ProductReview> ratingBetween(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating) {
         return (root, query, criteriaBuilder) -> {
             if (minRating == null && maxRating == null) return null;

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetMeReviewPage {
+public class GetMeVendorProductReviewPage {
     SecurityUser securityUser;
     Integer page;
     Integer size;
@@ -19,14 +19,14 @@ public class GetMeReviewPage {
 
         <T> T process(Processor<T> processor);
 
-        static Result success(Page<ProductReviewDto> productReviewDtoPage) {
-            log.info("Successfully processed get me product review page with total elements: {}", productReviewDtoPage.getTotalElements());
-            return Success.of(productReviewDtoPage);
+        static Result success(Page<ProductReviewDto> vendorProductReviewDtoPage) {
+            log.info("Successfully processed get me vendor product review page with total elements: {}", vendorProductReviewDtoPage.getTotalElements());
+            return Success.of(vendorProductReviewDtoPage);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            Page<ProductReviewDto> productReviewDtoPage;
+            Page<ProductReviewDto> vendorProductReviewDtoPage;
 
             @Override
             public <T> T process(Processor<T> processor) {

@@ -114,8 +114,9 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
-            value = "meReviews",
+            value = "meProductReviewPages",
             key = """
                     {
                      #operation.securityUser.user.id,
@@ -125,35 +126,45 @@ public class MeApplicationService implements MeService {
                     """,
             unless = "#result.getProductReviewDtoPage().isEmpty()"
     )
-    public GetMeReviewPage.Result getMeReviews(GetMeReviewPage operation) {
+    public GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
         Specification<ProductReview> specification = Specification
                 .where(ProductReviewSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
                 .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
 
-        Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.findAll(specification, pageable);
+        Page<ProductReviewDto> productReviewDtoPage = getProductReviewsBy(specification, pageable);
 
-        if (!productReviewPageWithoutMedia.isEmpty()) {
-            List<Long> productReviewIds = productReviewPageWithoutMedia.map(ProductReview::getId).toList();
-
-            List<ProductReview> productReviewPageWithMedia = productReviewRepository.findByIdInWithMedia(productReviewIds);
-
-            Map<Long, ProductReview> productReviewMap = productReviewPageWithMedia.stream()
-                    .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
-
-            Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithoutMedia.map(r -> {
-                r.setMedia(productReviewMap.get(r.getId()).getMedia());
-                return ProductReviewDto.of(r);
-            });
-
-            return GetMeReviewPage.Result.success(productReviewDtoPage);
-        }
-
-        return GetMeReviewPage.Result.success(Page.empty());
+        return GetMeReviewPage.Result.success(productReviewDtoPage);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "meVendorProductReviewPages",
+            key = """
+                    {
+                     #operation.securityUser.user.id,
+                     #operation.page, #operation.size,
+                     #operation.minRating, #operation.maxRating
+                    }
+                    """,
+            unless = "#result.getVendorProductReviewDtoPage().isEmpty()"
+    )
+    public GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(GetMeVendorProductReviewPage operation) {
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+        Specification<ProductReview> specification = Specification
+                .where(ProductReviewSpecifications.byProductUserId(operation.getSecurityUser().getUser().getId()))
+                .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+
+        Page<ProductReviewDto> productReviewDtoPage = getProductReviewsBy(specification, pageable);
+
+        return GetMeVendorProductReviewPage.Result.success(productReviewDtoPage);
+    }
+
+    @Override
+    @Transactional
     public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
         String refreshToken = operation.getCommand().refreshToken();
 
@@ -221,6 +232,25 @@ public class MeApplicationService implements MeService {
         Long userId = securityUser.getUser().getId();
         SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
         return sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
+    }
 
+    private Page<ProductReviewDto> getProductReviewsBy(Specification<ProductReview> specification, Pageable pageable) {
+        Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.findAll(specification, pageable);
+
+        if (!productReviewPageWithoutMedia.isEmpty()) {
+            List<Long> productReviewIds = productReviewPageWithoutMedia.map(ProductReview::getId).toList();
+
+            List<ProductReview> productReviewPageWithMedia = productReviewRepository.findByIdInWithMedia(productReviewIds);
+
+            Map<Long, ProductReview> productReviewMap = productReviewPageWithMedia.stream()
+                    .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
+
+            return productReviewPageWithoutMedia.map(r -> {
+                r.setMedia(productReviewMap.get(r.getId()).getMedia());
+                return ProductReviewDto.of(r);
+            });
+        }
+
+        return Page.empty();
     }
 }

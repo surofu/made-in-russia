@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,6 +41,10 @@ import java.util.Set;
                 @Index(
                         name = "idx_products_article_code",
                         columnList = "article_code"
+                ),
+                @Index(
+                        name = "idx_products_user_id",
+                        columnList = "user_id"
                 )
         }
 )
@@ -49,6 +54,14 @@ public final class Product implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_products_user_id")
+    )
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
