@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,17 +14,59 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(
+        name = "VendorCountry",
+        description = "Represents a country where the vendor operates or manufactures products",
+        example = """
+                {
+                  "id": 1,
+                  "name": "Russia",
+                  "creationDate": "2025-04-20T10:00:00Z",
+                  "lastModificationDate": "2025-05-10T15:30:00Z"
+                }
+                """
+)
 public final class VendorCountryDto implements Serializable {
 
+    @Schema(
+            description = "Unique identifier of the country association",
+            example = "1",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private Long id;
 
+    @Schema(
+            description = "Name of the country where vendor operates",
+            example = "Russia",
+            minLength = 2,
+            maxLength = 100,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String name;
 
+    @Schema(
+            description = "Timestamp when the country was first associated with the vendor",
+            example = "2025-04-20T10:00:00Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private ZonedDateTime creationDate;
 
+    @Schema(
+            description = "Timestamp when the country association was last modified",
+            example = "2025-05-10T15:30:00Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private ZonedDateTime lastModificationDate;
 
     public static VendorCountryDto of(VendorCountry vendorCountry) {
+        if (vendorCountry == null) {
+            return null;
+        }
+
         return VendorCountryDto.builder()
                 .id(vendorCountry.getId())
                 .name(vendorCountry.getName().getValue())

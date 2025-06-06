@@ -10,16 +10,37 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
-        name = "User",
-        description = "Represents user information with authentication details and metadata",
+        name = "Vendor",
+        description = "Represents a vendor account with business details and authentication information",
         example = """
                 {
                   "id": 12345,
-                  "role": "User",
-                  "email": "user@example.com",
-                  "login": "john_doe",
+                  "role": "ROLE_VENDOR",
+                  "email": "vendor@example.com",
+                  "login": "best_vendor_2025",
                   "phoneNumber": "+79123456789",
-                  "region": "Moscow, Russia",
+                  "vendorDetails": {
+                    "id": 789,
+                    "inn": "7707083893",
+                    "countries": [
+                      {
+                        "id": 1,
+                        "name": "Russia",
+                        "creationDate": "2025-05-15T14:30:00Z",
+                        "lastModificationDate": "2025-06-01T10:15:30Z"
+                      }
+                    ],
+                    "productCategories": [
+                      {
+                        "id": 5,
+                        "name": "Electronics",
+                        "creationDate": "2025-05-15T14:30:00Z",
+                        "lastModificationDate": "2025-06-01T10:15:30Z"
+                      }
+                    ],
+                    "creationDate": "2025-05-15T14:30:00Z",
+                    "lastModificationDate": "2025-06-01T10:15:30Z"
+                  },
                   "registrationDate": "2025-05-04T09:17:20.767615Z",
                   "lastModificationDate": "2025-05-04T09:17:20.767615Z"
                 }
@@ -27,6 +48,11 @@ import java.io.Serializable;
 )
 @EqualsAndHashCode(callSuper = true)
 public final class VendorDto extends AbstractAccountDto implements Serializable {
+
+    @Schema(
+            description = "Detailed business information about the vendor",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private VendorDetailsDto vendorDetails;
 
     @Schema(hidden = true)

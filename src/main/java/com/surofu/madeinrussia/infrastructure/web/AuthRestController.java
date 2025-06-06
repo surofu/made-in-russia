@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -73,7 +74,7 @@ public class AuthRestController {
                     ),
                     @ApiResponse(
                             responseCode = "409",
-                            description = "Email or login already exists",
+                            description = "Email, login or phone number already exists",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
@@ -83,7 +84,7 @@ public class AuthRestController {
     )
     public ResponseEntity<?> register(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Registration data",
+                    description = "User registration data",
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
@@ -103,7 +104,46 @@ public class AuthRestController {
     }
 
     @PostMapping("register-vendor")
-    public ResponseEntity<?> registerVendor(@RequestBody RegisterVendorCommand registerVendorCommand) {
+    @Operation(
+            summary = "Register new vendor",
+            description = "Creates a new vendor account with provided credentials",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Vendor created successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid registration data",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "Email, login or phone number already exists",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> registerVendor(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Vendor registration data",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterVendorCommand.class)
+                    )
+            )
+            @RequestBody RegisterVendorCommand registerVendorCommand) {
         RegisterVendor operation = RegisterVendor.of(
                 UserEmail.of(registerVendorCommand.email()),
                 UserLogin.of(registerVendorCommand.login()),
@@ -263,6 +303,7 @@ public class AuthRestController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("logout")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Logout user",
             description = "Terminates the current user session",

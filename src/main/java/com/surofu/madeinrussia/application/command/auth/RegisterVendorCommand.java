@@ -34,10 +34,18 @@ public record RegisterVendorCommand(
         @Length(max = 255, message = "Длинна номера телефона не должна превышать 254 символа")
         String phoneNumber,
 
+        @Validated
+        @NotNull(message = "ИНН не может быть пустым")
+        @NotBlank(message = "ИНН не может быть пустым")
+        @Length(min = 4, max = 255, message = "Длинна ИНН должна быть от 7 до 254 символов")
         String inn,
 
+        @Validated
+        @NotNull(message = "Страны продавца не могут быть пустыми")
         List<String> countries,
 
+        @Validated
+        @NotNull(message = "Категории товаров продавца не могут быть пустыми")
         List<String> productCategories
 ) {
 }

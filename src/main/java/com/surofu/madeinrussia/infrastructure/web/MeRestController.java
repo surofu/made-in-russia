@@ -6,6 +6,8 @@ import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
+import com.surofu.madeinrussia.application.dto.page.GetMeProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.service.me.MeService;
@@ -203,14 +205,96 @@ public class MeRestController {
         return meService.refreshMeCurrentSession(operation).process(refreshMeCurrentSessionProcessor);
     }
 
-    @PatchMapping()
+    @PatchMapping
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Update user profile",
+            description = """
+                    Updates profile information for the authenticated user.
+                    Only the region field can be updated through this endpoint.
+                    """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Profile updated successfully",
+                            content = @Content(
+                                    schema = @Schema(implementation = UserDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid input data",
+                            content = @Content(
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - invalid or missing JWT token",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
+                    )
+            }
+    )
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateMe(@AuthenticationPrincipal SecurityUser securityUser, @RequestBody UpdateMeCommand updateMeCommand) {
+    public ResponseEntity<?> updateMe(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "User profile update data",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = UpdateMeCommand.class),
+                            examples = {
+                                    @ExampleObject(
+                                            value = """
+                                                    {
+                                                      "region": "Moscow, Russia"
+                                                    }"""
+                                    )
+                            }
+                    )
+            )
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @Valid @RequestBody UpdateMeCommand updateMeCommand) {
         UpdateMe operation = UpdateMe.of(securityUser, UserRegion.of(updateMeCommand.region()));
         return meService.updateMe(operation).process(updateMeProcessor);
     }
 
     @GetMapping("reviews")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get user reviews",
+            description = """
+                    Returns paginated list of reviews left by the current user.
+                    Supports filtering by rating range.
+                    """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved reviews",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = GetMeProductReviewPageDto.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid pagination parameters",
+                            content = @Content(
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - invalid or missing JWT token",
+                            content = @Content
+                    )
+            }
+    )
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeReviewPage(
             @Parameter(
                     name = "page",
@@ -254,6 +338,37 @@ public class MeRestController {
     }
 
     @GetMapping("product-reviews")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get user product reviews",
+            description = """
+                    Returns paginated list of product reviews left by the current user.
+                    Supports filtering by rating range.
+                    """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved product reviews",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = GetMeVendorProductReviewPageDto.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid pagination parameters",
+                            content = @Content(
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - invalid or missing JWT token",
+                            content = @Content
+                    )
+            }
+    )
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeVendorProductReviewPage(
             @Parameter(
                     name = "page",
