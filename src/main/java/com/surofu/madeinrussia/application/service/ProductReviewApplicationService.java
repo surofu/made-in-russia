@@ -32,12 +32,18 @@ public class ProductReviewApplicationService implements ProductReviewService {
             value = "productReviewPageByProductId",
             key = """
                     {
-                     #operation.getProductId(),
-                     #operation.getPage(), #operation.getSize(),
-                     #operation.getMinRating(), #operation.getMaxRating()
-                     }
+                    #operation.productId,
+                    #operation.page
+                    }
                     """,
-            unless = "#result.getProductReviewDtoPage().isEmpty()"
+            unless = """
+                    {
+                    #result.getProductReviewDtoPage().isEmpty()
+                    or #operation.size != null
+                    or #operation.minRating != null
+                    or #operation.maxRating != null
+                    }
+                    """
     )
     public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());

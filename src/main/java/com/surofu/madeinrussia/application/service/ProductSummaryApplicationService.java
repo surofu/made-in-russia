@@ -27,16 +27,17 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "productSummaryViewPage",
-            key = """
+            key = "#operation.getPage()",
+            unless = """
                     {
-                     #operation.getPage(), #operation.getSize(),
-                     #operation.getTitle(),
-                     #operation.getDeliveryMethodIds()?.hashCode(),
-                     #operation.getCategoryIds()?.hashCode(),
-                     #operation.getMinPrice(), #operation.getMaxPrice()
-                     }
-                    """,
-            unless = "#result.getProductSummaryViewDtoPage().isEmpty()"
+                        #result.getProductSummaryViewDtoPage().isEmpty()
+                        or #operation.size != null
+                        or #operation.categoryIds != null
+                        or #operation.deliveryMethodIds != null
+                        or #operation.minPrice != null
+                        or #operation.maxPrice != null
+                    }
+                    """
     )
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());

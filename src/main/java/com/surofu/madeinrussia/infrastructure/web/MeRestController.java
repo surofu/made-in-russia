@@ -14,6 +14,7 @@ import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,6 +31,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +52,7 @@ public class MeRestController {
     private final UpdateMe.Result.Processor<ResponseEntity<?>> updateMeProcessor;
     private final GetMeReviewPage.Result.Processor<ResponseEntity<?>> getMeReviewsProcessor;
     private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
+    private final GetMeProductPage.Result.Processor<ResponseEntity<?>> getMeProductPageProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -338,6 +343,7 @@ public class MeRestController {
     }
 
     @GetMapping("product-reviews")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get user product reviews",
@@ -368,7 +374,6 @@ public class MeRestController {
                     )
             }
     )
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeVendorProductReviewPage(
             @Parameter(
                     name = "page",
@@ -409,5 +414,128 @@ public class MeRestController {
             @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeVendorProductReviewPage operation = GetMeVendorProductReviewPage.of(securityUser, page, size, minRating, maxRating);
         return meService.getMeVendorProductReviewPage(operation).process(getMeVendorProductReviewPageProcessor);
+    }
+
+    @GetMapping("products")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    public ResponseEntity<?> getMeProductPage(
+            @Parameter(
+                    name = "page",
+                    description = "Zero-based page index (0..N)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
+            )
+            @RequestParam(defaultValue = "0")
+            @Min(0)
+            int page,
+
+            @Parameter(
+                    name = "size",
+                    description = "Number of products per page",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
+            )
+            @RequestParam(defaultValue = "10")
+            @Min(1)
+            @Max(100)
+            int size,
+
+            @Parameter(
+                    name = "title",
+                    description = "Title of the product",
+                    in = ParameterIn.QUERY
+            )
+            String title,
+
+            @Parameter(
+                    name = "deliveryMethodIds",
+                    description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(
+                            type = "array",
+                            format = "int64",
+                            example = "[1, 2]",
+                            minLength = 1,
+                            maxLength = 40
+                    ),
+                    explode = Explode.FALSE,
+                    examples = {
+                            @ExampleObject(
+                                    name = "Single delivery method",
+                                    value = "1",
+                                    description = "Filter by single delivery method ID"
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple delivery methods",
+                                    value = "1,2",
+                                    description = "Filter by multiple delivery method IDs"
+                            )
+                    }
+            )
+            @RequestParam(required = false)
+            List<Long> deliveryMethodIds,
+
+            @Parameter(
+                    name = "categoryIds",
+                    description = "Filter products by category IDs. Multiple category IDs can be provided",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(
+                            type = "array",
+                            format = "int64",
+                            example = "[1, 2, 3]",
+                            minLength = 1,
+                            maxLength = 80
+                    ),
+                    explode = Explode.FALSE,
+                    examples = {
+                            @ExampleObject(
+                                    name = "Single category",
+                                    value = "1",
+                                    description = "Filter by single category ID"
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple categories",
+                                    value = "1,2,3",
+                                    description = "Filter by multiple category IDs"
+                            )
+                    }
+            )
+            @RequestParam(required = false)
+            List<Long> categoryIds,
+
+            @Parameter(
+                    name = "minPrice",
+                    description = "Minimum price filter (inclusive)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "number", format = "decimal", example = "1")
+            )
+            @RequestParam(required = false)
+            BigDecimal minPrice,
+
+            @Parameter(
+                    name = "maxPrice",
+                    description = "Maximum price filter (inclusive)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "number", format = "decimal", example = "100000")
+            )
+            @RequestParam(required = false)
+            BigDecimal maxPrice,
+
+
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        GetMeProductPage operation = GetMeProductPage.of(
+                securityUser,
+                page,
+                size,
+                title,
+                categoryIds,
+                deliveryMethodIds,
+                minPrice,
+                maxPrice
+        );
+
+        return meService.getMeProductPage(operation).process(getMeProductPageProcessor);
     }
 }

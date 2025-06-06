@@ -23,6 +23,16 @@ public class ProductSpecifications {
         };
     }
 
+    public static Specification<Product> byUserId(Long userId) {
+        return (root, query, criteriaBuilder) -> {
+            if (userId == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.equal(root.get("user").get("id"), userId);
+        };
+    };
+
     public static Specification<Product> hasDeliveryMethods(List<Long> deliveryMethodIds) {
         return (root, query, cb) -> {
             if (deliveryMethodIds == null || deliveryMethodIds.isEmpty()) {

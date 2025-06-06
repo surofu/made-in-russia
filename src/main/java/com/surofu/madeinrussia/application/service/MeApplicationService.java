@@ -6,15 +6,18 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.repository.ProductRepository;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
+import com.surofu.madeinrussia.core.repository.specification.ProductSpecifications;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
@@ -22,7 +25,8 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +46,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
+    private final ProductRepository productRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
     private final JwtUtils jwtUtils;
@@ -115,17 +120,24 @@ public class MeApplicationService implements MeService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "meProductReviewPages",
-            key = """
-                    {
-                     #operation.securityUser.user.id,
-                     #operation.page, #operation.size,
-                     #operation.minRating, #operation.maxRating
-                    }
-                    """,
-            unless = "#result.getProductReviewDtoPage().isEmpty()"
-    )
+    public GetMeProductPage.Result getMeProductPage(GetMeProductPage operation) {
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+        Specification<Product> specification = Specification
+                .where(ProductSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
+                .and(ProductSpecifications.byTitle(operation.getTitle()))
+                .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
+                .and(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
+
+        Page<Product> productPage = productRepository.getProductPage(specification, pageable);
+        Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
+
+        return GetMeProductPage.Result.success(productDtoPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
@@ -140,17 +152,6 @@ public class MeApplicationService implements MeService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "meVendorProductReviewPages",
-            key = """
-                    {
-                     #operation.securityUser.user.id,
-                     #operation.page, #operation.size,
-                     #operation.minRating, #operation.maxRating
-                    }
-                    """,
-            unless = "#result.getVendorProductReviewDtoPage().isEmpty()"
-    )
     public GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(GetMeVendorProductReviewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
@@ -208,22 +209,20 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userById", key = "#operation.securityUser.user.id"),
+            @CacheEvict(value = "userByLogin", key = "#operation.securityUser.user.login.value"),
+            @CacheEvict(value = "userByEmail", key = "#operation.securityUser.user.email.value"),
+            @CacheEvict(value = "userByUsername", key = "#operation.securityUser.user.email.value")
+    })
     public UpdateMe.Result updateMe(UpdateMe operation) {
-        log.info("Before getting user from security user");
-
         User user = operation.getSecurityUser().getUser();
 
-        log.info("After getting user from security user");
-
-        if (operation.getUserRegion() != null) {
+        if (operation.getUserRegion() != null && !user.getRole().equals(UserRole.ROLE_VENDOR)) {
             user.setRegion(operation.getUserRegion());
         }
 
-        log.info("Before updating user");
-
         asyncMeApplicationService.updateUser(user);
-
-        log.info("After updating user");
 
         return UpdateMe.Result.success(UserDto.of(user));
     }

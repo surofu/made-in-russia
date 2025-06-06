@@ -29,7 +29,7 @@ public class ProductSummarySpecifications {
                 return cb.conjunction();
             }
 
-            return root.get("category").get("id").in(categoryIds);
+            return root.get("categoryId").in(categoryIds);
         };
     }
 

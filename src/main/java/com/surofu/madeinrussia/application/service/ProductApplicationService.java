@@ -33,16 +33,17 @@ public class ProductApplicationService implements ProductService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "productPage",
-            key = """
+            key = "#operation.getPage()",
+            unless = """
                     {
-                     #operation.getPage(), #operation.getSize(),
-                     #operation.getTitle(),
-                     #operation.getDeliveryMethodIds()?.hashCode(),
-                     #operation.getCategoryIds()?.hashCode(),
-                     #operation.getMinPrice(), #operation.getMaxPrice()
-                     }
-                    """,
-            unless = "#result.getProductDtoPage().isEmpty()"
+                        #result.getProductSummaryViewDtoPage().isEmpty()
+                        or #operation.size != null
+                        or #operation.categoryIds != null
+                        or #operation.deliveryMethodIds != null
+                        or #operation.minPrice != null
+                        or #operation.maxPrice != null
+                    }
+                    """
     )
     public GetProductPage.Result getProductPage(GetProductPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
@@ -101,7 +102,12 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(
             value = "productDeliveryMethodsByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound) or #result.getProductDeliveryMethodDtos().isEmpty()"
+            unless = """
+                    {
+                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound)
+                    or #result.getProductDeliveryMethodDtos().isEmpty()
+                    }
+                    """
     )
     public GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation) {
         Long productId = operation.getProductId();
@@ -121,7 +127,12 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(
             value = "productMediaByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductMediaByProductId$Result$NotFound) or #result.getProductMediaDtos().isEmpty()"
+            unless = """
+                    {
+                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductMediaByProductId$Result$NotFound)
+                    or #result.getProductMediaDtos().isEmpty()
+                    }
+                    """
     )
     public GetProductMediaByProductId.Result getProductMediaByProductId(GetProductMediaByProductId operation) {
         Long productId = operation.getProductId();
@@ -140,7 +151,12 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(
             value = "productCharacteristicsByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound) or #result.getProductCharacteristicDtos().isEmpty()"
+            unless = """
+                    {
+                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound)
+                    or #result.getProductCharacteristicDtos().isEmpty()
+                    }
+                    """
     )
     public GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation) {
         Long productId = operation.getProductId();
@@ -158,7 +174,12 @@ public class ProductApplicationService implements ProductService {
     @Cacheable(
             value = "productFaqByProductId",
             key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductFaqByProductId) or #result.getProductFaqDtos().isEmpty()"
+            unless = """
+                    {
+                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductFaqByProductId)
+                    or #result.getProductFaqDtos().isEmpty()
+                    }
+                    """
     )
     public GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation) {
         Long productId = operation.getProductId();

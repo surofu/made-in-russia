@@ -54,7 +54,7 @@ public class UserApplicationService implements UserService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "userByLogin",
-            key = "#operation.userLogin",
+            key = "#operation.userLogin.value",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin$Result$NotFound)"
     )
     public GetUserByLogin.Result getUserByLogin(GetUserByLogin operation) {
@@ -72,7 +72,7 @@ public class UserApplicationService implements UserService {
     @Transactional(readOnly = true)
     @Cacheable(
             value = "userByEmail",
-            key = "#operation.userEmail",
+            key = "#operation.userEmail.value",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail$Result$NotFound)"
     )
     public GetUserByEmail.Result getUserByEmail(GetUserByEmail operation) {
