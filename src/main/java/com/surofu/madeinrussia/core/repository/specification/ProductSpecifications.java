@@ -28,7 +28,7 @@ public class ProductSpecifications {
 
             return criteriaBuilder.equal(root.get("user").get("id"), userId);
         };
-    };
+    }
 
     public static Specification<Product> hasDeliveryMethods(List<Long> deliveryMethodIds) {
         return (root, query, cb) -> {

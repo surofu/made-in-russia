@@ -51,7 +51,7 @@ public class ProductSummarySpecifications {
 
             return criteriaBuilder.equal(root.get("user").get("id"), userId);
         };
-    };
+    }
 
     public static Specification<ProductSummaryView> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, cb) -> {

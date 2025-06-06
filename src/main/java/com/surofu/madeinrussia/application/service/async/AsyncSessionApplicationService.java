@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
@@ -21,7 +22,7 @@ public class AsyncSessionApplicationService {
     private final SessionRepository sessionRepository;
 
     @Async
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveOrUpdateSessionFromHttpRequest(SecurityUser securityUser) throws CompletionException {
         try {
             UserAgent userAgent = securityUser.getSessionInfo().getUserAgent();
@@ -64,7 +65,7 @@ public class AsyncSessionApplicationService {
     }
 
     @Async
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> removeSessionByUserIdAndDeviceId(Long userId, SessionDeviceId sessionDeviceId) throws CompletionException {
         try {
             sessionRepository.deleteSessionByUserIdAndDeviceId(userId, sessionDeviceId);

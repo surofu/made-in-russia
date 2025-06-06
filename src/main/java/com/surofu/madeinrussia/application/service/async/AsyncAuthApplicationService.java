@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class AsyncAuthApplicationService {
     private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
 
     @Async
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
         User user = new User();
         user.setRole(UserRole.ROLE_USER);
@@ -60,7 +61,7 @@ public class AsyncAuthApplicationService {
     }
 
     @Async
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(RegisterVendor operation) throws CompletionException {
         User user = new User();
         user.setRole(UserRole.ROLE_VENDOR);
@@ -109,16 +110,15 @@ public class AsyncAuthApplicationService {
     }
 
     @Async
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) throws CompletionException {
         try {
             userRepository.saveUser(user);
             passwordRepository.saveUserPassword(userPassword);
+            userVerificationCaffeineCacheManager.clearCache(user.getEmail());
         } catch (Exception ex) {
             log.error("Error saving user or password: {}", ex.getMessage(), ex);
         }
-
-        userVerificationCaffeineCacheManager.clearCache(user.getEmail());
 
         return CompletableFuture.completedFuture(null);
     }

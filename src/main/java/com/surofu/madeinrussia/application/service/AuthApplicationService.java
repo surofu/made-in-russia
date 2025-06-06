@@ -32,7 +32,6 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
@@ -76,6 +75,7 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
+    @Transactional
     public RegisterVendor.Result registerVendor(RegisterVendor operation) {
         if (userRepository.existsUserByEmail(operation.getUserEmail())) {
             return RegisterVendor.Result.userWithEmailAlreadyExists(operation.getUserEmail());
