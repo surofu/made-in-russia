@@ -29,7 +29,7 @@ public class ProductSummarySpecifications {
                 return cb.conjunction();
             }
 
-            return root.get("categoryId").in(categoryIds);
+            return root.get("category").get("id").in(categoryIds);
         };
     }
 
@@ -42,6 +42,16 @@ public class ProductSummarySpecifications {
             return criteriaBuilder.like(root.get("title"), "%" + title.trim() + "%");
         };
     }
+
+    public static Specification<ProductSummaryView> byUserId(Long userId) {
+        return (root, query, criteriaBuilder) -> {
+            if (userId == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.equal(root.get("user").get("id"), userId);
+        };
+    };
 
     public static Specification<ProductSummaryView> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, cb) -> {

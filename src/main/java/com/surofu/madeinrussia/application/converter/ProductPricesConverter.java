@@ -22,7 +22,7 @@ public class ProductPricesConverter implements AttributeConverter<List<ProductPr
         try {
             return mapper.writeValueAsString(attribute);
         } catch (Exception e) {
-            throw new RuntimeException("Error converting delivery methods to JSON", e);
+            throw new RuntimeException("Error converting product prices to JSON", e);
         }
     }
 
@@ -32,7 +32,7 @@ public class ProductPricesConverter implements AttributeConverter<List<ProductPr
             return mapper.readValue(dbData, new TypeReference<>() {
             });
         } catch (Exception e) {
-            throw new RuntimeException("Error converting JSON to delivery methods", e);
+            throw new RuntimeException("Error converting JSON to product prices", e);
         }
     }
 }

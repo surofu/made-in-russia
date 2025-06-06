@@ -5,7 +5,6 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -16,8 +15,6 @@ public class GetProductPage {
     String title;
     List<Long> deliveryMethodIds;
     List<Long> categoryIds;
-    BigDecimal minPrice;
-    BigDecimal maxPrice;
 
     public interface Result {
         <T> T process(Processor<T> processor);

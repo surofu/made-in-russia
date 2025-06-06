@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
-import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetMeProductPage {
+public class GetMeProductSummaryViewPage {
     SecurityUser securityUser;
     Integer page;
     Integer size;
@@ -25,15 +25,15 @@ public class GetMeProductPage {
 
         <T> T process(Processor<T> processor);
 
-        static Result success(Page<ProductDto> productDtoPage) {
-            log.info("Successfully processed get me product page with total elements: {}", productDtoPage.getTotalElements());
-            return Success.of(productDtoPage);
+        static Result success(Page<ProductSummaryViewDto> productSummaryViewDtoPage) {
+            log.info("Successfully processed get me product summary view page with total elements: {}", productSummaryViewDtoPage.getTotalElements());
+            return Success.of(productSummaryViewDtoPage);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
 
-            Page<ProductDto> productDtoPage;
+            Page<ProductSummaryViewDto> productSummaryViewDtoPage;
 
             @Override
             public <T> T process(Processor<T> processor) {

@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetMeProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.service.me.MeService;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +54,7 @@ public class MeRestController {
     private final UpdateMe.Result.Processor<ResponseEntity<?>> updateMeProcessor;
     private final GetMeReviewPage.Result.Processor<ResponseEntity<?>> getMeReviewsProcessor;
     private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
-    private final GetMeProductPage.Result.Processor<ResponseEntity<?>> getMeProductPageProcessor;
+    private final GetMeProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getMeProductSummaryViewPageProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -83,7 +85,8 @@ public class MeRestController {
             }
     )
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getMeByJwt(@AuthenticationPrincipal SecurityUser securityUser) {
+    public ResponseEntity<?> getMeByJwt(@Parameter(hidden = true)
+                                        @AuthenticationPrincipal SecurityUser securityUser) {
         GetMe operation = GetMe.of(securityUser);
         return meService.getMeByJwt(operation).process(getMeByJwtProcessor);
     }
@@ -118,7 +121,8 @@ public class MeRestController {
             }
     )
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getMeSessions(@AuthenticationPrincipal SecurityUser securityUser) {
+    public ResponseEntity<?> getMeSessions(@Parameter(hidden = true)
+                                           @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeSessions operation = GetMeSessions.of(securityUser);
         return meService.getMeSessions(operation).process(getMeSessionsProcessor);
     }
@@ -152,7 +156,9 @@ public class MeRestController {
             }
     )
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getMeCurrentSession(@AuthenticationPrincipal SecurityUser securityUser) {
+    public ResponseEntity<?> getMeCurrentSession(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeCurrentSession operation = GetMeCurrentSession.of(securityUser);
         return meService.getMeCurrentSession(operation).process(getMeCurrentSessionProcessor);
     }
@@ -262,8 +268,10 @@ public class MeRestController {
                             }
                     )
             )
-            @AuthenticationPrincipal SecurityUser securityUser,
-            @Valid @RequestBody UpdateMeCommand updateMeCommand) {
+            @Valid @RequestBody UpdateMeCommand updateMeCommand,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser) {
         UpdateMe operation = UpdateMe.of(securityUser, UserRegion.of(updateMeCommand.region()));
         return meService.updateMe(operation).process(updateMeProcessor);
     }
@@ -328,6 +336,7 @@ public class MeRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "1")
             )
+            @RequestParam(required = false)
             Integer minRating,
 
             @Parameter(
@@ -336,7 +345,10 @@ public class MeRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "10000")
             )
+            @RequestParam(required = false)
             Integer maxRating,
+
+            @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeReviewPage operation = GetMeReviewPage.of(securityUser, page, size, minRating, maxRating);
         return meService.getMeReviewPage(operation).process(getMeReviewsProcessor);
@@ -402,6 +414,7 @@ public class MeRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "1")
             )
+            @RequestParam(required = false)
             Integer minRating,
 
             @Parameter(
@@ -410,16 +423,57 @@ public class MeRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "10000")
             )
+            @RequestParam(required = false)
             Integer maxRating,
+
+            @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
         GetMeVendorProductReviewPage operation = GetMeVendorProductReviewPage.of(securityUser, page, size, minRating, maxRating);
         return meService.getMeVendorProductReviewPage(operation).process(getMeVendorProductReviewPageProcessor);
     }
 
-    @GetMapping("products")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @GetMapping("products-summary")
     @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
-    public ResponseEntity<?> getMeProductPage(
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get paginated product summary view",
+            description = """
+                    Returns paginated list of product summaries with detailed information including:
+                    - Product details (title, price, rating, etc.)
+                    - Associated user information
+                    - Category details
+                    - Available delivery methods
+                    Supports filtering by multiple criteria including title, categories, delivery methods and price range.
+                    """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved product summaries",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = GetProductSummaryViewPageDto.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content(
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - invalid or missing JWT token",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
+                    )
+            }
+    )
+    public ResponseEntity<?> getMeProductSummaryViewPage(
             @Parameter(
                     name = "page",
                     description = "Zero-based page index (0..N)",
@@ -443,14 +497,16 @@ public class MeRestController {
 
             @Parameter(
                     name = "title",
-                    description = "Title of the product",
-                    in = ParameterIn.QUERY
+                    description = "Filter products by title (case-insensitive contains)",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(type = "string", example = "smartphone")
             )
+            @RequestParam(required = false)
             String title,
 
             @Parameter(
                     name = "deliveryMethodIds",
-                    description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
+                    description = "Filter products by delivery method IDs. Multiple IDs can be provided as comma-separated values",
                     in = ParameterIn.QUERY,
                     schema = @Schema(
                             type = "array",
@@ -478,7 +534,7 @@ public class MeRestController {
 
             @Parameter(
                     name = "categoryIds",
-                    description = "Filter products by category IDs. Multiple category IDs can be provided",
+                    description = "Filter products by category IDs. Multiple IDs can be provided as comma-separated values",
                     in = ParameterIn.QUERY,
                     schema = @Schema(
                             type = "array",
@@ -506,26 +562,39 @@ public class MeRestController {
 
             @Parameter(
                     name = "minPrice",
-                    description = "Minimum price filter (inclusive)",
+                    description = "Minimum discounted price filter (inclusive)",
                     in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "1")
+                    schema = @Schema(
+                            type = "number",
+                            format = "decimal",
+                            example = "100.50",
+                            minimum = "0"
+                    )
             )
             @RequestParam(required = false)
+            @DecimalMin("0")
             BigDecimal minPrice,
 
             @Parameter(
                     name = "maxPrice",
-                    description = "Maximum price filter (inclusive)",
+                    description = "Maximum discounted price filter (inclusive)",
                     in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "100000")
+                    schema = @Schema(
+                            type = "number",
+                            format = "decimal",
+                            example = "999.99",
+                            minimum = "0"
+                    )
             )
             @RequestParam(required = false)
+            @DecimalMin("0")
             BigDecimal maxPrice,
 
-
-            @AuthenticationPrincipal SecurityUser securityUser
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal
+            SecurityUser securityUser
     ) {
-        GetMeProductPage operation = GetMeProductPage.of(
+        GetMeProductSummaryViewPage operation = GetMeProductSummaryViewPage.of(
                 securityUser,
                 page,
                 size,
@@ -536,6 +605,6 @@ public class MeRestController {
                 maxPrice
         );
 
-        return meService.getMeProductPage(operation).process(getMeProductPageProcessor);
+        return meService.getMeProductSummaryViewPage(operation).process(getMeProductSummaryViewPageProcessor);
     }
 }

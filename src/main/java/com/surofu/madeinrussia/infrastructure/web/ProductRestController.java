@@ -24,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Validated
@@ -153,27 +152,9 @@ public class ProductRestController {
                     }
             )
             @RequestParam(required = false)
-            List<Long> categoryIds,
-
-            @Parameter(
-                    name = "minPrice",
-                    description = "Minimum price filter (inclusive)",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "1")
-            )
-            @RequestParam(required = false)
-            BigDecimal minPrice,
-
-            @Parameter(
-                    name = "maxPrice",
-                    description = "Maximum price filter (inclusive)",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "100000")
-            )
-            @RequestParam(required = false)
-            BigDecimal maxPrice
+            List<Long> categoryIds
     ) {
-        GetProductPage operation = GetProductPage.of(page, size, title, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        GetProductPage operation = GetProductPage.of(page, size, title, deliveryMethodIds, categoryIds);
         return productService.getProductPage(operation).process(getProductPageProcessor);
     }
 
@@ -433,6 +414,7 @@ public class ProductRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "1")
             )
+            @RequestParam(required = false)
             Integer minRating,
 
             @Parameter(
@@ -441,6 +423,7 @@ public class ProductRestController {
                     in = ParameterIn.QUERY,
                     schema = @Schema(type = "number", example = "10000")
             )
+            @RequestParam(required = false)
             Integer maxRating
     ) {
         GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating);

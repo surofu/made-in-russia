@@ -126,9 +126,7 @@ class ProductApplicationServiceTest {
                 10,
                 "",
                 List.of(),
-                List.of(),
-                MIN_PRICE,
-                MAX_PRICE
+                List.of()
         );
 
         GetProductPage.Result getProductsResult = productApplicationService.getProductPage(operation);

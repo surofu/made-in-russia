@@ -68,6 +68,25 @@ public final class ProductSummaryViewDto implements Serializable {
     private Long id;
 
     @Schema(
+            description = "Publisher of the product",
+            implementation = UserDto.class,
+            example = """
+                    {
+                      "id": 12345,
+                      "role": "User",
+                      "email": "user@example.com",
+                      "login": "john_doe",
+                      "phoneNumber": "+79123456789",
+                      "region": "Moscow, Russia",
+                      "registrationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                    }
+                    """,
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private UserDto user;
+
+    @Schema(
             description = "Category this product belongs to",
             implementation = CategoryDto.class,
             example = """
@@ -154,12 +173,12 @@ public final class ProductSummaryViewDto implements Serializable {
 
     @Schema(
             description = """
-        Product's average rating based on customer reviews.
-        Calculated as arithmetic mean of all review ratings.
-        Minimum possible value: 1.0 (all 1-star reviews)
-        Maximum possible value: 5.0 (all 5-star reviews)
-        Returns null if product has no reviews.
-        Automatically updated when new reviews are added.""",
+                    Product's average rating based on customer reviews.
+                    Calculated as arithmetic mean of all review ratings.
+                    Minimum possible value: 1.0 (all 1-star reviews)
+                    Maximum possible value: 5.0 (all 5-star reviews)
+                    Returns null if product has no reviews.
+                    Automatically updated when new reviews are added.""",
             example = "4.2",
             type = "number",
             format = "double",
@@ -213,12 +232,8 @@ public final class ProductSummaryViewDto implements Serializable {
     public static ProductSummaryViewDto of(ProductSummaryView productSummaryView) {
         return ProductSummaryViewDto.builder()
                 .id(productSummaryView.getId())
-                .category(CategoryDto.builder()
-                        .id(productSummaryView.getCategoryId())
-                        .name(productSummaryView.getCategoryName())
-                        .creationDate(productSummaryView.getCreationDate())
-                        .lastModificationDate(productSummaryView.getLastModificationDate())
-                        .build())
+                .user(productSummaryView.getUser())
+                .category(productSummaryView.getCategory())
                 .deliveryMethods(productSummaryView.getDeliveryMethods())
                 .title(productSummaryView.getTitle())
                 .originalPrice(productSummaryView.getOriginPrice())

@@ -165,7 +165,15 @@ public class ProductSummaryViewRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(page, size, title, deliveryMethodIds, categoryIds, minPrice, maxPrice);
+        GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(
+                page,
+                size,
+                title,
+                deliveryMethodIds,
+                categoryIds,
+                minPrice,
+                maxPrice
+        );
         return productSummaryService.getProductSummaryPage(operation).process(getProductSummaryPageProcessor);
     }
 

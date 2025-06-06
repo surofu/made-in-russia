@@ -40,8 +40,6 @@ public class ProductApplicationService implements ProductService {
                         or #operation.size != null
                         or #operation.categoryIds != null
                         or #operation.deliveryMethodIds != null
-                        or #operation.minPrice != null
-                        or #operation.maxPrice != null
                     }
                     """
     )
@@ -51,7 +49,6 @@ public class ProductApplicationService implements ProductService {
         Specification<Product> specification = Specification
                 .where(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
-                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSpecifications.byTitle(operation.getTitle()));
 
         Page<Product> productPage = productRepository.getProductPage(specification, pageable);

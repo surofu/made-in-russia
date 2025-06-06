@@ -11,7 +11,7 @@ public interface MeService {
 
     GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation);
 
-    GetMeProductPage.Result getMeProductPage(GetMeProductPage operation);
+    GetMeProductSummaryViewPage.Result getMeProductSummaryViewPage(GetMeProductSummaryViewPage operation);
 
     GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(GetMeVendorProductReviewPage operation);
 

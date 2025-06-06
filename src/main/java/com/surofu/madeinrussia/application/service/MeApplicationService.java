@@ -6,21 +6,21 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
-import com.surofu.madeinrussia.core.repository.ProductRepository;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
+import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
-import com.surofu.madeinrussia.core.repository.specification.ProductSpecifications;
+import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
+import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
-    private final ProductRepository productRepository;
+    private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
     private final JwtUtils jwtUtils;
@@ -120,20 +120,20 @@ public class MeApplicationService implements MeService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetMeProductPage.Result getMeProductPage(GetMeProductPage operation) {
+    public GetMeProductSummaryViewPage.Result getMeProductSummaryViewPage(GetMeProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
-        Specification<Product> specification = Specification
-                .where(ProductSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
-                .and(ProductSpecifications.byTitle(operation.getTitle()))
-                .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
-                .and(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
+        Specification<ProductSummaryView> specification = Specification
+                .where(ProductSummarySpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
+                .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
+                .and(ProductSummarySpecifications.hasCategories(operation.getCategoryIds()))
+                .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
 
-        Page<Product> productPage = productRepository.getProductPage(specification, pageable);
-        Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
+        Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
+        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
 
-        return GetMeProductPage.Result.success(productDtoPage);
+        return GetMeProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }
 
     @Override
@@ -165,7 +165,6 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
-    @Transactional
     public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
         String refreshToken = operation.getCommand().refreshToken();
 
@@ -199,11 +198,7 @@ public class MeApplicationService implements MeService {
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         TokenDto tokenDto = TokenDto.of(accessToken);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
-                .exceptionally(ex -> {
-                    log.error("Error saving session", ex);
-                    return null;
-                });
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
 
         return RefreshMeCurrentSession.Result.success(tokenDto);
     }

@@ -74,7 +74,7 @@ public class DeliveryMethodRestController {
             @Parameter(
                     name = "id",
                     description = "ID of the delivery method to retrieve",
-                    required = true,
+                    required = false,
                     example = "1",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )

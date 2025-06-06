@@ -1,7 +1,11 @@
 package com.surofu.madeinrussia.core.view;
 
+import com.surofu.madeinrussia.application.converter.CategoryConverter;
+import com.surofu.madeinrussia.application.converter.UserConverter;
+import com.surofu.madeinrussia.application.dto.CategoryDto;
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import com.surofu.madeinrussia.application.converter.DeliveryMethodsConverter;
+import com.surofu.madeinrussia.application.dto.UserDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -58,17 +62,13 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "last_modification_date")
     private ZonedDateTime lastModificationDate;
 
-    @Column(name = "category_id")
-    private Long categoryId;
+    @Convert(converter = UserConverter.class)
+    @Column(name = "user", columnDefinition = "jsonb")
+    private UserDto user;
 
-    @Column(name = "category_name")
-    private String categoryName;
-
-    @Column(name = "category_creation_date")
-    private String categoryCreationDate;
-
-    @Column(name = "category_last_modification_date")
-    private String categoryLastModificationDate;
+    @Convert(converter = CategoryConverter.class)
+    @Column(name = "category", columnDefinition = "jsonb")
+    private CategoryDto category;
 
     @Convert(converter = DeliveryMethodsConverter.class)
     @Column(name = "delivery_methods", columnDefinition = "jsonb")
