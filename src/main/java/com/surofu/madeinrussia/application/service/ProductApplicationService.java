@@ -36,7 +36,7 @@ public class ProductApplicationService implements ProductService {
             key = "#operation.getPage()",
             unless = """
                     {
-                        #result.getProductSummaryViewDtoPage().isEmpty()
+                        #result.getProductDtoPage().isEmpty()
                         or #operation.size != null
                         or #operation.categoryIds != null
                         or #operation.deliveryMethodIds != null
