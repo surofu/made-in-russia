@@ -28,7 +28,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Subselect("SELECT * FROM product_summary_view")
-@Synchronize({"products", "categories", "delivery_methods", "products_delivery_methods"})
+@Synchronize({"products", "categories", "delivery_methods", "products_delivery_methods", "users"})
 public final class ProductSummaryView implements Serializable {
 
     @Id

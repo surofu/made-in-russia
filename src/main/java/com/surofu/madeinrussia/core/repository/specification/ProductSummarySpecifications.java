@@ -13,9 +13,9 @@ import java.util.List;
 
 public class ProductSummarySpecifications {
     public static Specification<ProductSummaryView> hasDeliveryMethods(List<Long> deliveryMethodIds) {
-        return (root, query, cb) -> {
+        return (root, query, criteriaBuilder) -> {
             if (deliveryMethodIds == null || deliveryMethodIds.isEmpty()) {
-                return cb.conjunction();
+                return criteriaBuilder.conjunction();
             }
 
             Join<ProductSummaryView, DeliveryMethod> deliveryMethodsJoin = root.join("deliveryMethods", JoinType.INNER);
@@ -24,12 +24,15 @@ public class ProductSummarySpecifications {
     }
 
     public static Specification<ProductSummaryView> hasCategories(List<Long> categoryIds) {
-        return (root, query, cb) -> {
+        return (root, query, criteriaBuilder) -> {
             if (categoryIds == null || categoryIds.isEmpty()) {
-                return cb.conjunction();
+                return criteriaBuilder.conjunction();
             }
 
-            return root.get("category").get("id").in(categoryIds);
+            return criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                    root.get("category"),
+                    criteriaBuilder.literal("id")
+            ).in(categoryIds);
         };
     }
 
@@ -49,7 +52,12 @@ public class ProductSummarySpecifications {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.equal(root.get("user").get("id"), userId);
+            return criteriaBuilder.equal(
+                    criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                            root.get("user"),
+                            criteriaBuilder.literal("id")
+                    )
+                    , userId);
         };
     }
 
