@@ -16,16 +16,16 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
     Page<ProductReview> findAll(Specification<ProductReview> spec, Pageable pageable);
 
     @Query("""
-        SELECT DISTINCT pr FROM ProductReview pr
-        LEFT JOIN FETCH pr.media m
-        LEFT JOIN FETCH pr.user u
-        LEFT JOIN FETCH u.vendorDetails vd
-        LEFT JOIN FETCH vd.vendorCountries
-        LEFT JOIN FETCH vd.vendorProductCategories
-        LEFT JOIN FETCH pr.product p
-        LEFT JOIN FETCH p.category c
-        WHERE pr.id IN :ids
-        ORDER BY pr.id, m.position.value
-        """)
+            SELECT DISTINCT pr FROM ProductReview pr
+            LEFT JOIN FETCH pr.media m
+            LEFT JOIN FETCH pr.user u
+            LEFT JOIN FETCH u.vendorDetails vd
+            LEFT JOIN FETCH vd.vendorCountries
+            LEFT JOIN FETCH vd.vendorProductCategories
+            LEFT JOIN FETCH pr.product p
+            LEFT JOIN FETCH p.category c
+            WHERE pr.id IN :ids
+            ORDER BY pr.lastModificationDate.value DESC
+            """)
     List<ProductReview> findByIdInWithMedia(@Param("ids") List<Long> ids);
 }

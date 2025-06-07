@@ -4,8 +4,10 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -25,6 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -33,6 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
+    private final SessionRepository sessionRepository;
 
     @Override
     protected void doFilterInternal(
@@ -101,27 +105,39 @@ public class JwtFilter extends OncePerRequestFilter {
                 log.debug("End try get SecurityUser");
                 log.debug("SecurityUser user email: {}", securityUser.getUser().getEmail().toString());
 
-                log.debug("Start creating token");
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        securityUser,
-                        null,
-                        authorityList
-                );
-                log.debug("End creating token");
+                Optional<Session> currentSession = sessionRepository.getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionInfo.getDeviceId());
 
-                SecurityContextHolder.getContext().setAuthentication(token);
-                log.debug("End saving to context");
+                if (currentSession.isPresent()) {
+                    log.debug("Start creating token");
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                            securityUser,
+                            null,
+                            authorityList
+                    );
+                    log.debug("End creating token");
 
-                // Update Access Token
-                accessToken = jwtUtils.generateAccessToken(securityUser);
-                response.setHeader("Authorization", "Bearer " + accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(token);
+                    log.debug("End saving to context");
 
-                log.debug("Start saveOrUpdateSessionFromHttpRequest");
-                asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
-                        .exceptionally(ex -> {
-                            log.error("Error while saving session", ex);
-                            return null;
-                        });
+                    // Update Access Token
+                    accessToken = jwtUtils.generateAccessToken(securityUser);
+                    response.setHeader("Authorization", "Bearer " + accessToken);
+
+                    log.debug("Start saveOrUpdateSessionFromHttpRequest");
+                    asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
+                            .exceptionally(ex -> {
+                                log.error("Error while saving session", ex);
+                                return null;
+                            });
+                } else {
+                    log.warn("""
+                            Session not found by:
+                            user id: {}
+                            device id: {}
+                            ip address: {}
+                            browser: {}
+                            """, securityUser.getUser().getId(), sessionInfo.getDeviceId().toString(), sessionInfo.getIpAddress(), sessionInfo.getUserAgent().getBrowser().getName());
+                }
             } catch (UsernameNotFoundException ex) {
                 log.warn("User with email '{}' not found", userEmail, ex);
             }

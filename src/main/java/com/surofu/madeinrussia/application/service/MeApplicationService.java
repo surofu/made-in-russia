@@ -166,14 +166,12 @@ public class MeApplicationService implements MeService {
 
     @Override
     public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
-        String refreshToken = operation.getCommand().refreshToken();
-
         UserEmail userEmail;
 
         try {
-            userEmail = jwtUtils.extractUserEmailFromRefreshToken(refreshToken);
+            userEmail = jwtUtils.extractUserEmailFromRefreshToken(operation.getRefreshToken());
         } catch (JwtException | IllegalArgumentException ex) {
-            return RefreshMeCurrentSession.Result.invalidRefreshToken(refreshToken, ex);
+            return RefreshMeCurrentSession.Result.invalidRefreshToken(operation.getRefreshToken(), ex);
         }
 
         SecurityUser securityUser;
@@ -186,13 +184,10 @@ public class MeApplicationService implements MeService {
 
         Long userId = securityUser.getUser().getId();
 
-        SessionInfo sessionInfo = securityUser.getSessionInfo();
-        SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
+        Optional<Session> session = sessionRepository.getSessionByUserIdAndDeviceId(userId, operation.getSessionInfo().getDeviceId());
 
-        Optional<Session> session = sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
-
-        if (session.isEmpty() && !sessionSecret.equals(sessionInfo.getSessionKey())) {
-            return RefreshMeCurrentSession.Result.sessionNotFound(sessionDeviceId);
+        if (session.isEmpty() && !sessionSecret.equals(operation.getSessionInfo().getSessionKey())) {
+            return RefreshMeCurrentSession.Result.sessionNotFound(operation.getSessionInfo().getDeviceId());
         }
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);

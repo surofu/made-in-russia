@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.dto.TokenDto;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
@@ -10,7 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Value(staticConstructor = "of")
 public class RefreshMeCurrentSession {
-    RefreshMeCurrentSessionCommand command;
+    SessionInfo sessionInfo;
+    String refreshToken;
 
     public interface Result {
         <T> T process(Processor<T> processor);

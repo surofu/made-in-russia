@@ -10,6 +10,7 @@ import com.surofu.madeinrussia.application.dto.page.GetMeProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -210,9 +212,16 @@ public class MeRestController {
                             }
                     )
             )
-            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand
+            @Parameter(hidden = true)
+            @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand,
+            @Parameter(hidden = true)
+            HttpServletRequest request
     ) {
-        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(refreshMeCurrentSessionCommand);
+        SessionInfo sessionInfo = SessionInfo.of(request);
+        RefreshMeCurrentSession operation = RefreshMeCurrentSession.of(
+                sessionInfo,
+                refreshMeCurrentSessionCommand.refreshToken()
+        );
         return meService.refreshMeCurrentSession(operation).process(refreshMeCurrentSessionProcessor);
     }
 
