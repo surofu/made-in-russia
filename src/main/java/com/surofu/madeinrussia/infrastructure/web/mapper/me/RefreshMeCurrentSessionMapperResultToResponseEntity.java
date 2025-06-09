@@ -15,16 +15,16 @@ public class RefreshMeCurrentSessionMapperResultToResponseEntity implements Refr
 
     @Override
     public ResponseEntity<?> processInvalidRefreshToken(RefreshMeCurrentSession.Result.InvalidRefreshToken result) {
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ResponseEntity<?> processUserNotFound(RefreshMeCurrentSession.Result.UserNotFound result) {
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ResponseEntity<?> processSessionNotFound(RefreshMeCurrentSession.Result.SessionNotFound result) {
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 }

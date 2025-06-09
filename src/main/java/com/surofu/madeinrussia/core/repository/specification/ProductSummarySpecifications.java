@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.repository.specification;
 
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -18,8 +19,25 @@ public class ProductSummarySpecifications {
                 return criteriaBuilder.conjunction();
             }
 
-            Join<ProductSummaryView, DeliveryMethod> deliveryMethodsJoin = root.join("deliveryMethods", JoinType.INNER);
-            return deliveryMethodsJoin.get("id").in(deliveryMethodIds);
+            // Create expression to extract IDs from JSON array
+            Expression<String> jsonArray = root.get("deliveryMethods");
+
+            // Build predicates for each requested ID
+            List<Predicate> predicates = new ArrayList<>();
+            for (Long id : deliveryMethodIds) {
+                predicates.add(
+                        criteriaBuilder.isTrue(
+                                criteriaBuilder.function(
+                                        "jsonb_array_contains_id",
+                                        Boolean.class,
+                                        jsonArray,
+                                        criteriaBuilder.literal(id)
+                                )
+                        )
+                );
+            }
+
+            return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
 
