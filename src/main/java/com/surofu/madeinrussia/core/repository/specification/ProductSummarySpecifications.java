@@ -1,10 +1,7 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
-import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -60,7 +57,10 @@ public class ProductSummarySpecifications {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.like(root.get("title"), "%" + title.trim() + "%");
+            return criteriaBuilder.like(
+                    criteriaBuilder.upper(root.get("title")),
+                    "%" + title.trim().toUpperCase() + "%"
+            );
         };
     }
 

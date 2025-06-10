@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -36,12 +37,22 @@ public final class CategoryDto implements Serializable {
     private Long id;
 
     @Schema(
+            description = "Category unique nam for searching and links",
+            example = "l1_rastenievodstvo-i-zhivotnovodstvo",
+            maxLength = 255,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String slug;
+
+    @Schema(
             description = "Display name of the category",
             example = "Home Appliances",
-            maxLength = 100,
+            maxLength = 255,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String name;
+
+    private List<CategoryDto> children;
 
     @Schema(
             description = "Timestamp when the category was created in the system",
@@ -65,7 +76,21 @@ public final class CategoryDto implements Serializable {
     public static CategoryDto of(Category category) {
         return CategoryDto.builder()
                 .id(category.getId())
+                .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
+                .children(category.getChildren().stream().map(CategoryDto::ofWithoutChildren).toList())
+                .creationDate(category.getCreationDate().getValue())
+                .lastModificationDate(category.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static CategoryDto ofWithoutChildren(Category category) {
+        return CategoryDto.builder()
+                .id(category.getId())
+                .slug(category.getSlug().getValue())
+                .name(category.getName().getValue())
+                .children(List.of())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
                 .build();

@@ -24,11 +24,6 @@ public class JpaProductRepository implements ProductRepository {
     private final SpringDataProductRepository repository;
 
     @Override
-    public Page<Product> getProductPage(Specification<Product> specification, Pageable pageable) {
-        return repository.findAll(specification, pageable);
-    }
-
-    @Override
     @Transactional
     public Optional<Product> getProductById(Long productId) {
         return repository.getProductById(productId);

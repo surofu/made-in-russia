@@ -1,10 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
-import com.surofu.madeinrussia.core.model.category.Category;
-import com.surofu.madeinrussia.core.model.category.CategoryCreationDate;
-import com.surofu.madeinrussia.core.model.category.CategoryLastModificationDate;
-import com.surofu.madeinrussia.core.model.category.CategoryName;
+import com.surofu.madeinrussia.core.model.category.*;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
@@ -44,6 +41,8 @@ class CategoryApplicationServiceTest {
         IntStream.range(0, categoryCount).forEach(i -> {
             Category mockCategory = new Category();
             mockCategory.setId((long) i);
+            mockCategory.setSlug(CategorySlug.of("l1_slug_" + i));
+            mockCategory.setChildren(List.of());
             mockCategory.setName(CategoryName.of(String.format("Cat %s", i)));
             mockCategory.setCreationDate(CategoryCreationDate.of(TEST_DATE_TIME));
             mockCategory.setLastModificationDate(CategoryLastModificationDate.of(TEST_DATE_TIME));
@@ -88,6 +87,9 @@ class CategoryApplicationServiceTest {
 
         Category mockCategory = new Category(
                 mockCategoryId,
+                null,
+                List.of(),
+                CategorySlug.of("l1_slug"),
                 CategoryName.of("Cat 1"),
                 CategoryCreationDate.of(TEST_DATE_TIME),
                 CategoryLastModificationDate.of(TEST_DATE_TIME)
@@ -110,6 +112,7 @@ class CategoryApplicationServiceTest {
 
         CategoryDto resultCategoryDto = getCategoryByIdResultSuccess.getCategoryDto();
         assertEquals(mockCategoryDto.getId(), resultCategoryDto.getId());
+        assertEquals(mockCategoryDto.getSlug(), resultCategoryDto.getSlug());
         assertEquals(mockCategoryDto.getName(), resultCategoryDto.getName());
         assertEquals(mockCategoryDto.getCreationDate(), resultCategoryDto.getCreationDate());
         assertEquals(mockCategoryDto.getLastModificationDate(), resultCategoryDto.getLastModificationDate());

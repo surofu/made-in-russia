@@ -3,8 +3,6 @@ package com.surofu.madeinrussia.core.service.product;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 
 public interface ProductService {
-    GetProductPage.Result getProductPage(GetProductPage operation);
-
     GetProductById.Result getProductById(GetProductById operation);
 
     GetProductCategoryByProductId.Result getProductCategoryByProductId(GetProductCategoryByProductId operation);

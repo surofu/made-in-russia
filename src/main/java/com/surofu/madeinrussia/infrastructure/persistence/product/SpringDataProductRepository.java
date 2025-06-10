@@ -19,9 +19,6 @@ import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq", "prices"})
-    Page<Product> findAll(Specification<Product> specification, Pageable pageable);
-
     @Query("select p from Product p where p.id = :productId")
     @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq"})
     Optional<Product> getProductById(@Param("productId") Long productId);

@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @Entity
@@ -27,12 +27,28 @@ import java.io.Serializable;
                 )
         }
 )
-@BatchSize(size = 20)
 public final class Category implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "parent_category_id",
+            foreignKey = @ForeignKey(name = "fk_categories_parent_category_id")
+    )
+    private Category parent;
+
+    @OneToMany(
+            mappedBy = "parent",
+            fetch = FetchType.LAZY,
+            orphanRemoval = true
+    )
+    private List<Category> children;
+
+    @Embedded
+    private CategorySlug slug;
 
     @Embedded
     private CategoryName name;

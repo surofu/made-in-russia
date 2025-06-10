@@ -8,7 +8,6 @@ import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductC
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
-import com.surofu.madeinrussia.core.repository.specification.ProductSpecifications;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import lombok.AllArgsConstructor;
@@ -28,34 +27,6 @@ import java.util.Optional;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productPage",
-            key = "#operation.getPage()",
-            unless = """
-                    {
-                        #result.getProductDtoPage().isEmpty()
-                        or #operation.size != null
-                        or #operation.categoryIds != null
-                        or #operation.deliveryMethodIds != null
-                    }
-                    """
-    )
-    public GetProductPage.Result getProductPage(GetProductPage operation) {
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-
-        Specification<Product> specification = Specification
-                .where(ProductSpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSpecifications.hasCategories(operation.getCategoryIds()))
-                .and(ProductSpecifications.byTitle(operation.getTitle()));
-
-        Page<Product> productPage = productRepository.getProductPage(specification, pageable);
-        Page<ProductDto> productDtoPage = productPage.map(ProductDto::of);
-
-        return GetProductPage.Result.success(productDtoPage);
-    }
 
     @Override
     @Transactional(readOnly = true)
