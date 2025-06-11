@@ -22,6 +22,25 @@ import java.util.List;
                 {
                   "id": 5,
                   "name": "Smartphones & Accessories",
+                  "slug": "l1_rastenievodstvo-i-zhivotnovodstvo",
+                  "children": [
+                        {
+                          "id": 1,
+                          "name": "Wood",
+                          "slug": "l2_wood",
+                          "children": [],
+                          "creationDate": "2025-05-04T09:17:20.767615Z",
+                          "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                        },
+                        {
+                          "id": 2,
+                          "name": "Stone",
+                          "slug": "l2_stone",
+                          "children": [],
+                          "creationDate": "2025-05-04T09:17:20.767615Z",
+                          "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                        }
+                      ],
                   "creationDate": "2025-05-04T09:17:20.767615Z",
                   "lastModificationDate": "2025-05-04T09:17:20.767615Z"
                 }
@@ -52,6 +71,31 @@ public final class CategoryDto implements Serializable {
     )
     private String name;
 
+    @Schema(
+            description = "Represents children category",
+            type = "array",
+            implementation = CategoryDto[].class,
+            example = """
+                      [
+                        {
+                          "id": 1,
+                          "name": "Wood",
+                          "slug": "l2_wood",
+                          "children": [],
+                          "creationDate": "2025-05-04T09:17:20.767615Z",
+                          "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                        },
+                        {
+                          "id": 2,
+                          "name": "Stone",
+                          "slug": "l2_stone",
+                          "children": [],
+                          "creationDate": "2025-05-04T09:17:20.767615Z",
+                          "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                        }
+                      ]
+                    """
+    )
     private List<CategoryDto> children;
 
     @Schema(
