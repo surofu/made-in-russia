@@ -11,7 +11,12 @@ import java.util.Optional;
 public interface SpringDataCategoryRepository extends JpaRepository<Category, Long> {
 
     @Override
-    @Query("select c from Category c join fetch c.children order by c.id")
+    @Query("""
+            select c from Category c
+            join fetch c.children
+            where c.parent is null
+            order by c.id
+            """)
     List<Category> findAll();
 
     @Override
