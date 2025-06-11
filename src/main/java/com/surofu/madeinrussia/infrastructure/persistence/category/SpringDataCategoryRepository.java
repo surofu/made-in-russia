@@ -32,12 +32,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
 
     @Query(value = """
             with recursive category_tree as (
-                select c.* from categories c where c.id in (:ids)
+                select c.id from categories c where c.id in (:ids)
                     union all
-                    select child.* from categories child
+                    select child.id from categories child
                     join category_tree parent on parent.id = child.parent_category_id
             )
             select * from category_tree
             """, nativeQuery = true)
-    List<Category> findAllByIdWithAllChildren(@Param("ids") Iterable<Long> ids);
+    List<Long> findAllIdsByIdWithAllChildren(@Param("ids") Iterable<Long> ids);
 }

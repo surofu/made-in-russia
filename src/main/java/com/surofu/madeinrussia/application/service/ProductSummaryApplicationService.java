@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
-import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
@@ -48,14 +47,14 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
-        List<Category> allChildCategories = categoryRepository.getCategoriesByIds(operation.getCategoryIds());
+        List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>();
 
         if (operation.getCategoryIds() != null) {
             categoryIdsWithChildren.addAll(operation.getCategoryIds());
         }
 
-        categoryIdsWithChildren.addAll(allChildCategories.stream().map(Category::getId).toList());
+        categoryIdsWithChildren.addAll(allChildCategoriesIds);
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))

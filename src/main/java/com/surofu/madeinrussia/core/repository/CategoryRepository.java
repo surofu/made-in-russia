@@ -13,5 +13,5 @@ public interface CategoryRepository {
 
     Optional<Category> getCategoryBySlug(CategorySlug slug);
 
-    List<Category> getCategoriesByIds(List<Long> ids);
+    List<Long> getCategoriesIdsByIds(List<Long> ids);
 }

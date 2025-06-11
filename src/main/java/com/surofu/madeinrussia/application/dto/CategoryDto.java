@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -97,14 +98,14 @@ public final class CategoryDto implements Serializable {
                       ]
                     """
     )
-    private List<CategoryDto> children;
+    private List<CategoryDto> children = new ArrayList<>();
 
     @Schema(
             description = "Count of current category children",
             example = "10",
             accessMode = Schema.AccessMode.READ_ONLY
     )
-    private Integer childrenCount;
+    private Long childrenCount;
 
     @Schema(
             description = "Timestamp when the category was created in the system",
@@ -130,7 +131,7 @@ public final class CategoryDto implements Serializable {
                 .id(category.getId())
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
-                .childrenCount(category.getChildrenCount())
+                .childrenCount(category.getChildrenCount().getValue())
                 .children(category.getChildren().stream().map(CategoryDto::ofWithoutChildren).toList())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
@@ -144,7 +145,7 @@ public final class CategoryDto implements Serializable {
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
                 .children(List.of())
-                .childrenCount(category.getChildrenCount())
+                .childrenCount(category.getChildrenCount().getValue())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
                 .build();

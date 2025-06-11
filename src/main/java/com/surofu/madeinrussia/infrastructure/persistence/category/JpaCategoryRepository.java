@@ -31,7 +31,7 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
-    public List<Category> getCategoriesByIds(List<Long> ids) {
-        return repository.findAllByIdWithAllChildren(ids);
+    public List<Long> getCategoriesIdsByIds(List<Long> ids) {
+        return repository.findAllIdsByIdWithAllChildren(ids);
     }
 }

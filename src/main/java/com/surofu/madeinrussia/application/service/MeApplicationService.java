@@ -5,7 +5,6 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
@@ -126,14 +125,14 @@ public class MeApplicationService implements MeService {
     public GetMeProductSummaryViewPage.Result getMeProductSummaryViewPage(GetMeProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
-        List<Category> allChildCategories = categoryRepository.getCategoriesByIds(operation.getCategoryIds());
+        List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>();
 
         if (operation.getCategoryIds() != null) {
             categoryIdsWithChildren.addAll(operation.getCategoryIds());
         }
 
-        categoryIdsWithChildren.addAll(allChildCategories.stream().map(Category::getId).toList());
+        categoryIdsWithChildren.addAll(allChildCategoriesIds);
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.byUserId(operation.getSecurityUser().getUser().getId()))

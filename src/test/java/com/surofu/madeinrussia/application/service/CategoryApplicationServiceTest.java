@@ -90,7 +90,7 @@ class CategoryApplicationServiceTest {
                 mockCategoryId,
                 null,
                 Set.of(),
-                0,
+                    CategoryChildrenCount.of(0L),
                 CategorySlug.of("l1_slug"),
                 CategoryName.of("Cat 1"),
                 CategoryCreationDate.of(TEST_DATE_TIME),
