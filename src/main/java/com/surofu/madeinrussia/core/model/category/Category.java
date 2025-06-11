@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -45,7 +47,7 @@ public final class Category implements Serializable {
             fetch = FetchType.LAZY,
             orphanRemoval = true
     )
-    private List<Category> children;
+    private Set<Category> children = new HashSet<>();
 
     @Embedded
     private CategorySlug slug;
@@ -58,4 +60,16 @@ public final class Category implements Serializable {
 
     @Embedded
     private CategoryLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return id != null && id.equals(((Category) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

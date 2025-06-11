@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,7 +43,7 @@ class CategoryApplicationServiceTest {
             Category mockCategory = new Category();
             mockCategory.setId((long) i);
             mockCategory.setSlug(CategorySlug.of("l1_slug_" + i));
-            mockCategory.setChildren(List.of());
+            mockCategory.setChildren(Set.of());
             mockCategory.setName(CategoryName.of(String.format("Cat %s", i)));
             mockCategory.setCreationDate(CategoryCreationDate.of(TEST_DATE_TIME));
             mockCategory.setLastModificationDate(CategoryLastModificationDate.of(TEST_DATE_TIME));
@@ -88,7 +89,7 @@ class CategoryApplicationServiceTest {
         Category mockCategory = new Category(
                 mockCategoryId,
                 null,
-                List.of(),
+                Set.of(),
                 CategorySlug.of("l1_slug"),
                 CategoryName.of("Cat 1"),
                 CategoryCreationDate.of(TEST_DATE_TIME),

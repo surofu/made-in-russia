@@ -9,4 +9,6 @@ public interface CategoryRepository {
     List<Category> getCategories();
 
     Optional<Category> getCategoryById(Long id);
+
+    List<Category> getCategoriesByIds(List<Long> ids);
 }

@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
+import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
@@ -16,12 +18,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ProductSummaryApplicationService implements ProductSummaryService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
+
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,9 +47,13 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
+        List<Category> allChildCategories = categoryRepository.getCategoriesByIds(operation.getCategoryIds());
+        List<Long> categoryIdsWithChildren = operation.getCategoryIds();
+        categoryIdsWithChildren.addAll(allChildCategories.stream().map(Category::getId).toList());
+
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.hasCategories(operation.getCategoryIds()))
+                .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 

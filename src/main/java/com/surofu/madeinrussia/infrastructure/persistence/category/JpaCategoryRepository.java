@@ -23,4 +23,9 @@ public class JpaCategoryRepository implements CategoryRepository {
     public Optional<Category> getCategoryById(Long id) {
         return repository.findById(id);
     }
+
+    @Override
+    public List<Category> getCategoriesByIds(List<Long> ids) {
+        return repository.findAllByIdWithAllChildren(ids);
+    }
 }

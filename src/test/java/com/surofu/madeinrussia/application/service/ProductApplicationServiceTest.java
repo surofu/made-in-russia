@@ -54,7 +54,7 @@ class ProductApplicationServiceTest {
         Category category = new Category();
         category.setId(mockCategoryId);
         category.setSlug(CategorySlug.of("l1_slug"));
-        category.setChildren(List.of());
+        category.setChildren(Set.of());
         category.setName(CategoryName.of("Test Category"));
         category.setCreationDate(CategoryCreationDate.of(TEST_DATE_TIME));
         category.setLastModificationDate(CategoryLastModificationDate.of(TEST_DATE_TIME));
