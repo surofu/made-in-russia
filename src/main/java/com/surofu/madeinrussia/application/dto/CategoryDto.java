@@ -41,6 +41,7 @@ import java.util.List;
                           "lastModificationDate": "2025-05-04T09:17:20.767615Z"
                         }
                       ],
+                  "childrenCount": 2,
                   "creationDate": "2025-05-04T09:17:20.767615Z",
                   "lastModificationDate": "2025-05-04T09:17:20.767615Z"
                 }
@@ -99,6 +100,13 @@ public final class CategoryDto implements Serializable {
     private List<CategoryDto> children;
 
     @Schema(
+            description = "Count of current category children",
+            example = "10",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Integer childrenCount;
+
+    @Schema(
             description = "Timestamp when the category was created in the system",
             example = "2025-05-04T09:17:20.767615Z",
             type = "string",
@@ -122,6 +130,7 @@ public final class CategoryDto implements Serializable {
                 .id(category.getId())
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
+                .childrenCount(category.getChildrenCount())
                 .children(category.getChildren().stream().map(CategoryDto::ofWithoutChildren).toList())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
@@ -135,6 +144,7 @@ public final class CategoryDto implements Serializable {
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
                 .children(List.of())
+                .childrenCount(category.getChildrenCount())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
                 .build();
