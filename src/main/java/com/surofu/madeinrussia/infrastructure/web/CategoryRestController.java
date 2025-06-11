@@ -1,13 +1,16 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
+import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +32,7 @@ public class CategoryRestController {
 
     private final GetCategories.Result.Processor<ResponseEntity<?>> getCategoriesProcessor;
     private final GetCategoryById.Result.Processor<ResponseEntity<?>> getCategoryByIdProcessor;
+    private final GetCategoryBySlug.Result.Processor<ResponseEntity<?>> getCategoryBySlugProcessor;
 
     @GetMapping
     @Operation(
@@ -49,10 +53,10 @@ public class CategoryRestController {
         return service.getCategories().process(getCategoriesProcessor);
     }
 
-    @GetMapping("/{categoryId}")
+    @GetMapping("/{categoryIdOrSlug}")
     @Operation(
-            summary = "Get category by ID",
-            description = "Retrieves a single category by its unique identifier",
+            summary = "Get category by ID or slug",
+            description = "Retrieves a single category by its unique identifier or unique slug",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -68,18 +72,34 @@ public class CategoryRestController {
                     )
             }
     )
-    public ResponseEntity<?> getCategoryById(
+    public ResponseEntity<?> getCategoryByIdOrSlug(
             @Parameter(
-                    name = "id",
-                    description = "ID of the category to retrieve",
+                    name = "categoryIdOrSlug",
+                    description = "ID or slug of the category to retrieve",
                     required = true,
-                    example = "1",
-                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+                    examples = {
+                            @ExampleObject(
+                                    name = "categoryId",
+                                    description = "ID of the category to retrieve",
+                                    value = "1"
+                            ),
+                            @ExampleObject(
+                                    name = "categorySlug",
+                                    description = "Slug of the category to retrieve",
+                                    value = "l1_rastenievodstvo-i-zhivotnovodstvo"
+                            )
+                    }
             )
             @PathVariable
-            Long categoryId
+            String categoryIdOrSlug
     ) {
-        GetCategoryById operation = GetCategoryById.of(categoryId);
-        return service.getCategoryById(operation).process(getCategoryByIdProcessor);
+        try {
+            long categoryId = Long.parseLong(categoryIdOrSlug);
+            GetCategoryById operation = GetCategoryById.of(categoryId);
+            return service.getCategoryById(operation).process(getCategoryByIdProcessor);
+        } catch (NumberFormatException e) {
+            GetCategoryBySlug operation = GetCategoryBySlug.of(CategorySlug.of(categoryIdOrSlug));
+            return service.getCategoryBySlug(operation).process(getCategoryBySlugProcessor);
+        }
     }
 }

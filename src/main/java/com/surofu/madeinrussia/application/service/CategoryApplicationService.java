@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
+import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -54,5 +55,23 @@ public class CategoryApplicationService implements CategoryService {
         }
 
         return GetCategoryById.Result.notFound(operation.getCategoryId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "category",
+            key = "#operation.getCategorySlug()",
+            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug$Result$NotFound)"
+    )
+    public GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation) {
+        Optional<Category> category = repository.getCategoryBySlug(operation.getCategorySlug());
+        Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
+
+        if (categoryDto.isPresent()) {
+            return GetCategoryBySlug.Result.success(categoryDto.get());
+        }
+
+        return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
     }
 }

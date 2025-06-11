@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.persistence.category;
 
 import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,6 +25,10 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     @Query("select c from Category c where c.id = :id")
     @EntityGraph(attributePaths = "children")
     Optional<Category> findById(@Param("id") Long id);
+
+    @Query("select c from Category c where c.slug = :slug")
+    @EntityGraph(attributePaths = "children")
+    Optional<Category> findBySlug(@Param("slug") CategorySlug slug);
 
     @Query(value = """
             with recursive category_tree as (

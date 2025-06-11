@@ -1,25 +1,26 @@
 package com.surofu.madeinrussia.core.service.category.operation;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class GetCategoryById {
-    Long categoryId;
+public class GetCategoryBySlug {
+    CategorySlug categorySlug;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
         static Result success(CategoryDto categoryDto) {
-            log.info("Successfully processed get category by id: {}", categoryDto);
+            log.info("Successfully processed get category by slug: {}", categoryDto);
             return Success.of(categoryDto);
         }
 
-        static Result notFound(Long categoryId) {
-            log.warn("Category with ID '{}' not found", categoryId);
-            return NotFound.of(categoryId);
+        static Result notFound(CategorySlug categorySlug) {
+            log.warn("Category with slug '{}' not found", categorySlug.toString());
+            return NotFound.of(categorySlug);
         }
 
         @Value(staticConstructor = "of")
@@ -34,7 +35,7 @@ public class GetCategoryById {
 
         @Value(staticConstructor = "of")
         class NotFound implements Result {
-            Long categoryId;
+            CategorySlug categorySlug;
 
             @Override
             public <T> T process(Processor<T> processor) {
