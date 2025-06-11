@@ -18,6 +18,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +49,12 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
         List<Category> allChildCategories = categoryRepository.getCategoriesByIds(operation.getCategoryIds());
-        List<Long> categoryIdsWithChildren = operation.getCategoryIds();
+        List<Long> categoryIdsWithChildren = new ArrayList<>();
+
+        if (operation.getCategoryIds() != null) {
+            categoryIdsWithChildren.addAll(operation.getCategoryIds());
+        }
+
         categoryIdsWithChildren.addAll(allChildCategories.stream().map(Category::getId).toList());
 
         Specification<ProductSummaryView> specification = Specification

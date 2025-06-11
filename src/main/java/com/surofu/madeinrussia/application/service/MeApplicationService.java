@@ -6,12 +6,14 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncMeApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
@@ -35,6 +37,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +52,7 @@ public class MeApplicationService implements MeService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
+    private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
@@ -123,10 +127,19 @@ public class MeApplicationService implements MeService {
     public GetMeProductSummaryViewPage.Result getMeProductSummaryViewPage(GetMeProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
+        List<Category> allChildCategories = categoryRepository.getCategoriesByIds(operation.getCategoryIds());
+        List<Long> categoryIdsWithChildren = new ArrayList<>();
+
+        if (operation.getCategoryIds() != null) {
+            categoryIdsWithChildren.addAll(operation.getCategoryIds());
+        }
+
+        categoryIdsWithChildren.addAll(allChildCategories.stream().map(Category::getId).toList());
+
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
-                .and(ProductSummarySpecifications.hasCategories(operation.getCategoryIds()))
+                .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
                 .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
 
