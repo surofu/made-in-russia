@@ -24,11 +24,13 @@ import java.util.List;
                   "id": 5,
                   "name": "Smartphones & Accessories",
                   "slug": "l1_rastenievodstvo-i-zhivotnovodstvo",
+                  "imageUrl": "https://images.unsplash.com/photo-1515446134809-993c501ca304?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
                   "children": [
                         {
                           "id": 1,
                           "name": "Wood",
                           "slug": "l2_wood",
+                          "imageUrl": null,
                           "children": [],
                           "creationDate": "2025-05-04T09:17:20.767615Z",
                           "lastModificationDate": "2025-05-04T09:17:20.767615Z"
@@ -37,6 +39,7 @@ import java.util.List;
                           "id": 2,
                           "name": "Stone",
                           "slug": "l2_stone",
+                          "imageUrl": null,
                           "children": [],
                           "creationDate": "2025-05-04T09:17:20.767615Z",
                           "lastModificationDate": "2025-05-04T09:17:20.767615Z"
@@ -72,6 +75,13 @@ public final class CategoryDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String name;
+
+    @Schema(
+            description = "Image url of the category",
+            example = "https://images.unsplash.com/photo-1515446134809-993c501ca304?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            maxLength = 20_000
+    )
+    private String imageUrl;
 
     @Schema(
             description = "Represents children category",
@@ -131,6 +141,7 @@ public final class CategoryDto implements Serializable {
                 .id(category.getId())
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
+                .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
                 .childrenCount(category.getChildrenCount().getValue())
                 .children(category.getChildren().stream().map(CategoryDto::ofWithoutChildren).toList())
                 .creationDate(category.getCreationDate().getValue())
@@ -144,6 +155,7 @@ public final class CategoryDto implements Serializable {
                 .id(category.getId())
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
+                .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
                 .children(List.of())
                 .childrenCount(category.getChildrenCount().getValue())
                 .creationDate(category.getCreationDate().getValue())

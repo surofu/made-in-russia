@@ -58,6 +58,9 @@ public final class Category implements Serializable {
     private CategoryName name;
 
     @Embedded
+    private CategoryImageUrl imageUrl;
+
+    @Embedded
     private CategoryCreationDate creationDate;
 
     @Embedded

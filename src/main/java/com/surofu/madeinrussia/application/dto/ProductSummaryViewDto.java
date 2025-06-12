@@ -28,10 +28,33 @@ import java.util.List;
                 {
                   "id": 42,
                   "category": {
-                    "id": 5,
-                    "name": "Electronics",
-                    "creationDate": "2025-05-04T09:17:20.767615Z",
-                    "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                      "id": 5,
+                      "name": "Smartphones & Accessories",
+                      "slug": "l1_rastenievodstvo-i-zhivotnovodstvo",
+                      "imageUrl": "https://images.unsplash.com/photo-1515446134809-993c501ca304?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                      "children": [
+                            {
+                              "id": 1,
+                              "name": "Wood",
+                              "slug": "l2_wood",
+                              "imageUrl": null,
+                              "children": [],
+                              "creationDate": "2025-05-04T09:17:20.767615Z",
+                              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                            },
+                            {
+                              "id": 2,
+                              "name": "Stone",
+                              "slug": "l2_stone",
+                              "imageUrl": null,
+                              "children": [],
+                              "creationDate": "2025-05-04T09:17:20.767615Z",
+                              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                            }
+                          ],
+                      "childrenCount": 2,
+                      "creationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
                   },
                   "deliveryMethods": [
                     {
@@ -51,7 +74,8 @@ import java.util.List;
                   "originalPrice": 199.99,
                   "discount": 15.00,
                   "discountedPrice": 169.99,
-                  "priceUnit": "USD",
+                  "priceCurrency": "USD",
+                  "rating": 4.5,
                   "previewImageUrl": "https://example.com/images/headphones-preview.jpg",
                   "creationDate": "2025-05-04T09:17:20.767615Z",
                   "lastModificationDate": "2025-05-04T09:17:20.767615Z"
