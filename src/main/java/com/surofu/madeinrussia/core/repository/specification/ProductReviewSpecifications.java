@@ -45,10 +45,10 @@ public class ProductReviewSpecifications {
 
             List<Predicate> predicates = new ArrayList<>();
             if (minRating != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("rating").get("rating"), minRating));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("rating").get("value"), minRating));
             }
             if (maxRating != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("rating").get("rating"), maxRating));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("rating").get("value"), maxRating));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
