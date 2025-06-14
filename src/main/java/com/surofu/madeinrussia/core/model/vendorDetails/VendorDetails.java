@@ -55,6 +55,9 @@ public final class VendorDetails implements Serializable {
     @Embedded
     private VendorDetailsInn inn;
 
+    @Embedded
+    private VendorDetailsPaymentDetails paymentDetails;
+
     @OneToMany(
             mappedBy = "vendorDetails",
             cascade = CascadeType.ALL,

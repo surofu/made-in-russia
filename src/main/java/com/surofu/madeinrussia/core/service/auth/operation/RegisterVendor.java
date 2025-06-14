@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsPaymentDetails;
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class RegisterVendor {
     UserPhoneNumber userPhoneNumber;
 
     VendorDetailsInn vendorDetailsInn;
+    VendorDetailsPaymentDetails vendorDetailsPaymentDetails;
 
     List<VendorCountryName> vendorCountryNames;
     List<VendorProductCategoryName> vendorProductCategoryNames;

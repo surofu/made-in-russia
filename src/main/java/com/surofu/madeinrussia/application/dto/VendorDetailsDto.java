@@ -22,6 +22,7 @@ import java.util.List;
                 {
                   "id": 789,
                   "inn": "7707083893",
+                  "paymentDetails": "ЕРИП 12345АБВГ67890",
                   "countries": [
                     {
                       "id": 1,
@@ -53,14 +54,21 @@ public final class VendorDetailsDto implements Serializable {
     private Long id;
 
     @Schema(
-            description = "Vendor's Tax Identification Number (INN) in Russia",
+            description = "Vendor's Tax Identification Number (INN)",
             example = "7707083893",
-            pattern = "\\d{10,12}",
-            minLength = 10,
+            minLength = 7,
             maxLength = 12,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String inn;
+
+    @Schema(
+            description = "Vendor's payment details",
+            example = "ЕРИП 12345АБВГД6890",
+            maxLength = 255,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String paymentDetails;
 
     @Schema(
             description = "List of countries where the vendor operates",
@@ -100,6 +108,7 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(vendorDetails.getId())
                 .inn(vendorDetails.getInn().getValue())
+                .paymentDetails(vendorDetails.getPaymentDetails().getValue())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .creationDate(vendorDetails.getCreationDate().getValue())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())

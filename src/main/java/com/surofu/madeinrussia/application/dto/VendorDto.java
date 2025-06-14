@@ -22,6 +22,7 @@ import java.io.Serializable;
                   "vendorDetails": {
                     "id": 789,
                     "inn": "7707083893",
+                    "paymentDetails": "ЕРИП 12345АБВГ67890",
                     "countries": [
                       {
                         "id": 1,

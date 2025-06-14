@@ -313,8 +313,6 @@ public class ProductDto implements Serializable {
 
     // TODO: !!! Заглушки
 
-    private Integer ordersCount = new Random().nextInt(100);
-
     private List<ProductReviewMediaDto> reviewsMedia = List.of(
             new ProductReviewMediaDto(1L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
             new ProductReviewMediaDto(2L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
@@ -358,7 +356,6 @@ public class ProductDto implements Serializable {
                 .lastModificationDate(product.getLastModificationDate().getValue())
                 .rating(product.getRating())
                 .reviewsCount(new Random().nextInt(100))
-                .ordersCount(new Random().nextInt(100))
                 .reviewsMedia(List.of(
                         new ProductReviewMediaDto(1L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
                         new ProductReviewMediaDto(2L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),

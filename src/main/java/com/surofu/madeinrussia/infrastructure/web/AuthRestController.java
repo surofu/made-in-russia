@@ -14,6 +14,7 @@ import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsPaymentDetails;
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
@@ -33,8 +34,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -153,6 +152,7 @@ public class AuthRestController {
                 UserRegion.of(registerVendorCommand.countries().get(0)),
                 UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
                 VendorDetailsInn.of(registerVendorCommand.inn()),
+                VendorDetailsPaymentDetails.of(registerVendorCommand.paymentDetails()),
                 registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
                 registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
         );
