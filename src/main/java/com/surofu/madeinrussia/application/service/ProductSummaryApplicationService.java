@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryV
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductSummaryApplicationService implements ProductSummaryService {

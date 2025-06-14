@@ -84,11 +84,13 @@ public class ProductSummaryViewRestController {
             @Max(100)
             int size,
 
+
             @Parameter(
                     name = "title",
                     description = "Title of the product",
                     in = ParameterIn.QUERY
             )
+            @RequestParam(defaultValue = "")
             String title,
 
             @Parameter(
