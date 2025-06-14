@@ -11,6 +11,11 @@ import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
@@ -35,10 +40,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -219,11 +221,53 @@ public class MeApplicationService implements MeService {
     public UpdateMe.Result updateMe(UpdateMe operation) {
         User user = operation.getSecurityUser().getUser();
 
+        if (operation.getUserPhoneNumber() != null) {
+            user.setPhoneNumber(operation.getUserPhoneNumber());
+        }
+
         if (operation.getUserRegion() != null && !user.getRole().equals(UserRole.ROLE_VENDOR)) {
             user.setRegion(operation.getUserRegion());
         }
 
+        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+            VendorDetails vendorDetails = user.getVendorDetails();
+
+            if (operation.getInn() != null) {
+                vendorDetails.setInn(operation.getInn());
+            }
+
+            if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
+                Set<VendorCountry> vendorCountries = new HashSet<>();
+
+                for (VendorCountryName countryName : operation.getCountryNames()) {
+                    VendorCountry vendorCountry = new VendorCountry();
+                    vendorCountry.setName(countryName);
+                    vendorCountries.add(vendorCountry);
+                }
+
+                vendorDetails.setVendorCountries(vendorCountries);
+            }
+
+            if (operation.getCategoryNames() != null && !operation.getCategoryNames().isEmpty()) {
+                Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+
+                for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
+                    VendorProductCategory vendorProductCategory = new VendorProductCategory();
+                    vendorProductCategory.setName(categoryName);
+                    vendorProductCategories.add(vendorProductCategory);
+                }
+
+                vendorDetails.setVendorProductCategories(vendorProductCategories);
+            }
+
+            user.setVendorDetails(vendorDetails);
+        }
+
         asyncMeApplicationService.updateUser(user);
+
+        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+            return UpdateMe.Result.success(VendorDto.of(user));
+        }
 
         return UpdateMe.Result.success(UserDto.of(user));
     }

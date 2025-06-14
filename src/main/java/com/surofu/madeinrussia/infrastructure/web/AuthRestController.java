@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/auth")
@@ -143,7 +145,7 @@ public class AuthRestController {
                             schema = @Schema(implementation = RegisterVendorCommand.class)
                     )
             )
-            @RequestBody RegisterVendorCommand registerVendorCommand) {
+            @RequestBody @Valid RegisterVendorCommand registerVendorCommand) {
         RegisterVendor operation = RegisterVendor.of(
                 UserEmail.of(registerVendorCommand.email()),
                 UserLogin.of(registerVendorCommand.login()),

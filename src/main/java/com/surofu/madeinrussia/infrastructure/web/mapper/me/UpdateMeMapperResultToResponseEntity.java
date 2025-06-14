@@ -10,6 +10,6 @@ public class UpdateMeMapperResultToResponseEntity implements UpdateMe.Result.Pro
 
     @Override
     public ResponseEntity<?> processSuccess(UpdateMe.Result.Success result) {
-        return new ResponseEntity<>(result.getUserDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getAccountDto(), HttpStatus.OK);
     }
 }

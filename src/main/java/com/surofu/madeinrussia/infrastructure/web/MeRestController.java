@@ -11,7 +11,11 @@ import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPage
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -271,6 +275,7 @@ public class MeRestController {
                                     @ExampleObject(
                                             value = """
                                                     {
+                                                      "phoneNumber": "+375281234567",
                                                       "region": "Moscow, Russia"
                                                     }"""
                                     )
@@ -281,7 +286,14 @@ public class MeRestController {
 
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
-        UpdateMe operation = UpdateMe.of(securityUser, UserRegion.of(updateMeCommand.region()));
+        UpdateMe operation = UpdateMe.of(
+                securityUser,
+                updateMeCommand.phoneNumber() != null ? UserPhoneNumber.of(updateMeCommand.phoneNumber()) : null,
+                updateMeCommand.region() != null ? UserRegion.of(updateMeCommand.region()) : null,
+                updateMeCommand.inn() != null ? VendorDetailsInn.of(updateMeCommand.inn()) : null,
+                updateMeCommand.countries() != null ? updateMeCommand.countries().stream().map(VendorCountryName::of).toList() : null,
+                updateMeCommand.categories() != null ? updateMeCommand.categories().stream().map(VendorProductCategoryName::of).toList() : null
+        );
         return meService.updateMe(operation).process(updateMeProcessor);
     }
 
