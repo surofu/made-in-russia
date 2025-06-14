@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
+import com.surofu.madeinrussia.core.service.user.operation.GetVendorById;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,5 +111,22 @@ public class UserApplicationService implements UserService {
         SessionInfo sessionInfo = SessionInfo.of(request);
 
         return new SecurityUser(user, userPassword, sessionInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "vendorById",
+            key = "#operation.vendorId"
+    )
+    public GetVendorById.Result getVendorById(GetVendorById operation) {
+        Optional<User> user = userRepository.getVendorById(operation.getVendorId());
+        Optional<UserDto> userDto = user.map(UserDto::of);
+
+        if (userDto.isPresent()) {
+            return GetVendorById.Result.success(userDto.get());
+        }
+
+        return GetVendorById.Result.notFound(operation.getVendorId());
     }
 }

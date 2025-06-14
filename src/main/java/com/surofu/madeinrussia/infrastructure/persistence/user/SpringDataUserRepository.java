@@ -34,4 +34,10 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long> {
                 where u.login = :login
             """)
     Optional<UserEmail> getUserEmailByLogin(@Param("login") UserLogin login);
+
+    @Query("""
+                select u from User u
+                where u.id = :id and u.role = 'ROLE_VENDOR'
+            """)
+    Optional<User> getVendorById(@Param("id") Long id);
 }
