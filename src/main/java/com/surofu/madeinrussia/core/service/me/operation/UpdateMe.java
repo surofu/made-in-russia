@@ -13,6 +13,7 @@ import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCat
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
@@ -33,6 +34,11 @@ public class UpdateMe {
             return Success.of(accountDto);
         }
 
+        static Result forbiddenForNewAccount(ZonedDateTime accessDateTime) {
+            log.info("Forbidden for new account, access after date: {}", accessDateTime);
+            return ForbiddenForNewAccount.of(accessDateTime);
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             AbstractAccountDto accountDto;
@@ -43,8 +49,19 @@ public class UpdateMe {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class ForbiddenForNewAccount implements Result {
+            ZonedDateTime accessDateTime;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processForbiddenForNewAccount(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
+            T processForbiddenForNewAccount(ForbiddenForNewAccount result);
         }
     }
 }

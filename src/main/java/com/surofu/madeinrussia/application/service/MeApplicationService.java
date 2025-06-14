@@ -40,6 +40,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -220,6 +221,13 @@ public class MeApplicationService implements MeService {
     })
     public UpdateMe.Result updateMe(UpdateMe operation) {
         User user = operation.getSecurityUser().getUser();
+
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime accessDateTime = user.getRegistrationDate().getValue().plusDays(3);
+
+        if (accessDateTime.isAfter(now)) {
+            return UpdateMe.Result.forbiddenForNewAccount(accessDateTime);
+        }
 
         if (operation.getUserPhoneNumber() != null) {
             user.setPhoneNumber(operation.getUserPhoneNumber());
