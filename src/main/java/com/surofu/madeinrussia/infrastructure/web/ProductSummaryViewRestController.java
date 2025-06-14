@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -167,6 +169,8 @@ public class ProductSummaryViewRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
+        log.info("Product Title: {}", title);
+
         GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(
                 page,
                 size,
