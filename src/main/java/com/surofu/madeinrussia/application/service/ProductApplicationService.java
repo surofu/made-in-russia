@@ -7,7 +7,9 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
+import com.surofu.madeinrussia.core.repository.ProductReviewMediaRepository;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,7 @@ import java.util.Optional;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductReviewMediaRepository productReviewMediaRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -35,11 +38,19 @@ public class ProductApplicationService implements ProductService {
         Optional<Product> product = productRepository.getProductById(operation.getProductId());
         Optional<ProductDto> productDto = product.map(ProductDto::of);
 
-        if (productDto.isPresent()) {
-            return GetProductById.Result.success(productDto.get());
+        if (productDto.isEmpty()) {
+            return GetProductById.Result.notFound(operation.getProductId());
         }
 
-        return GetProductById.Result.notFound(operation.getProductId());
+        List<ProductReviewMedia> productReviewMedia = productReviewMediaRepository.findAllByProductId(operation.getProductId(), 10);
+        List<ProductReviewMediaDto> productReviewMediaDtos = productReviewMedia.stream().map(ProductReviewMediaDto::of).toList();
+
+        productDto.map(p -> {
+            p.setReviewsMedia(productReviewMediaDtos);
+            return p;
+        });
+
+        return GetProductById.Result.success(productDto.get());
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -103,6 +104,9 @@ public final class Product implements Serializable {
             orphanRemoval = true
     )
     private Set<ProductReview> reviews = new HashSet<>();
+
+    @Transient
+    private Set<ProductReviewMedia> reviewsMedia = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",

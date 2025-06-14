@@ -3,7 +3,6 @@ package com.surofu.madeinrussia.application.dto;
 import com.surofu.madeinrussia.application.dto.temp.TempProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.application.dto.temp.TempProductPackagingOptionDetails;
 import com.surofu.madeinrussia.application.dto.temp.TempVendorDetails;
-import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -311,20 +310,10 @@ public class ProductDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
+    private List<ProductReviewMediaDto> reviewsMedia;
+
     // TODO: !!! Заглушки
 
-    private List<ProductReviewMediaDto> reviewsMedia = List.of(
-            new ProductReviewMediaDto(1L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(2L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(3L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(4L, MediaType.VIDEO.getName(), "video/mp4", "https://v.ftcdn.net/01/62/37/70/700_F_162377062_Y15dX6CakFKDesem5fucH18pcnjNhng5_ST.mp4", "Video Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(5L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(6L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(7L, MediaType.VIDEO.getName(), "video/mp4", "https://v.ftcdn.net/01/62/37/70/700_F_162377062_Y15dX6CakFKDesem5fucH18pcnjNhng5_ST.mp4", "Video Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(8L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(9L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-            new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
-    );
 
     private TempVendorDetails aboutVendor;
 
@@ -356,18 +345,7 @@ public class ProductDto implements Serializable {
                 .lastModificationDate(product.getLastModificationDate().getValue())
                 .rating(product.getRating())
                 .reviewsCount(new Random().nextInt(100))
-                .reviewsMedia(List.of(
-                        new ProductReviewMediaDto(1L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(2L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(3L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(4L, MediaType.VIDEO.getName(), "video/mp4", "https://v.ftcdn.net/01/62/37/70/700_F_162377062_Y15dX6CakFKDesem5fucH18pcnjNhng5_ST.mp4", "Video Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(5L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(6L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(7L, MediaType.VIDEO.getName(), "video/mp4", "https://v.ftcdn.net/01/62/37/70/700_F_162377062_Y15dX6CakFKDesem5fucH18pcnjNhng5_ST.mp4", "Video Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(8L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(9L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now()),
-                        new ProductReviewMediaDto(10L, MediaType.IMAGE.getName(), "image/png", "https://images.unsplash.com/photo-1531824475211-72594993ce2a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d29vZHxlbnwwfHwwfHx8MA%3D%3D", "Image Alt Text", ZonedDateTime.now(), ZonedDateTime.now())
-                ))
+                .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
                 .reviewsCount(product.getReviewsCount())
                 .aboutVendor(new TempVendorDetails())
