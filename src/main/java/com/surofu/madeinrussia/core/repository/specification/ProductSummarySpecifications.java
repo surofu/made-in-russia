@@ -58,8 +58,8 @@ public class ProductSummarySpecifications {
             }
 
             return criteriaBuilder.like(
-                    criteriaBuilder.upper(root.get("title")),
-                    "%" + title.trim().toUpperCase() + "%"
+                    criteriaBuilder.lower(root.get("title")),
+                    "%" + title.trim().toLowerCase() + "%"
             );
         };
     }
