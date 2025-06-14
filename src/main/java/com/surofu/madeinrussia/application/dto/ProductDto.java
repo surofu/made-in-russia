@@ -40,6 +40,25 @@ public class ProductDto implements Serializable {
     private Long id;
 
     @Schema(
+            description = "Publisher of the product",
+            implementation = UserDto.class,
+            example = """
+                    {
+                      "id": 12345,
+                      "role": "User",
+                      "email": "user@example.com",
+                      "login": "john_doe",
+                      "phoneNumber": "+79123456789",
+                      "region": "Moscow, Russia",
+                      "registrationDate": "2025-05-04T09:17:20.767615Z",
+                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+                    }
+                    """,
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private VendorDto user;
+
+    @Schema(
             description = "Category this product belongs to",
             implementation = CategoryDto.class,
             example = """
@@ -319,6 +338,7 @@ public class ProductDto implements Serializable {
     public static ProductDto of(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
+                .user(VendorDto.of(product.getUser()))
                 .category(CategoryDto.of(product.getCategory()))
                 .deliveryMethods(product.getDeliveryMethods().stream()
                         .map(DeliveryMethodDto::of)
