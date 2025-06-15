@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
 import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
-import com.surofu.madeinrussia.application.dto.UserDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

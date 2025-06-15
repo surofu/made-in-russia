@@ -16,6 +16,11 @@ public class JpaCategoryRepository implements CategoryRepository {
     private final SpringDataCategoryRepository repository;
 
     @Override
+    public List<Category> getAllCategoriesWithParent() {
+        return repository.findAllWithParent();
+    }
+
+    @Override
     public List<Category> getCategories() {
         return repository.findAll();
     }

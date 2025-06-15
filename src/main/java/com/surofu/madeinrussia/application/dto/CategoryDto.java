@@ -143,7 +143,7 @@ public final class CategoryDto implements Serializable {
                 .name(category.getName().getValue())
                 .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
                 .childrenCount(category.getChildrenCount().getValue())
-                .children(category.getChildren().stream().map(CategoryDto::ofWithoutChildren).toList())
+                .children(category.getChildren().stream().map(CategoryDto::of).toList())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
                 .build();
@@ -156,8 +156,8 @@ public final class CategoryDto implements Serializable {
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
                 .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
-                .children(List.of())
                 .childrenCount(category.getChildrenCount().getValue())
+                .children(new ArrayList<>())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
                 .build();

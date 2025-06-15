@@ -1,10 +1,13 @@
 package com.surofu.madeinrussia.core.service.category;
 
+import com.surofu.madeinrussia.core.service.category.operation.GetAllCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
 
 public interface CategoryService {
+    GetAllCategories.Result getAllCategories();
+
     GetCategories.Result getCategories();
 
     GetCategoryById.Result getCategoryById(GetCategoryById operation);

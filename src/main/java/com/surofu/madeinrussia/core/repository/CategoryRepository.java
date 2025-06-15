@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository {
+    List<Category> getAllCategoriesWithParent();
+
     List<Category> getCategories();
 
     Optional<Category> getCategoryById(Long id);

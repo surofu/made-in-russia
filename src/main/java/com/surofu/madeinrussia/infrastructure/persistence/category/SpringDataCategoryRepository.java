@@ -12,6 +12,9 @@ import java.util.Optional;
 
 public interface SpringDataCategoryRepository extends JpaRepository<Category, Long> {
 
+    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent")
+    List<Category> findAllWithParent();
+
     @Override
     @Query("""
             select c from Category c
