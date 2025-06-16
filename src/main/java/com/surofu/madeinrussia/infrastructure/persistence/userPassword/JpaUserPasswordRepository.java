@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.userPassword;
 
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,11 @@ public class JpaUserPasswordRepository implements UserPasswordRepository {
     @Override
     public Optional<UserPassword> getUserPasswordByUserId(Long id) {
         return repository.findUserPasswordByUserId(id);
+    }
+
+    @Override
+    public Optional<UserPassword> getUserPasswordByUserEmail(UserEmail userEmail) {
+        return repository.findUserPasswordByUserEmail(userEmail);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
+import com.surofu.madeinrussia.application.dto.RecoverPasswordDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
@@ -8,6 +9,7 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
 import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
@@ -15,6 +17,7 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
@@ -25,6 +28,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +46,8 @@ public class AuthApplicationService implements AuthService {
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
     private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
+    private final RecoverPasswordCaffeineCacheManager recoverPasswordCaffeineCacheManager;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -217,6 +223,42 @@ public class AuthApplicationService implements AuthService {
                 });
 
         return Logout.Result.success(responseMessage);
+    }
+
+    @Override
+    public RecoverPassword.Result recoverPassword(RecoverPassword operation) {
+        boolean isUserExists = userRepository.existsUserByEmail(operation.getUserEmail());
+
+        if (isUserExists) {
+            String hashedRawPassword = passwordEncoder.encode(operation.getNewUserPassword().toString());
+
+            RecoverPassword operationWithHashedPassword = RecoverPassword.of(
+                    operation.getUserEmail(),
+                    UserPasswordPassword.of(hashedRawPassword)
+            );
+
+            asyncAuthApplicationService.saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(operationWithHashedPassword);
+            return RecoverPassword.Result.success(operation.getUserEmail());
+        }
+
+        return RecoverPassword.Result.userNotFound(operation.getUserEmail());
+    }
+
+    @Override
+    public VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation) {
+        RecoverPasswordDto recoverPasswordDto = recoverPasswordCaffeineCacheManager.getRecoverPasswordDto(operation.getUserEmail());
+
+        if (recoverPasswordDto == null) {
+            return VerifyRecoverPassword.Result.emailNotFound(operation.getUserEmail());
+        }
+
+        if (!recoverPasswordDto.recoverCode().equals(operation.getRecoverCode())) {
+            return VerifyRecoverPassword.Result.invalidRecoverCode(operation.getUserEmail(), recoverPasswordDto.recoverCode());
+        }
+
+        asyncAuthApplicationService.updateUserPasswordInDataBase(operation.getUserEmail(), recoverPasswordDto.newUserPassword());
+
+        return VerifyRecoverPassword.Result.success(operation.getUserEmail());
     }
 
     private LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {

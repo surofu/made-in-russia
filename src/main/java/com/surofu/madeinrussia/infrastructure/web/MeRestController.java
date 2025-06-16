@@ -216,7 +216,6 @@ public class MeRestController {
                             }
                     )
             )
-            @Parameter(hidden = true)
             @Valid @RequestBody RefreshMeCurrentSessionCommand refreshMeCurrentSessionCommand,
             @Parameter(hidden = true)
             HttpServletRequest request

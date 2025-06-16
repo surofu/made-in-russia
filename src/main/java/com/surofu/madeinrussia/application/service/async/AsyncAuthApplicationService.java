@@ -1,7 +1,10 @@
 package com.surofu.madeinrussia.application.service.async;
 
+import com.surofu.madeinrussia.application.dto.RecoverPasswordDto;
+import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
 import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
@@ -12,6 +15,7 @@ import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCat
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.service.auth.operation.RecoverPassword;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import com.surofu.madeinrussia.core.service.auth.operation.RegisterVendor;
 import com.surofu.madeinrussia.core.service.mail.MailService;
@@ -23,7 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +45,7 @@ public class AsyncAuthApplicationService {
     private final MailService mailService;
 
     private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
+    private final RecoverPasswordCaffeineCacheManager recoverPasswordCaffeineCacheManager;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -124,6 +131,45 @@ public class AsyncAuthApplicationService {
         return CompletableFuture.completedFuture(null);
     }
 
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(RecoverPassword recoverPassword) throws CompletionException {
+        try {
+            String recoverCode = generateVerificationCode();
+            String expiration = ZonedDateTime.now().toString();
+
+            RecoverPasswordDto recoverPasswordDto = new RecoverPasswordDto(recoverCode, recoverPassword.getNewUserPassword());
+            recoverPasswordCaffeineCacheManager.setRecoverPasswordDto(recoverPassword.getUserEmail(), recoverPasswordDto);
+
+            mailService.sendRecoverPasswordVerificationMail(
+                    recoverPassword.getUserEmail().toString(),
+                    recoverCode,
+                    expiration
+            );
+        } catch (Exception e) {
+            log.error("Error saving recover password or sending recover code: {}", e.getMessage(), e);
+        }
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateUserPasswordInDataBase(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws CompletionException {
+        try {
+            Optional<UserPassword> userPassword = passwordRepository.getUserPasswordByUserEmail(userEmail);
+
+            if (userPassword.isPresent()) {
+                userPassword.get().setPassword(userPasswordPassword);
+                passwordRepository.saveUserPassword(userPassword.get());
+
+                recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(userEmail);
+            } else {
+                log.warn("User password by with email '{}' not found", userEmail);
+            }
+        } catch (Exception e) {
+            log.error("Error while updating user password: {}", e.getMessage(), e);
+        }
+    }
+
     private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword) throws CompletionException {
         try {
             String verificationCode = generateVerificationCode();
@@ -132,16 +178,17 @@ public class AsyncAuthApplicationService {
             userVerificationCaffeineCacheManager.setUserPassword(user.getEmail(), userPassword);
             userVerificationCaffeineCacheManager.setVerificationCode(user.getEmail(), verificationCode);
 
-            String expiration = "через 30 минут";
+            String expiration = ZonedDateTime.now().toString();
 
             try {
                 mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration);
             } catch (Exception ex) {
-                log.error("Error sending verification mail", ex);
+                log.error("Error sending verification mail: {}", ex.getMessage(), ex);
             }
 
             return CompletableFuture.completedFuture(null);
         } catch (Exception ex) {
+            log.error("Error while save user in cache: {}", ex.getMessage(), ex);
             return CompletableFuture.completedFuture(null);
         }
     }

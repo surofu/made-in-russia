@@ -14,4 +14,8 @@ public interface AuthService {
     VerifyEmail.Result verifyEmail(VerifyEmail operation);
 
     Logout.Result logout(Logout operation);
+
+    RecoverPassword.Result recoverPassword(RecoverPassword operation);
+
+    VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation);
 }

@@ -30,10 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,6 +48,8 @@ public class AuthRestController {
     private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
     private final Logout.Result.Processor<ResponseEntity<?>> logoutProcessor;
+    private final RecoverPassword.Result.Processor<ResponseEntity<?>> recoverPasswordProcessor;
+    private final VerifyRecoverPassword.Result.Processor<ResponseEntity<?>> verifyRecoverPasswordProcessor;
 
     @PostMapping("register")
     @Operation(
@@ -323,5 +322,57 @@ public class AuthRestController {
     public ResponseEntity<?> logout(@AuthenticationPrincipal SecurityUser securityUser) {
         Logout operation = Logout.of(securityUser);
         return authService.logout(operation).process(logoutProcessor);
+    }
+
+    @PostMapping("recover-password")
+    @Operation(
+            summary = "Recover user password",
+            description = "Send recover code to email",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Code has been sent to email successful",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Bad request",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+            }
+    )
+    public ResponseEntity<?> recoverPassword(
+            @RequestBody @Valid RecoverPasswordCommand recoverPassword
+    ) {
+        RecoverPassword operation = RecoverPassword.of(
+                UserEmail.of(recoverPassword.email()),
+               UserPasswordPassword.of(recoverPassword.newPassword())
+        );
+        return authService.recoverPassword(operation).process(recoverPasswordProcessor);
+    }
+
+    @PostMapping("verify-recover-password")
+    public ResponseEntity<?> verifyRecoverPassword(
+            @RequestBody @Valid VerifyRecoverPasswordCommand verifyRecoverPasswordCommand
+    ) {
+        VerifyRecoverPassword operation = VerifyRecoverPassword.of(
+                UserEmail.of(verifyRecoverPasswordCommand.email()),
+                verifyRecoverPasswordCommand.recoverCode()
+        );
+        return authService.verifyRecoverPassword(operation).process(verifyRecoverPasswordProcessor);
     }
 }
