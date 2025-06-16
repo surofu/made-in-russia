@@ -32,6 +32,7 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
     @Query("""
             select avg(r.rating.value) from ProductReview r
             where r.product.user.id = :productUserId
+            and r.product.user.role = 'ROLE_VENDOR'
             """)
-    Double findAverageRatingByProductUserId(@Param("productUserId") Long productUserId);
+    Double findAverageRatingByProductVendorId(@Param("productUserId") Long productUserId);
 }

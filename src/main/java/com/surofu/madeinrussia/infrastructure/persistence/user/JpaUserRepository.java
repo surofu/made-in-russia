@@ -59,4 +59,9 @@ public class JpaUserRepository implements UserRepository {
     public Optional<User> getVendorById(Long id) {
         return repository.getVendorById(id);
     }
+
+    @Override
+    public boolean existsVendorById(Long id) {
+        return repository.existsVendorById(id);
+    }
 }

@@ -51,6 +51,10 @@ public class VendorApplicationService implements VendorService {
 
     @Override
     public GetVendorReviewPageById.Result getVendorReviewPageById(GetVendorReviewPageById operation) {
+        if (!userRepository.existsVendorById(operation.getVendorId())) {
+            return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
+        }
+
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
         Specification<ProductReview> specification = Specification

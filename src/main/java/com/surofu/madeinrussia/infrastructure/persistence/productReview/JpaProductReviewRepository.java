@@ -28,6 +28,6 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
 
     @Override
     public Double findAverageRatingByVendorId(Long vendorId) {
-        return productReviewRepository.findAverageRatingByProductUserId(vendorId);
+        return productReviewRepository.findAverageRatingByProductVendorId(vendorId);
     }
 }

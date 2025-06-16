@@ -40,4 +40,10 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long> {
                 where u.id = :id and u.role = 'ROLE_VENDOR'
             """)
     Optional<User> getVendorById(@Param("id") Long id);
+
+    @Query("""
+            select count(*) > 0 from User u
+            where u.id = :vendorId and u.role = 'ROLE_VENDOR'
+            """)
+    boolean existsVendorById(@Param("vendorId") Long vendorId);
 }

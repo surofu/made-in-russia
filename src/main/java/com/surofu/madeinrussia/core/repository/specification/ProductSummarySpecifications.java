@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
@@ -79,18 +80,44 @@ public class ProductSummarySpecifications {
         };
     }
 
+    public static Specification<ProductSummaryView> byVendorId(Long vendorId) {
+        return (root, query, criteriaBuilder) -> {
+            if (vendorId == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(criteriaBuilder.equal(
+                    criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                            root.get("user"),
+                            criteriaBuilder.literal("id")
+                    )
+                    , vendorId));
+
+            predicates.add(criteriaBuilder.equal(
+                    criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                            root.get("user"),
+                            criteriaBuilder.literal("role")
+                    )
+                    , UserRole.ROLE_VENDOR.name()));
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     public static Specification<ProductSummaryView> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
-        return (root, query, cb) -> {
+        return (root, query, criteriaBuilder) -> {
             if (minPrice == null && maxPrice == null) return null;
 
             List<Predicate> predicates = new ArrayList<>();
             if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("discountedPrice"), minPrice));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountedPrice"), minPrice));
             }
             if (maxPrice != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("discountedPrice"), maxPrice));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("discountedPrice"), maxPrice));
             }
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

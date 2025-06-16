@@ -3,10 +3,12 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
+import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductSummaryApplicationService implements ProductSummaryService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
+    private final UserRepository userRepository;
 
     private final CategoryRepository categoryRepository;
 
@@ -87,5 +90,50 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         }
 
         return GetProductSummaryViewById.Result.notFound(productSummaryId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "productSummaryViewPageByVendorId",
+            key = "#operation.vendorId",
+            unless = """
+                    {
+                        #result.getProductSummaryViewDtoPage().isEmpty()
+                        or #operation.size != null
+                        or #operation.categoryIds != null
+                        or #operation.deliveryMethodIds != null
+                        or #operation.minPrice != null
+                        or #operation.maxPrice != null
+                    }
+                    """
+    )
+    public GetProductSummaryViewPageByVendorId.Result getProductSummaryViewPageByVendorId(GetProductSummaryViewPageByVendorId operation) {
+        if (!userRepository.existsVendorById(operation.getVendorId())) {
+            return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());
+        }
+
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+        List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
+        List<Long> categoryIdsWithChildren = new ArrayList<>();
+
+        if (operation.getCategoryIds() != null) {
+            categoryIdsWithChildren.addAll(operation.getCategoryIds());
+        }
+
+        categoryIdsWithChildren.addAll(allChildCategoriesIds);
+
+        Specification<ProductSummaryView> specification = Specification
+                .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+                .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
+                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
+                .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
+                .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()));
+
+        Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
+        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
+
+        return GetProductSummaryViewPageByVendorId.Result.success(productSummaryViewDtoPage);
     }
 }

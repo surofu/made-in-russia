@@ -21,6 +21,11 @@ public class GetVendorReviewPageById {
             return Success.of(vendorReviewPageDto);
         }
 
+        static Result vendorNotFound(Long vendorId) {
+            log.warn("Vendor not found with ID: {}", vendorId);
+            return VendorNotFount.of(vendorId);
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             VendorReviewPageDto vendorReviewPageDto;
@@ -31,8 +36,20 @@ public class GetVendorReviewPageById {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class VendorNotFount implements Result {
+            Long vendorId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processVendorNotFound(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
+
+            T processVendorNotFound(VendorNotFount result);
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.user;
 
-import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.UserNotFoundByIdResponseErrorDto;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +16,7 @@ public class GetUserByIdMapperResultToResponseEntity implements GetUserById.Resu
 
     @Override
     public ResponseEntity<?> processNotFound(GetUserById.Result.NotFound result) {
-        String errorMessage = String.format("User with ID '%s' not found", result.getUserId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
+        UserNotFoundByIdResponseErrorDto errorDto = UserNotFoundByIdResponseErrorDto.of(result.getUserId());
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

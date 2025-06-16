@@ -25,4 +25,6 @@ public interface UserRepository {
     boolean existsUserByPhoneNumber(UserPhoneNumber userPhoneNumber);
 
     Optional<User> getVendorById(Long id);
+
+    boolean existsVendorById(Long id);
 }

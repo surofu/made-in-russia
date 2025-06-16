@@ -16,7 +16,7 @@ public class GetUserByLoginMapperResultToResponseEntity implements GetUserByLogi
 
     @Override
     public ResponseEntity<?> processNotFound(GetUserByLogin.Result.NotFound result) {
-        String errorMessage = String.format("User with login '%s' not found", result.getUserLogin());
+        String errorMessage = String.format("Пользователь с логином '%s' не найден", result.getUserLogin());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
