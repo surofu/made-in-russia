@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.productReview.CreateProductReviewCommand;
+import com.surofu.madeinrussia.application.command.productReview.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
@@ -12,6 +13,7 @@ import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
 import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
+import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -48,6 +50,7 @@ public class ProductRestController {
     private final GetProductReviewPageByProductId.Result.Processor<ResponseEntity<?>> getProductReviewPageByProductIdProcessor;
     private final GetProductFaqByProductId.Result.Processor<ResponseEntity<?>> getProductFaqByProductIdProcessor;
     private final CreateProductReview.Result.Processor<ResponseEntity<?>> createProductReviewProcessor;
+    private final UpdateProductReview.Result.Processor<ResponseEntity<?>> updateProductReviewProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -326,7 +329,7 @@ public class ProductRestController {
     public ResponseEntity<?> createProductReview(
             @Parameter(
                     name = "productId",
-                    description = "ID of the product to be retrieved",
+                    description = "ID of the product",
                     required = true,
                     example = "20",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
@@ -343,6 +346,41 @@ public class ProductRestController {
                 ProductReviewRating.of(createProductReviewCommand.rating())
         );
         return productReviewService.createProductReview(operation).process(createProductReviewProcessor);
+    }
+
+    @PatchMapping("{productId}/reviews/{productReviewId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> createProductReview(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productId,
+
+            @Parameter(
+                    name = "productReviewId",
+                    description = "ID of the product review to be updated",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productReviewId,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @RequestBody @Valid UpdateProductReviewCommand updateProductReviewCommand
+    ) {
+        UpdateProductReview operation = UpdateProductReview.of(
+                productId,
+                productReviewId,
+                securityUser,
+                ProductReviewContent.of(updateProductReviewCommand.text()),
+                ProductReviewRating.of(updateProductReviewCommand.rating())
+        );
+        return productReviewService.updateProductReview(operation).process(updateProductReviewProcessor);
     }
 
     @GetMapping("{productId}/faq")

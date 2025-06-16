@@ -6,13 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductReviewRepository {
     Page<ProductReview> findAll(Specification<ProductReview> spec, Pageable pageable);
 
     List<ProductReview> findByIdInWithMedia(List<Long> ids);
 
+    Optional<ProductReview> findById(Long id);
+
     Double findAverageRatingByVendorId(Long vendorId);
 
-    ProductReview save(ProductReview productReview);
+    void save(ProductReview productReview);
+
+    boolean isUserOwnerOfProductReview(Long userId, Long productReviewId);
 }

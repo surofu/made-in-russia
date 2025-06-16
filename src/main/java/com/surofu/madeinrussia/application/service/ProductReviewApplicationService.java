@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecif
 import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
+import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -119,5 +120,46 @@ public class ProductReviewApplicationService implements ProductReviewService {
         asyncProductReviewApplicationService.saveProductReview(productReview);
 
         return CreateProductReview.Result.success(productReview);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(
+            value = "productReviewPageByProductId",
+            condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$Success)"
+    )
+    public UpdateProductReview.Result updateProductReview(UpdateProductReview operation) {
+        Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
+
+        if (user.isEmpty()) {
+            return UpdateProductReview.Result.unauthorized();
+        }
+
+        Optional<ProductReview> productReview = productReviewRepository.findById(operation.getProductReviewId());
+
+        if (productReview.isEmpty()) {
+            return UpdateProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
+        }
+
+        if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
+            return UpdateProductReview.Result.forbidden(
+                    operation.getProductId(),
+                    operation.getProductReviewId(),
+                    user.get().getLogin(),
+                    productReview.get().getUser().getLogin()
+            );
+        }
+
+        if (operation.getProductReviewContent() != null) {
+            productReview.get().setContent(operation.getProductReviewContent());
+        }
+
+        if (operation.getProductReviewRating() != null) {
+            productReview.get().setRating(operation.getProductReviewRating());
+        }
+
+        asyncProductReviewApplicationService.saveProductReview(productReview.get());
+
+        return UpdateProductReview.Result.success(productReview.get());
     }
 }

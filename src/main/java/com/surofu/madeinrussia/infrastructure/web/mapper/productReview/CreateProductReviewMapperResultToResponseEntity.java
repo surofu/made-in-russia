@@ -15,7 +15,7 @@ implements CreateProductReview.Result.Processor<ResponseEntity<?>> {
     public ResponseEntity<?> processSuccess(CreateProductReview.Result.Success result) {
         String message = "Отзыв был успешно создан";
         SimpleResponseMessageDto responseMessageDto = SimpleResponseMessageDto.of(message);
-        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.CREATED);
     }
 
     @Override

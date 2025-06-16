@@ -35,4 +35,10 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
             and r.product.user.role = 'ROLE_VENDOR'
             """)
     Double findAverageRatingByProductVendorId(@Param("productUserId") Long productUserId);
+
+    @Query("""
+            select pr.user.id = :userId from ProductReview pr
+            where pr.id = :productReviewId
+            """)
+    boolean isUserOwnerOfProductReview(@Param("userId") Long userId, @Param("productReviewId") Long productReviewId);
 }

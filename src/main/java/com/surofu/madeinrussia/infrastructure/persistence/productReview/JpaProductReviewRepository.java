@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,12 +28,22 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
     }
 
     @Override
+    public Optional<ProductReview> findById(Long id) {
+        return productReviewRepository.findById(id);
+    }
+
+    @Override
     public Double findAverageRatingByVendorId(Long vendorId) {
         return productReviewRepository.findAverageRatingByProductVendorId(vendorId);
     }
 
     @Override
-    public ProductReview save(ProductReview productReview) {
-        return productReviewRepository.save(productReview);
+    public void save(ProductReview productReview) {
+        productReviewRepository.save(productReview);
+    }
+
+    @Override
+    public boolean isUserOwnerOfProductReview(Long userId, Long productReviewId) {
+        return productReviewRepository.isUserOwnerOfProductReview(userId, productReviewId);
     }
 }
