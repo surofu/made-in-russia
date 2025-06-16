@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
 import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
+import com.surofu.madeinrussia.core.service.productReview.operation.DeleteProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
 import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -51,6 +53,7 @@ public class ProductRestController {
     private final GetProductFaqByProductId.Result.Processor<ResponseEntity<?>> getProductFaqByProductIdProcessor;
     private final CreateProductReview.Result.Processor<ResponseEntity<?>> createProductReviewProcessor;
     private final UpdateProductReview.Result.Processor<ResponseEntity<?>> updateProductReviewProcessor;
+    private final DeleteProductReview.Result.Processor<ResponseEntity<?>> deleteProductReviewProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -326,6 +329,47 @@ public class ProductRestController {
 
     @PostMapping("{productId}/reviews")
     @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Create product review",
+            description = "Create product review",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully created product review",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content(
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product or review not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
     public ResponseEntity<?> createProductReview(
             @Parameter(
                     name = "productId",
@@ -350,7 +394,48 @@ public class ProductRestController {
 
     @PatchMapping("{productId}/reviews/{productReviewId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createProductReview(
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Update product review by id",
+            description = "Update product review by id",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully updated product review",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content(
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product or review not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> createProductReviewById(
             @Parameter(
                     name = "productId",
                     description = "ID of the product",
@@ -381,6 +466,79 @@ public class ProductRestController {
                 ProductReviewRating.of(updateProductReviewCommand.rating())
         );
         return productReviewService.updateProductReview(operation).process(updateProductReviewProcessor);
+    }
+
+    @DeleteMapping("{productId}/reviews/{productReviewId}")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Delete product review by id",
+            description = "Delete product review by id",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully deleted product review",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content(
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product or review not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> deleteProductReviewById(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productId,
+
+            @Parameter(
+                    name = "productReviewId",
+                    description = "ID of the product review to be updated",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productReviewId,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        DeleteProductReview operation = DeleteProductReview.of(
+                productId,
+                productReviewId,
+                securityUser
+        );
+        return productReviewService.deleteProductReview(operation).process(deleteProductReviewProcessor);
     }
 
     @GetMapping("{productId}/faq")

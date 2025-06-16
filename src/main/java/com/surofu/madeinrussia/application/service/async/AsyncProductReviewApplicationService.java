@@ -25,4 +25,14 @@ public class AsyncProductReviewApplicationService {
             log.error("Error while saving product review: {}", e.getMessage(), e);
         }
     }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteProductReviewById(Long productReviewId) {
+        try {
+            productReviewRepository.deleteById(productReviewId);
+        } catch (Exception e) {
+            log.error("Error while deleting product review: {}", e.getMessage(), e);
+        }
+    }
 }

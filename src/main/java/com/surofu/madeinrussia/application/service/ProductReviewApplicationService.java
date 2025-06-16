@@ -10,6 +10,7 @@ import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
+import com.surofu.madeinrussia.core.service.productReview.operation.DeleteProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
 import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
@@ -141,25 +142,58 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return UpdateProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
         }
 
+        if (productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
+            if (operation.getProductReviewContent() != null) {
+                productReview.get().setContent(operation.getProductReviewContent());
+            }
+
+            if (operation.getProductReviewRating() != null) {
+                productReview.get().setRating(operation.getProductReviewRating());
+            }
+
+            asyncProductReviewApplicationService.saveProductReview(productReview.get());
+
+            return UpdateProductReview.Result.success(productReview.get());
+        }
+
+        return UpdateProductReview.Result.forbidden(
+                operation.getProductId(),
+                operation.getProductReviewId(),
+                user.get().getLogin(),
+                productReview.get().getUser().getLogin()
+        );
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(
+            value = "productReviewPageByProductId",
+            condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$Success)"
+    )
+    public DeleteProductReview.Result deleteProductReview(DeleteProductReview operation) {
+        Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
+
+        if (user.isEmpty()) {
+            return DeleteProductReview.Result.unauthorized();
+        }
+
+        Optional<ProductReview> productReview = productReviewRepository.findById(operation.getProductReviewId());
+
+        if (productReview.isEmpty()) {
+            return DeleteProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
+        }
+
         if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
-            return UpdateProductReview.Result.forbidden(
-                    operation.getProductId(),
-                    operation.getProductReviewId(),
-                    user.get().getLogin(),
-                    productReview.get().getUser().getLogin()
-            );
+            asyncProductReviewApplicationService.deleteProductReviewById(operation.getProductReviewId());
+
+            return DeleteProductReview.Result.success(operation.getProductReviewId());
         }
 
-        if (operation.getProductReviewContent() != null) {
-            productReview.get().setContent(operation.getProductReviewContent());
-        }
-
-        if (operation.getProductReviewRating() != null) {
-            productReview.get().setRating(operation.getProductReviewRating());
-        }
-
-        asyncProductReviewApplicationService.saveProductReview(productReview.get());
-
-        return UpdateProductReview.Result.success(productReview.get());
+        return DeleteProductReview.Result.forbidden(
+                operation.getProductId(),
+                operation.getProductReviewId(),
+                user.get().getLogin(),
+                productReview.get().getUser().getLogin()
+        );
     }
 }

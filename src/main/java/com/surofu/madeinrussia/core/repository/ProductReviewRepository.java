@@ -19,5 +19,7 @@ public interface ProductReviewRepository {
 
     void save(ProductReview productReview);
 
+    void deleteById(Long id);
+
     boolean isUserOwnerOfProductReview(Long userId, Long productReviewId);
 }
