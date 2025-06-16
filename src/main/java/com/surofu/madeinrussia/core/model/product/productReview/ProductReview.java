@@ -65,7 +65,7 @@ public final class ProductReview implements Serializable {
     private List<ProductReviewMedia> media = new ArrayList<>();
 
     @Embedded
-    private ProductReviewContent text;
+    private ProductReviewContent content;
 
     @Embedded
     private ProductReviewRating rating;

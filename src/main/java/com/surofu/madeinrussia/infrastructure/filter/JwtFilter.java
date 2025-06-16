@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -163,16 +164,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String[] blackList = {
                 "/api/v1/auth/logout",
+                "/api/v1/products/\\d+/reviews",
         };
 
         for (String blackListElement : blackList) {
-            if (path.startsWith(blackListElement)) {
+            if (Pattern.compile(blackListElement).matcher(path).matches()) {
                 return false;
             }
         }
 
         for (String whiteListElement : whiteList) {
-            if (path.startsWith(whiteListElement)) {
+            if (Pattern.compile(whiteListElement).matcher(path).matches()) {
                 return true;
             }
         }

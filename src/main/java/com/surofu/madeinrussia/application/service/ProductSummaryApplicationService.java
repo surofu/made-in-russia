@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +51,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                     """
     )
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>();
@@ -113,7 +114,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
             return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());
         }
 
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>();

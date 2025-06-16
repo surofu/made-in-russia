@@ -13,4 +13,6 @@ public interface ProductReviewRepository {
     List<ProductReview> findByIdInWithMedia(List<Long> ids);
 
     Double findAverageRatingByVendorId(Long vendorId);
+
+    ProductReview save(ProductReview productReview);
 }

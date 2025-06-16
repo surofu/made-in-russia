@@ -1,11 +1,16 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
+import com.surofu.madeinrussia.application.command.productReview.CreateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
+import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
+import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,10 +20,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +47,7 @@ public class ProductRestController {
     private final GetProductCharacteristicsByProductId.Result.Processor<ResponseEntity<?>> getProductCharacteristicsByProductIdProcessor;
     private final GetProductReviewPageByProductId.Result.Processor<ResponseEntity<?>> getProductReviewPageByProductIdProcessor;
     private final GetProductFaqByProductId.Result.Processor<ResponseEntity<?>> getProductFaqByProductIdProcessor;
+    private final CreateProductReview.Result.Processor<ResponseEntity<?>> createProductReviewProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -310,6 +319,30 @@ public class ProductRestController {
     ) {
         GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating);
         return productReviewService.getProductReviewPageByProductId(operation).process(getProductReviewPageByProductIdProcessor);
+    }
+
+    @PostMapping("{productId}/reviews")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> createProductReview(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product to be retrieved",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long productId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @RequestBody @Valid CreateProductReviewCommand createProductReviewCommand
+    ) {
+        CreateProductReview operation = CreateProductReview.of(
+                productId,
+                securityUser,
+                ProductReviewContent.of(createProductReviewCommand.text()),
+                ProductReviewRating.of(createProductReviewCommand.rating())
+        );
+        return productReviewService.createProductReview(operation).process(createProductReviewProcessor);
     }
 
     @GetMapping("{productId}/faq")

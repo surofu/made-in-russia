@@ -51,19 +51,21 @@ public class VendorApplicationService implements VendorService {
 
     @Override
     public GetVendorReviewPageById.Result getVendorReviewPageById(GetVendorReviewPageById operation) {
-        if (!userRepository.existsVendorById(operation.getVendorId())) {
-            return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
-        }
+        if (userRepository.existsVendorById(operation.getVendorId())) {
+            Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+            Specification<ProductReview> specification = Specification
+                    .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
+                    .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
 
-        Specification<ProductReview> specification = Specification
-                .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
-                .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+            Page<ProductReview> productReviewPage = productReviewRepository.findAll(specification, pageable);
 
-        Page<ProductReview> productReviewPage = productReviewRepository.findAll(specification, pageable);
+            if (productReviewPage.getContent().isEmpty()) {
+                VendorReviewPageDto vendorReviewPageDto = VendorReviewPageDto.of(productReviewPage, 0);
 
-        if (!productReviewPage.getContent().isEmpty()) {
+                return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
+            }
+
             List<Long> reviewIds = productReviewPage.getContent().stream()
                     .map(ProductReview::getId)
                     .toList();
@@ -85,8 +87,6 @@ public class VendorApplicationService implements VendorService {
             return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
         }
 
-        VendorReviewPageDto vendorReviewPageDto = VendorReviewPageDto.of(productReviewPage, 0);
-
-        return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
+        return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
     }
 }

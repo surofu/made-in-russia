@@ -30,4 +30,9 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
     public Double findAverageRatingByVendorId(Long vendorId) {
         return productReviewRepository.findAverageRatingByProductVendorId(vendorId);
     }
+
+    @Override
+    public ProductReview save(ProductReview productReview) {
+        return productReviewRepository.save(productReview);
+    }
 }
