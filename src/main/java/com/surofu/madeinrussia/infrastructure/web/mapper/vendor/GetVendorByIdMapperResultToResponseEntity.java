@@ -1,7 +1,7 @@
-package com.surofu.madeinrussia.infrastructure.web.mapper.user;
+package com.surofu.madeinrussia.infrastructure.web.mapper.vendor;
 
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
-import com.surofu.madeinrussia.core.service.user.operation.GetVendorById;
+import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;

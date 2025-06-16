@@ -28,4 +28,10 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
             ORDER BY pr.lastModificationDate.value DESC
             """)
     List<ProductReview> findByIdInWithMedia(@Param("ids") List<Long> ids);
+
+    @Query("""
+            select avg(r.rating.value) from ProductReview r
+            where r.product.user.id = :productUserId
+            """)
+    Double findAverageRatingByProductUserId(@Param("productUserId") Long productUserId);
 }

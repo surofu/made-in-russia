@@ -11,4 +11,6 @@ public interface ProductReviewRepository {
     Page<ProductReview> findAll(Specification<ProductReview> spec, Pageable pageable);
 
     List<ProductReview> findByIdInWithMedia(List<Long> ids);
+
+    Double findAverageRatingByVendorId(Long vendorId);
 }

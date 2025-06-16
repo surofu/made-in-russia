@@ -25,4 +25,9 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
     public List<ProductReview> findByIdInWithMedia(List<Long> ids) {
         return productReviewRepository.findByIdInWithMedia(ids);
     }
+
+    @Override
+    public Double findAverageRatingByVendorId(Long vendorId) {
+        return productReviewRepository.findAverageRatingByProductUserId(vendorId);
+    }
 }

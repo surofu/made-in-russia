@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.service.user.operation;
+package com.surofu.madeinrussia.core.service.vendor.operation;
 
 import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import lombok.Value;

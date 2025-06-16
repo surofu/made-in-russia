@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
@@ -13,7 +12,6 @@ import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
 import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
-import com.surofu.madeinrussia.core.service.user.operation.GetVendorById;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,22 +110,5 @@ public class UserApplicationService implements UserService {
         SessionInfo sessionInfo = SessionInfo.of(request);
 
         return new SecurityUser(user, userPassword, sessionInfo);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(
-            value = "vendorById",
-            key = "#operation.vendorId"
-    )
-    public GetVendorById.Result getVendorById(GetVendorById operation) {
-        Optional<User> user = userRepository.getVendorById(operation.getVendorId());
-        Optional<VendorDto> vendorDto = user.map(VendorDto::of);
-
-        if (vendorDto.isPresent()) {
-            return GetVendorById.Result.success(vendorDto.get());
-        }
-
-        return GetVendorById.Result.notFound(operation.getVendorId());
     }
 }
