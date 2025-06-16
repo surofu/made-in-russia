@@ -68,22 +68,14 @@ public class MeApplicationService implements MeService {
         SecurityUser securityUser = operation.getSecurityUser();
         Optional<Session> existingSession = getSessionBySecurityUser(securityUser);
 
-        System.out.println("Session: " + existingSession.isPresent());
-
-        if (existingSession.isEmpty()) {
+        if (existingSession.isEmpty() && !sessionSecret.equals(securityUser.getSessionInfo().getSessionKey())) {
             return GetMe.Result.sessionWithUserIdAndDeviceIdNotFound(
                     securityUser.getUser().getId(),
                     securityUser.getSessionInfo().getDeviceId()
             );
         }
 
-        Optional<Session> sessionWithUser = sessionRepository.getSessionById(existingSession.get().getId());
-
-        if (sessionWithUser.isEmpty()) {
-            return GetMe.Result.sessionWithIdNotFound(existingSession.get().getId());
-        }
-
-        User user = sessionWithUser.get().getUser();
+        User user = securityUser.getUser();
 
         if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
             VendorDto vendorDto = VendorDto.of(user);
@@ -91,7 +83,6 @@ public class MeApplicationService implements MeService {
         }
 
         UserDto userDto = UserDto.of(user);
-
         return GetMe.Result.success(userDto);
     }
 

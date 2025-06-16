@@ -43,20 +43,6 @@ public class AsyncSessionApplicationService {
             SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
             SessionCreationDate sessionCreationDate = SessionCreationDate.of(dateNow);
 
-            log.info("""
-                    saveOrUpdateSessionFromHttpRequest:
-                    sessionDeviceId: {}
-                    sessionDeviceType: {}
-                    sessionIpAddress: {}
-                    sessionBrowser: {}
-                    sessionOs: {}
-                    """,
-                    sessionDeviceId.toString(),
-                    sessionDeviceType.toString(),
-                    sessionIpAddress.toString(),
-                    sessionBrowser.toString(),
-                    sessionOs.toString());
-
             Session session = sessionRepository
                     .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
                     .orElse(new Session());

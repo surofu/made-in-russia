@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,6 +40,9 @@ public class JwtFilter extends OncePerRequestFilter {
     private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final SessionRepository sessionRepository;
 
+    @Value("${app.session.secret}")
+    private String sessionSecret;
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -48,6 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
         log.debug("JWT Filter started");
 
         String authorizationHeader = request.getHeader("Authorization");
+        String xInternalRequestHeader = request.getHeader("X-Internal-Request");
 
         for (String headerName : Collections.list(request.getHeaderNames())) {
             log.debug("header: {}: {}", headerName, request.getHeader(headerName));
@@ -108,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 Optional<Session> currentSession = sessionRepository.getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionInfo.getDeviceId());
 
-                if (currentSession.isPresent()) {
+                if (currentSession.isPresent() || sessionSecret.equals(xInternalRequestHeader)) {
                     log.debug("Start creating token");
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             securityUser,
@@ -151,35 +156,35 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-//        String path = request.getRequestURI();
-//
-//        String[] whiteList = {
-//                "/api/v1/auth",
-//                "/api/v1/products",
-//                "/api/v1/products-summary",
-//                "/api/v1/categories",
-//                "/api/v1/delivery-methods",
-//                "/api/v1/me/current-session/refresh",
-//        };
-//
-//        String[] blackList = {
-//                "/api/v1/auth/logout",
-//                "/api/v1/products/\\d+/reviews",
-//        };
-//
-//        for (String blackListElement : blackList) {
-//            System.out.println("blackListElement: " + blackListElement);
-//            if (Pattern.compile(blackListElement).matcher(path).matches()) {
-//                System.out.println("blacklist found: " + blackListElement);
-//                return false;
-//            }
-//        }
-//
-//        for (String whiteListElement : whiteList) {
-//            if (Pattern.compile(whiteListElement).matcher(path).matches()) {
-//                return true;
-//            }
-//        }
+        String path = request.getRequestURI();
+
+        String[] whiteList = {
+                "/api/v1/auth",
+                "/api/v1/products",
+                "/api/v1/products-summary",
+                "/api/v1/categories",
+                "/api/v1/delivery-methods",
+                "/api/v1/me/current-session/refresh",
+        };
+
+        String[] blackList = {
+                "/api/v1/auth/logout",
+                "/api/v1/products/\\d+/reviews",
+        };
+
+        for (String blackListElement : blackList) {
+            System.out.println("blackListElement: " + blackListElement);
+            if (Pattern.compile(blackListElement).matcher(path).matches()) {
+                System.out.println("blacklist found: " + blackListElement);
+                return false;
+            }
+        }
+
+        for (String whiteListElement : whiteList) {
+            if (Pattern.compile(whiteListElement).matcher(path).matches()) {
+                return true;
+            }
+        }
 
         return false;
     }

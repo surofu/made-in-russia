@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.infrastructure.web.mapper.auth;
 
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
-import com.surofu.madeinrussia.core.service.auth.operation.RecoverPassword;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyRecoverPassword;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
