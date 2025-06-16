@@ -151,33 +151,35 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-
-        String[] whiteList = {
-                "/api/v1/auth",
-                "/api/v1/products",
-                "/api/v1/products-summary",
-                "/api/v1/categories",
-                "/api/v1/delivery-methods",
-                "/api/v1/me/current-session/refresh",
-        };
-
-        String[] blackList = {
-                "/api/v1/auth/logout",
-                "/api/v1/products/\\d+/reviews",
-        };
-
-        for (String blackListElement : blackList) {
-            if (Pattern.compile(blackListElement).matcher(path).matches()) {
-                return false;
-            }
-        }
-
-        for (String whiteListElement : whiteList) {
-            if (Pattern.compile(whiteListElement).matcher(path).matches()) {
-                return true;
-            }
-        }
+//        String path = request.getRequestURI();
+//
+//        String[] whiteList = {
+//                "/api/v1/auth",
+//                "/api/v1/products",
+//                "/api/v1/products-summary",
+//                "/api/v1/categories",
+//                "/api/v1/delivery-methods",
+//                "/api/v1/me/current-session/refresh",
+//        };
+//
+//        String[] blackList = {
+//                "/api/v1/auth/logout",
+//                "/api/v1/products/\\d+/reviews",
+//        };
+//
+//        for (String blackListElement : blackList) {
+//            System.out.println("blackListElement: " + blackListElement);
+//            if (Pattern.compile(blackListElement).matcher(path).matches()) {
+//                System.out.println("blacklist found: " + blackListElement);
+//                return false;
+//            }
+//        }
+//
+//        for (String whiteListElement : whiteList) {
+//            if (Pattern.compile(whiteListElement).matcher(path).matches()) {
+//                return true;
+//            }
+//        }
 
         return false;
     }

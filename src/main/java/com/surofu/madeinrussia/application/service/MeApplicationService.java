@@ -68,6 +68,8 @@ public class MeApplicationService implements MeService {
         SecurityUser securityUser = operation.getSecurityUser();
         Optional<Session> existingSession = getSessionBySecurityUser(securityUser);
 
+        System.out.println("Session: " + existingSession.isPresent());
+
         if (existingSession.isEmpty()) {
             return GetMe.Result.sessionWithUserIdAndDeviceIdNotFound(
                     securityUser.getUser().getId(),
