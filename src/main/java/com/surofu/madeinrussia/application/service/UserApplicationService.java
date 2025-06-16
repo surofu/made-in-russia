@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
@@ -121,10 +122,10 @@ public class UserApplicationService implements UserService {
     )
     public GetVendorById.Result getVendorById(GetVendorById operation) {
         Optional<User> user = userRepository.getVendorById(operation.getVendorId());
-        Optional<UserDto> userDto = user.map(UserDto::of);
+        Optional<VendorDto> vendorDto = user.map(VendorDto::of);
 
-        if (userDto.isPresent()) {
-            return GetVendorById.Result.success(userDto.get());
+        if (vendorDto.isPresent()) {
+            return GetVendorById.Result.success(vendorDto.get());
         }
 
         return GetVendorById.Result.notFound(operation.getVendorId());
