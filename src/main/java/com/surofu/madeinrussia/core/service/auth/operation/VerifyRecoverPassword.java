@@ -35,17 +35,6 @@ public class VerifyRecoverPassword {
             return UserNotFound.of(userEmail);
         }
 
-        static Result authenticationFailed(UserEmail userEmail, UserPasswordPassword userPasswordPassword) {
-            log.warn("""
-            Error while verify recover password.
-            Authentication failed:
-            email: {}
-            password: {}
-            """, userEmail, userPasswordPassword);
-
-            return AuthenticationFailed.INSTANCE;
-        }
-
         @Value(staticConstructor = "of")
         class Success implements Result {
             RecoverPasswordSuccessDto recoverPasswordSuccessDto;
@@ -85,15 +74,6 @@ public class VerifyRecoverPassword {
             }
         }
 
-        enum AuthenticationFailed implements Result {
-            INSTANCE;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processAuthenticationFailed(this);
-            }
-        }
-
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -102,8 +82,6 @@ public class VerifyRecoverPassword {
             T processInvalidRecoverCode(InvalidRecoverCode result);
 
             T processUserNotFound(UserNotFound result);
-
-            T processAuthenticationFailed(AuthenticationFailed result);
         }
     }
 }

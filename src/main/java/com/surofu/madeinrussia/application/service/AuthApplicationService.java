@@ -254,7 +254,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyRecoverPassword.Result.invalidRecoverCode(operation.getUserEmail(), recoverPasswordDto.recoverCode());
         }
 
-        Optional<UserPassword> userPassword = userPasswordRepository.getUserPasswordByUserEmail(operation.getUserEmail());
+        Optional<UserPassword> userPassword = userPasswordRepository.getUserPasswordByUserEmailWithUser(operation.getUserEmail());
 
         if (userPassword.isEmpty()) {
             return VerifyRecoverPassword.Result.userNotFound(operation.getUserEmail());
@@ -264,27 +264,18 @@ public class AuthApplicationService implements AuthService {
         UserPasswordPassword hashedUserPassword = UserPasswordPassword.of(hashedRawPassword);
         userPassword.get().setPassword(hashedUserPassword);
 
-        userPasswordRepository.saveUserPassword(userPassword.get());
-
-        Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(operation.getUserEmail().toString(), recoverPasswordDto.newUserPassword().toString());
-        Authentication authenticationResponse;
-
-        try {
-            authenticationResponse = authenticationManager.authenticate(authenticationRequest);;
-        } catch (AuthenticationException e) {
-            log.error("Authentication failed: {}", e.getMessage(), e);
-            return VerifyRecoverPassword.Result.authenticationFailed(operation.getUserEmail(), recoverPasswordDto.newUserPassword());
-        }
-
-        SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
-        SecurityUser securityUser = (SecurityUser) authenticationResponse.getPrincipal();
+        SecurityUser securityUser = new SecurityUser(
+                userPassword.get().getUser(),
+                userPassword.get(),
+                null
+        );
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);
 
         RecoverPasswordSuccessDto recoverPasswordSuccessDto = RecoverPasswordSuccessDto.of(accessToken, refreshToken);
 
-        recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(operation.getUserEmail());
+        asyncAuthApplicationService.saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(userPassword.get(), operation.getUserEmail());
 
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }

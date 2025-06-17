@@ -24,6 +24,11 @@ public class JpaUserPasswordRepository implements UserPasswordRepository {
     }
 
     @Override
+    public Optional<UserPassword> getUserPasswordByUserEmailWithUser(UserEmail userEmail) {
+        return repository.findUserPasswordByUserEmailWithUser(userEmail);
+    }
+
+    @Override
     public void saveUserPassword(UserPassword userPassword) {
         repository.save(userPassword);
     }

@@ -10,5 +10,7 @@ public interface UserPasswordRepository {
 
     Optional<UserPassword> getUserPasswordByUserEmail(UserEmail userEmail);
 
+    Optional<UserPassword> getUserPasswordByUserEmailWithUser(UserEmail userEmail);
+
     void saveUserPassword(UserPassword userPassword);
 }

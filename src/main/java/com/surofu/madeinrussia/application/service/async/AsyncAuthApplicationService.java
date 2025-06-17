@@ -151,6 +151,17 @@ public class AsyncAuthApplicationService {
         }
     }
 
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(UserPassword userPassword, UserEmail userEmail) {
+        try {
+            passwordRepository.saveUserPassword(userPassword);
+            recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(userEmail);
+        } catch (Exception e) {
+            log.error("Error saving user password: {}", e.getMessage(), e);
+        }
+    }
+
     private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword) throws CompletionException {
         try {
             String verificationCode = generateVerificationCode();
