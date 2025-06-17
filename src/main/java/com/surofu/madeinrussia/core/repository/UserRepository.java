@@ -16,7 +16,7 @@ public interface UserRepository {
 
     Optional<UserEmail> getUserEmailByLogin(UserLogin userLogin);
 
-    void saveUser(User user);
+    User saveUser(User user);
 
     boolean existsUserByEmail(UserEmail userEmail);
 

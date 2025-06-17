@@ -16,10 +16,7 @@ import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
-import com.surofu.madeinrussia.core.repository.CategoryRepository;
-import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
-import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
-import com.surofu.madeinrussia.core.repository.SessionRepository;
+import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
 import com.surofu.madeinrussia.core.service.me.MeService;
@@ -49,6 +46,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MeApplicationService implements MeService {
+    private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
@@ -231,24 +229,36 @@ public class MeApplicationService implements MeService {
             }
 
             if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
-                Set<VendorCountry> vendorCountries = new HashSet<>();
+                Set<VendorCountry> vendorCountries = new HashSet<>(vendorDetails.getVendorCountries());
 
                 for (VendorCountryName countryName : operation.getCountryNames()) {
-                    VendorCountry vendorCountry = new VendorCountry();
-                    vendorCountry.setName(countryName);
-                    vendorCountries.add(vendorCountry);
+                    if (vendorCountries.stream()
+                            .filter(c -> c.getName().toString().equals(countryName.toString()))
+                            .toList().isEmpty()
+                    ) {
+                        VendorCountry vendorCountry = new VendorCountry();
+                        vendorCountry.setVendorDetails(vendorDetails);
+                        vendorCountry.setName(countryName);
+                        vendorCountries.add(vendorCountry);
+                    }
                 }
 
                 vendorDetails.setVendorCountries(vendorCountries);
             }
 
             if (operation.getCategoryNames() != null && !operation.getCategoryNames().isEmpty()) {
-                Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+                Set<VendorProductCategory> vendorProductCategories = new HashSet<>(vendorDetails.getVendorProductCategories());
 
                 for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
-                    VendorProductCategory vendorProductCategory = new VendorProductCategory();
-                    vendorProductCategory.setName(categoryName);
-                    vendorProductCategories.add(vendorProductCategory);
+                    if (vendorProductCategories.stream()
+                            .filter(c -> c.getName().toString().equals(categoryName.toString()))
+                            .toList().isEmpty()
+                    ) {
+                        VendorProductCategory vendorProductCategory = new VendorProductCategory();
+                        vendorProductCategory.setVendorDetails(vendorDetails);
+                        vendorProductCategory.setName(categoryName);
+                        vendorProductCategories.add(vendorProductCategory);
+                    }
                 }
 
                 vendorDetails.setVendorProductCategories(vendorProductCategories);
@@ -257,13 +267,13 @@ public class MeApplicationService implements MeService {
             user.setVendorDetails(vendorDetails);
         }
 
-        asyncMeApplicationService.updateUser(user);
+        User newUser = userRepository.saveUser(user);
 
         if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
-            return UpdateMe.Result.success(VendorDto.of(user));
+            return UpdateMe.Result.success(VendorDto.of(newUser));
         }
 
-        return UpdateMe.Result.success(UserDto.of(user));
+        return UpdateMe.Result.success(UserDto.of(newUser));
     }
 
     private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
