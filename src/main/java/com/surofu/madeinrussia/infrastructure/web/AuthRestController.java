@@ -19,6 +19,7 @@ import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCat
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -291,6 +292,7 @@ public class AuthRestController {
                     )
             )
             @RequestBody @Valid VerifyEmailCommand verifyEmailCommand,
+            @Parameter(hidden = true)
             HttpServletRequest request
     ) {
         SessionInfo sessionInfo = SessionInfo.of(request);
@@ -319,7 +321,7 @@ public class AuthRestController {
                     ),
             }
     )
-    public ResponseEntity<?> logout(@AuthenticationPrincipal SecurityUser securityUser) {
+    public ResponseEntity<?> logout(@Parameter(hidden = true) @AuthenticationPrincipal SecurityUser securityUser) {
         Logout operation = Logout.of(securityUser);
         return authService.logout(operation).process(logoutProcessor);
     }
@@ -367,11 +369,16 @@ public class AuthRestController {
 
     @PostMapping("verify-recover-password")
     public ResponseEntity<?> verifyRecoverPassword(
-            @RequestBody @Valid VerifyRecoverPasswordCommand verifyRecoverPasswordCommand
+            @RequestBody @Valid VerifyRecoverPasswordCommand verifyRecoverPasswordCommand,
+            @Parameter(hidden = true)
+            HttpServletRequest request
     ) {
+        SessionInfo sessionInfo = SessionInfo.of(request);
+
         VerifyRecoverPassword operation = VerifyRecoverPassword.of(
                 UserEmail.of(verifyRecoverPasswordCommand.email()),
-                verifyRecoverPasswordCommand.recoverCode()
+                verifyRecoverPasswordCommand.recoverCode(),
+                sessionInfo
         );
         return authService.verifyRecoverPassword(operation).process(verifyRecoverPasswordProcessor);
     }

@@ -58,7 +58,7 @@ public class AsyncSessionApplicationService {
 
             sessionRepository.save(session);
         } catch (Exception ex) {
-            log.error("Error saving session", ex);
+            log.error("Error while saving session: {}", ex.getMessage(), ex);
         }
 
         return CompletableFuture.completedFuture(null);

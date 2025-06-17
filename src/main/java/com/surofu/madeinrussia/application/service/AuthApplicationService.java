@@ -267,7 +267,7 @@ public class AuthApplicationService implements AuthService {
         SecurityUser securityUser = new SecurityUser(
                 userPassword.get().getUser(),
                 userPassword.get(),
-                null
+                operation.getSessionInfo()
         );
 
         String accessToken = jwtUtils.generateAccessToken(securityUser);
@@ -276,6 +276,7 @@ public class AuthApplicationService implements AuthService {
         RecoverPasswordSuccessDto recoverPasswordSuccessDto = RecoverPasswordSuccessDto.of(accessToken, refreshToken);
 
         asyncAuthApplicationService.saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(userPassword.get(), operation.getUserEmail());
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
 
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }

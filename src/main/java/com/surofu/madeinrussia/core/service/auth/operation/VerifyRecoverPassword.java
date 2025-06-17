@@ -1,8 +1,8 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.dto.RecoverPasswordSuccessDto;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 public class VerifyRecoverPassword {
     UserEmail userEmail;
     String recoverCode;
+    SessionInfo sessionInfo;
 
     public interface Result {
         <T> T process(Processor<T> processor);

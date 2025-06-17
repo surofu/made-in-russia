@@ -272,12 +272,45 @@ public class MeRestController {
                             schema = @Schema(implementation = UpdateMeCommand.class),
                             examples = {
                                     @ExampleObject(
+                                            description = "For User",
                                             value = """
                                                     {
                                                       "phoneNumber": "+375281234567",
-                                                      "region": "Moscow, Russia"
+                                                      "region": "Russia"
                                                     }"""
-                                    )
+                                    ),
+                                    @ExampleObject(
+                                            description = "For User",
+                                            value = """
+                                                    {
+                                                      "region": "China"
+                                                    }"""
+                                    ),
+                                    @ExampleObject(
+                                            description = "For Vendor",
+                                            value = """
+                                                    {
+                                                      "phoneNumber": "+375281234567",
+                                                      "inn": "123456789",
+                                                      "countries": ["Russia", "China"],
+                                                      "categories": ["Wood", "Coal"]
+                                                    }"""
+                                    ),
+                                    @ExampleObject(
+                                            description = "For Vendor",
+                                            value = """
+                                                    {
+                                                      "inn": "123456789",
+                                                      "countries": ["Russia", "China"],
+                                                    }"""
+                                    ),
+                                    @ExampleObject(
+                                            description = "For Vendor",
+                                            value = """
+                                                    {
+                                                      "categories": ["Wood", "Coal"]
+                                                    }"""
+                                    ),
                             }
                     )
             )
