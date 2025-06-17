@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.dto.RecoverPasswordSuccessDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,17 @@ public class VerifyRecoverPassword {
         static Result userNotFound(UserEmail userEmail) {
             log.warn("Error while verify recover password. User not found for email '{}'", userEmail);
             return UserNotFound.of(userEmail);
+        }
+
+        static Result authenticationFailed(UserEmail userEmail, UserPasswordPassword userPasswordPassword) {
+            log.warn("""
+            Error while verify recover password.
+            Authentication failed:
+            email: {}
+            password: {}
+            """, userEmail, userPasswordPassword);
+
+            return AuthenticationFailed.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -73,6 +85,15 @@ public class VerifyRecoverPassword {
             }
         }
 
+        enum AuthenticationFailed implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processAuthenticationFailed(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -81,6 +102,8 @@ public class VerifyRecoverPassword {
             T processInvalidRecoverCode(InvalidRecoverCode result);
 
             T processUserNotFound(UserNotFound result);
+
+            T processAuthenticationFailed(AuthenticationFailed result);
         }
     }
 }

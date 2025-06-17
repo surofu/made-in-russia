@@ -270,7 +270,7 @@ public class AuthApplicationService implements AuthService {
             authenticationResponse = authenticationManager.authenticate(authenticationRequest);;
         } catch (AuthenticationException e) {
             log.error("Authentication failed: {}", e.getMessage(), e);
-            return VerifyRecoverPassword.Result.userNotFound(operation.getUserEmail());
+            return VerifyRecoverPassword.Result.authenticationFailed(operation.getUserEmail(), recoverPasswordDto.newUserPassword());
         }
 
         SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
