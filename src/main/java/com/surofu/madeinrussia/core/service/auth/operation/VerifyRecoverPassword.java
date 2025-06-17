@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
+import com.surofu.madeinrussia.application.dto.RecoverPasswordSuccessDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +14,9 @@ public class VerifyRecoverPassword {
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(UserEmail userEmail) {
+        static Result success(RecoverPasswordSuccessDto recoverPasswordSuccessDto, UserEmail userEmail) {
             log.info("Successfully recover password of '{}'", userEmail);
-            return Success.INSTANCE;
+            return Success.of(recoverPasswordSuccessDto);
         }
 
         static Result emailNotFound(UserEmail userEmail) {
@@ -28,8 +29,14 @@ public class VerifyRecoverPassword {
             return InvalidRecoverCode.INSTANCE;
         }
 
-        enum Success implements Result {
-            INSTANCE;
+        static Result userNotFound(UserEmail userEmail) {
+            log.warn("Error while verify recover password. User not found for email '{}'", userEmail);
+            return UserNotFound.of(userEmail);
+        }
+
+        @Value(staticConstructor = "of")
+        class Success implements Result {
+            RecoverPasswordSuccessDto recoverPasswordSuccessDto;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -44,6 +51,16 @@ public class VerifyRecoverPassword {
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processEmilNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class UserNotFound implements Result {
+            UserEmail userEmail;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processUserNotFound(this);
             }
         }
 
@@ -62,6 +79,8 @@ public class VerifyRecoverPassword {
             T processEmilNotFound(EmailNotFound result);
 
             T processInvalidRecoverCode(InvalidRecoverCode result);
+
+            T processUserNotFound(UserNotFound result);
         }
     }
 }

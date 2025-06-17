@@ -151,25 +151,6 @@ public class AsyncAuthApplicationService {
         }
     }
 
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateUserPasswordInDataBase(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws CompletionException {
-        try {
-            Optional<UserPassword> userPassword = passwordRepository.getUserPasswordByUserEmail(userEmail);
-
-            if (userPassword.isPresent()) {
-                userPassword.get().setPassword(userPasswordPassword);
-                passwordRepository.saveUserPassword(userPassword.get());
-
-                recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(userEmail);
-            } else {
-                log.warn("User password by with email '{}' not found", userEmail);
-            }
-        } catch (Exception e) {
-            log.error("Error while updating user password: {}", e.getMessage(), e);
-        }
-    }
-
     private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword) throws CompletionException {
         try {
             String verificationCode = generateVerificationCode();

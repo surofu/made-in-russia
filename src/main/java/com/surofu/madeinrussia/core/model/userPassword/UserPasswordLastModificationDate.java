@@ -19,7 +19,7 @@ public final class UserPasswordLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "last_modification_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
     private UserPasswordLastModificationDate(ZonedDateTime date) {

@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.auth;
 
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyRecoverPassword;
 import org.springframework.http.HttpStatus;
@@ -13,9 +12,7 @@ implements VerifyRecoverPassword.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processSuccess(VerifyRecoverPassword.Result.Success result) {
-        String message = "Пароль был успешно изменен";
-        SimpleResponseMessageDto responseMessage = SimpleResponseMessageDto.of(message);
-        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        return new ResponseEntity<>(result.getRecoverPasswordSuccessDto(), HttpStatus.OK);
     }
 
     @Override
@@ -30,5 +27,12 @@ implements VerifyRecoverPassword.Result.Processor<ResponseEntity<?>> {
         String message = "Неверный код восстановления пароля";
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity<?> processUserNotFound(VerifyRecoverPassword.Result.UserNotFound result) {
+        String message = String.format("Аккаунт с почтой '%s' не найден", result.getUserEmail());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 }

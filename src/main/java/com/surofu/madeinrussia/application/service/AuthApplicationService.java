@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.LoginSuccessDto;
-import com.surofu.madeinrussia.application.dto.RecoverPasswordDto;
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
-import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
+import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
@@ -17,6 +14,7 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
 import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
@@ -38,6 +36,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
+    private final UserPasswordRepository userPasswordRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
@@ -229,11 +228,9 @@ public class AuthApplicationService implements AuthService {
         boolean isUserExists = userRepository.existsUserByEmail(operation.getUserEmail());
 
         if (isUserExists) {
-            String hashedRawPassword = passwordEncoder.encode(operation.getNewUserPassword().toString());
-
             RecoverPassword operationWithHashedPassword = RecoverPassword.of(
                     operation.getUserEmail(),
-                    UserPasswordPassword.of(hashedRawPassword)
+                    operation.getNewUserPassword()
             );
 
             asyncAuthApplicationService.saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(operationWithHashedPassword);
@@ -255,9 +252,38 @@ public class AuthApplicationService implements AuthService {
             return VerifyRecoverPassword.Result.invalidRecoverCode(operation.getUserEmail(), recoverPasswordDto.recoverCode());
         }
 
-        asyncAuthApplicationService.updateUserPasswordInDataBase(operation.getUserEmail(), recoverPasswordDto.newUserPassword());
+        Optional<UserPassword> userPassword = userPasswordRepository.getUserPasswordByUserEmail(operation.getUserEmail());
 
-        return VerifyRecoverPassword.Result.success(operation.getUserEmail());
+        if (userPassword.isEmpty()) {
+            return VerifyRecoverPassword.Result.userNotFound(operation.getUserEmail());
+        }
+
+        String hashedRawPassword = passwordEncoder.encode(recoverPasswordDto.newUserPassword().getValue());
+        UserPasswordPassword hashedUserPassword = UserPasswordPassword.of(hashedRawPassword);
+        userPassword.get().setPassword(hashedUserPassword);
+        userPasswordRepository.saveUserPassword(userPassword.get());
+
+        Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(operation.getUserEmail().toString(), recoverPasswordDto.newUserPassword().toString());
+        Authentication authenticationResponse;
+
+        try {
+            authenticationResponse = authenticationManager.authenticate(authenticationRequest);;
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed: {}", e.getMessage(), e);
+            return VerifyRecoverPassword.Result.userNotFound(operation.getUserEmail());
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
+        SecurityUser securityUser = (SecurityUser) authenticationResponse.getPrincipal();
+
+        String accessToken = jwtUtils.generateAccessToken(securityUser);
+        String refreshToken = jwtUtils.generateRefreshToken(securityUser);
+
+        RecoverPasswordSuccessDto recoverPasswordSuccessDto = RecoverPasswordSuccessDto.of(accessToken, refreshToken);
+
+        recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(operation.getUserEmail());
+
+        return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }
 
     private LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
