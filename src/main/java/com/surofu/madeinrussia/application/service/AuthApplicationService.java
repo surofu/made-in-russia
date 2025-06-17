@@ -224,6 +224,7 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
+    @Transactional
     public RecoverPassword.Result recoverPassword(RecoverPassword operation) {
         boolean isUserExists = userRepository.existsUserByEmail(operation.getUserEmail());
 
@@ -241,6 +242,7 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
+    @Transactional
     public VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation) {
         RecoverPasswordDto recoverPasswordDto = recoverPasswordCaffeineCacheManager.getRecoverPasswordDto(operation.getUserEmail());
 
@@ -262,23 +264,7 @@ public class AuthApplicationService implements AuthService {
         UserPasswordPassword hashedUserPassword = UserPasswordPassword.of(hashedRawPassword);
         userPassword.get().setPassword(hashedUserPassword);
 
-        log.info("User password to safe: {}", userPassword.get());
-
         userPasswordRepository.saveUserPassword(userPassword.get());
-
-        Optional<UserPassword> testPass = userPasswordRepository.getUserPasswordByUserEmail(operation.getUserEmail());
-
-        if (testPass.isPresent()) {
-            log.info("User password after safe test pass: {}", testPass.get());
-        } else {
-            log.info("User password after safe test pass not found");
-        }
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-        }
 
         Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(operation.getUserEmail().toString(), recoverPasswordDto.newUserPassword().toString());
         Authentication authenticationResponse;
