@@ -329,7 +329,7 @@ public class ProductRestController {
     }
 
     @PostMapping("{productId}/reviews")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.user.hasWeekAfterRegistrationDate()")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Create product review",

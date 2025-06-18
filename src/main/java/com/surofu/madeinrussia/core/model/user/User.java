@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -65,4 +66,8 @@ public final class User implements Serializable {
 
     @Embedded
     private UserLastModificationDate lastModificationDate;
+
+    public boolean hasWeekAfterRegistrationDate() {
+        return ZonedDateTime.now().isAfter(registrationDate.getValue().plusWeeks(1));
+    }
 }

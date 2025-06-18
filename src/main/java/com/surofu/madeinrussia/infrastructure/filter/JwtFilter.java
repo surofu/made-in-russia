@@ -173,9 +173,7 @@ public class JwtFilter extends OncePerRequestFilter {
         };
 
         for (String blackListElement : blackList) {
-            System.out.println("blackListElement: " + blackListElement);
             if (Pattern.compile(blackListElement).matcher(path).matches()) {
-                System.out.println("blacklist found: " + blackListElement);
                 return false;
             }
         }
