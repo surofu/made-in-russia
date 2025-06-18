@@ -75,4 +75,14 @@ public class AsyncSessionApplicationService {
 
         return CompletableFuture.completedFuture(null);
     }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void removeSessionById(Long sessionId) {
+        try {
+            sessionRepository.deleteSessionById(sessionId);
+        } catch (Exception ex) {
+            log.error("Error while removing session: {}", ex.getMessage(), ex);
+        }
+    }
 }

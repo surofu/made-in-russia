@@ -18,4 +18,6 @@ public interface MeService {
     RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation);
 
     UpdateMe.Result updateMe(UpdateMe operation);
+
+    DeleteMeSessionById.Result deleteMeSessionById(DeleteMeSessionById operation);
 }

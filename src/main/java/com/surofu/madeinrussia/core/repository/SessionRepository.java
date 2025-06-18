@@ -16,4 +16,6 @@ public interface SessionRepository {
     void deleteSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId);
 
     void save(Session session);
+
+    void deleteSessionById(Long id);
 }

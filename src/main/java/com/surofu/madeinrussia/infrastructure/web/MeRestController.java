@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
 import com.surofu.madeinrussia.application.dto.SessionDto;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
@@ -61,6 +62,7 @@ public class MeRestController {
     private final GetMeReviewPage.Result.Processor<ResponseEntity<?>> getMeReviewsProcessor;
     private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
     private final GetMeProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getMeProductSummaryViewPageProcessor;
+    private final DeleteMeSessionById.Result.Processor<ResponseEntity<?>> getDeleteMeSessionByIdProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -659,5 +661,52 @@ public class MeRestController {
         );
 
         return meService.getMeProductSummaryViewPage(operation).process(getMeProductSummaryViewPageProcessor);
+    }
+
+    @DeleteMapping("sessions/{sessionId}")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Delete current user session by ID",
+            description = "Delete current user session by ID, authentication required",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully deleted session",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = SimpleResponseMessageDto.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - invalid or missing JWT token",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
+                    )
+            }
+    )
+    public ResponseEntity<?> deleteSessionById(
+            @Parameter(
+                    name = "sessionId",
+                    description = "ID of the user session to be deleted",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long sessionId,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        DeleteMeSessionById operation = DeleteMeSessionById.of(
+                securityUser,
+                sessionId
+        );
+        return meService.deleteMeSessionById(operation).process(getDeleteMeSessionByIdProcessor);
     }
 }

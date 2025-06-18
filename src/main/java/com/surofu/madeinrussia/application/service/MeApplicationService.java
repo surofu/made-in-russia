@@ -283,6 +283,19 @@ public class MeApplicationService implements MeService {
         return UpdateMe.Result.success(UserDto.of(newUser));
     }
 
+    @Override
+    @Transactional
+    public DeleteMeSessionById.Result deleteMeSessionById(DeleteMeSessionById operation) {
+        Optional<Session> session = sessionRepository.getSessionById(operation.getSessionId());
+
+        if (session.isPresent()) {
+            asyncSessionApplicationService.removeSessionById(operation.getSessionId());
+            return DeleteMeSessionById.Result.success(operation.getSessionId());
+        }
+
+        return DeleteMeSessionById.Result.notFound(operation.getSessionId());
+    }
+
     private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
         Long userId = securityUser.getUser().getId();
         SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();

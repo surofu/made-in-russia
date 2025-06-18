@@ -38,4 +38,9 @@ public class JpaSessionRepository implements SessionRepository {
     public void save(Session session) {
         repository.save(session);
     }
+
+    @Override
+    public void deleteSessionById(Long id) {
+        repository.deleteById(id);
+    }
 }
