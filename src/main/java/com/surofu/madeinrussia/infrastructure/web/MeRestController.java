@@ -5,7 +5,7 @@ import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
 import com.surofu.madeinrussia.application.dto.SessionDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
+import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetMeProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;

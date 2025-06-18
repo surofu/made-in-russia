@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.exception;
 
-import com.surofu.madeinrussia.application.dto.ValidationExceptionDto;
+import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

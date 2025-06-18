@@ -229,17 +229,21 @@ public class MeApplicationService implements MeService {
             }
 
             if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
-                Set<VendorCountry> vendorCountries = new HashSet<>(vendorDetails.getVendorCountries());
+                Set<VendorCountry> vendorCountries = new HashSet<>();
 
                 for (VendorCountryName countryName : operation.getCountryNames()) {
-                    if (vendorCountries.stream()
+                    List<VendorCountry> existingCountries = vendorDetails.getVendorCountries().stream()
                             .filter(c -> c.getName().toString().equals(countryName.toString()))
-                            .toList().isEmpty()
+                            .toList();
+
+                    if (existingCountries.isEmpty()
                     ) {
                         VendorCountry vendorCountry = new VendorCountry();
                         vendorCountry.setVendorDetails(vendorDetails);
                         vendorCountry.setName(countryName);
                         vendorCountries.add(vendorCountry);
+                    } else {
+                        vendorCountries.addAll(existingCountries);
                     }
                 }
 
@@ -247,17 +251,20 @@ public class MeApplicationService implements MeService {
             }
 
             if (operation.getCategoryNames() != null && !operation.getCategoryNames().isEmpty()) {
-                Set<VendorProductCategory> vendorProductCategories = new HashSet<>(vendorDetails.getVendorProductCategories());
+                Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
                 for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
-                    if (vendorProductCategories.stream()
+                    List<VendorProductCategory> existingCategories = vendorDetails.getVendorProductCategories().stream()
                             .filter(c -> c.getName().toString().equals(categoryName.toString()))
-                            .toList().isEmpty()
-                    ) {
+                            .toList();
+
+                    if (existingCategories.isEmpty()) {
                         VendorProductCategory vendorProductCategory = new VendorProductCategory();
                         vendorProductCategory.setVendorDetails(vendorDetails);
                         vendorProductCategory.setName(categoryName);
                         vendorProductCategories.add(vendorProductCategory);
+                    } else {
+                        vendorProductCategories.addAll(existingCategories);
                     }
                 }
 

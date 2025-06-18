@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.command.productReview.CreateProductRe
 import com.surofu.madeinrussia.application.command.productReview.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
