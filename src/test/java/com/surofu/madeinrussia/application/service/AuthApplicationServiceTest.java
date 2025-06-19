@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,18 +53,38 @@ class AuthApplicationServiceTest {
     @InjectMocks
     AuthApplicationService authApplicationService;
 
+    @BeforeEach
+    public void setup() {
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncAuthApplicationService).saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncAuthApplicationService).saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncAuthApplicationService).saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncAuthApplicationService).saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(any(), any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncSessionApplicationService).removeSessionById(anyLong());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncSessionApplicationService).removeSessionByUserIdAndDeviceId(anyLong(), any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncSessionApplicationService).saveOrUpdateSessionFromHttpRequest(any());
+    }
+
     @RepeatedTest(10)
     void register_WhenCommandValid_ReturnsSuccessResult() {
         // given
         ArgumentCaptor<UserEmail> userEmailArgumentCaptor = ArgumentCaptor.forClass(UserEmail.class);
         ArgumentCaptor<UserLogin> userLoginArgumentCaptor = ArgumentCaptor.forClass(UserLogin.class);
-        ArgumentCaptor<Register> registerOperationArgumentCaptor = ArgumentCaptor.forClass(Register.class);
 
         doReturn(false).when(userRepository).existsUserByEmail(userEmailArgumentCaptor.capture());
         doReturn(false).when(userRepository).existsUserByLogin(userLoginArgumentCaptor.capture());
-        doReturn(CompletableFuture.completedFuture(null))
-                .when(asyncAuthApplicationService)
-                .saveRegisterDataInCacheAndSendVerificationCodeToEmail(registerOperationArgumentCaptor.capture());
 
         // when
         UserEmail userEmail = Instancio.of(UserEmail.class)

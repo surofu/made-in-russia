@@ -21,7 +21,7 @@ public final class ProductReviewContent implements Serializable {
             throw new IllegalArgumentException("Текст отзыва не может быть пустым");
         }
 
-        if (content.length() > 10_000) {
+        if (content.length() >= 10_000) {
             throw new IllegalArgumentException("Текст отзыва не может быть больше 10,000 символов");
         }
 

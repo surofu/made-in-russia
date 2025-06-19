@@ -16,8 +16,8 @@ import java.io.Serializable;
 @Table(
         name = "vendor_views",
         indexes = {
-                @Index(name = "idx_vendor_views_vendor_details_id", columnList = "vendorDetails"),
-                @Index(name = "idx_vendor_views_user_id", columnList = "user")
+                @Index(name = "idx_vendor_views_vendor_details_id", columnList = "vendor_details_id"),
+                @Index(name = "idx_vendor_views_user_id", columnList = "user_id")
         }
 )
 public final class VendorView implements Serializable {

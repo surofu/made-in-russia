@@ -14,13 +14,13 @@ import java.util.Optional;
 public interface SpringDataUserRepository extends JpaRepository<User, Long> {
 
     @Query("select u from User u where u.id = :id")
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories"})
+    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findById(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories"})
+    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findByLogin(UserLogin userLogin);
 
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories"})
+    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findByEmail(UserEmail userEmail);
 
     boolean existsByEmail(UserEmail userEmail);

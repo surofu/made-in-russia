@@ -29,7 +29,7 @@ public final class UserPasswordPassword implements Serializable {
             throw new IllegalArgumentException("Пароль не может быть менее 4 символов");
         }
 
-        if (password.length() > 10_000) {
+        if (password.length() >= 10_000) {
             throw new IllegalArgumentException("Пароль не может быть больше 10,000 символов");
         }
 

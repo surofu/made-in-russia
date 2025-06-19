@@ -8,16 +8,19 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodLastModif
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodName;
 import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
+import com.surofu.madeinrussia.core.repository.ProductReviewMediaRepository;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,16 +28,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductApplicationServiceTest {
 
-    final BigDecimal MIN_PRICE = BigDecimal.ZERO;
-    final BigDecimal MAX_PRICE = BigDecimal.TEN.multiply(BigDecimal.valueOf(2));
-
     final ZonedDateTime TEST_DATE_TIME = ZonedDateTime.now();
 
     @Mock
     ProductRepository productRepository;
 
+    @Mock
+    ProductReviewMediaRepository productReviewMediaRepository;
+
     @InjectMocks
     ProductApplicationService productApplicationService;
+
+    @BeforeEach
+    public void setup() {
+        lenient().doReturn(new ArrayList<>())
+                .when(productReviewMediaRepository)
+                .findAllByProductId(anyLong(), anyInt());
+    }
 
     @Test
     void getProductById_WhenProductExistsByValidId_ReturnsSuccessResultWithValidProductDto() {
@@ -47,6 +57,7 @@ class ProductApplicationServiceTest {
         category.setId(mockCategoryId);
         category.setSlug(CategorySlug.of("l1_slug"));
         category.setChildren(Set.of());
+        category.setChildrenCount(CategoryChildrenCount.of(0L));
         category.setName(CategoryName.of("Test Category"));
         category.setCreationDate(CategoryCreationDate.of(TEST_DATE_TIME));
         category.setLastModificationDate(CategoryLastModificationDate.of(TEST_DATE_TIME));

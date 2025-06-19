@@ -42,19 +42,19 @@ public final class ProductDescription implements Serializable {
             throw new IllegalArgumentException("Описание продавца не может быть пустым");
         }
 
-        if (mainDescription.length() > 50_000) {
+        if (mainDescription.length() >= 50_000) {
             throw new IllegalArgumentException("Главное описание не может быть больше 50,000 символов");
         }
 
-        if (furtherDescription.length() > 20_000) {
+        if (furtherDescription.length() >= 20_000) {
             throw new IllegalArgumentException("Второстепенное описание не может быть больше 20,000 символов");
         }
 
-        if (summaryDescription.length() > 20_000) {
+        if (summaryDescription.length() >= 20_000) {
             throw new IllegalArgumentException("Краткое описание не может быть больше 20,000 символов");
         }
 
-        if (primaryDescription.length() > 20_000) {
+        if (primaryDescription.length() >= 20_000) {
             throw new IllegalArgumentException("Описание продавца не может быть больше 20,000 символов");
         }
 

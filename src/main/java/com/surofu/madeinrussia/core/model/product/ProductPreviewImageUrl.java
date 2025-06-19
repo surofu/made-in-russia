@@ -21,7 +21,7 @@ public final class ProductPreviewImageUrl implements Serializable {
             throw new IllegalArgumentException("Ссылка на изображение превью товара не может быть пустым");
         }
 
-        if (url.length() > 20_000) {
+        if (url.length() >= 20_000) {
             throw new IllegalArgumentException("Ссылка на изображение превью товара не может быть больше 20,000 символов");
         }
 

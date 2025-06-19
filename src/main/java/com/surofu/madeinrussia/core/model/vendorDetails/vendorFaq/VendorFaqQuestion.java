@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productFaq;
+package com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -11,12 +11,12 @@ import java.io.Serializable;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductFaqQuestion implements Serializable {
+public final class VendorFaqQuestion implements Serializable {
 
-    @Column(name = "question", nullable = false, columnDefinition = "text")
+    @Column(name = "question", nullable = false)
     private String value;
 
-    private ProductFaqQuestion(String question) {
+    private VendorFaqQuestion(String question) {
         if (question == null || question.trim().isEmpty()) {
             throw new IllegalArgumentException("Вопрос не может быть пустым");
         }
@@ -28,8 +28,8 @@ public final class ProductFaqQuestion implements Serializable {
         this.value = question;
     }
 
-    public static ProductFaqQuestion of(String question) {
-        return new ProductFaqQuestion(question);
+    public static VendorFaqQuestion of(String question) {
+        return new VendorFaqQuestion(question);
     }
 
     @Override

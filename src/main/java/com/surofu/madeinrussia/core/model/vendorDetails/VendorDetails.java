@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.model.vendorDetails;
 
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
 import jakarta.persistence.*;
@@ -72,6 +73,13 @@ public final class VendorDetails implements Serializable {
             orphanRemoval = true
     )
     private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorFaq> faq = new HashSet<>();
 
     @OneToMany(
             mappedBy = "vendorDetails",

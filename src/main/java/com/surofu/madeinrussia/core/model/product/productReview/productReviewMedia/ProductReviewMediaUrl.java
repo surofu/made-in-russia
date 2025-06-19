@@ -21,7 +21,7 @@ public final class ProductReviewMediaUrl implements Serializable {
             throw new IllegalArgumentException("Ссылка медиа отзыва не может быть пустой");
         }
 
-        if (url.length() > 20000) {
+        if (url.length() >= 20_000) {
             throw new IllegalArgumentException("Ссылка медиа отзыва не может быть больше 20,000 символов");
         }
 
