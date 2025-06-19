@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,9 +29,14 @@ public class CreateProductReview {
             return ProductNotFound.of(productId);
         }
 
-        static Result unauthorized() {
-            log.warn("Unauthorized when processing create product review");
-            return Unauthorized.INSTANCE;
+        static Result vendorProfileNotViewed(UserEmail userEmail) {
+            log.warn("VendorProfile not viewed by user with email '{}' when processing create product review", userEmail.toString());
+            return VendorProfileNotViewed.INSTANCE;
+        }
+
+        static Result accountIsTooYoung(UserEmail userEmail) {
+            log.warn("Account with email '{}' is too young when processing create product review", userEmail.toString());
+            return AccountIsTooYoung.INSTANCE;
         }
 
         enum Success implements Result {
@@ -52,12 +58,21 @@ public class CreateProductReview {
             }
         }
 
-        enum Unauthorized implements Result {
+        enum VendorProfileNotViewed implements Result {
             INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return processor.processUnauthorized(this);
+                return processor.processVendorProfileNotViewed(this);
+            }
+        }
+
+        enum AccountIsTooYoung implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processAccountIsTooYoung(this);
             }
         }
 
@@ -66,7 +81,9 @@ public class CreateProductReview {
 
             T processProductNotFound(ProductNotFound result);
 
-            T processUnauthorized(Unauthorized result);
+            T processVendorProfileNotViewed(VendorProfileNotViewed result);
+
+            T processAccountIsTooYoung(AccountIsTooYoung result);
         }
     }
 }

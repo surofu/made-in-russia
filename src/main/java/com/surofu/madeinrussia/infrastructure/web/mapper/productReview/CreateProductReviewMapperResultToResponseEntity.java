@@ -26,7 +26,16 @@ implements CreateProductReview.Result.Processor<ResponseEntity<?>> {
     }
 
     @Override
-    public ResponseEntity<?> processUnauthorized(CreateProductReview.Result.Unauthorized result) {
-        return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> processVendorProfileNotViewed(CreateProductReview.Result.VendorProfileNotViewed result) {
+        String message = "Перед публикацией комментария необходимо сделать заказ в продавца";
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
+    }
+
+    @Override
+    public ResponseEntity<?> processAccountIsTooYoung(CreateProductReview.Result.AccountIsTooYoung result) {
+        String message = "Возраст аккаунта должен составлять более 7 дней";
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
     }
 }

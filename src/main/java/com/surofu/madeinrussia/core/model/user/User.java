@@ -66,8 +66,4 @@ public final class User implements Serializable {
 
     @Embedded
     private UserLastModificationDate lastModificationDate;
-
-    public boolean hasWeekAfterRegistrationDate() {
-        return ZonedDateTime.now().isAfter(registrationDate.getValue().plusWeeks(1));
-    }
 }

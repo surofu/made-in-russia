@@ -5,9 +5,11 @@ import com.surofu.madeinrussia.application.service.async.AsyncProductReviewAppli
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.repository.VendorViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
 import com.surofu.madeinrussia.core.service.productReview.operation.DeleteProductReview;
@@ -25,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +41,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
     private final ProductReviewRepository productReviewRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final VendorViewRepository vendorViewRepository;
 
     private final AsyncProductReviewApplicationService asyncProductReviewApplicationService;
 
@@ -100,10 +104,10 @@ public class ProductReviewApplicationService implements ProductReviewService {
             condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$ProductNotFound)"
     )
     public CreateProductReview.Result createProductReview(CreateProductReview operation) {
-        Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
+        User user = operation.getSecurityUser().getUser();
 
-        if (user.isEmpty()) {
-            return CreateProductReview.Result.unauthorized();
+        if (user.getRegistrationDate().getValue().isAfter(ZonedDateTime.now().minusWeeks(1))) {
+            return CreateProductReview.Result.accountIsTooYoung(user.getEmail());
         }
 
         Optional<Product> product = productRepository.getProductById(operation.getProductId());
@@ -112,8 +116,18 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return CreateProductReview.Result.productNotFound(operation.getProductId());
         }
 
+        VendorView vendorView = new VendorView();
+        vendorView.setUser(user);
+        vendorView.setVendorDetails(product.get().getUser().getVendorDetails());
+
+        boolean viewIsNotExists = vendorViewRepository.notExists(vendorView);
+
+        if (viewIsNotExists) {
+            return CreateProductReview.Result.vendorProfileNotViewed(user.getEmail());
+        }
+
         ProductReview productReview = new ProductReview();
-        productReview.setUser(user.get());
+        productReview.setUser(user);
         productReview.setProduct(product.get());
         productReview.setContent(operation.getProductReviewContent());
         productReview.setRating(operation.getProductReviewRating());
