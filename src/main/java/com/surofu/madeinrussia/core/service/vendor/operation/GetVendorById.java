@@ -1,12 +1,16 @@
 package com.surofu.madeinrussia.core.service.vendor.operation;
 
 import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetVendorById {
+    Optional<SecurityUser> securityUser;
     Long vendorId;
 
     public interface Result {

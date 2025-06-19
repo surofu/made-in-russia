@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorCountry;
+package com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
@@ -14,15 +14,15 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-        name = "vendor_countries",
+        name = "vendor_product_categories",
         indexes = {
                 @Index(
-                        name = "idx_vendor_countries_vendor_details_id",
+                        name = "idx_vendor_product_categories_vendor_details_id",
                         columnList = "vendor_details_id"
                 )
         }
 )
-public final class VendorCountry implements Serializable {
+public final class VendorProductCategory implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,24 +33,24 @@ public final class VendorCountry implements Serializable {
     @JoinColumn(
             name = "vendor_details_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "fk_vendor_countries_vendor_details_id")
+            foreignKey = @ForeignKey(name = "fk_vendor_product_categories_vendor_details_id")
     )
     private VendorDetails vendorDetails;
 
     @Embedded
-    private VendorCountryName name;
+    private VendorProductCategoryName name;
 
     @Embedded
-    private VendorCountryCreationDate creationDate;
+    private VendorProductCategoryCreationDate creationDate;
 
     @Embedded
-    private VendorCountryLastModificationDate lastModificationDate;
+    private VendorProductCategoryLastModificationDate lastModificationDate;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof VendorCountry)) return false;
-        return id != null && id.equals(((VendorCountry) o).id);
+        if (!(o instanceof VendorProductCategory)) return false;
+        return id != null && id.equals(((VendorProductCategory) o).id);
     }
 
     @Override

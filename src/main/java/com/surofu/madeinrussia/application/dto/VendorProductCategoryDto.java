@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

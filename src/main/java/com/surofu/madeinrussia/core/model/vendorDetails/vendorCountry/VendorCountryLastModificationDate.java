@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorProductCategory;
+package com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,23 +15,23 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorProductCategoryLastModificationDate implements Serializable {
+public final class VendorCountryLastModificationDate implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorProductCategoryLastModificationDate(ZonedDateTime lastModificationDate) {
-        if (lastModificationDate == null) {
-            throw new IllegalArgumentException("Дата последнего изменения категории товаров продавца не может быть пустой");
+    private VendorCountryLastModificationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Дата последнего изменения страны продавца не может быть пустой");
         }
 
-        this.value = lastModificationDate;
+        this.value = date;
     }
 
-    public static VendorProductCategoryLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new VendorProductCategoryLastModificationDate(lastModificationDate);
+    public static VendorCountryLastModificationDate of(ZonedDateTime date) {
+        return new VendorCountryLastModificationDate(date);
     }
 
     @Override

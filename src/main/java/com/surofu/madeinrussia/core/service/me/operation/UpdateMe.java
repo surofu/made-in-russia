@@ -4,9 +4,9 @@ import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
-import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

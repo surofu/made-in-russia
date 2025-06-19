@@ -40,7 +40,8 @@ import java.util.List;
                     }
                   ],
                   "creationDate": "2025-05-15T14:30:00Z",
-                  "lastModificationDate": "2025-06-01T10:15:30Z"
+                  "lastModificationDate": "2025-06-01T10:15:30Z",
+                  "viewsCount": "123"
                 }
                 """
 )
@@ -83,6 +84,13 @@ public final class VendorDetailsDto implements Serializable {
     private List<VendorProductCategoryDto> productCategories;
 
     @Schema(
+            description = "Count of profile views by authenticated users",
+            example = "789",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Long viewsCount = 0L;
+
+    @Schema(
             description = "Timestamp when vendor details were initially created",
             example = "2025-05-15T14:30:00Z",
             type = "string",
@@ -112,6 +120,7 @@ public final class VendorDetailsDto implements Serializable {
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .creationDate(vendorDetails.getCreationDate().getValue())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
+                .viewsCount(vendorDetails.getVendorViewsCount())
                 .lastModificationDate(vendorDetails.getLastModificationDate().getValue())
                 .build();
     }

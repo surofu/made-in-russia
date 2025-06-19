@@ -2,16 +2,20 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.dto.page.VendorReviewPageDto;
+import com.surofu.madeinrussia.application.service.async.AsyncVendorViewApplicationService;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.repository.VendorViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,25 +29,39 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VendorApplicationService implements VendorService {
 
     private final UserRepository userRepository;
+    private final VendorViewRepository vendorViewRepository;
     private final ProductReviewRepository productReviewRepository;
+    private final CacheManager cacheManager;
+
+    private final AsyncVendorViewApplicationService asyncVendorViewApplicationService;
 
     @Override
-    @Transactional(readOnly = true)
-    @Cacheable(
-            value = "vendorById",
-            key = "#operation.vendorId"
-    )
+    @Transactional
     public GetVendorById.Result getVendorById(GetVendorById operation) {
-        Optional<User> user = userRepository.getVendorById(operation.getVendorId());
-        Optional<VendorDto> vendorDto = user.map(VendorDto::of);
+        Optional<User> vendor = userRepository.getVendorById(operation.getVendorId());
 
-        if (vendorDto.isPresent()) {
-            return GetVendorById.Result.success(vendorDto.get());
+        if (vendor.isPresent()) {
+            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendor.get().getVendorDetails().getId());
+            vendor.get().getVendorDetails().setVendorViewsCount(viewsCount);
+            Optional<VendorDto> vendorDto = vendor.map(VendorDto::of);
+
+            if (operation.getSecurityUser().isPresent() &&
+                    !operation.getSecurityUser().get().getUser().getId().equals(vendor.get().getId())) {
+                VendorView vendorView = new VendorView();
+                vendorView.setVendorDetails(vendor.get().getVendorDetails());
+                vendorView.setUser(operation.getSecurityUser().get().getUser());
+                asyncVendorViewApplicationService.saveVendorViewInDatabase(vendorView);
+            }
+
+            if (vendorDto.isPresent()) {
+                return GetVendorById.Result.success(vendorDto.get());
+            }
         }
 
         return GetVendorById.Result.notFound(operation.getVendorId());

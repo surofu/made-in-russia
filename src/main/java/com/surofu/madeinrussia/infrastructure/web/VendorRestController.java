@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
@@ -22,10 +24,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,7 +56,7 @@ public class VendorRestController {
                             responseCode = "200",
                             description = "Successfully retrieved vendor information",
                             content = @Content(
-                                    schema = @Schema(implementation = UserDto.class)
+                                    schema = @Schema(implementation = VendorDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -75,8 +79,10 @@ public class VendorRestController {
                     example = "20",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
-            @PathVariable Long vendorId) {
-        GetVendorById operation = GetVendorById.of(vendorId);
+            @PathVariable Long vendorId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        GetVendorById operation = GetVendorById.of(Optional.ofNullable(securityUser), vendorId);
         return vendorService.getVendorById(operation).process(getVendorByIdProcessor);
     }
 

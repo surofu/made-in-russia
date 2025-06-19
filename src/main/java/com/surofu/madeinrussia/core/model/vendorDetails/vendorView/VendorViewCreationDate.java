@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorCountry;
+package com.surofu.madeinrussia.core.model.vendorDetails.vendorView;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,23 +15,23 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorCountryCreationDate implements Serializable {
+public final class VendorViewCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorCountryCreationDate(ZonedDateTime date) {
+    private VendorViewCreationDate(ZonedDateTime date) {
         if (date == null) {
-            throw new IllegalArgumentException("Дата создания страны продавца не может быть пустой");
+            throw new IllegalArgumentException("Дата создания просмотра профиля продавца не может быть пустой");
         }
 
         this.value = date;
     }
 
-    public static VendorCountryCreationDate of(ZonedDateTime date) {
-        return new VendorCountryCreationDate(date);
+    public static VendorViewCreationDate of(ZonedDateTime date) {
+        return new VendorViewCreationDate(date);
     }
 
     @Override

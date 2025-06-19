@@ -11,11 +11,11 @@ import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
-import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
-import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategory;
-import com.surofu.madeinrussia.core.model.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
@@ -50,6 +50,7 @@ public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
+    private final VendorViewRepository vendorViewRepository;
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
@@ -76,6 +77,10 @@ public class MeApplicationService implements MeService {
         User user = securityUser.getUser();
 
         if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(user.getVendorDetails().getId());
+            System.out.println("count: " + viewsCount);
+            user.getVendorDetails().setVendorViewsCount(viewsCount);
+
             VendorDto vendorDto = VendorDto.of(user);
             return GetMe.Result.success(vendorDto);
         }

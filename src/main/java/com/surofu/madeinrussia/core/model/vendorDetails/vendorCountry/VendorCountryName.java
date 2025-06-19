@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorCountry;
+package com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry;
 
 import jakarta.persistence.*;
 import lombok.*;

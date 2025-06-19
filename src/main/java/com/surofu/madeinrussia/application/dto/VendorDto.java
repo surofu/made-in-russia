@@ -40,7 +40,8 @@ import java.io.Serializable;
                       }
                     ],
                     "creationDate": "2025-05-15T14:30:00Z",
-                    "lastModificationDate": "2025-06-01T10:15:30Z"
+                    "lastModificationDate": "2025-06-01T10:15:30Z",
+                    "viewsCount": "123"
                   },
                   "registrationDate": "2025-05-04T09:17:20.767615Z",
                   "lastModificationDate": "2025-05-04T09:17:20.767615Z"
