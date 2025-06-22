@@ -591,9 +591,63 @@ public class ProductRestController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @Operation(
+            summary = "Create new product",
+            description = "Creates a new product with media files, prices, characteristics and FAQ",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product created successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid product data or validation error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - ROLE_VENDOR required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
     public ResponseEntity<?> createProduct(
+            @Parameter(
+                    description = "Product data in JSON format",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateProductCommand.class)
+                    )
+            )
             @RequestPart("data") @Valid CreateProductCommand createProductCommand,
+
+            @Parameter(
+                    description = "Media files for the product (images, videos)",
+                    required = true,
+                    content = @Content(mediaType = "multipart/form-data")
+            )
             @RequestPart("files") List<MultipartFile> files,
+
+            @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         if (createProductCommand.prices() == null || createProductCommand.prices().isEmpty()) {
