@@ -159,7 +159,7 @@ public final class ProductPriceDto implements Serializable {
                 .unit(productPrice.getUnit().toString())
                 .originalPrice(productPrice.getOriginalPrice().getValue())
                 .discount(productPrice.getDiscount().getValue())
-                .discountedPrice(productPrice.getDiscount().getValue())
+                .discountedPrice(productPrice.getDiscountedPrice().getValue())
                 .minimumOrderQuantity(productPrice.getMinimumOrderQuantity().getValue())
                 .expiryDate(productPrice.getExpirationDate().getValue())
                 .creationDate(productPrice.getCreationDate().getValue())

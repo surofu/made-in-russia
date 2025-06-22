@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,20 @@ public class ValidationExceptionHandler {
 
         errors.put("message", exception.getMessage());
 
+        ValidationExceptionDto validationExceptionDto = new ValidationExceptionDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                errors,
+                "Validation failed"
+        );
+
+        return new ResponseEntity<>(validationExceptionDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ValidationExceptionDto> handleMissingServletRequestPartException(MissingServletRequestPartException exception) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", exception.getMessage());
         ValidationExceptionDto validationExceptionDto = new ValidationExceptionDto(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),

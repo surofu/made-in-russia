@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.VendorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;

@@ -21,4 +21,6 @@ public interface ProductRepository {
     Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId);
 
     Optional<List<ProductFaq>> getProductFaqByProductId(Long productId);
+
+    void save(Product product);
 }

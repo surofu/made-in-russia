@@ -50,4 +50,9 @@ public class JpaProductRepository implements ProductRepository {
     public Optional<List<ProductFaq>> getProductFaqByProductId(Long productId) {
         return repository.getProductFaqByProductId(productId);
     }
+
+    @Override
+    public void save(Product product) {
+        repository.save(product);
+    }
 }

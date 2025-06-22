@@ -12,6 +12,11 @@ server:
 spring:
   application:
     name: MadeInRussia
+  servlet:
+    multipart:
+      max-file-size: ${UPLOADING_MAX_FILE_SIZE}
+      max-request-size: ${UPLOADING_MAX_REQUEST_SIZE}
+      enabled: true
   mvc:
 
     #========= Cors =========#
@@ -91,6 +96,8 @@ jwt:
     secret: ${JWT_REFRESH_TOKEN_SECRET}
     lifetime: ${JWT_REFRESH_TOKEN_LIFETIME}
 
+#========== Uploading Files ==========#
+
 app:
   mail-verification:
     duration-in-minutes: ${MAIL_VERIFICATION_DURATION_IN_MINUTES}
@@ -107,3 +114,16 @@ app:
     expires-after-write-in-minutes: ${CACHE_EXPIRES_AFTER_WRITE_IN_MINUTES}
     expires-after-access-in-minutes: ${CACHE_EXPIRES_AFTER_ACCESS_IN_MINUTES}
     maximum-size: ${CACHE_MAXIMUM_SIZE}
+  cloudinary:
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  compress:
+    image:
+      max-width: ${IMAGE_COMPRESS_MAX_WIDTH}
+      max-height: ${IMAGE_COMPRESS_MAX_HEIGHT}
+      quality: ${IMAGE_COMPRESS_QUALITY}
+    video:
+      max-width: ${VIDEO_COMPRESS_MAX_WIDTH}
+      max-height: ${VIDEO_COMPRESS_MAX_HEIGHT}
+      quality: ${VIDEO_COMPRESS_QUALITY}

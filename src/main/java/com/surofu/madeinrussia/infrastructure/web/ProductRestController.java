@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
+import com.surofu.madeinrussia.application.command.product.CreateProductCommand;
 import com.surofu.madeinrussia.application.command.productReview.CreateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.productReview.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
@@ -7,6 +8,8 @@ import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.product.ProductDescription;
+import com.surofu.madeinrussia.core.model.product.ProductTitle;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
 import com.surofu.madeinrussia.core.service.product.ProductService;
@@ -29,11 +32,16 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -55,6 +63,7 @@ public class ProductRestController {
     private final CreateProductReview.Result.Processor<ResponseEntity<?>> createProductReviewProcessor;
     private final UpdateProductReview.Result.Processor<ResponseEntity<?>> updateProductReviewProcessor;
     private final DeleteProductReview.Result.Processor<ResponseEntity<?>> deleteProductReviewProcessor;
+    private final CreateProduct.Result.Processor<ResponseEntity<?>> createProductProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -578,5 +587,55 @@ public class ProductRestController {
             @PathVariable Long productId) {
         GetProductFaqByProductId operation = GetProductFaqByProductId.of(productId);
         return productService.getProductFaqByProductId(operation).process(getProductFaqByProductIdProcessor);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    public ResponseEntity<?> createProduct(
+            @RequestPart("data") @Valid CreateProductCommand createProductCommand,
+            @RequestPart("files") List<MultipartFile> files,
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        if (createProductCommand.prices() == null || createProductCommand.prices().isEmpty()) {
+            String message = "Цены товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        if (createProductCommand.characteristics() == null || createProductCommand.characteristics().isEmpty()) {
+            String message = "Характеристики товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        if (createProductCommand.faq() == null || createProductCommand.faq().isEmpty()) {
+            String message = "Вопросы и ответы товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        if (files == null || files.isEmpty()) {
+            String message = "Медиа файлы товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        CreateProduct operation = CreateProduct.of(
+                securityUser,
+                ProductTitle.of(createProductCommand.title()),
+                ProductDescription.of(
+                        createProductCommand.mainDescription(),
+                        createProductCommand.furtherDescription(),
+                        createProductCommand.primaryDescription(),
+                        createProductCommand.primaryDescription()
+                ),
+                createProductCommand.categoryId(),
+                createProductCommand.deliveryMethodIds(),
+                createProductCommand.prices(),
+                createProductCommand.characteristics(),
+                createProductCommand.faq(),
+                files
+        );
+        return productService.createProduct(operation).process(createProductProcessor);
     }
 }
