@@ -662,12 +662,6 @@ public class ProductRestController {
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
-        if (createProductCommand.faq() == null || createProductCommand.faq().isEmpty()) {
-            String message = "Вопросы и ответы товара не могут быть пустыми";
-            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
-        }
-
         if (files == null || files.isEmpty()) {
             String message = "Медиа файлы товара не могут быть пустыми";
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
@@ -687,7 +681,7 @@ public class ProductRestController {
                 createProductCommand.deliveryMethodIds(),
                 createProductCommand.prices(),
                 createProductCommand.characteristics(),
-                createProductCommand.faq(),
+                createProductCommand.faq() == null ? List.of() : createProductCommand.faq(),
                 files
         );
         return productService.createProduct(operation).process(createProductProcessor);

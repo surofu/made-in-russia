@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.core.model.product;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
@@ -127,6 +128,14 @@ public final class Product implements Serializable {
             orphanRemoval = true
     )
     private Set<ProductPrice> prices = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "product",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<ProductDeliveryMethodDetails> deliveryMethodDetails = new HashSet<>();
 
     @Embedded
     private ProductArticleCode articleCode;
