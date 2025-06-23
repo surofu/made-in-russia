@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.application.dto.temp.TempProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.application.dto.temp.TempProductPackagingOptionDetails;
-import com.surofu.madeinrussia.application.dto.temp.TempVendorDetails;
 import com.surofu.madeinrussia.core.model.product.Product;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -18,7 +17,6 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Data
@@ -312,10 +310,9 @@ public class ProductDto implements Serializable {
 
     private List<ProductReviewMediaDto> reviewsMedia;
 
+    private ProductVendorDetailsDto aboutVendor;
+
     // TODO: !!! Заглушки
-
-
-    private TempVendorDetails aboutVendor;
 
     private List<TempProductDeliveryMethodDetails> deliveryMethodsDetails;
 
@@ -344,11 +341,10 @@ public class ProductDto implements Serializable {
                 .creationDate(product.getCreationDate().getValue())
                 .lastModificationDate(product.getLastModificationDate().getValue())
                 .rating(product.getRating())
-                .reviewsCount(new Random().nextInt(100))
+                .reviewsCount(product.getReviewsCount())
                 .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .reviewsCount(product.getReviewsCount())
-                .aboutVendor(new TempVendorDetails())
+                .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(List.of(new TempProductDeliveryMethodDetails(), new TempProductDeliveryMethodDetails()))
                 .packagingOptions(List.of(new TempProductPackagingOptionDetails(), new TempProductPackagingOptionDetails()))
                 .build();

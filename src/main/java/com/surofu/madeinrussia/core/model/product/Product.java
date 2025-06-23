@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -63,6 +64,9 @@ public final class Product implements Serializable {
             foreignKey = @ForeignKey(name = "fk_products_user_id")
     )
     private User user;
+
+    @OneToOne(mappedBy = "product")
+    private ProductVendorDetails productVendorDetails;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
