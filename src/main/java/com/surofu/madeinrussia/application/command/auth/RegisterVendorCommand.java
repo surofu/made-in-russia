@@ -40,11 +40,9 @@ public record RegisterVendorCommand(
         @Length(min = 4, max = 255, message = "Длинна ИНН должна быть от 7 до 255 символов")
         String inn,
 
-        @Validated
-        @NotNull(message = "Реквизиты не могут быть пустыми")
-        @NotBlank(message = "Реквизиты не могут быть пустыми")
-        @Length(max = 255, message = "Длинна реквизитов не должны превышать 255 символов")
-        String paymentDetails,
+//        @Validated
+//        @Length(max = 255, message = "Длинна реквизитов не должны превышать 255 символов")
+//        String paymentDetails,
 
         @Validated
         @NotNull(message = "Страны продавца не могут быть пустыми")

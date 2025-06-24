@@ -74,13 +74,13 @@ public final class VendorDetailsDto implements Serializable {
     )
     private String inn;
 
-    @Schema(
-            description = "Bank payment details for vendor transactions in ЕРИП system format",
-            example = "ЕРИП 12345АБВГ6890",
-            maxLength = 255,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String paymentDetails;
+//    @Schema(
+//            description = "Bank payment details for vendor transactions in ЕРИП system format",
+//            example = "ЕРИП 12345АБВГ6890",
+//            maxLength = 255,
+//            requiredMode = Schema.RequiredMode.REQUIRED
+//    )
+//    private String paymentDetails;
 
     @Schema(
             description = "List of countries where the vendor has business operations",
@@ -135,7 +135,7 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(vendorDetails.getId())
                 .inn(vendorDetails.getInn().getValue())
-                .paymentDetails(vendorDetails.getPaymentDetails().getValue())
+//                .paymentDetails(vendorDetails.getPaymentDetails().getValue())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
                 .faq(vendorDetails.getFaq().stream().map(VendorFaqDto::of).toList())

@@ -152,7 +152,7 @@ public class AuthRestController {
                 UserRegion.of(registerVendorCommand.countries().get(0)),
                 UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
                 VendorDetailsInn.of(registerVendorCommand.inn()),
-                VendorDetailsPaymentDetails.of(registerVendorCommand.paymentDetails()),
+//                VendorDetailsPaymentDetails.of(registerVendorCommand.paymentDetails()),
                 registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
                 registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
         );
