@@ -343,7 +343,7 @@ public class ProductDto implements Serializable {
                 .reviewsCount(product.getReviewsCount())
                 .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
+                .aboutVendor(product.getProductVendorDetails() == null ? null : ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
                 .packagingOptions(List.of(new TempProductPackagingOptionDetails(), new TempProductPackagingOptionDetails()))
                 .build();
