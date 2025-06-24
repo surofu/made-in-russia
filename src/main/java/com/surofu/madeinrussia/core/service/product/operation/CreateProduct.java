@@ -19,6 +19,7 @@ public class CreateProduct {
     ProductDescription productDescription;
     Long categoryId;
     List<Long> deliveryMethodIds;
+    List<Long> similarProductIds;
     List<CreateProductPriceCommand> createProductPriceCommands;
     List<CreateProductCharacteristicCommand> createProductCharacteristicCommands;
     List<CreateProductFaqCommand> createProductFaqCommands;
@@ -67,6 +68,11 @@ public class CreateProduct {
         static Result invalidMediaType(String mediaType) {
             log.warn("Invalid media type '{}'", mediaType);
             return InvalidMediaType.of(mediaType);
+        }
+
+        static Result similarProductNotFound(Long similarProductId) {
+            log.warn("Similar product with ID '{}' not found", similarProductId);
+            return SimilarProductNotFound.of(similarProductId);
         }
 
         enum Success implements Result {
@@ -135,6 +141,16 @@ public class CreateProduct {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class SimilarProductNotFound implements Result {
+            Long productId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSimilarProductNotFound(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processErrorSavingFiles(ErrorSavingFiles result);
@@ -143,6 +159,7 @@ public class CreateProduct {
             T processDeliveryMethodNotFound(DeliveryMethodNotFound result);
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
+            T processSimilarProductNotFound(SimilarProductNotFound result);
         }
     }
 }

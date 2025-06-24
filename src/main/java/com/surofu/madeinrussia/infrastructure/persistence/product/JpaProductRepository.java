@@ -55,4 +55,17 @@ public class JpaProductRepository implements ProductRepository {
     public void save(Product product) {
         repository.save(product);
     }
+
+    @Override
+    public Optional<Long> firstNotExists(List<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return Optional.empty();
+        }
+        return repository.firstNotExists(productIds.toArray(new Long[0]));
+    }
+
+    @Override
+    public List<Product> findAllByIds(List<Long> productIds) {
+        return repository.findAllById(productIds);
+    }
 }

@@ -23,4 +23,8 @@ public interface ProductRepository {
     Optional<List<ProductFaq>> getProductFaqByProductId(Long productId);
 
     void save(Product product);
+
+    Optional<Long> firstNotExists(List<Long> productIds);
+
+    List<Product> findAllByIds(List<Long> productIds);
 }

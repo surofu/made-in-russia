@@ -59,4 +59,11 @@ public class CreateProductMapperResultToResponseEntity
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
+
+    @Override
+    public ResponseEntity<?> processSimilarProductNotFound(CreateProduct.Result.SimilarProductNotFound result) {
+        String message = String.format("Похожий товар с ID '%s' не найден", result.getProductId());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
+    }
 }

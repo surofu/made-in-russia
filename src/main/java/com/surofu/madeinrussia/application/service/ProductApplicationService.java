@@ -256,6 +256,17 @@ public class ProductApplicationService implements ProductService {
 
         product.setPrices(productPriceSet);
 
+        /* ========== Similar Products ========== */
+
+        Optional<Long> firstNotExists = productRepository.firstNotExists(operation.getSimilarProductIds());
+
+        if (firstNotExists.isPresent()) {
+            return CreateProduct.Result.similarProductNotFound(firstNotExists.get());
+        }
+
+        List<Product> similarProducts = productRepository.findAllByIds(operation.getSimilarProductIds());
+        product.setSimilarProducts(new HashSet<>(similarProducts));
+
         /* ========== Product Characteristics ========== */
 
         Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>();
@@ -333,7 +344,7 @@ public class ProductApplicationService implements ProductService {
 
             if (file.getContentType() == null ||
                     (!file.getContentType().startsWith("image") &&
-                    !file.getContentType().startsWith("video"))) {
+                            !file.getContentType().startsWith("video"))) {
                 return CreateProduct.Result.invalidMediaType(file.getContentType());
             }
 
@@ -395,7 +406,7 @@ public class ProductApplicationService implements ProductService {
 
                 if (file.getContentType() == null ||
                         (!file.getContentType().startsWith("image") &&
-                        !file.getContentType().startsWith("video"))) {
+                                !file.getContentType().startsWith("video"))) {
                     return CreateProduct.Result.invalidMediaType(Objects.requireNonNull(file.getContentType()));
                 }
 

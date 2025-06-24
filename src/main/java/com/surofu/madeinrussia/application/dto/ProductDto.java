@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -121,6 +120,8 @@ public class ProductDto implements Serializable {
                     """
     )
     private List<ProductMediaDto> media;
+
+    private List<SimilarProductDto> similarProducts;
 
     @Schema(
             description = "Technical specifications and product characteristics",
@@ -275,24 +276,6 @@ public class ProductDto implements Serializable {
     )
     private String previewImageUrl;
 
-    @Schema(
-            description = "Timestamp when the product was created",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime creationDate;
-
-    @Schema(
-            description = "Timestamp when the product was last modified",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime lastModificationDate;
-
     private List<ProductReviewMediaDto> reviewsMedia;
 
     private ProductVendorDetailsDto aboutVendor;
@@ -320,6 +303,24 @@ public class ProductDto implements Serializable {
     )
     private Long daysBeforeDiscountExpires;
 
+    @Schema(
+            description = "Timestamp when the product was created",
+            example = "2025-05-04T09:17:20.767615Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private ZonedDateTime creationDate;
+
+    @Schema(
+            description = "Timestamp when the product was last modified",
+            example = "2025-05-04T09:17:20.767615Z",
+            type = "string",
+            format = "date-time",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private ZonedDateTime lastModificationDate;
+
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
         return ProductDto.builder()
@@ -331,6 +332,7 @@ public class ProductDto implements Serializable {
                         .collect(Collectors.toList())
                 )
                 .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
+                .similarProducts(product.getSimilarProducts().stream().map(SimilarProductDto::of).toList())
                 .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
                 .prices(product.getPrices().stream().map(ProductPriceDto::of).toList())
                 .article(product.getArticleCode().toString())

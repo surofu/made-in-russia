@@ -97,7 +97,21 @@ public final class Product implements Serializable {
             cascade = {CascadeType.ALL},
             orphanRemoval = true
     )
+    @OrderBy("position")
     private Set<ProductMedia> media = new HashSet<>();
+
+    @Fetch(FetchMode.SUBSELECT)
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
+    )
+    @JoinTable(
+            name = "similar_products",
+            joinColumns = @JoinColumn(name = "parent_product_id"),
+            inverseJoinColumns = @JoinColumn(name = "similar_product_id")
+    )
+    @OrderBy("id")
+    private Set<Product> similarProducts = new HashSet<>();
 
     @OneToMany(
             mappedBy = "product",
@@ -105,6 +119,7 @@ public final class Product implements Serializable {
             cascade = {CascadeType.ALL},
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductCharacteristic> characteristics = new HashSet<>();
 
     @OneToMany(
@@ -113,6 +128,7 @@ public final class Product implements Serializable {
             cascade = {CascadeType.ALL},
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductReview> reviews = new HashSet<>();
 
     @Transient
@@ -124,6 +140,7 @@ public final class Product implements Serializable {
             cascade = {CascadeType.ALL},
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductFaq> faq = new HashSet<>();
 
     @OneToMany(
@@ -132,6 +149,7 @@ public final class Product implements Serializable {
             cascade = {CascadeType.ALL},
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductPrice> prices = new HashSet<>();
 
     @OneToMany(
@@ -140,6 +158,7 @@ public final class Product implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductDeliveryMethodDetails> deliveryMethodDetails = new HashSet<>();
 
     @OneToMany(
@@ -148,6 +167,7 @@ public final class Product implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("creationDate")
     private Set<ProductPackageOption> packageOptions = new HashSet<>();
 
     @Embedded

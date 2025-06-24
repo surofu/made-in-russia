@@ -35,6 +35,7 @@ public final class ProductVendorDetails implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("position")
     private Set<ProductVendorDetailsMedia> media = new HashSet<>();
 
     @Embedded

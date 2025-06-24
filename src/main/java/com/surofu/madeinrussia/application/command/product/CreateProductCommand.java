@@ -22,6 +22,11 @@ public record CreateProductCommand(
         @Schema(description = "List of delivery method IDs", example = "[1, 2, 3]", requiredMode = Schema.RequiredMode.REQUIRED)
         List<Long> deliveryMethodIds,
 
+        @Schema(description = "List of similar product IDs (for recommendations)",
+                example = "[101, 205, 310]",
+                requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        List<Long> similarProducts,
+
         @Schema(description = "List of product prices", requiredMode = Schema.RequiredMode.REQUIRED)
         List<CreateProductPriceCommand> prices,
 

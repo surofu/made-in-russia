@@ -684,6 +684,7 @@ public class ProductRestController {
                 ),
                 createProductCommand.categoryId(),
                 createProductCommand.deliveryMethodIds(),
+                createProductCommand.similarProducts() == null ? new ArrayList<>() : createProductCommand.similarProducts(),
                 createProductCommand.prices(),
                 createProductCommand.characteristics(),
                 createProductCommand.faq() == null ? new ArrayList<>() : createProductCommand.faq(),

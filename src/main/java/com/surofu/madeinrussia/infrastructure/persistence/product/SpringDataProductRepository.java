@@ -19,7 +19,10 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     @Query("select p from Product p where p.id = :productId")
     @EntityGraph(attributePaths = {
             "category", "media", "characteristics", "faq", "user",
-            "user.vendorDetails", "productVendorDetails", "productVendorDetails.media",
+            "user.vendorDetails", "user.vendorDetails.vendorCountries",
+            "user.vendorDetails.vendorProductCategories",
+            "user.vendorDetails.faq",
+            "productVendorDetails", "productVendorDetails.media",
             "deliveryMethodDetails", "packageOptions"})
     Optional<Product> getProductById(@Param("productId") Long productId);
 
@@ -37,4 +40,14 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select faq from ProductFaq faq where faq.product.id = :productId")
     Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
+
+    @Query(value = """
+            SELECT input.id 
+            FROM unnest(?1) WITH ORDINALITY AS input(id, ord)
+            LEFT JOIN products p ON p.id = input.id
+            WHERE p.id IS NULL
+            ORDER BY input.ord
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Long> firstNotExists(Long[] productIdsArray);
 }
