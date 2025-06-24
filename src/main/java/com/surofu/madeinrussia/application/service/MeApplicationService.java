@@ -78,7 +78,6 @@ public class MeApplicationService implements MeService {
 
         if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
             Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(user.getVendorDetails().getId());
-            System.out.println("count: " + viewsCount);
             user.getVendorDetails().setVendorViewsCount(viewsCount);
 
             VendorDto vendorDto = VendorDto.of(user);

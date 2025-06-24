@@ -24,9 +24,12 @@ public class CreateProduct {
     List<CreateProductFaqCommand> createProductFaqCommands;
     List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
     List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
+    CreateProductVendorDetailsCommand createProductVendorDetailsCommand;
+    List<String> mediaAltTexts;
     Integer minimumOrderQuantity;
     ZonedDateTime discountExpirationDate;
-    List<MultipartFile> files;
+    List<MultipartFile> productMedia;
+    List<MultipartFile> productVendorDetailsMedia;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -54,6 +57,16 @@ public class CreateProduct {
         static Result deliveryMethodNotFound(Long deliveryMethodId) {
             log.warn("Delivery Method with ID '{}' not found", deliveryMethodId);
             return DeliveryMethodNotFound.of(deliveryMethodId);
+        }
+
+        static Result emptyFile() {
+            log.warn("Empty file");
+            return EmptyFile.INSTANCE;
+        }
+
+        static Result invalidMediaType(String mediaType) {
+            log.warn("Invalid media type '{}'", mediaType);
+            return InvalidMediaType.of(mediaType);
         }
 
         enum Success implements Result {
@@ -103,12 +116,33 @@ public class CreateProduct {
             }
         }
 
+        enum EmptyFile implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyFile(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class InvalidMediaType implements Result {
+            String mediaType;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInvalidMediaType(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processErrorSavingFiles(ErrorSavingFiles result);
             T processErrorSavingProduct(ErrorSavingProduct result);
             T processCategoryNotFound(CategoryNotFound result);
             T processDeliveryMethodNotFound(DeliveryMethodNotFound result);
+            T processEmptyFile(EmptyFile result);
+            T processInvalidMediaType(InvalidMediaType result);
         }
     }
 }

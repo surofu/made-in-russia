@@ -646,7 +646,13 @@ public class ProductRestController {
                     required = true,
                     content = @Content(mediaType = "multipart/form-data")
             )
-            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart("productMedia") List<MultipartFile> productMedia,
+
+            @Parameter(
+                    description = "Media files for the product (images, videos)",
+                    content = @Content(mediaType = "multipart/form-data")
+            )
+            @RequestPart(value = "aboutVendorMedia", required = false) List<MultipartFile> productVendorDetailsMedia,
 
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser
@@ -663,7 +669,7 @@ public class ProductRestController {
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
-        if (files == null || files.isEmpty()) {
+        if (productMedia == null || productMedia.isEmpty()) {
             String message = "Медиа файлы товара не могут быть пустыми";
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
@@ -683,9 +689,12 @@ public class ProductRestController {
                 createProductCommand.faq() == null ? new ArrayList<>() : createProductCommand.faq(),
                 createProductCommand.deliveryMethodDetails() == null ? new ArrayList<>() : createProductCommand.deliveryMethodDetails(),
                 createProductCommand.packageOptions() == null ? new ArrayList<>() : createProductCommand.packageOptions(),
+                createProductCommand.aboutVendor(),
+                createProductCommand.aboutVendor().mediaAltTexts() == null ? new ArrayList<>() : createProductCommand.aboutVendor().mediaAltTexts(),
                 createProductCommand.minimumOrderQuantity(),
                 createProductCommand.discountExpirationDate(),
-                files
+                productMedia,
+                productVendorDetailsMedia == null ? new ArrayList<>() : productVendorDetailsMedia
         );
         return productService.createProduct(operation).process(createProductProcessor);
     }

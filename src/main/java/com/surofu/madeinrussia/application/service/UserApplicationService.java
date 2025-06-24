@@ -108,11 +108,6 @@ public class UserApplicationService implements UserService {
         HttpServletRequest request = servletRequestAttributes.getRequest();
         SessionInfo sessionInfo = SessionInfo.of(request);
 
-        System.out.println("Browser from lad: " + sessionInfo.getUserAgent().getBrowser().getId());
-        System.out.println("Browser from lad: " + sessionInfo.getUserAgent().getBrowser().getBrowserType());
-        System.out.println("Browser from lad: " + sessionInfo.getUserAgent().getBrowser().getGroup());
-        System.out.println("Browser from lad: " + sessionInfo.getUserAgent().getBrowser().getManufacturer());
-
         return new SecurityUser(user, userPassword, sessionInfo);
     }
 }

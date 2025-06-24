@@ -14,6 +14,11 @@ public record CreateProductPackageOptionCommand(
         @Schema(description = "Additional price for this package option",
                 example = "9.99",
                 requiredMode = Schema.RequiredMode.REQUIRED)
-        BigDecimal price
+        BigDecimal price,
+
+        @Schema(description = "Price unit for this package option",
+                example = "RUB",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        String priceUnit
 ) {
 }

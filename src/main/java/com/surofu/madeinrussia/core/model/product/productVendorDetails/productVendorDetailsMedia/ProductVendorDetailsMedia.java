@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia;
 
+import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,8 +26,15 @@ public final class ProductVendorDetailsMedia implements Serializable {
     @JoinColumn(name = "product_vendor_details_id", nullable = false)
     private ProductVendorDetails productVendorDetails;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "media_type", nullable = false, columnDefinition = "media_type")
+    private MediaType mediaType;
+
     @Embedded
     private ProductVendorDetailsMediaImage image;
+
+    @Embedded
+    private ProductVendorDetailsMediaPosition position;
 
     @Embedded
     private ProductVendorDetailsMediaCreationDate creationDate;

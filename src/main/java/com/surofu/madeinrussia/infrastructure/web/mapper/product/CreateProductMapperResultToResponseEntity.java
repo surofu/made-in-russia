@@ -45,4 +45,18 @@ public class CreateProductMapperResultToResponseEntity
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
+
+    @Override
+    public ResponseEntity<?> processEmptyFile(CreateProduct.Result.EmptyFile result) {
+        String message = "Обнаружен пустой файл";
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity<?> processInvalidMediaType(CreateProduct.Result.InvalidMediaType result) {
+        String message = "Неизвестный формат файла";
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
 }

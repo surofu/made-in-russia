@@ -6,9 +6,9 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.ProductPreviewImageUrl;
-import com.surofu.madeinrussia.core.model.product.ProductMinimumOrderQuantity;
 import com.surofu.madeinrussia.core.model.product.ProductDiscountExpirationDate;
+import com.surofu.madeinrussia.core.model.product.ProductMinimumOrderQuantity;
+import com.surofu.madeinrussia.core.model.product.ProductPreviewImageUrl;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicName;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicValue;
@@ -22,14 +22,19 @@ import com.surofu.madeinrussia.core.model.product.productMedia.*;
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionName;
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPrice;
+import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPriceUnit;
 import com.surofu.madeinrussia.core.model.product.productPrice.*;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsDescription;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
+import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaPosition;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -194,7 +199,6 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional
     public CreateProduct.Result createProduct(CreateProduct operation) {
-
         Product product = new Product();
         product.setUser(operation.getSecurityUser().getUser());
         product.setTitle(operation.getProductTitle());
@@ -216,6 +220,11 @@ public class ProductApplicationService implements ProductService {
             throw new IllegalArgumentException("Способы доставки товара не могут быть пустыми");
         }
 
+        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
+        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
+
+        /* ========== Product Delivery Methods ========== */
+
         Set<DeliveryMethod> deliveryMethodSet = new HashSet<>();
 
         for (Long deliveryMethodId : operation.getDeliveryMethodIds()) {
@@ -229,6 +238,8 @@ public class ProductApplicationService implements ProductService {
         }
 
         product.setDeliveryMethods(deliveryMethodSet);
+
+        /* ========== Product Prices ========== */
 
         Set<ProductPrice> productPriceSet = new HashSet<>();
 
@@ -245,6 +256,8 @@ public class ProductApplicationService implements ProductService {
 
         product.setPrices(productPriceSet);
 
+        /* ========== Product Characteristics ========== */
+
         Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>();
 
         for (CreateProductCharacteristicCommand command : operation.getCreateProductCharacteristicCommands()) {
@@ -257,6 +270,8 @@ public class ProductApplicationService implements ProductService {
 
         product.setCharacteristics(productCharacteristicSet);
 
+        /* ========== Product Faq ========== */
+
         Set<ProductFaq> productFaqSet = new HashSet<>();
 
         for (CreateProductFaqCommand command : operation.getCreateProductFaqCommands()) {
@@ -266,6 +281,10 @@ public class ProductApplicationService implements ProductService {
             productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
             productFaqSet.add(productFaq);
         }
+
+        product.setFaq(productFaqSet);
+
+        /* ========== Product Delivery Method Details ========== */
 
         Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>();
 
@@ -279,6 +298,8 @@ public class ProductApplicationService implements ProductService {
 
         product.setDeliveryMethodDetails(productDeliveryMethodDetailsSet);
 
+        /* ========== Product Package Options ========== */
+
         Set<ProductPackageOption> productPackageOptionSet = new HashSet<>();
 
         for (CreateProductPackageOptionCommand command : operation.getCreateProductPackageOptionCommands()) {
@@ -286,60 +307,125 @@ public class ProductApplicationService implements ProductService {
             productPackageOption.setProduct(product);
             productPackageOption.setName(ProductPackageOptionName.of(command.name()));
             productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
+            productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
             productPackageOptionSet.add(productPackageOption);
         }
 
         product.setPackageOptions(productPackageOptionSet);
 
-        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
-        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
+        /* ========== Product Media ========== */
 
-        product.setFaq(productFaqSet);
-        product.setPreviewImageUrl(ProductPreviewImageUrl.of("Before saving media"));
+        Set<ProductMedia> productMediaSet = new HashSet<>();
 
-        try {
-            Set<ProductMedia> productMediaSet = new HashSet<>();
+        for (int i = 0; i < operation.getProductMedia().size(); i++) {
+            MultipartFile file = operation.getProductMedia().get(i);
 
-            for (int i = 0; i < operation.getFiles().size(); i++) {
-                MultipartFile file = operation.getFiles().get(i);
-                if (file.isEmpty()) {
-                    log.warn("The file is empty. Skipping.");
-                } else {
-                    ProductMedia productMedia = new ProductMedia();
-                    productMedia.setProduct(product);
+            if (file.isEmpty()) {
+                return CreateProduct.Result.emptyFile();
+            }
 
-                    productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-                    productMedia.setPosition(ProductMediaPosition.of(i));
-                    productMedia.setAltText(ProductMediaAltText.of("Temp value"));
+            ProductMedia productMedia = new ProductMedia();
+            productMedia.setProduct(product);
 
-                    try {
-                        String url = fileStorageRepository.upload(file);
-                        productMedia.setUrl(ProductMediaUrl.of(url));
+            productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+            productMedia.setPosition(ProductMediaPosition.of(i));
+            productMedia.setAltText(ProductMediaAltText.of("Temp value"));
 
-                        if (Objects.requireNonNull(file.getContentType()).startsWith("image")) {
-                            productMedia.setMediaType(MediaType.IMAGE);
-                        }
+            if (file.getContentType() == null ||
+                    (!file.getContentType().startsWith("image") &&
+                    !file.getContentType().startsWith("video"))) {
+                return CreateProduct.Result.invalidMediaType(file.getContentType());
+            }
 
-                        if (Objects.requireNonNull(file.getContentType()).startsWith("video")) {
-                            productMedia.setMediaType(MediaType.VIDEO);
-                        }
+            String url = null;
 
-                        if (i == 0) {
-                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                        }
-                    } catch (IOException e) {
-                        log.error("Error saving media file: {}", e.getMessage(), e);
-                        throw new FileUploadException("Failed to upload file", e);
-                    }
+            if (file.getContentType().startsWith("image")) {
+                productMedia.setMediaType(MediaType.IMAGE);
 
-                    productMediaSet.add(productMedia);
+                try {
+                    url = fileStorageRepository.uploadImageToFolder(file, "productImages");
+                } catch (IOException e) {
+                    return CreateProduct.Result.errorSavingFiles();
+                }
+            } else if (file.getContentType().startsWith("video")) {
+                productMedia.setMediaType(MediaType.VIDEO);
+
+                try {
+                    url = fileStorageRepository.uploadVideoToFolder(file, "productVideos");
+                } catch (IOException e) {
+                    return CreateProduct.Result.errorSavingFiles();
                 }
             }
 
-            product.setMedia(productMediaSet);
-        } catch (Exception e) {
-            log.error("Error uploading media files: {}", e.getMessage(), e);
-            return CreateProduct.Result.errorSavingFiles();
+            productMedia.setUrl(ProductMediaUrl.of(url));
+
+            if (i == 0) {
+                product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+            }
+
+            productMediaSet.add(productMedia);
+        }
+
+        product.setMedia(productMediaSet);
+
+        /* ========== Product Vendor Details ========== */
+
+        if (operation.getCreateProductVendorDetailsCommand() != null) {
+            ProductVendorDetails productVendorDetails = new ProductVendorDetails();
+            productVendorDetails.setProduct(product);
+            productVendorDetails.setDescription(ProductVendorDetailsDescription.of(
+                    operation.getCreateProductVendorDetailsCommand().mainDescription(),
+                    operation.getCreateProductVendorDetailsCommand().furtherDescription()
+            ));
+
+            /* ========== Product Vendor Details Media ========== */
+
+            Set<ProductVendorDetailsMedia> productVendorDetailsMediaSet = new HashSet<>();
+
+            for (int i = 0; i < operation.getProductMedia().size(); i++) {
+                MultipartFile file = operation.getProductMedia().get(i);
+
+                if (file.isEmpty()) {
+                    return CreateProduct.Result.emptyFile();
+                }
+
+                ProductVendorDetailsMedia productVendorDetailsMedia = new ProductVendorDetailsMedia();
+                productVendorDetailsMedia.setProductVendorDetails(productVendorDetails);
+                productVendorDetailsMedia.setPosition(ProductVendorDetailsMediaPosition.of(i));
+
+                if (file.getContentType() == null ||
+                        (!file.getContentType().startsWith("image") &&
+                        !file.getContentType().startsWith("video"))) {
+                    return CreateProduct.Result.invalidMediaType(Objects.requireNonNull(file.getContentType()));
+                }
+
+                String url = null;
+
+                if (file.getContentType().startsWith("image")) {
+                    productVendorDetailsMedia.setMediaType(MediaType.IMAGE);
+
+                    try {
+                        url = fileStorageRepository.uploadImageToFolder(file, "productVendorDetailsImages");
+                    } catch (IOException e) {
+                        return CreateProduct.Result.errorSavingFiles();
+                    }
+                } else if (file.getContentType().startsWith("video")) {
+                    productVendorDetailsMedia.setMediaType(MediaType.VIDEO);
+
+                    try {
+                        url = fileStorageRepository.uploadVideoToFolder(file, "productVendorDetailsVideos");
+                    } catch (IOException e) {
+                        return CreateProduct.Result.errorSavingFiles();
+                    }
+                }
+
+                String altText = Objects.requireNonNullElse(operation.getCreateProductVendorDetailsCommand().mediaAltTexts().get(i), "");
+                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(url, altText));
+                productVendorDetailsMediaSet.add(productVendorDetailsMedia);
+            }
+
+            productVendorDetails.setMedia(productVendorDetailsMediaSet);
+            product.setProductVendorDetails(productVendorDetails);
         }
 
         try {

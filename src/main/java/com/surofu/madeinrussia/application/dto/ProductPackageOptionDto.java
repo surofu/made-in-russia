@@ -22,6 +22,8 @@ public final class ProductPackageOptionDto implements Serializable {
 
     private BigDecimal price;
 
+    private String priceUnit;
+
     private ZonedDateTime creationDate;
 
     private ZonedDateTime lastModificationDate;
@@ -31,6 +33,7 @@ public final class ProductPackageOptionDto implements Serializable {
                 .id(productPackageOption.getId())
                 .name(productPackageOption.getName().toString())
                 .price(productPackageOption.getPrice().getValue())
+                .priceUnit(productPackageOption.getPriceUnit().toString())
                 .creationDate(productPackageOption.getCreationDate().getValue())
                 .lastModificationDate(productPackageOption.getLastModificationDate().getValue())
                 .build();

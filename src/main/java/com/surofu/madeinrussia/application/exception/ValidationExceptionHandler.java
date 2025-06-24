@@ -44,7 +44,7 @@ public class ValidationExceptionHandler {
         Map<String, Map<String, String>> errors = new HashMap<>();
 
         exception.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put("errors", Map.of(error.getField(), Objects.requireNonNull(error.getDefaultMessage())))
+                errors.put("errors", Map.of(error.getField(), Objects.requireNonNullElse(error.getDefaultMessage(), "empty error")))
         );
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

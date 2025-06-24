@@ -67,7 +67,11 @@ public final class Product implements Serializable {
     )
     private User user;
 
-    @OneToOne(mappedBy = "product")
+    @OneToOne(
+            mappedBy = "product",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private ProductVendorDetails productVendorDetails;
 
     @ManyToOne(fetch = FetchType.LAZY)

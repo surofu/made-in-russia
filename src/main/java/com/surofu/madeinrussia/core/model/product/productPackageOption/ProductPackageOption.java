@@ -32,6 +32,9 @@ public final class ProductPackageOption implements Serializable {
     private ProductPackageOptionPrice price;
 
     @Embedded
+    private ProductPackageOptionPriceUnit priceUnit;
+
+    @Embedded
     private ProductPackageOptionCreationDate creationDate;
 
     @Embedded
