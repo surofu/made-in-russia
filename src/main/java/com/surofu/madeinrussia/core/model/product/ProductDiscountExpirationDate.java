@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productPrice;
+package com.surofu.madeinrussia.core.model.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -14,13 +14,13 @@ import java.time.ZonedDateTime;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductPriceDiscountExpirationDate implements Serializable {
+public final class ProductDiscountExpirationDate implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "discount_expiration_date", nullable = false, columnDefinition = "timestamptz")
     private ZonedDateTime value;
 
-    private ProductPriceDiscountExpirationDate(ZonedDateTime date) {
+    private ProductDiscountExpirationDate(ZonedDateTime date) {
         if (date == null) {
             throw new IllegalArgumentException("Дата окончания скидки не может быть пустой");
         }
@@ -28,8 +28,8 @@ public final class ProductPriceDiscountExpirationDate implements Serializable {
         this.value = date;
     }
 
-    public static ProductPriceDiscountExpirationDate of(ZonedDateTime date) {
-        return new ProductPriceDiscountExpirationDate(date);
+    public static ProductDiscountExpirationDate of(ZonedDateTime date) {
+        return new ProductDiscountExpirationDate(date);
     }
 
     @Override

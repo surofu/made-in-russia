@@ -17,7 +17,10 @@ import java.util.Optional;
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select p from Product p where p.id = :productId")
-    @EntityGraph(attributePaths = {"category", "media", "characteristics", "faq", "user", "user.vendorDetails", "productVendorDetails", "productVendorDetails.media", "deliveryMethodDetails"})
+    @EntityGraph(attributePaths = {
+            "category", "media", "characteristics", "faq", "user",
+            "user.vendorDetails", "productVendorDetails", "productVendorDetails.media",
+            "deliveryMethodDetails", "packageOptions"})
     Optional<Product> getProductById(@Param("productId") Long productId);
 
     @Query("select p.category from Product p where p.id = :productId")

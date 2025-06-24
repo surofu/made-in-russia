@@ -41,6 +41,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Validated
@@ -673,15 +674,17 @@ public class ProductRestController {
                 ProductTitle.of(createProductCommand.title()),
                 ProductDescription.of(
                         createProductCommand.mainDescription(),
-                        createProductCommand.furtherDescription(),
-                        createProductCommand.primaryDescription(),
-                        createProductCommand.primaryDescription()
+                        createProductCommand.furtherDescription()
                 ),
                 createProductCommand.categoryId(),
                 createProductCommand.deliveryMethodIds(),
                 createProductCommand.prices(),
                 createProductCommand.characteristics(),
-                createProductCommand.faq() == null ? List.of() : createProductCommand.faq(),
+                createProductCommand.faq() == null ? new ArrayList<>() : createProductCommand.faq(),
+                createProductCommand.deliveryMethodDetails() == null ? new ArrayList<>() : createProductCommand.deliveryMethodDetails(),
+                createProductCommand.packageOptions() == null ? new ArrayList<>() : createProductCommand.packageOptions(),
+                createProductCommand.minimumOrderQuantity(),
+                createProductCommand.discountExpirationDate(),
                 files
         );
         return productService.createProduct(operation).process(createProductProcessor);

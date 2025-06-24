@@ -56,12 +56,6 @@ public final class ProductPrice implements Serializable {
     private ProductPriceDiscountedPrice discountedPrice;
 
     @Embedded
-    private ProductPriceMinimumOrderQuantity minimumOrderQuantity;
-
-    @Embedded
-    private ProductPriceDiscountExpirationDate expirationDate;
-
-    @Embedded
     private ProductPriceCreationDate creationDate;
 
     @Embedded

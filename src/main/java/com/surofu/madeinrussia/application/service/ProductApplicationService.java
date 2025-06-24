@@ -1,21 +1,27 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.command.product.CreateProductCharacteristicCommand;
-import com.surofu.madeinrussia.application.command.product.CreateProductFaqCommand;
-import com.surofu.madeinrussia.application.command.product.CreateProductPriceCommand;
+import com.surofu.madeinrussia.application.command.product.*;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.ProductPreviewImageUrl;
+import com.surofu.madeinrussia.core.model.product.ProductMinimumOrderQuantity;
+import com.surofu.madeinrussia.core.model.product.ProductDiscountExpirationDate;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicName;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicValue;
+import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetails;
+import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsName;
+import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsValue;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaqAnswer;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaqQuestion;
 import com.surofu.madeinrussia.core.model.product.productMedia.*;
+import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
+import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionName;
+import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPrice;
 import com.surofu.madeinrussia.core.model.product.productPrice.*;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.repository.*;
@@ -234,8 +240,6 @@ public class ProductApplicationService implements ProductService {
             productPrice.setCurrency(ProductPriceCurrency.of(command.currency()));
             productPrice.setUnit(ProductPriceUnit.of(command.unit()));
             productPrice.setQuantityRange(ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
-            productPrice.setMinimumOrderQuantity(ProductPriceMinimumOrderQuantity.of(command.minimumOrderQuantity()));
-            productPrice.setExpirationDate(ProductPriceDiscountExpirationDate.of(command.discountExpirationDate()));
             productPriceSet.add(productPrice);
         }
 
@@ -262,6 +266,33 @@ public class ProductApplicationService implements ProductService {
             productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
             productFaqSet.add(productFaq);
         }
+
+        Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>();
+
+        for (CreateProductDeliveryMethodDetailsCommand command : operation.getCreateProductDeliveryMethodDetailsCommands()) {
+            ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
+            productDeliveryMethodDetails.setProduct(product);
+            productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
+            productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
+            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+        }
+
+        product.setDeliveryMethodDetails(productDeliveryMethodDetailsSet);
+
+        Set<ProductPackageOption> productPackageOptionSet = new HashSet<>();
+
+        for (CreateProductPackageOptionCommand command : operation.getCreateProductPackageOptionCommands()) {
+            ProductPackageOption productPackageOption = new ProductPackageOption();
+            productPackageOption.setProduct(product);
+            productPackageOption.setName(ProductPackageOptionName.of(command.name()));
+            productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
+            productPackageOptionSet.add(productPackageOption);
+        }
+
+        product.setPackageOptions(productPackageOptionSet);
+
+        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
+        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
 
         product.setFaq(productFaqSet);
         product.setPreviewImageUrl(ProductPreviewImageUrl.of("Before saving media"));

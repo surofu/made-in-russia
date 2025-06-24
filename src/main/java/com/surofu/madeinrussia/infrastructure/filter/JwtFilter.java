@@ -76,11 +76,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 userEmail = jwtUtils.extractUserEmailFromAccessToken(accessToken);
                 log.debug("Email found: {}", userEmail);
             } catch (ExpiredJwtException ex) {
-                log.warn("Jwt has been expired", ex);
+                log.debug("Jwt has been expired", ex);
             } catch (SignatureException ex) {
-                log.warn("Jwt bad signature", ex);
+                log.debug("Jwt bad signature", ex);
             } catch (Exception ex) {
-                log.warn("Jwt could not be parsed", ex);
+                log.debug("Jwt could not be parsed", ex);
             }
         }
 

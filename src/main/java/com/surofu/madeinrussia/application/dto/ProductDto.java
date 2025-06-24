@@ -231,22 +231,6 @@ public class ProductDto implements Serializable {
     private String furtherDescription;
 
     @Schema(
-            description = "Short product summary for cards and previews (1-2 sentences)",
-            example = "2023 flagship smartphone with best-in-class camera and performance",
-            maxLength = 5000,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String summaryDescription;
-
-    @Schema(
-            description = "Primary short product description for cards",
-            example = "2023 flagship smartphone with best-in-class camera and performance",
-            maxLength = 5000,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String primaryDescription;
-
-    @Schema(
             description = """
                     Product's average rating based on customer reviews.
                     Calculated as arithmetic mean of all review ratings.
@@ -314,6 +298,25 @@ public class ProductDto implements Serializable {
 
     private List<ProductPackageOptionDto> packagingOptions;
 
+    @Schema(
+            description = "Minimum quantity that must be ordered",
+            example = "5",
+            type = "integer",
+            minimum = "1",
+            defaultValue = "1",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private Integer minimumOrderQuantity;
+
+    @Schema(
+            description = "Expiration date/time for the discount (if applicable)",
+            example = "2025-12-31T23:59:59Z",
+            type = "string",
+            format = "date-time",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private ZonedDateTime discountExpirationDate;
+
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
         return ProductDto.builder()
@@ -331,8 +334,6 @@ public class ProductDto implements Serializable {
                 .title(product.getTitle().getValue())
                 .mainDescription(product.getDescription().getMainDescription())
                 .furtherDescription(product.getDescription().getFurtherDescription())
-                .summaryDescription(product.getDescription().getSummaryDescription())
-                .primaryDescription(product.getDescription().getPrimaryDescription())
                 .previewImageUrl(product.getPreviewImageUrl().getValue())
                 .creationDate(product.getCreationDate().getValue())
                 .lastModificationDate(product.getLastModificationDate().getValue())
@@ -343,6 +344,8 @@ public class ProductDto implements Serializable {
                 .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
                 .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
+                .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().getValue())
+                .discountExpirationDate(product.getDiscountExpirationDate() == null ? null : product.getDiscountExpirationDate().getValue())
                 .build();
     }
 }

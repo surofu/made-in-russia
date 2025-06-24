@@ -181,5 +181,11 @@ public final class Product implements Serializable {
     private ProductCreationDate creationDate;
 
     @Embedded
+    private ProductMinimumOrderQuantity minimumOrderQuantity;
+
+    @Embedded
+    private ProductDiscountExpirationDate discountExpirationDate;
+
+    @Embedded
     private ProductLastModificationDate lastModificationDate;
 }

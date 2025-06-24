@@ -127,7 +127,7 @@ class ProductApplicationServiceTest {
         Product mockProduct = new Product();
         mockProduct.setId(mockProductId);
         mockProduct.setArticleCode(ProductArticleCode.of("AbCd-1234"));
-        mockProduct.setDescription(ProductDescription.of("Главное описание", "Вторичное описание", "Кратное описание", "Важное описание"));
+        mockProduct.setDescription(ProductDescription.of("Главное описание", "Вторичное описание"));
         mockProduct.setMedia(Set.of());
         mockProduct.setReviews(Set.of());
         mockProduct.setCharacteristics(Set.of());

@@ -113,25 +113,6 @@ public final class ProductPriceDto implements Serializable {
     private BigDecimal discountedPrice;
 
     @Schema(
-            description = "Minimum quantity that must be ordered",
-            example = "5",
-            type = "integer",
-            minimum = "1",
-            defaultValue = "1",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private Integer minimumOrderQuantity;
-
-    @Schema(
-            description = "Expiration date/time for the discount (if applicable)",
-            example = "2025-12-31T23:59:59Z",
-            type = "string",
-            format = "date-time",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private ZonedDateTime expiryDate;
-
-    @Schema(
             description = "Timestamp when the price was created",
             example = "2025-05-01T10:00:00Z",
             type = "string",
@@ -160,8 +141,6 @@ public final class ProductPriceDto implements Serializable {
                 .originalPrice(productPrice.getOriginalPrice().getValue())
                 .discount(productPrice.getDiscount().getValue())
                 .discountedPrice(productPrice.getDiscountedPrice().getValue())
-                .minimumOrderQuantity(productPrice.getMinimumOrderQuantity().getValue())
-                .expiryDate(productPrice.getExpirationDate().getValue())
                 .creationDate(productPrice.getCreationDate().getValue())
                 .lastModificationDate(productPrice.getLastModificationDate().getValue())
                 .build();

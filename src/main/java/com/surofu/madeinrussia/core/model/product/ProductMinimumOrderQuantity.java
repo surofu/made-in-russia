@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productPrice;
+package com.surofu.madeinrussia.core.model.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -11,12 +11,12 @@ import java.io.Serializable;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductPriceMinimumOrderQuantity implements Serializable {
+public final class ProductMinimumOrderQuantity implements Serializable {
 
     @Column(name = "minimum_order_quantity", nullable = false, columnDefinition = "int")
     private Integer value;
 
-    private ProductPriceMinimumOrderQuantity(Integer minimumOrderQuantity) {
+    private ProductMinimumOrderQuantity(Integer minimumOrderQuantity) {
         if (minimumOrderQuantity == null) {
             throw new IllegalArgumentException("Минимальное количество товара для скидки не может быть пустым");
         }
@@ -28,8 +28,8 @@ public final class ProductPriceMinimumOrderQuantity implements Serializable {
         this.value = minimumOrderQuantity;
     }
 
-    public static ProductPriceMinimumOrderQuantity of(Integer minimumOrderQuantity) {
-        return new ProductPriceMinimumOrderQuantity(minimumOrderQuantity);
+    public static ProductMinimumOrderQuantity of(Integer minimumOrderQuantity) {
+        return new ProductMinimumOrderQuantity(minimumOrderQuantity);
     }
 
     @Override

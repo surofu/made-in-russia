@@ -1,8 +1,6 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
-import com.surofu.madeinrussia.application.command.product.CreateProductCharacteristicCommand;
-import com.surofu.madeinrussia.application.command.product.CreateProductFaqCommand;
-import com.surofu.madeinrussia.application.command.product.CreateProductPriceCommand;
+import com.surofu.madeinrussia.application.command.product.*;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.product.ProductDescription;
 import com.surofu.madeinrussia.core.model.product.ProductTitle;
@@ -10,6 +8,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +22,10 @@ public class CreateProduct {
     List<CreateProductPriceCommand> createProductPriceCommands;
     List<CreateProductCharacteristicCommand> createProductCharacteristicCommands;
     List<CreateProductFaqCommand> createProductFaqCommands;
+    List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
+    List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
+    Integer minimumOrderQuantity;
+    ZonedDateTime discountExpirationDate;
     List<MultipartFile> files;
 
     public interface Result {

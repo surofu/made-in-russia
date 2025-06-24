@@ -19,27 +19,13 @@ public final class ProductDescription implements Serializable {
     @Column(name = "further_description", nullable = false, columnDefinition = "text")
     private String furtherDescription;
 
-    @Column(name = "summary_description", nullable = false, columnDefinition = "text")
-    private String summaryDescription;
-
-    @Column(name = "primary_description", nullable = false, columnDefinition = "text")
-    private String primaryDescription;
-
-    private ProductDescription(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {
+    private ProductDescription(String mainDescription, String furtherDescription) {
         if (mainDescription == null || mainDescription.trim().isEmpty()) {
             throw new IllegalArgumentException("Главное описание не может быть пустым");
         }
 
         if (furtherDescription == null || furtherDescription.trim().isEmpty()) {
             throw new IllegalArgumentException("Второстепенное описание не может быть пустым");
-        }
-
-        if (summaryDescription == null || summaryDescription.trim().isEmpty()) {
-            throw new IllegalArgumentException("Краткое описание не может быть пустым");
-        }
-
-        if (primaryDescription == null || primaryDescription.trim().isEmpty()) {
-            throw new IllegalArgumentException("Описание продавца не может быть пустым");
         }
 
         if (mainDescription.length() >= 50_000) {
@@ -50,26 +36,16 @@ public final class ProductDescription implements Serializable {
             throw new IllegalArgumentException("Второстепенное описание не может быть больше 20,000 символов");
         }
 
-        if (summaryDescription.length() >= 20_000) {
-            throw new IllegalArgumentException("Краткое описание не может быть больше 20,000 символов");
-        }
-
-        if (primaryDescription.length() >= 20_000) {
-            throw new IllegalArgumentException("Описание продавца не может быть больше 20,000 символов");
-        }
-
         this.mainDescription = mainDescription;
         this.furtherDescription = furtherDescription;
-        this.summaryDescription = summaryDescription;
-        this.primaryDescription = primaryDescription;
     }
 
-    public static ProductDescription of(String mainDescription, String furtherDescription, String summaryDescription, String primaryDescription) {
-        return new ProductDescription(mainDescription, furtherDescription, summaryDescription, primaryDescription);
+    public static ProductDescription of(String mainDescription, String furtherDescription) {
+        return new ProductDescription(mainDescription, furtherDescription);
     }
 
     @Override
     public String toString() {
-        return mainDescription + " - " + furtherDescription + " - " + summaryDescription + " - " + primaryDescription;
+        return mainDescription + " - " + furtherDescription;
     }
 }
