@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,11 +24,7 @@ public final class CategoryLastModificationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private CategoryLastModificationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата последнего изменения категории не может быть пустой");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static CategoryLastModificationDate of(ZonedDateTime date) {

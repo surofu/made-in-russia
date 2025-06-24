@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,11 +24,7 @@ public final class SessionLastModificationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private SessionLastModificationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата последнего изменения сессии не может быть пустой");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static SessionLastModificationDate of(ZonedDateTime date) {

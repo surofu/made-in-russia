@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.application.dto.temp.TempProductPackagingOptionDetails;
 import com.surofu.madeinrussia.core.model.product.Product;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -311,11 +310,9 @@ public class ProductDto implements Serializable {
 
     private ProductVendorDetailsDto aboutVendor;
 
-    // TODO: !!! Заглушки
-
     private List<ProductDeliveryMethodDetailsDto> deliveryMethodsDetails;
 
-    private List<TempProductPackagingOptionDetails> packagingOptions;
+    private List<ProductPackageOptionDto> packagingOptions;
 
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
@@ -343,9 +340,9 @@ public class ProductDto implements Serializable {
                 .reviewsCount(product.getReviewsCount())
                 .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .aboutVendor(product.getProductVendorDetails() == null ? null : ProductVendorDetailsDto.of(product.getProductVendorDetails()))
+                .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
-                .packagingOptions(List.of(new TempProductPackagingOptionDetails(), new TempProductPackagingOptionDetails()))
+                .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
                 .build();
     }
 }

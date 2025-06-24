@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,11 +24,7 @@ public final class VendorCountryLastModificationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private VendorCountryLastModificationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата последнего изменения страны продавца не может быть пустой");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static VendorCountryLastModificationDate of(ZonedDateTime date) {

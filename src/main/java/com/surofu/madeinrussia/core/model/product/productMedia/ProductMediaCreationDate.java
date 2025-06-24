@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,11 +24,7 @@ public final class ProductMediaCreationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private ProductMediaCreationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата создания медиа не может быть пустой");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static ProductMediaCreationDate of(ZonedDateTime date) {

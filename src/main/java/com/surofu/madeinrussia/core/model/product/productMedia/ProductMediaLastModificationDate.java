@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -22,8 +23,8 @@ public final class ProductMediaLastModificationDate implements Serializable {
     @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductMediaLastModificationDate(ZonedDateTime lastModificationDate) {
-        this.value = lastModificationDate;
+    private ProductMediaLastModificationDate(ZonedDateTime date) {
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static ProductMediaLastModificationDate of(ZonedDateTime date) {

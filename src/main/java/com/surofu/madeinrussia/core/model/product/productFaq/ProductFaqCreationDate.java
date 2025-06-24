@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,7 +24,7 @@ public final class ProductFaqCreationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private ProductFaqCreationDate(ZonedDateTime date) {
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static ProductFaqCreationDate of(ZonedDateTime date) {

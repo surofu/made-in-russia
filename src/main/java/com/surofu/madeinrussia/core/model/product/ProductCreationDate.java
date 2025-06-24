@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,11 +24,7 @@ public final class ProductCreationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private ProductCreationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата создания товара не может быть пустой");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static ProductCreationDate of(ZonedDateTime date) {

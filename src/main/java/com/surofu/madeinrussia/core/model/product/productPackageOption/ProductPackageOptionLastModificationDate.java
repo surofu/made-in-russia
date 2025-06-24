@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productVendorDetails;
+package com.surofu.madeinrussia.core.model.product.productPackageOption;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -7,7 +7,7 @@ import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -16,19 +16,19 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductVendorDetailsCreationDate implements Serializable {
+public final class ProductPackageOptionLastModificationDate implements Serializable {
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
+    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductVendorDetailsCreationDate(ZonedDateTime date) {
+    private ProductPackageOptionLastModificationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static ProductVendorDetailsCreationDate of(ZonedDateTime date) {
-        return new ProductVendorDetailsCreationDate(date);
+    public static ProductPackageOptionLastModificationDate of(ZonedDateTime date) {
+        return new ProductPackageOptionLastModificationDate(date);
     }
 
     @Override

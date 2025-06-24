@@ -29,6 +29,10 @@ public final class ProductVendorDetailsDto implements Serializable {
     private ZonedDateTime lastModificationDate;
 
     public static ProductVendorDetailsDto of(ProductVendorDetails productVendorDetails) {
+        if (productVendorDetails == null) {
+            return null;
+        }
+
         return ProductVendorDetailsDto.builder()
                 .id(productVendorDetails.getId())
                 .media(productVendorDetails.getMedia().stream().map(ProductVendorDetailsMediaDto::of).toList())

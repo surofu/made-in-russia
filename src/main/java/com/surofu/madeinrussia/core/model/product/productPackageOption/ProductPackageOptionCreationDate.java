@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.product.productVendorDetails;
+package com.surofu.madeinrussia.core.model.product.productPackageOption;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -16,19 +16,19 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductVendorDetailsCreationDate implements Serializable {
+public final class ProductPackageOptionCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private ProductVendorDetailsCreationDate(ZonedDateTime date) {
+    private ProductPackageOptionCreationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static ProductVendorDetailsCreationDate of(ZonedDateTime date) {
-        return new ProductVendorDetailsCreationDate(date);
+    public static ProductPackageOptionCreationDate of(ZonedDateTime date) {
+        return new ProductPackageOptionCreationDate(date);
     }
 
     @Override

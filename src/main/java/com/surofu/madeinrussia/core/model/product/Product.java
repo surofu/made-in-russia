@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductC
 import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
@@ -136,6 +137,14 @@ public final class Product implements Serializable {
             orphanRemoval = true
     )
     private Set<ProductDeliveryMethodDetails> deliveryMethodDetails = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "product",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<ProductPackageOption> packageOptions = new HashSet<>();
 
     @Embedded
     private ProductArticleCode articleCode;

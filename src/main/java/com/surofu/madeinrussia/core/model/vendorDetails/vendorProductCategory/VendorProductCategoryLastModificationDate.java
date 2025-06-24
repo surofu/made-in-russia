@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -22,16 +23,12 @@ public final class VendorProductCategoryLastModificationDate implements Serializ
     @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorProductCategoryLastModificationDate(ZonedDateTime lastModificationDate) {
-        if (lastModificationDate == null) {
-            throw new IllegalArgumentException("Дата последнего изменения категории товаров продавца не может быть пустой");
-        }
-
-        this.value = lastModificationDate;
+    private VendorProductCategoryLastModificationDate(ZonedDateTime date) {
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static VendorProductCategoryLastModificationDate of(ZonedDateTime lastModificationDate) {
-        return new VendorProductCategoryLastModificationDate(lastModificationDate);
+    public static VendorProductCategoryLastModificationDate of(ZonedDateTime date) {
+        return new VendorProductCategoryLastModificationDate(date);
     }
 
     @Override

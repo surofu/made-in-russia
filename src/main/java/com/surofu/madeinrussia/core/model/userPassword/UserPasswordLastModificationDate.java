@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,14 +24,10 @@ public final class UserPasswordLastModificationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private UserPasswordLastModificationDate(ZonedDateTime date) {
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
     public static UserPasswordLastModificationDate of(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Дата последнего изменения пароля пользователя не может быть пустой");
-        }
-
         return new UserPasswordLastModificationDate(date);
     }
 
