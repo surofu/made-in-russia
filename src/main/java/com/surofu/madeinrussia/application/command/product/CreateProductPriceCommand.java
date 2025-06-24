@@ -7,9 +7,9 @@ import java.math.BigDecimal;
 @Schema(description = "Command for defining product pricing with quantity tiers and discounts")
 public record CreateProductPriceCommand(
         @Schema(description = "Minimum quantity for this price tier",
-                example = "1",
+                example = "1-2",
                 requiredMode = Schema.RequiredMode.REQUIRED)
-        Integer quantityFrom,
+        String quantityFrom,
 
         @Schema(description = "Maximum quantity for this price tier (null for unlimited)",
                 example = "10",
