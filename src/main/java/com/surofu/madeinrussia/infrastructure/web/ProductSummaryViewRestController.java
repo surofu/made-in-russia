@@ -169,8 +169,6 @@ public class ProductSummaryViewRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
-        log.info("Product Title: {}", title);
-
         GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(
                 page,
                 size,

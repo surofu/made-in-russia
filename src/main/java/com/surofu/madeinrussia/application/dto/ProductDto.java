@@ -13,7 +13,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -315,7 +318,7 @@ public class ProductDto implements Serializable {
             format = "date-time",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private ZonedDateTime discountExpirationDate;
+    private Long daysBeforeDiscountExpires;
 
     @Schema(hidden = true)
     public static ProductDto of(Product product) {
@@ -345,7 +348,15 @@ public class ProductDto implements Serializable {
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
                 .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
                 .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().getValue())
-                .discountExpirationDate(product.getDiscountExpirationDate() == null ? null : product.getDiscountExpirationDate().getValue())
+                .daysBeforeDiscountExpires(getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
                 .build();
+    }
+
+    private static Long getDaysBeforeDiscountExpires(ZonedDateTime discountExpirationDate) {
+        if (discountExpirationDate == null) {
+            return null;
+        }
+
+        return LocalDate.now().until(discountExpirationDate.toLocalDate(), ChronoUnit.DAYS);
     }
 }
