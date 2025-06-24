@@ -382,8 +382,8 @@ public class ProductApplicationService implements ProductService {
 
             Set<ProductVendorDetailsMedia> productVendorDetailsMediaSet = new HashSet<>();
 
-            for (int i = 0; i < operation.getProductMedia().size(); i++) {
-                MultipartFile file = operation.getProductMedia().get(i);
+            for (int i = 0; i < operation.getProductVendorDetailsMedia().size(); i++) {
+                MultipartFile file = operation.getProductVendorDetailsMedia().get(i);
 
                 if (file.isEmpty()) {
                     return CreateProduct.Result.emptyFile();
