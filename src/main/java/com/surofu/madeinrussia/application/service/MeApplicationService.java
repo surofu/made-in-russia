@@ -56,7 +56,6 @@ public class MeApplicationService implements MeService {
     private final JwtUtils jwtUtils;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
-    private final AsyncMeApplicationService asyncMeApplicationService;
 
     @Value("${app.session.secret}")
     private String sessionSecret;

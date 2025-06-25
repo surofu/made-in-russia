@@ -13,7 +13,7 @@ public class GetMe {
 
     public interface Result {
         static Result success(AbstractAccountDto abstractAccountDto) {
-            log.info("Successfully processed get me by jwt: {}", abstractAccountDto);
+            log.info("Successfully processed get me by jwt");
             return Success.of(abstractAccountDto);
         }
 

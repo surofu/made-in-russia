@@ -26,7 +26,18 @@ COPY --from=builder app/spring-boot-loader/ ./
 COPY --from=builder app/snapshot-dependencies/ ./
 COPY --from=builder app/application/ ./
 
-# Оптимизированные JVM параметры
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -XX:+HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+# Оптимизированные JVM параметры для контейнеризации
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -XX:+UseZGC -XX:+ZUncommitDelay=300 -XX:ZCollectionInterval=30 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/heapdumps -Djava.security.egd=file:/dev/./urandom -Dspring.jmx.enabled=false -Dfile.encoding=UTF-8"
+ENV JAVA_OPTS="-XshowSettings:vm -XX:NativeMemoryTracking=summary"
+
+# Создаем директорию для дампов памяти
+RUN mkdir /heapdumps && chmod 777 /heapdumps
+
+# Ограничиваем количество потоков для Tomcat (если используется)
+ENV CATALINA_OPTS="-XX:ActiveProcessorCount=2"
+
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
