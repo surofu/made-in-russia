@@ -66,11 +66,14 @@ ENV JAVA_TOOL_OPTIONS=" \
     -XX:G1HeapRegionSize=16m \
     -XX:+G1UseAdaptiveIHOP \
     -XX:G1MixedGCCountTarget=8 \
-    -XX:+UnlockExperimentalVMOptions \
-    -XX:+UseJVMCICompiler \
+    -XX:+UseStringDeduplication \
+    -XX:+OptimizeStringConcat \
     -XX:+HeapDumpOnOutOfMemoryError \
     -XX:HeapDumpPath=/app/heapdumps/heap-dump.hprof \
     -XX:+ExitOnOutOfMemoryError \
+    -XX:+PrintGCDetails \
+    -XX:+PrintGCTimeStamps \
+    -XX:+PrintGCApplicationStoppedTime \
     -Djava.security.egd=file:/dev/./urandom \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF-8 \
