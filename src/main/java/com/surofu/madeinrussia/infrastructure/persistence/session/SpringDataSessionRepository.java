@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.persistence.session;
 
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +24,7 @@ public interface SpringDataSessionRepository extends JpaRepository<Session, Long
             select s from Session s
             where s.user.id = :userId and s.deviceId.value = :#{#deviceId.value}
             """)
+    @EntityGraph(attributePaths = {"user", "user.vendorDetails"})
     Optional<Session> getSessionByUserIdAndDeviceId(@Param("userId") Long userId, @Param("deviceId") SessionDeviceId deviceId);
 
     @Modifying
