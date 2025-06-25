@@ -37,10 +37,6 @@ public final class ProductPriceQuantityRange implements Serializable {
             throw new IllegalArgumentException("Конечное количество цены товара не может быть отрицательным");
         }
 
-        if (from > to) {
-            throw new IllegalArgumentException("Начальное количество цены товара не может быть больше конечного");
-        }
-
         this.from = from;
         this.to = to;
     }

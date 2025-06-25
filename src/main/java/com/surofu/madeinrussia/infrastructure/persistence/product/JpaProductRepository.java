@@ -9,7 +9,6 @@ import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,6 @@ public class JpaProductRepository implements ProductRepository {
     private final SpringDataProductRepository repository;
 
     @Override
-    @Transactional
     public Optional<Product> getProductById(Long productId) {
         return repository.getProductById(productId);
     }
@@ -67,5 +65,10 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public List<Product> findAllByIds(List<Long> productIds) {
         return repository.findAllById(productIds);
+    }
+
+    @Override
+    public Optional<Double> getProductRating(Long productId) {
+        return repository.getProductRatingById(productId);
     }
 }

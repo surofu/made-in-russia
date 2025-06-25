@@ -16,7 +16,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Formula;
@@ -52,14 +51,13 @@ import java.util.Set;
                 )
         }
 )
-@BatchSize(size = 10)
 public final class Product implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
             name = "user_id",
             nullable = false,
@@ -102,7 +100,7 @@ public final class Product implements Serializable {
 
     @Fetch(FetchMode.SUBSELECT)
     @ManyToMany(
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
     )
     @JoinTable(
@@ -154,7 +152,7 @@ public final class Product implements Serializable {
 
     @OneToMany(
             mappedBy = "product",
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
@@ -179,20 +177,7 @@ public final class Product implements Serializable {
     @Embedded
     private ProductDescription description;
 
-    @Formula("""
-                (SELECT
-                         CASE
-                             WHEN COUNT(r.rating) = 0 THEN NULL
-                             ELSE CAST(ROUND(
-                                 CASE
-                                     WHEN AVG(r.rating) < 1.0 THEN 1.0
-                                     WHEN AVG(r.rating) > 5.0 THEN 5.0
-                                     ELSE AVG(r.rating)
-                                 END, 1) AS DOUBLE PRECISION)
-                         END
-                     FROM product_reviews r
-                     WHERE r.product_id = id)
-            """)
+    @Transient
     private Double rating;
 
     @Formula("(select count(*) from product_reviews r where r.product_id = id)")

@@ -17,8 +17,6 @@ import com.surofu.madeinrussia.core.service.productReview.operation.GetProductRe
 import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
 import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

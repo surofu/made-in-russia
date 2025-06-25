@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.persistence.productReviewMedia;
+package com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia;
 
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.repository.ProductReviewMediaRepository;

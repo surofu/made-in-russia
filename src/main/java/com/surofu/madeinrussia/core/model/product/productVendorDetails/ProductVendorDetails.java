@@ -31,7 +31,7 @@ public final class ProductVendorDetails implements Serializable {
 
     @OneToMany(
             mappedBy = "productVendorDetails",
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )

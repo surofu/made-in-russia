@@ -27,4 +27,6 @@ public interface ProductRepository {
     Optional<Long> firstNotExists(List<Long> productIds);
 
     List<Product> findAllByIds(List<Long> productIds);
+
+    Optional<Double> getProductRating(Long productId);
 }

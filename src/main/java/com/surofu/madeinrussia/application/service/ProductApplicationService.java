@@ -49,10 +49,16 @@ import java.util.*;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductPriceRepository productPriceRepository;
+    private final ProductCharacteristicRepository productCharacteristicRepository;
+    private final ProductFaqRepository productFaqRepository;
+    private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
+    private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final ProductReviewMediaRepository productReviewMediaRepository;
-    private final FileStorageRepository fileStorageRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryMethodRepository deliveryMethodRepository;
+    private final FileStorageRepository fileStorageRepository;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -62,22 +68,31 @@ public class ProductApplicationService implements ProductService {
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        Optional<Product> product = productRepository.getProductById(operation.getProductId());
-        Optional<ProductDto> productDto = product.map(ProductDto::of);
+        Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
 
-        if (productDto.isEmpty()) {
+        if (optionalProduct.isEmpty()) {
             return GetProductById.Result.notFound(operation.getProductId());
         }
 
+        Product product = optionalProduct.get();
+
+        List<ProductPrice> productPriceList = productPriceRepository.findAllByProductId(operation.getProductId());
+        List<ProductCharacteristic> productCharacteristicList = productCharacteristicRepository.findAllByProductId(operation.getProductId());
+        List<ProductFaq> productFaqList = productFaqRepository.findAllByProductId(operation.getProductId());
+        List<ProductDeliveryMethodDetails> productDeliveryMethodDetailsList = productDeliveryMethodDetailsRepository.findAllByProductId(operation.getProductId());
+        List<ProductPackageOption> productPackageOptionList = productPackageOptionsRepository.findAllByProductId(operation.getProductId());
         List<ProductReviewMedia> productReviewMedia = productReviewMediaRepository.findAllByProductId(operation.getProductId(), 10);
-        List<ProductReviewMediaDto> productReviewMediaDtos = productReviewMedia.stream().map(ProductReviewMediaDto::of).toList();
+        Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
 
-        productDto.map(p -> {
-            p.setReviewsMedia(productReviewMediaDtos);
-            return p;
-        });
+        product.setPrices(new HashSet<>(productPriceList));
+        product.setCharacteristics(new HashSet<>(productCharacteristicList));
+        product.setFaq(new HashSet<>(productFaqList));
+        product.setDeliveryMethodDetails(new HashSet<>(productDeliveryMethodDetailsList));
+        product.setPackageOptions(new HashSet<>(productPackageOptionList));
+        product.setReviewsMedia(new HashSet<>(productReviewMedia));
+        product.setRating(productRating);
 
-        return GetProductById.Result.success(productDto.get());
+        return GetProductById.Result.success(ProductDto.of(product));
     }
 
     @Override

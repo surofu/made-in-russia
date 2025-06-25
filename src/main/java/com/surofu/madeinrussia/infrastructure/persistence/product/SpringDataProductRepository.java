@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,10 +15,11 @@ import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("select p from Product p where p.id = :productId")
-    @EntityGraph(attributePaths = {
-            "category", "media", "characteristics", "faq",
-            "deliveryMethodDetails", "packageOptions"})
+    @Query("""
+            select p from Product p
+            join fetch p.category
+            where p.id = :productId
+            """)
     Optional<Product> getProductById(@Param("productId") Long productId);
 
     @Query("select p.category from Product p where p.id = :productId")
@@ -46,4 +46,20 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             LIMIT 1
             """, nativeQuery = true)
     Optional<Long> firstNotExists(Long[] productIdsArray);
+
+    @Query(value = """
+            SELECT
+                                                 CASE
+                                                     WHEN COUNT(r.rating) = 0 THEN NULL
+                                                     ELSE CAST(ROUND(
+                                                         CASE
+                                                             WHEN AVG(r.rating) < 1.0 THEN 1.0
+                                                             WHEN AVG(r.rating) > 5.0 THEN 5.0
+                                                             ELSE AVG(r.rating)
+                                                         END, 1) AS DOUBLE PRECISION)
+                                                 END
+                                             FROM product_reviews r
+                                             WHERE r.product_id = id
+            """, nativeQuery = true)
+    Optional<Double> getProductRatingById(@Param("productId") Long productId);
 }

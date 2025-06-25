@@ -33,7 +33,7 @@ COPY --from=builder app/application/ ./
 ENV JAVA_TOOL_OPTIONS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+TieredCompilation -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+UseTransparentHugePages"
 
 # Создаем директорию для дампов памяти
-RUN mkdir /heapdumps && chmod 777 /heapdumps
+RUN mkdir /data/heapdumps && chmod 777 /data/heapdumps
 
 # Ограничиваем количество потоков для Tomcat
 ENV CATALINA_OPTS="-XX:ActiveProcessorCount=2"

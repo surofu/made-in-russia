@@ -18,11 +18,11 @@ public final class ProductMinimumOrderQuantity implements Serializable {
 
     private ProductMinimumOrderQuantity(Integer minimumOrderQuantity) {
         if (minimumOrderQuantity == null) {
-            throw new IllegalArgumentException("Минимальное количество товара для скидки не может быть пустым");
+            throw new IllegalArgumentException("Минимальное количество товара не может быть пустым");
         }
 
         if (minimumOrderQuantity < 0) {
-            throw new IllegalArgumentException("Минимальное количество товара для скидки не может быть отрицательным");
+            throw new IllegalArgumentException("Минимальное количество товара не может быть отрицательным");
         }
 
         this.value = minimumOrderQuantity;
