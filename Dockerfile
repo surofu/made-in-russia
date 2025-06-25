@@ -1,5 +1,5 @@
 # Этап сборки с кешированием Maven
-FROM maven:3.8.6-eclipse-temurin-17 AS build
+FROM maven:3.9.6-openjdk-23 AS build
 WORKDIR /app
 
 # Копируем только POM сначала для кеширования зависимостей
@@ -11,13 +11,13 @@ COPY src ./src
 RUN mvn clean package -DskipTests -T 1C -Dmaven.test.skip=true -Dmaven.compile.fork=true
 
 # Этап создания многослойного образа
-FROM eclipse-temurin:17.0.6_10-jre-jammy AS builder
+FROM openjdk:23-jdk-slim AS builder
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Финальный образ
-FROM eclipse-temurin:17.0.6_10-jre-jammy
+FROM openjdk:23-jdk-slim
 WORKDIR /app
 
 # Копируем слои в правильном порядке для лучшего кеширования
@@ -27,7 +27,7 @@ COPY --from=builder app/snapshot-dependencies/ ./
 COPY --from=builder app/application/ ./
 
 # Оптимизированные JVM параметры для контейнеризации (исправленная версия)
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=70.0 -XX:InitialRAMPercentage=40.0 -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/heapdumps -Djava.security.egd=file:/dev/./urandom -Dspring.jmx.enabled=false -Dfile.encoding=UTF-8"
+ENV JAVA_TOOL_OPTIONS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseG1GC -XX:+AggressiveOpts -XX:+TieredCompilation -XX:+AlwaysPreTouch -Xnoclassgc -XX:+ClassUnloading"
 
 # Создаем директорию для дампов памяти
 RUN mkdir /heapdumps && chmod 777 /heapdumps

@@ -18,11 +18,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select p from Product p where p.id = :productId")
     @EntityGraph(attributePaths = {
-            "category", "media", "characteristics", "faq", "user",
-            "user.vendorDetails", "user.vendorDetails.vendorCountries",
-            "user.vendorDetails.vendorProductCategories",
-            "user.vendorDetails.faq",
-            "productVendorDetails", "productVendorDetails.media",
+            "category", "media", "characteristics", "faq",
             "deliveryMethodDetails", "packageOptions"})
     Optional<Product> getProductById(@Param("productId") Long productId);
 
