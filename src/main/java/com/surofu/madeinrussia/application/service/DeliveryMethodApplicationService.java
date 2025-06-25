@@ -40,11 +40,6 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "deliveryMethod",
-            key = "#operation.getDeliveryMethodId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethodById$Result$NotFound)"
-    )
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
         Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getDeliveryMethodId());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);

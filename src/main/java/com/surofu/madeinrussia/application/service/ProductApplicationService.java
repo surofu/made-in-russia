@@ -82,11 +82,6 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productCategoryByProductId",
-            key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCategoryByProductId$Result$NotFound)"
-    )
     public GetProductCategoryByProductId.Result getProductCategoryByProductId(GetProductCategoryByProductId operation) {
         Long productId = operation.getProductId();
         Optional<Category> category = productRepository.getProductCategoryByProductId(productId);
@@ -101,16 +96,6 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productDeliveryMethodsByProductId",
-            key = "#operation.getProductId()",
-            unless = """
-                    {
-                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductDeliveryMethodsByProductId$Result$NotFound)
-                    or #result.getProductDeliveryMethodDtos().isEmpty()
-                    }
-                    """
-    )
     public GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation) {
         Long productId = operation.getProductId();
 
@@ -126,16 +111,6 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productMediaByProductId",
-            key = "#operation.getProductId()",
-            unless = """
-                    {
-                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductMediaByProductId$Result$NotFound)
-                    or #result.getProductMediaDtos().isEmpty()
-                    }
-                    """
-    )
     public GetProductMediaByProductId.Result getProductMediaByProductId(GetProductMediaByProductId operation) {
         Long productId = operation.getProductId();
         Optional<List<ProductMedia>> productMedia = productRepository.getProductMediaByProductId(productId);
@@ -150,16 +125,6 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productCharacteristicsByProductId",
-            key = "#operation.getProductId()",
-            unless = """
-                    {
-                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductCharacteristicsByProductId$Result$NotFound)
-                    or #result.getProductCharacteristicDtos().isEmpty()
-                    }
-                    """
-    )
     public GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation) {
         Long productId = operation.getProductId();
         Optional<List<ProductCharacteristic>> productCharacteristics = productRepository.getProductCharacteristicsByProductId(productId);
@@ -173,16 +138,6 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productFaqByProductId",
-            key = "#operation.getProductId()",
-            unless = """
-                    {
-                    #result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductFaqByProductId)
-                    or #result.getProductFaqDtos().isEmpty()
-                    }
-                    """
-    )
     public GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation) {
         Long productId = operation.getProductId();
 

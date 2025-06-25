@@ -47,23 +47,6 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productReviewPageByProductId",
-            key = """
-                    {
-                    #operation.productId,
-                    #operation.page
-                    }
-                    """,
-            unless = """
-                    {
-                    #result.getProductReviewDtoPage().isEmpty()
-                    or #operation.size != null
-                    or #operation.minRating != null
-                    or #operation.maxRating != null
-                    }
-                    """
-    )
     public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
@@ -99,10 +82,6 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
     @Override
     @Transactional
-    @CacheEvict(
-            value = "productReviewPageByProductId",
-            condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$ProductNotFound)"
-    )
     public CreateProductReview.Result createProductReview(CreateProductReview operation) {
         User user = operation.getSecurityUser().getUser();
 
@@ -139,10 +118,6 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
     @Override
     @Transactional
-    @CacheEvict(
-            value = "productReviewPageByProductId",
-            condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$Success)"
-    )
     public UpdateProductReview.Result updateProductReview(UpdateProductReview operation) {
         Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
 
@@ -180,10 +155,6 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
     @Override
     @Transactional
-    @CacheEvict(
-            value = "productReviewPageByProductId",
-            condition = "#result instanceof T(com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview$Result$Success)"
-    )
     public DeleteProductReview.Result deleteProductReview(DeleteProductReview operation) {
         Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
 

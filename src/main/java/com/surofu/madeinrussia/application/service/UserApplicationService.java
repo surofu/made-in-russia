@@ -33,11 +33,6 @@ public class UserApplicationService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-//    @Cacheable(
-//            value = "userById",
-//            key = "#operation.userId",
-//            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserById$Result$NotFound)"
-//    )
     public GetUserById.Result getUserById(GetUserById operation) {
         Optional<User> user = userRepository.getUserById(operation.getUserId());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -51,11 +46,6 @@ public class UserApplicationService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-//    @Cacheable(
-//            value = "userByLogin",
-//            key = "#operation.userLogin.value",
-//            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin$Result$NotFound)"
-//    )
     public GetUserByLogin.Result getUserByLogin(GetUserByLogin operation) {
         Optional<User> user = userRepository.getUserByLogin(operation.getUserLogin());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -69,11 +59,6 @@ public class UserApplicationService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-//    @Cacheable(
-//            value = "userByEmail",
-//            key = "#operation.userEmail.value",
-//            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail$Result$NotFound)"
-//    )
     public GetUserByEmail.Result getUserByEmail(GetUserByEmail operation) {
         Optional<User> user = userRepository.getUserByEmail(operation.getUserEmail());
         Optional<UserDto> userDto = user.map(UserDto::of);
@@ -87,10 +72,6 @@ public class UserApplicationService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-//    @Cacheable(
-//            value = "userByUsername",
-//            key = "#username"
-//    )
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.getUserByEmail(UserEmail.of(username))
                 .orElseThrow(() -> new UsernameNotFoundException(username));

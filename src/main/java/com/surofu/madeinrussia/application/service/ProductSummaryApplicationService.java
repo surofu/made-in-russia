@@ -36,20 +36,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productSummaryViewPage",
-            key = "#operation.getPage()",
-            unless = """
-                    {
-                        #result.getProductSummaryViewDtoPage().isEmpty()
-                        or #operation.size != null
-                        or #operation.categoryIds != null
-                        or #operation.deliveryMethodIds != null
-                        or #operation.minPrice != null
-                        or #operation.maxPrice != null
-                    }
-                    """
-    )
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
@@ -76,11 +62,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productSummaryView",
-            key = "#operation.getProductSummaryId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById$Result$NotFound)"
-    )
     public GetProductSummaryViewById.Result getProductSummaryViewById(GetProductSummaryViewById operation) {
         Long productSummaryId = operation.getProductSummaryId();
         Optional<ProductSummaryView> productSummaryView = productSummaryViewRepository.getProductSummaryViewById(productSummaryId);
@@ -95,20 +76,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "productSummaryViewPageByVendorId",
-            key = "#operation.vendorId",
-            unless = """
-                    {
-                        #result.getProductSummaryViewDtoPage().isEmpty()
-                        or #operation.size != null
-                        or #operation.categoryIds != null
-                        or #operation.deliveryMethodIds != null
-                        or #operation.minPrice != null
-                        or #operation.maxPrice != null
-                    }
-                    """
-    )
     public GetProductSummaryViewPageByVendorId.Result getProductSummaryViewPageByVendorId(GetProductSummaryViewPageByVendorId operation) {
         if (!userRepository.existsVendorById(operation.getVendorId())) {
             return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());

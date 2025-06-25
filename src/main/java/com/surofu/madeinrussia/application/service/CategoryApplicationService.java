@@ -52,11 +52,6 @@ public class CategoryApplicationService implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "category",
-            key = "#operation.getCategoryId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.category.operation.GetCategoryById$Result$NotFound)"
-    )
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
         Optional<Category> category = repository.getCategoryById(operation.getCategoryId());
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
@@ -70,11 +65,6 @@ public class CategoryApplicationService implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "category",
-            key = "#operation.getCategorySlug()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug$Result$NotFound)"
-    )
     public GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation) {
         Optional<Category> category = repository.getCategoryBySlug(operation.getCategorySlug());
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
