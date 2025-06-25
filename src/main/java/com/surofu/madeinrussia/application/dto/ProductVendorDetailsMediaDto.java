@@ -19,6 +19,8 @@ public final class ProductVendorDetailsMediaDto implements Serializable {
 
     private String url;
 
+    private String mediaType;
+
     private String altText;
 
     private ZonedDateTime creationDate;
@@ -29,6 +31,7 @@ public final class ProductVendorDetailsMediaDto implements Serializable {
         return ProductVendorDetailsMediaDto.builder()
                 .id(productVendorDetailsMedia.getId())
                 .url(productVendorDetailsMedia.getImage().getUrl())
+                .mediaType(productVendorDetailsMedia.getMediaType().getName())
                 .altText(productVendorDetailsMedia.getImage().getAltText())
                 .creationDate(productVendorDetailsMedia.getCreationDate().getValue())
                 .lastModificationDate(productVendorDetailsMedia.getLastModificationDate().getValue())
