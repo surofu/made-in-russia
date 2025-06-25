@@ -1,5 +1,5 @@
 # Этап сборки с кешированием Maven
-FROM maven:3.9.6-openjdk-23 AS build
+FROM maven:3.9.6-openjdk-21 AS build
 WORKDIR /app
 
 # Копируем только POM сначала для кеширования зависимостей
@@ -11,13 +11,13 @@ COPY src ./src
 RUN mvn clean package -DskipTests -T 1C
 
 # Этап создания многослойного образа
-FROM openjdk:23-jdk-slim AS builder
+FROM openjdk:21-jdk-slim AS builder
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Финальный образ
-FROM openjdk:23-jdk-slim
+FROM openjdk:21-jdk-slim
 WORKDIR /app
 
 # Устанавливаем curl для healthcheck
