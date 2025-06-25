@@ -40,7 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -193,6 +192,10 @@ public class ProductApplicationService implements ProductService {
         product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
         product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
 
+
+        String preloadContentUrl = "https://res.cloudinary.com/dghvvfwbc/image/upload/v1750709430/%D0%9E%D0%B4%D0%BD%D0%BE%D0%BB%D0%B5%D1%82%D0%BD%D0%B8%D0%B5_%D0%BA%D1%83%D0%BB%D1%8C%D1%82%D1%83%D1%80%D1%8B_incqjr.png";
+        Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
+
         /* ========== Product Delivery Methods ========== */
 
         Set<DeliveryMethod> deliveryMethodSet = new HashSet<>();
@@ -318,30 +321,18 @@ public class ProductApplicationService implements ProductService {
                 return CreateProduct.Result.invalidMediaType(file.getContentType());
             }
 
-            String url = null;
+            productMedia.setUrl(ProductMediaUrl.of(preloadContentUrl));
 
             if (file.getContentType().startsWith("image")) {
                 productMedia.setMediaType(MediaType.IMAGE);
-
-                try {
-                    url = fileStorageRepository.uploadImageToFolder(file, "productImages");
-                } catch (IOException e) {
-                    return CreateProduct.Result.errorSavingFiles();
-                }
+                preloadContentSet.add(new PreloadContentInfo<>(productMedia, file, "productImages"));
             } else if (file.getContentType().startsWith("video")) {
                 productMedia.setMediaType(MediaType.VIDEO);
-
-                try {
-                    url = fileStorageRepository.uploadVideoToFolder(file, "productVideos");
-                } catch (IOException e) {
-                    return CreateProduct.Result.errorSavingFiles();
-                }
+                preloadContentSet.add(new PreloadContentInfo<>(productMedia, file, "productVideos"));
             }
 
-            productMedia.setUrl(ProductMediaUrl.of(url));
-
             if (i == 0) {
-                product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                product.setPreviewImageUrl(ProductPreviewImageUrl.of(preloadContentUrl));
             }
 
             productMediaSet.add(productMedia);
@@ -380,28 +371,17 @@ public class ProductApplicationService implements ProductService {
                     return CreateProduct.Result.invalidMediaType(Objects.requireNonNull(file.getContentType()));
                 }
 
-                String url = null;
+                String altText = Objects.requireNonNullElse(operation.getCreateProductVendorDetailsCommand().mediaAltTexts().get(i), "");
+                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(preloadContentUrl, altText));
 
                 if (file.getContentType().startsWith("image")) {
                     productVendorDetailsMedia.setMediaType(MediaType.IMAGE);
-
-                    try {
-                        url = fileStorageRepository.uploadImageToFolder(file, "productVendorDetailsImages");
-                    } catch (IOException e) {
-                        return CreateProduct.Result.errorSavingFiles();
-                    }
+                    preloadContentSet.add(new PreloadContentInfo<>(productVendorDetailsMedia, file, "productVendorDetailsImages"));
                 } else if (file.getContentType().startsWith("video")) {
                     productVendorDetailsMedia.setMediaType(MediaType.VIDEO);
-
-                    try {
-                        url = fileStorageRepository.uploadVideoToFolder(file, "productVendorDetailsVideos");
-                    } catch (IOException e) {
-                        return CreateProduct.Result.errorSavingFiles();
-                    }
+                    preloadContentSet.add(new PreloadContentInfo<>(productVendorDetailsMedia, file, "productVendorDetailsVideos"));
                 }
 
-                String altText = Objects.requireNonNullElse(operation.getCreateProductVendorDetailsCommand().mediaAltTexts().get(i), "");
-                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(url, altText));
                 productVendorDetailsMediaSet.add(productVendorDetailsMedia);
             }
 
@@ -416,6 +396,57 @@ public class ProductApplicationService implements ProductService {
             return CreateProduct.Result.errorSavingProduct();
         }
 
+        try {
+            for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
+                if (contentInfo.entity instanceof ProductMedia productMedia) {
+                    if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
+                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                        productMedia.setUrl(ProductMediaUrl.of(url));
+                    }
+
+                    if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
+                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                        productMedia.setUrl(ProductMediaUrl.of(url));
+                    }
+                }
+
+                if (contentInfo.entity instanceof ProductVendorDetailsMedia productVendorDetailsMedia) {
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
+                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
+
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
+                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error saving files: {}", e.getMessage(), e);
+            return CreateProduct.Result.errorSavingFiles();
+        }
+
+        try {
+            productRepository.save(product);
+        } catch (Exception e) {
+            log.error("Error saving product after uploading files: {}", e.getMessage(), e);
+            return CreateProduct.Result.errorSavingProduct();
+        }
+
         return CreateProduct.Result.success();
+    }
+
+    private record PreloadContentInfo<T>(
+            T entity,
+            MultipartFile file,
+            String folderName
+    ) {
     }
 }
