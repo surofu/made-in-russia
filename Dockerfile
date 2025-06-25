@@ -1,5 +1,5 @@
 # Этап сборки с кешированием Maven
-FROM maven:3.9.6-openjdk-21 AS build
+FROM maven:3.9.4-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
 # Копируем только POM сначала для кеширования зависимостей
@@ -11,17 +11,17 @@ COPY src ./src
 RUN mvn clean package -DskipTests -T 1C
 
 # Этап создания многослойного образа
-FROM openjdk:21-jdk-slim AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Финальный образ
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Устанавливаем curl для healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl
 
 # Копируем слои в правильном порядке для лучшего кеширования
 COPY --from=builder app/dependencies/ ./
