@@ -286,13 +286,13 @@ public class ProductDto implements Serializable {
 
     @Schema(
             description = "Minimum quantity that must be ordered",
-            example = "5",
+            example = "1-5",
             type = "integer",
             minimum = "1",
             defaultValue = "1",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private Integer minimumOrderQuantity;
+    private String minimumOrderQuantity;
 
     @Schema(
             description = "Expiration date/time for the discount (if applicable)",
@@ -349,7 +349,7 @@ public class ProductDto implements Serializable {
                 .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
                 .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
-                .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().getValue())
+                .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().toString())
                 .daysBeforeDiscountExpires(getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
                 .build();
     }

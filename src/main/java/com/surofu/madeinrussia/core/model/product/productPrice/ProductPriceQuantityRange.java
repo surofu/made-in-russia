@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -45,7 +44,7 @@ public final class ProductPriceQuantityRange implements Serializable {
         return new ProductPriceQuantityRange(from, to);
     }
 
-    public static ProductPriceQuantityRange of(String from, Integer to) {
+    public static ProductPriceQuantityRange of(String from, String to) {
         if (from == null) {
             throw new IllegalArgumentException("Цена товара не может быть пустой");
         }
@@ -57,8 +56,8 @@ public final class ProductPriceQuantityRange implements Serializable {
                 throw new IllegalArgumentException(String.format("Неверный формат цены товара: '%s'", from));
             }
 
-            String fromString = split[0];
-            String toString = split[1];
+            String fromString = split[0].trim();
+            String toString = split[1].trim();
 
             int fromInt;
             int toInt;
@@ -78,12 +77,27 @@ public final class ProductPriceQuantityRange implements Serializable {
             return new ProductPriceQuantityRange(fromInt, toInt);
         }
 
+        int fromInt;
+        int toInt;
+
         try {
-            Integer fromInt = Integer.parseInt(from);
-            return new ProductPriceQuantityRange(fromInt, Objects.requireNonNullElse(to, fromInt));
+            fromInt = Integer.parseInt(from);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(String.format("Неверный формат цены товара: '%s'", from));
         }
+
+        if (to != null && !to.trim().isEmpty()) {
+            try {
+                toInt = Integer.parseInt(to);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(String.format("Неверный формат цены товара: '%s'", from));
+            }
+
+            return new ProductPriceQuantityRange(fromInt, toInt);
+
+        }
+
+        return new ProductPriceQuantityRange(fromInt, fromInt);
     }
 
     @Override

@@ -13,9 +13,8 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductMinimumOrderQuantity implements Serializable {
 
-    @Column(name = "minimum_order_quantity", nullable = false, columnDefinition = "int")
+    @Column(name = "minimum_order_quantity", columnDefinition = "int")
     private Integer value;
-
     private ProductMinimumOrderQuantity(Integer minimumOrderQuantity) {
         if (minimumOrderQuantity == null) {
             throw new IllegalArgumentException("Минимальное количество товара не может быть пустым");

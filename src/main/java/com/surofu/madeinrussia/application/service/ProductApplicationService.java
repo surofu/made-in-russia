@@ -398,7 +398,7 @@ public class ProductApplicationService implements ProductService {
 
         try {
             for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
-                if (contentInfo.entity instanceof ProductMedia productMedia) {
+                if (contentInfo.entity() instanceof ProductMedia productMedia) {
                     if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
                         String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
                         productMedia.setUrl(ProductMediaUrl.of(url));
@@ -410,22 +410,22 @@ public class ProductApplicationService implements ProductService {
                     }
                 }
 
-                if (contentInfo.entity instanceof ProductVendorDetailsMedia productVendorDetailsMedia) {
-                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
-                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
-                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                                url,
-                                productVendorDetailsMedia.getImage().getAltText()
-                        ));
-                    }
+                ProductVendorDetailsMedia productVendorDetailsMedia = (ProductVendorDetailsMedia) contentInfo.entity();
 
-                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
-                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
-                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                                url,
-                                productVendorDetailsMedia.getImage().getAltText()
-                        ));
-                    }
+                if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
+                    String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                    productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                            url,
+                            productVendorDetailsMedia.getImage().getAltText()
+                    ));
+                }
+
+                if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
+                    String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                    productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                            url,
+                            productVendorDetailsMedia.getImage().getAltText()
+                    ));
                 }
             }
         } catch (Exception e) {

@@ -14,7 +14,7 @@ public record CreateProductPriceCommand(
         @Schema(description = "Maximum quantity for this price tier (null for unlimited)",
                 example = "10",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        Integer quantityTo,
+        String quantityTo,
 
         @Schema(description = "Currency code (ISO 4217)",
                 example = "USD",
