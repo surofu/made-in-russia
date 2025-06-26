@@ -44,6 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -793,8 +794,8 @@ public class ProductRestController {
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
-        if (productMedia == null || productMedia.isEmpty()) {
-            String message = "Медиа файлы товара не могут быть пустыми";
+        if ((productMedia == null || productMedia.isEmpty()) && updateProductCommand.oldProductMedia().isEmpty()) {
+            String message = "Медиа контент товаре не может быть пустым";
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
@@ -821,8 +822,8 @@ public class ProductRestController {
                 ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate()),
                 updateProductCommand.oldProductMedia(),
                 updateProductCommand.oldAboutVendorMedia(),
-                productMedia,
-                productVendorDetailsMedia
+                productMedia == null ? new ArrayList<>() : productMedia,
+                productVendorDetailsMedia == null ? new ArrayList<>() : productVendorDetailsMedia
         );
         return productService.updateProduct(operation).process(updateProductProcessor);
     }
