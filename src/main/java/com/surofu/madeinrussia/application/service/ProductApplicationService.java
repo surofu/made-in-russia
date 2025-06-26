@@ -1,14 +1,12 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.command.product.*;
+import com.surofu.madeinrussia.application.command.product.create.*;
+import com.surofu.madeinrussia.application.command.product.update.*;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
-import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.ProductDiscountExpirationDate;
-import com.surofu.madeinrussia.core.model.product.ProductMinimumOrderQuantity;
-import com.surofu.madeinrussia.core.model.product.ProductPreviewImageUrl;
+import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicName;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicValue;
@@ -41,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,6 +50,7 @@ public class ProductApplicationService implements ProductService {
     private final ProductPriceRepository productPriceRepository;
     private final ProductCharacteristicRepository productCharacteristicRepository;
     private final ProductFaqRepository productFaqRepository;
+    private final ProductMediaRepository productMediaRepository;
     private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
     private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final ProductReviewMediaRepository productReviewMediaRepository;
@@ -58,6 +58,7 @@ public class ProductApplicationService implements ProductService {
     private final DeliveryMethodRepository deliveryMethodRepository;
     private final FileStorageRepository fileStorageRepository;
 
+    private final String TEMP_URL = "TEMP_URL";
 
     @Override
     @Transactional(readOnly = true)
@@ -76,6 +77,7 @@ public class ProductApplicationService implements ProductService {
         Product product = optionalProduct.get();
 
         List<ProductPrice> productPriceList = productPriceRepository.findAllByProductId(operation.getProductId());
+        List<ProductMedia> productMediaList = productMediaRepository.findAllByProductId(operation.getProductId());
         List<ProductCharacteristic> productCharacteristicList = productCharacteristicRepository.findAllByProductId(operation.getProductId());
         List<ProductFaq> productFaqList = productFaqRepository.findAllByProductId(operation.getProductId());
         List<ProductDeliveryMethodDetails> productDeliveryMethodDetailsList = productDeliveryMethodDetailsRepository.findAllByProductId(operation.getProductId());
@@ -84,6 +86,7 @@ public class ProductApplicationService implements ProductService {
         Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
 
         product.setPrices(new HashSet<>(productPriceList));
+        product.setMedia(new HashSet<>(productMediaList));
         product.setCharacteristics(new HashSet<>(productCharacteristicList));
         product.setFaq(new HashSet<>(productFaqList));
         product.setDeliveryMethodDetails(new HashSet<>(productDeliveryMethodDetailsList));
@@ -192,25 +195,19 @@ public class ProductApplicationService implements ProductService {
         product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
         product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
 
-
-        String preloadContentUrl = "https://res.cloudinary.com/dghvvfwbc/image/upload/v1750709430/%D0%9E%D0%B4%D0%BD%D0%BE%D0%BB%D0%B5%D1%82%D0%BD%D0%B8%D0%B5_%D0%BA%D1%83%D0%BB%D1%8C%D1%82%D1%83%D1%80%D1%8B_incqjr.png";
         Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
 
         /* ========== Product Delivery Methods ========== */
 
-        Set<DeliveryMethod> deliveryMethodSet = new HashSet<>();
+        Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
 
-        for (Long deliveryMethodId : operation.getDeliveryMethodIds()) {
-            Optional<DeliveryMethod> deliveryMethod = deliveryMethodRepository.getDeliveryMethodById(deliveryMethodId);
-
-            if (deliveryMethod.isEmpty()) {
-                return CreateProduct.Result.deliveryMethodNotFound(deliveryMethodId);
-            }
-
-            deliveryMethodSet.add(deliveryMethod.get());
+        if (firstNotExistsDeliveryMethodId.isPresent()) {
+            return CreateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
         }
 
-        product.setDeliveryMethods(deliveryMethodSet);
+        List<DeliveryMethod> deliveryMethodList = deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+
+        product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
 
         /* ========== Product Prices ========== */
 
@@ -231,10 +228,10 @@ public class ProductApplicationService implements ProductService {
 
         /* ========== Similar Products ========== */
 
-        Optional<Long> firstNotExists = productRepository.firstNotExists(operation.getSimilarProductIds());
+        Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
 
-        if (firstNotExists.isPresent()) {
-            return CreateProduct.Result.similarProductNotFound(firstNotExists.get());
+        if (firstNotExistsSimilarProductId.isPresent()) {
+            return CreateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
         }
 
         List<Product> similarProducts = productRepository.findAllByIds(operation.getSimilarProductIds());
@@ -321,7 +318,7 @@ public class ProductApplicationService implements ProductService {
                 return CreateProduct.Result.invalidMediaType(file.getContentType());
             }
 
-            productMedia.setUrl(ProductMediaUrl.of(preloadContentUrl));
+            productMedia.setUrl(ProductMediaUrl.of(UUID.randomUUID().toString()));
 
             if (file.getContentType().startsWith("image")) {
                 productMedia.setMediaType(MediaType.IMAGE);
@@ -332,7 +329,7 @@ public class ProductApplicationService implements ProductService {
             }
 
             if (i == 0) {
-                product.setPreviewImageUrl(ProductPreviewImageUrl.of(preloadContentUrl));
+                product.setPreviewImageUrl(ProductPreviewImageUrl.of(TEMP_URL));
             }
 
             productMediaSet.add(productMedia);
@@ -372,7 +369,7 @@ public class ProductApplicationService implements ProductService {
                 }
 
                 String altText = Objects.requireNonNullElse(operation.getCreateProductVendorDetailsCommand().mediaAltTexts().get(i), "");
-                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(preloadContentUrl, altText));
+                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(UUID.randomUUID().toString(), altText));
 
                 if (file.getContentType().startsWith("image")) {
                     productVendorDetailsMedia.setMediaType(MediaType.IMAGE);
@@ -398,34 +395,50 @@ public class ProductApplicationService implements ProductService {
 
         try {
             for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
-                if (contentInfo.entity() instanceof ProductMedia productMedia) {
+                if (contentInfo.entity() instanceof ProductMedia) {
+                    ProductMedia productMedia = product.getMedia().stream()
+                            .filter(m -> m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
+                            .findFirst().orElseThrow();
+
                     if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
                         String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
                         productMedia.setUrl(ProductMediaUrl.of(url));
+
+                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
+                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                        }
                     }
 
                     if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
                         String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
                         productMedia.setUrl(ProductMediaUrl.of(url));
+
+                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
+                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                        }
                     }
                 }
 
-                ProductVendorDetailsMedia productVendorDetailsMedia = (ProductVendorDetailsMedia) contentInfo.entity();
+                if (contentInfo.entity() instanceof ProductVendorDetailsMedia) {
+                    ProductVendorDetailsMedia productVendorDetailsMedia = product.getProductVendorDetails().getMedia().stream()
+                            .filter(m -> m.getImage().getUrl().equals(((ProductVendorDetailsMedia) contentInfo.entity()).getImage().getUrl()))
+                            .findFirst().orElseThrow();
 
-                if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
-                    String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
-                    productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                            url,
-                            productVendorDetailsMedia.getImage().getAltText()
-                    ));
-                }
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
+                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
 
-                if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
-                    String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
-                    productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                            url,
-                            productVendorDetailsMedia.getImage().getAltText()
-                    ));
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
+                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
                 }
             }
         } catch (Exception e) {
@@ -441,6 +454,355 @@ public class ProductApplicationService implements ProductService {
         }
 
         return CreateProduct.Result.success();
+    }
+
+    @Override
+    public UpdateProduct.Result updateProduct(UpdateProduct operation) {
+        Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
+
+        if (optionalProduct.isEmpty()) {
+            return UpdateProduct.Result.productNotFound(operation.getProductId());
+        }
+
+        Product product = optionalProduct.get();
+
+        if (!product.getUser().getId().equals(operation.getSecurityUser().getUser().getId())) {
+            return UpdateProduct.Result.invalidOwner(operation.getProductId(), operation.getSecurityUser().getUser().getLogin());
+        }
+
+        product.setTitle(operation.getProductTitle());
+        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
+        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
+
+        Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
+
+        /* ========== Product Description ========== */
+
+        product.setDescription(ProductDescription.of(
+                operation.getProductDescription().getMainDescription(),
+                operation.getProductDescription().getFurtherDescription()
+        ));
+
+        /* ========== Product Category ========== */
+
+        if (!product.getCategory().getId().equals(operation.getCategoryId())) {
+            Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
+
+            if (newCategory.isEmpty()) {
+                return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
+            }
+
+            product.setCategory(newCategory.get());
+        }
+
+        /* ========== Product Delivery Methods ========== */
+
+        Set<Long> productDeliveryMethodIdsSet = product.getDeliveryMethods().stream().map(DeliveryMethod::getId).collect(Collectors.toSet());
+
+        if (
+                !(productDeliveryMethodIdsSet.containsAll(operation.getDeliveryMethodIds()) &&
+                        new HashSet<>(operation.getDeliveryMethodIds()).containsAll(productDeliveryMethodIdsSet))
+        ) {
+            Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
+
+            if (firstNotExistsDeliveryMethodId.isPresent()) {
+                return UpdateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
+            }
+
+            List<DeliveryMethod> deliveryMethodList = deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+            product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
+        }
+
+        /* ========== Similar Products ========== */
+
+        Set<Long> similarProductIdSet = product.getSimilarProducts().stream().map(Product::getId).collect(Collectors.toSet());
+
+        if (
+                !(similarProductIdSet.containsAll(operation.getSimilarProductIds()) &&
+                        new HashSet<>(operation.getSimilarProductIds()).containsAll(similarProductIdSet))
+        ) {
+            Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
+
+            if (firstNotExistsSimilarProductId.isPresent()) {
+                return UpdateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
+            }
+
+            List<Product> similarProductList = productRepository.findAllByIds(operation.getSimilarProductIds());
+            product.setSimilarProducts(new HashSet<>(similarProductList));
+        }
+
+        /* ========== Product Prices ========== */
+
+        Set<ProductPrice> productPriceSet = new HashSet<>();
+
+        for (UpdateProductPriceCommand command : operation.getUpdateProductPriceCommands()) {
+            ProductPrice productPrice = new ProductPrice();
+            productPrice.setProduct(product);
+            productPrice.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
+            productPrice.setDiscount(ProductPriceDiscount.of(command.discount()));
+            productPrice.setCurrency(ProductPriceCurrency.of(command.currency()));
+            productPrice.setUnit(ProductPriceUnit.of(command.unit()));
+            productPrice.setQuantityRange(ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
+            productPriceSet.add(productPrice);
+        }
+
+        product.getPrices().clear();
+        product.getPrices().addAll(productPriceSet);
+
+        /* ========== Product Characteristics ========== */
+
+        Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>();
+
+        for (UpdateProductCharacteristicCommand command : operation.getUpdateProductCharacteristicCommands()) {
+            ProductCharacteristic productCharacteristic = new ProductCharacteristic();
+            productCharacteristic.setProduct(product);
+            productCharacteristic.setName(ProductCharacteristicName.of(command.name()));
+            productCharacteristic.setValue(ProductCharacteristicValue.of(command.value()));
+            productCharacteristicSet.add(productCharacteristic);
+        }
+
+        product.getCharacteristics().clear();
+        product.getCharacteristics().addAll(productCharacteristicSet);
+
+        /* ========== Product Faq ========== */
+
+        Set<ProductFaq> productFaqSet = new HashSet<>();
+
+        for (UpdateProductFaqCommand command : operation.getUpdateProductFaqCommands()) {
+            ProductFaq productFaq = new ProductFaq();
+            productFaq.setProduct(product);
+            productFaq.setQuestion(ProductFaqQuestion.of(command.question()));
+            productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
+            productFaqSet.add(productFaq);
+        }
+
+        product.getFaq().clear();
+        product.getFaq().addAll(productFaqSet);
+
+        /* ========== Product Delivery Method Details ========== */
+
+        Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>();
+
+        for (UpdateProductDeliveryMethodDetailsCommand command : operation.getUpdateProductDeliveryMethodDetailsCommands()) {
+            ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
+            productDeliveryMethodDetails.setProduct(product);
+            productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
+            productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
+            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+        }
+
+        product.getDeliveryMethodDetails().clear();
+        product.getDeliveryMethodDetails().addAll(productDeliveryMethodDetailsSet);
+
+        /* ========== Product Package Options ========== */
+
+        Set<ProductPackageOption> productPackageOptionSet = new HashSet<>();
+
+        for (UpdateProductPackageOptionCommand command : operation.getUpdateProductPackageOptionCommands()) {
+            ProductPackageOption productPackageOption = new ProductPackageOption();
+            productPackageOption.setProduct(product);
+            productPackageOption.setName(ProductPackageOptionName.of(command.name()));
+            productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
+            productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+            productPackageOptionSet.add(productPackageOption);
+        }
+
+        product.getPackageOptions().clear();
+        product.getPackageOptions().addAll(productPackageOptionSet);
+
+        /* ========== Product Media ========== */
+
+        List<Long> oldProductMediaIdList = operation.getOldProductMedia().stream().map(UpdateOldMediaDto::id).toList();
+        List<ProductMedia> allOldProductMediaList = productMediaRepository.findAllByProductId(operation.getProductId());
+        List<ProductMedia> newOldProductMediaList = allOldProductMediaList.stream().filter(m -> oldProductMediaIdList.contains(m.getId())).toList();
+        List<ProductMedia> oldProductMediaToDeleteList = allOldProductMediaList.stream().filter(m -> !oldProductMediaIdList.contains(m.getId())).toList();
+        Set<Object> mediaForDeleteSet = new HashSet<>(oldProductMediaToDeleteList);
+
+        List<ProductMedia> productMediaList = new ArrayList<>();
+        List<MultipartFile> productMediaFileSet = operation.getProductMedia();
+
+        for (int i = 0, j = 0; i < newOldProductMediaList.size() + operation.getProductMedia().size(); i++) {
+            ProductMedia oldProductMedia = i >= newOldProductMediaList.size() ? null : newOldProductMediaList.get(i);
+
+            if (oldProductMedia == null) {
+                ProductMedia newProductMedia = new ProductMedia();
+                newProductMedia.setProduct(product);
+                newProductMedia.setPosition(ProductMediaPosition.of(i));
+                newProductMedia.setAltText(ProductMediaAltText.of(Objects.requireNonNullElse(operation.getMediaAltTexts().get(j), "")));
+                MultipartFile file = productMediaFileSet.get(j);
+                newProductMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+
+                if (file.getContentType() == null ||
+                        (!file.getContentType().startsWith("image") &&
+                                !file.getContentType().startsWith("video"))) {
+                    return UpdateProduct.Result.invalidMediaType(file.getContentType());
+                }
+
+                newProductMedia.setUrl(ProductMediaUrl.of(UUID.randomUUID().toString()));
+
+                if (file.getContentType().startsWith("image")) {
+                    newProductMedia.setMediaType(MediaType.IMAGE);
+                    preloadContentSet.add(new PreloadContentInfo<>(newProductMedia, file, "productImages"));
+                } else if (file.getContentType().startsWith("video")) {
+                    newProductMedia.setMediaType(MediaType.VIDEO);
+                    preloadContentSet.add(new PreloadContentInfo<>(newProductMedia, file, "productVideos"));
+                }
+
+                if (i == 0) {
+                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(TEMP_URL));
+                }
+
+                productMediaList.add(i, newProductMedia);
+
+                j++;
+            } else {
+                productMediaList.add(i, oldProductMedia);
+            }
+        }
+
+        product.getMedia().clear();
+        product.getMedia().addAll(new HashSet<>(productMediaList));
+
+        product.getProductVendorDetails().setDescription(ProductVendorDetailsDescription.of(
+                operation.getUpdateProductVendorDetailsCommand().mainDescription(),
+                operation.getUpdateProductVendorDetailsCommand().furtherDescription()
+        ));
+
+        Set<Long> oldProductVendorDetailsMediaIdSet = operation.getOldVendorDetailsMedia().stream().map(UpdateOldMediaDto::id).collect(Collectors.toSet());
+        List<ProductVendorDetailsMedia> oldProductVendorDetailsMediaSet = product.getProductVendorDetails().getMedia()
+                .stream().filter(m -> oldProductVendorDetailsMediaIdSet.contains(m.getId())).toList();
+
+        List<ProductVendorDetailsMedia> productVendorDetailsMediaForDeleteSet = product.getProductVendorDetails().getMedia()
+                .stream().filter(m -> !oldProductVendorDetailsMediaIdSet.contains(m.getId())).toList();
+        mediaForDeleteSet.addAll(productVendorDetailsMediaForDeleteSet);
+
+        List<ProductVendorDetailsMedia> productVendorDetailsMediaList = new ArrayList<>();
+
+        for (int i = 0, j = 0; i < oldProductVendorDetailsMediaSet.size() + operation.getProductVendorDetailsMedia().size(); i++) {
+            ProductVendorDetailsMedia oldProductVendorDetailsMedia = i >= oldProductVendorDetailsMediaSet.size() ? null : oldProductVendorDetailsMediaSet.get(i);
+
+            if (oldProductVendorDetailsMedia == null) {
+                ProductVendorDetailsMedia newProductVendorDetailsMedia = new ProductVendorDetailsMedia();
+                newProductVendorDetailsMedia.setProductVendorDetails(product.getProductVendorDetails());
+                newProductVendorDetailsMedia.setPosition(ProductVendorDetailsMediaPosition.of(i));
+
+                MultipartFile file = operation.getProductVendorDetailsMedia().get(j);
+
+                if (file.getContentType() == null ||
+                        (!file.getContentType().startsWith("image") &&
+                                !file.getContentType().startsWith("video"))) {
+                    return UpdateProduct.Result.invalidMediaType(file.getContentType());
+                }
+
+                String altText = Objects.requireNonNullElse(operation.getUpdateProductVendorDetailsCommand().mediaAltTexts().get(j), "");
+                newProductVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(UUID.randomUUID().toString(), altText));
+
+                if (file.getContentType().startsWith("image")) {
+                    newProductVendorDetailsMedia.setMediaType(MediaType.IMAGE);
+                    preloadContentSet.add(new PreloadContentInfo<>(newProductVendorDetailsMedia, file, "productVendorDetailsImages"));
+                } else if (file.getContentType().startsWith("video")) {
+                    newProductVendorDetailsMedia.setMediaType(MediaType.VIDEO);
+                    preloadContentSet.add(new PreloadContentInfo<>(newProductVendorDetailsMedia, file, "productVendorDetailsVideos"));
+                }
+
+                productVendorDetailsMediaList.add(i, newProductVendorDetailsMedia);
+
+                j++;
+            } else {
+                productVendorDetailsMediaList.add(i, oldProductVendorDetailsMedia);
+            }
+        }
+
+        product.getProductVendorDetails().getMedia().clear();
+        product.getProductVendorDetails().getMedia().addAll(new HashSet<>(productVendorDetailsMediaList));
+
+        try {
+            productRepository.save(product);
+        } catch (Exception e) {
+            log.error("Error saving product: {}", e.getMessage(), e);
+            return UpdateProduct.Result.errorSavingProduct();
+        }
+
+        try {
+            for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
+                if (contentInfo.entity() instanceof ProductMedia) {
+                    ProductMedia productMedia = product.getMedia().stream()
+                            .filter(m -> m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
+                            .findFirst().orElseThrow();
+
+                    if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
+                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                        productMedia.setUrl(ProductMediaUrl.of(url));
+
+                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
+                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                        }
+                    }
+
+                    if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
+                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                        productMedia.setUrl(ProductMediaUrl.of(url));
+
+                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
+                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                        }
+                    }
+                }
+
+                if (contentInfo.entity() instanceof ProductVendorDetailsMedia) {
+                    ProductVendorDetailsMedia productVendorDetailsMedia = product.getProductVendorDetails().getMedia().stream()
+                            .filter(m -> m.getImage().getUrl().equals(((ProductVendorDetailsMedia) contentInfo.entity()).getImage().getUrl()))
+                            .findFirst().orElseThrow();
+
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
+                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
+
+                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
+                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
+                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
+                                url,
+                                productVendorDetailsMedia.getImage().getAltText()
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error saving files: {}", e.getMessage(), e);
+            return UpdateProduct.Result.errorSavingFiles();
+        }
+
+        try {
+            List<String> linksForDelete = new ArrayList<>();
+
+            for (Object entity : mediaForDeleteSet) {
+                if (entity instanceof ProductMedia productMedia) {
+                    linksForDelete.add(productMedia.getUrl().toString());
+                }
+
+                if (entity instanceof ProductVendorDetailsMedia productVendorDetailsMedia) {
+                    linksForDelete.add(productVendorDetailsMedia.getImage().getUrl());
+                }
+            }
+
+            fileStorageRepository.deleteAllMediaByLink(linksForDelete);
+        } catch (Exception e) {
+            log.error("Error deleting files: {}", e.getMessage(), e);
+            return UpdateProduct.Result.errorDeletingFiles();
+        }
+
+        try {
+            productRepository.save(product);
+        } catch (Exception e) {
+            log.error("Error saving product after uploading files: {}", e.getMessage(), e);
+            return UpdateProduct.Result.errorSavingProduct();
+        }
+
+        return UpdateProduct.Result.success();
     }
 
     private record PreloadContentInfo<T>(

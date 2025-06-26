@@ -1,11 +1,11 @@
-package com.surofu.madeinrussia.application.command.product;
+package com.surofu.madeinrussia.application.command.product.update;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Command for defining product pricing with quantity tiers and discounts")
-public record CreateProductPriceCommand(
+@Schema(description = "Command for updating an existing product pricing with quantity tiers and discounts")
+public record UpdateProductPriceCommand(
         @Schema(description = "Minimum quantity for this price tier",
                 example = "1-2",
                 requiredMode = Schema.RequiredMode.REQUIRED)

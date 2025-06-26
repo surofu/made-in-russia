@@ -15,6 +15,7 @@ import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -51,6 +52,7 @@ import java.util.Set;
                 )
         }
 )
+@EqualsAndHashCode(exclude = {"similarProducts", "user", "category"})
 public final class Product implements Serializable {
 
     @Id
@@ -92,7 +94,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL},
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("position")
@@ -114,7 +116,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL},
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -135,7 +137,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL},
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -144,7 +146,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL},
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -153,7 +155,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -162,7 +164,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
     @OrderBy("creationDate")

@@ -1,9 +1,10 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
-import com.surofu.madeinrussia.application.command.product.create.*;
+import com.surofu.madeinrussia.application.command.product.update.*;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.product.ProductDescription;
 import com.surofu.madeinrussia.core.model.product.ProductTitle;
+import com.surofu.madeinrussia.core.model.user.UserLogin;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,22 +14,25 @@ import java.util.List;
 
 @Slf4j
 @Value(staticConstructor = "of")
-public class CreateProduct {
+public class UpdateProduct {
+    Long productId;
     SecurityUser securityUser;
     ProductTitle productTitle;
     ProductDescription productDescription;
     Long categoryId;
     List<Long> deliveryMethodIds;
     List<Long> similarProductIds;
-    List<CreateProductPriceCommand> createProductPriceCommands;
-    List<CreateProductCharacteristicCommand> createProductCharacteristicCommands;
-    List<CreateProductFaqCommand> createProductFaqCommands;
-    List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
-    List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
-    CreateProductVendorDetailsCommand createProductVendorDetailsCommand;
+    List<UpdateProductPriceCommand> updateProductPriceCommands;
+    List<UpdateProductCharacteristicCommand> updateProductCharacteristicCommands;
+    List<UpdateProductFaqCommand> updateProductFaqCommands;
+    List<UpdateProductDeliveryMethodDetailsCommand> updateProductDeliveryMethodDetailsCommands;
+    List<UpdateProductPackageOptionCommand> updateProductPackageOptionCommands;
+    UpdateProductVendorDetailsCommand updateProductVendorDetailsCommand;
     List<String> mediaAltTexts;
     Integer minimumOrderQuantity;
     ZonedDateTime discountExpirationDate;
+    List<UpdateOldMediaDto> oldProductMedia;
+    List<UpdateOldMediaDto> oldVendorDetailsMedia;
     List<MultipartFile> productMedia;
     List<MultipartFile> productVendorDetailsMedia;
 
@@ -36,13 +40,28 @@ public class CreateProduct {
         <T> T process(Processor<T> processor);
 
         static Result success() {
-            log.info("Successfully processed product creation");
+            log.info("Successfully processed product updating");
             return Success.INSTANCE;
+        }
+
+        static Result productNotFound(Long productId) {
+            log.info("Product with ID '{}' not found", productId);
+            return ProductNotFound.of(productId);
+        }
+
+        static Result invalidOwner(Long productId, UserLogin userLogin) {
+            log.info("Invalid owner with login '{}' for product with ID '{}'", userLogin, productId);
+            return InvalidOwner.of(productId, userLogin);
         }
 
         static Result errorSavingFiles() {
             log.warn("Error saving product files");
             return ErrorSavingFiles.INSTANCE;
+        }
+
+        static Result errorDeletingFiles() {
+            log.warn("Error deleting product files");
+            return ErrorDeletingFiles.INSTANCE;
         }
 
         static Result errorSavingProduct() {
@@ -75,12 +94,43 @@ public class CreateProduct {
             return SimilarProductNotFound.of(similarProductId);
         }
 
+        static Result oldProductMediaNotFound(Long oldProductMediaId) {
+            log.warn("Old product media with ID '{}' not found", oldProductMediaId);
+            return OldProductMediaNotFound.of(oldProductMediaId);
+        }
+
+        static Result oldVendorDetailsMediaNotFound(Long oldVendorDetailsMediaId) {
+            log.warn("Old vendor product media with ID '{}' not found", oldVendorDetailsMediaId);
+            return OldVendorDetailsMediaNotFound.of(oldVendorDetailsMediaId);
+        }
+
         enum Success implements Result {
             INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processSuccess(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class ProductNotFound implements Result {
+            Long productId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processProductNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class InvalidOwner implements Result {
+            Long productId;
+            UserLogin userLogin;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInvalidOwner(this);
             }
         }
 
@@ -99,6 +149,15 @@ public class CreateProduct {
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processErrorSavingProduct(this);
+            }
+        }
+
+        enum ErrorDeletingFiles implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processErrorDeletingFiles(this);
             }
         }
 
@@ -151,15 +210,40 @@ public class CreateProduct {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class OldProductMediaNotFound implements Result {
+            Long productMediaId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processOldProductMediaNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class OldVendorDetailsMediaNotFound implements Result {
+            Long vendorDetailsMediaId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processOldVendorDetailsMediaNotFound(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
+            T processProductNotFound(ProductNotFound result);
+            T processInvalidOwner(InvalidOwner result);
             T processErrorSavingFiles(ErrorSavingFiles result);
             T processErrorSavingProduct(ErrorSavingProduct result);
+            T processErrorDeletingFiles(ErrorDeletingFiles result);
             T processCategoryNotFound(CategoryNotFound result);
             T processDeliveryMethodNotFound(DeliveryMethodNotFound result);
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
             T processSimilarProductNotFound(SimilarProductNotFound result);
+            T processOldProductMediaNotFound(OldProductMediaNotFound result);
+            T processOldVendorDetailsMediaNotFound(OldVendorDetailsMediaNotFound result);
         }
     }
 }

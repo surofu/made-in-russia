@@ -17,7 +17,7 @@ public class GetVendorById {
         <T> T process(Processor<T> processor);
 
         static Result success(AbstractAccountDto abstractAccountDto) {
-            log.info("Successfully processed vendor by ID: {}", abstractAccountDto);
+            log.info("Successfully processed vendor by ID: {}", abstractAccountDto.getId());
             return Success.of(abstractAccountDto);
         }
 

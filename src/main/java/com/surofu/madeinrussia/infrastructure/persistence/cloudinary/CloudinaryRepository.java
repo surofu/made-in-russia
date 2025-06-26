@@ -10,9 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Repository
@@ -59,6 +57,28 @@ public class CloudinaryRepository implements FileStorageRepository {
         options.put("eager", List.of(getVideoTransformation()));
         Map<?, ?> resultMap = uploadFileToFolder(file, folderName, options);
         return resultMap.get("secure_url").toString();
+    }
+
+    @Override
+    public void deleteAllMediaByLink(List<String> links) throws Exception {
+        List<String> publicIdList = new ArrayList<>();
+
+        for (String link : links) {
+            String[] split = link.split("/");
+
+            if (split.length < 2) {
+                continue;
+            }
+
+            String folderName = split[split.length - 2];
+            String mediaId = split[split.length - 1];
+            String publicId = folderName + "/" + mediaId;
+            publicIdList.add(publicId);
+        }
+
+        if (!publicIdList.isEmpty()) {
+            cloudinary.api().deleteResources(publicIdList, Map.of());
+        }
     }
 
     private Map<?, ?> uploadFileToFolder(MultipartFile file, String folderName, Map<?, ?> options) throws IOException {

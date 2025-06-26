@@ -27,11 +27,4 @@ public class VerifyEmailMapperResultToResponseEntity implements VerifyEmail.Resu
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }
-
-    @Override
-    public ResponseEntity<?> processCacheNotFound(VerifyEmail.Result.CacheNotFound result) {
-        String message = "Ошибка на стороне сервера";
-        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
-        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }

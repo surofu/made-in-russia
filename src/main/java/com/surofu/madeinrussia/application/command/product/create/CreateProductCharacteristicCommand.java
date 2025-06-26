@@ -1,8 +1,8 @@
-package com.surofu.madeinrussia.application.command.product;
+package com.surofu.madeinrussia.application.command.product.create;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Command for creating product characteristics or specifications")
+@Schema(description = "Command for creating product characteristics")
 public record CreateProductCharacteristicCommand(
         @Schema(description = "Name of the characteristic",
                 example = "Weight",

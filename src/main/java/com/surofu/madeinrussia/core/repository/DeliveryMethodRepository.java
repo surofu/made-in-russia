@@ -9,4 +9,8 @@ public interface DeliveryMethodRepository {
     List<DeliveryMethod> getAllDeliveryMethods();
 
     Optional<DeliveryMethod> getDeliveryMethodById(Long id);
+
+    List<DeliveryMethod> getAllDeliveryMethodsByIds(List<Long> ids);
+
+    Optional<Long> firstNotExists(List<Long> ids);
 }

@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.command.product;
+package com.surofu.madeinrussia.application.command.product.create;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

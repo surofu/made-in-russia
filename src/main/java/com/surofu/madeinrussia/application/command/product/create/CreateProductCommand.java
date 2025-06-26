@@ -1,8 +1,7 @@
-package com.surofu.madeinrussia.application.command.product;
+package com.surofu.madeinrussia.application.command.product.create;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @Schema(description = "Command for creating a new product")
@@ -53,6 +52,6 @@ public record CreateProductCommand(
         @Schema(description = "Expiration date/time for the discount (ISO 8601 format)",
                 example = "2025-12-31T23:59:59Z",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        ZonedDateTime discountExpirationDate
+        Integer discountExpirationDate
 ) {
 }

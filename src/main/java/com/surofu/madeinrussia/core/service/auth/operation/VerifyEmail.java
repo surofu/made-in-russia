@@ -17,7 +17,7 @@ public class VerifyEmail {
         <T> T process(Processor<T> processor);
 
         static Result success(VerifyEmailSuccessDto verifyEmailSuccessDto) {
-            log.info("Successfully verified email with message: {}", verifyEmailSuccessDto);
+            log.info("Successfully verified email");
             return Success.of(verifyEmailSuccessDto);
         }
 
@@ -29,11 +29,6 @@ public class VerifyEmail {
         static Result invalidVerificationCode(String verificationCode) {
             log.warn("Invalid verification code: {}", verificationCode);
             return InvalidVerificationCode.INSTANCE;
-        }
-
-        static Result cacheNotFound(String cacheName) {
-            log.error("Cache with name '{}' not found", cacheName);
-            return CacheNotFound.of(cacheName);
         }
 
         @Value(staticConstructor = "of")
@@ -64,21 +59,10 @@ public class VerifyEmail {
             }
         }
 
-        @Value(staticConstructor = "of")
-        class CacheNotFound implements Result {
-            String cacheName;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processCacheNotFound(this);
-            }
-        }
-
         interface Processor<T> {
             T processSuccess(Success result);
             T processAccountNotFound(AccountNotFound result);
             T processInvalidVerificationCode(InvalidVerificationCode result);
-            T processCacheNotFound(CacheNotFound result);
         }
     }
 }

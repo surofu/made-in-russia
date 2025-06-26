@@ -16,4 +16,6 @@ public interface ProductService {
     GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation);
 
     CreateProduct.Result createProduct(CreateProduct operation);
+
+    UpdateProduct.Result updateProduct(UpdateProduct operation);
 }

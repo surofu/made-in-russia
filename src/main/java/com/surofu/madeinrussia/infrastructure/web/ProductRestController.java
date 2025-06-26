@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.command.product.CreateProductCommand;
+import com.surofu.madeinrussia.application.command.product.create.CreateProductCommand;
+import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
 import com.surofu.madeinrussia.application.command.productReview.CreateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.productReview.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
@@ -41,8 +42,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Validated
 @RestController
@@ -65,6 +68,7 @@ public class ProductRestController {
     private final UpdateProductReview.Result.Processor<ResponseEntity<?>> updateProductReviewProcessor;
     private final DeleteProductReview.Result.Processor<ResponseEntity<?>> deleteProductReviewProcessor;
     private final CreateProduct.Result.Processor<ResponseEntity<?>> createProductProcessor;
+    private final UpdateProduct.Result.Processor<ResponseEntity<?>> updateProductProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -693,10 +697,133 @@ public class ProductRestController {
                 createProductCommand.aboutVendor(),
                 createProductCommand.aboutVendor().mediaAltTexts() == null ? new ArrayList<>() : createProductCommand.aboutVendor().mediaAltTexts(),
                 createProductCommand.minimumOrderQuantity(),
-                createProductCommand.discountExpirationDate(),
+                ZonedDateTime.now().plusDays(createProductCommand.discountExpirationDate()),
                 productMedia,
                 productVendorDetailsMedia == null ? new ArrayList<>() : productVendorDetailsMedia
         );
         return productService.createProduct(operation).process(createProductProcessor);
+    }
+
+    @PutMapping(value = "{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @Operation(
+            summary = "Update product by ID",
+            description = "Update the product with media files, prices, characteristics and FAQ",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product updated successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid product data or validation error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - ROLE_VENDOR required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> updateProductById(
+            @Parameter(
+                    name = "productId",
+                    description = "ID of the product to be retrieved",
+                    required = true,
+                    example = "20",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable
+            Long productId,
+
+            @Parameter(
+                    description = "Product data in JSON format",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateProductCommand.class)
+                    )
+            )
+            @RequestPart("data") @Valid UpdateProductCommand updateProductCommand,
+
+            @Parameter(
+                    description = "Media files for the product (images, videos)",
+                    required = true,
+                    content = @Content(mediaType = "multipart/form-data")
+            )
+            @RequestPart("productMedia") List<MultipartFile> productMedia,
+
+            @Parameter(
+                    description = "Media files for the product (images, videos)",
+                    content = @Content(mediaType = "multipart/form-data")
+            )
+            @RequestPart(value = "aboutVendorMedia", required = false) List<MultipartFile> productVendorDetailsMedia,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        if (updateProductCommand.prices() == null || updateProductCommand.prices().isEmpty()) {
+            String message = "Цены товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        if (updateProductCommand.characteristics() == null || updateProductCommand.characteristics().isEmpty()) {
+            String message = "Характеристики товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        if (productMedia == null || productMedia.isEmpty()) {
+            String message = "Медиа файлы товара не могут быть пустыми";
+            SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+        }
+
+        UpdateProduct operation = UpdateProduct.of(
+                productId,
+                securityUser,
+                ProductTitle.of(Objects.requireNonNullElse(updateProductCommand.title(), "")),
+                ProductDescription.of(
+                        Objects.requireNonNullElse(updateProductCommand.mainDescription(), ""),
+                        Objects.requireNonNullElse(updateProductCommand.furtherDescription(), "")
+                ),
+                updateProductCommand.categoryId(),
+                updateProductCommand.deliveryMethodIds(),
+                updateProductCommand.similarProducts(),
+                updateProductCommand.prices(),
+                updateProductCommand.characteristics(),
+                updateProductCommand.faq(),
+                updateProductCommand.deliveryMethodDetails(),
+                updateProductCommand.packageOptions(),
+                updateProductCommand.aboutVendor(),
+                updateProductCommand.aboutVendor().mediaAltTexts(),
+                updateProductCommand.minimumOrderQuantity(),
+                ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate()),
+                updateProductCommand.oldProductMedia(),
+                updateProductCommand.oldAboutVendorMedia(),
+                productMedia,
+                productVendorDetailsMedia
+        );
+        return productService.updateProduct(operation).process(updateProductProcessor);
     }
 }

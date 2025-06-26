@@ -23,4 +23,17 @@ public class JpaDeliveryMethodRepository implements DeliveryMethodRepository {
     public Optional<DeliveryMethod> getDeliveryMethodById(Long id) {
         return repository.findById(id);
     }
+
+    @Override
+    public List<DeliveryMethod> getAllDeliveryMethodsByIds(List<Long> ids) {
+        return repository.findAllById(ids);
+    }
+
+    @Override
+    public Optional<Long> firstNotExists(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Optional.empty();
+        }
+        return repository.firstNotExists(ids.toArray(new Long[0]));
+    }
 }
