@@ -22,13 +22,11 @@ import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPa
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPrice;
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPriceUnit;
 import com.surofu.madeinrussia.core.model.product.productPrice.*;
-import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaPosition;
-import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
@@ -48,12 +46,7 @@ import java.util.stream.Collectors;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductPriceRepository productPriceRepository;
-    private final ProductCharacteristicRepository productCharacteristicRepository;
-    private final ProductFaqRepository productFaqRepository;
     private final ProductMediaRepository productMediaRepository;
-    private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
-    private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final ProductReviewMediaRepository productReviewMediaRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryMethodRepository deliveryMethodRepository;
@@ -69,37 +62,14 @@ public class ProductApplicationService implements ProductService {
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
-
-        if (optionalProduct.isEmpty()) {
-            return GetProductById.Result.notFound(operation.getProductId());
-        }
-
-        Product product = optionalProduct.get();
-
-        User user = productRepository.getProductVendorByProductId(operation.getProductId()).orElse(null);
-        List<DeliveryMethod> prductDeliveryMethodList = productRepository.getProductDeliveryMethodsByProductId(operation.getProductId());
-        List<ProductPrice> productPriceList = productPriceRepository.findAllByProductId(operation.getProductId());
-        List<ProductMedia> productMediaList = productMediaRepository.findAllByProductId(operation.getProductId());
-        List<ProductCharacteristic> productCharacteristicList = productCharacteristicRepository.findAllByProductId(operation.getProductId());
-        List<ProductFaq> productFaqList = productFaqRepository.findAllByProductId(operation.getProductId());
-        List<ProductDeliveryMethodDetails> productDeliveryMethodDetailsList = productDeliveryMethodDetailsRepository.findAllByProductId(operation.getProductId());
-        List<ProductPackageOption> productPackageOptionList = productPackageOptionsRepository.findAllByProductId(operation.getProductId());
-        List<ProductReviewMedia> productReviewMedia = productReviewMediaRepository.findAllByProductId(operation.getProductId(), 10);
-        Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
-
-        product.setUser(user);
-        product.setDeliveryMethods(new HashSet<>(prductDeliveryMethodList));
-        product.setPrices(new HashSet<>(productPriceList));
-        product.setMedia(new HashSet<>(productMediaList));
-        product.setCharacteristics(new HashSet<>(productCharacteristicList));
-        product.setFaq(new HashSet<>(productFaqList));
-        product.setDeliveryMethodDetails(new HashSet<>(productDeliveryMethodDetailsList));
-        product.setPackageOptions(new HashSet<>(productPackageOptionList));
-        product.setReviewsMedia(new HashSet<>(productReviewMedia));
-        product.setRating(productRating);
-
-        return GetProductById.Result.success(ProductDto.of(product));
+        return productRepository.getProductWithAllRelationsById(operation.getProductId())
+                .map(product -> {
+                    product.setReviewsMedia(new HashSet<>(productReviewMediaRepository
+                            .findAllByProductId(operation.getProductId(), 10)));
+                    product.setRating(productRepository.getProductRating(operation.getProductId()).orElse(null));
+                    return GetProductById.Result.success(ProductDto.of(product));
+                })
+                .orElseGet(() -> GetProductById.Result.notFound(operation.getProductId()));
     }
 
     @Override
@@ -464,6 +434,7 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
+    @Transactional
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
         Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
 
@@ -492,7 +463,7 @@ public class ProductApplicationService implements ProductService {
 
         /* ========== Product Category ========== */
 
-        Category productCategory = productRepository.getProductCategoryByProductId(operation.getProductId()).orElseThrow();
+        Category productCategory = product.getCategory();
 
         if (!productCategory.getId().equals(operation.getCategoryId())) {
             Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
@@ -506,7 +477,7 @@ public class ProductApplicationService implements ProductService {
 
         /* ========== Product Delivery Methods ========== */
 
-        List<DeliveryMethod> productDeliveryMethodList = productRepository.getProductDeliveryMethodsByProductId(operation.getProductId());
+        Set<DeliveryMethod> productDeliveryMethodList = product.getDeliveryMethods();
         Set<Long> productDeliveryMethodIdsSet = productDeliveryMethodList.stream().map(DeliveryMethod::getId).collect(Collectors.toSet());
 
         if (
@@ -623,7 +594,7 @@ public class ProductApplicationService implements ProductService {
         /* ========== Product Media ========== */
 
         List<Long> oldProductMediaIdList = operation.getOldProductMedia().stream().map(UpdateOldMediaDto::id).toList();
-        List<ProductMedia> allOldProductMediaList = productMediaRepository.findAllByProductId(operation.getProductId());
+        Set<ProductMedia> allOldProductMediaList = product.getMedia();
         List<ProductMedia> newOldProductMediaList = allOldProductMediaList.stream().filter(m -> oldProductMediaIdList.contains(m.getId())).toList();
         List<ProductMedia> oldProductMediaToDeleteList = allOldProductMediaList.stream().filter(m -> !oldProductMediaIdList.contains(m.getId())).toList();
         Set<Object> mediaForDeleteSet = new HashSet<>(oldProductMediaToDeleteList);

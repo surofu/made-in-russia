@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductC
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.model.user.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +23,24 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             where p.id = :productId
             """)
     Optional<Product> getProductById(@Param("productId") Long productId);
+
+
+    @EntityGraph(attributePaths = {
+            "user",
+            "category",
+            "deliveryMethods",
+            "media",
+            "characteristics",
+            "faq",
+            "prices",
+            "deliveryMethodDetails",
+            "packageOptions",
+            "productVendorDetails",
+            "user.vendorDetails",
+            "productVendorDetails.media",
+    })
+    @Query("SELECT p FROM Product p WHERE p.id = :productId")
+    Optional<Product> getProductWithAllRelationsById(@Param("productId") Long productId);
 
     @Query("select p.category from Product p where p.id = :productId")
     Optional<Category> getProductCategoryByProductId(@Param("productId") Long productId);
