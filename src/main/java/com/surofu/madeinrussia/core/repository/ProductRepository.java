@@ -14,8 +14,6 @@ import java.util.Optional;
 public interface ProductRepository {
     Optional<Product> getProductById(Long productId);
 
-    Optional<Product> getProductWithAllRelationsById(Long productId);
-
     Optional<Category> getProductCategoryByProductId(Long productId);
 
     List<DeliveryMethod> getProductDeliveryMethodsByProductId(Long productId);

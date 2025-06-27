@@ -19,28 +19,13 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("""
             select p from Product p
+            join fetch p.user u
+            join fetch u.vendorDetails
             join fetch p.category
+            join fetch p.productVendorDetails
             where p.id = :productId
             """)
     Optional<Product> getProductById(@Param("productId") Long productId);
-
-
-    @EntityGraph(attributePaths = {
-            "user",
-            "category",
-            "deliveryMethods",
-            "media",
-            "characteristics",
-            "faq",
-            "prices",
-            "deliveryMethodDetails",
-            "packageOptions",
-            "productVendorDetails",
-            "user.vendorDetails",
-            "productVendorDetails.media",
-    })
-    @Query("SELECT p FROM Product p WHERE p.id = :productId")
-    Optional<Product> getProductWithAllRelationsById(@Param("productId") Long productId);
 
     @Query("select p.category from Product p where p.id = :productId")
     Optional<Category> getProductCategoryByProductId(@Param("productId") Long productId);

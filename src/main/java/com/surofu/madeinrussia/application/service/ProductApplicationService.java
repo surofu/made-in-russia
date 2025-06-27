@@ -62,7 +62,7 @@ public class ProductApplicationService implements ProductService {
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        return productRepository.getProductWithAllRelationsById(operation.getProductId())
+        return productRepository.getProductById(operation.getProductId())
                 .map(product -> {
                     product.setReviewsMedia(new HashSet<>(productReviewMediaRepository
                             .findAllByProductId(operation.getProductId(), 10)));
