@@ -28,6 +28,7 @@ import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVe
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaPosition;
+import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
@@ -76,6 +77,8 @@ public class ProductApplicationService implements ProductService {
 
         Product product = optionalProduct.get();
 
+        User user = productRepository.getProductVendorByProductId(operation.getProductId()).orElse(null);
+        List<DeliveryMethod> prductDeliveryMethodList = productRepository.getProductDeliveryMethodsByProductId(operation.getProductId());
         List<ProductPrice> productPriceList = productPriceRepository.findAllByProductId(operation.getProductId());
         List<ProductMedia> productMediaList = productMediaRepository.findAllByProductId(operation.getProductId());
         List<ProductCharacteristic> productCharacteristicList = productCharacteristicRepository.findAllByProductId(operation.getProductId());
@@ -85,6 +88,8 @@ public class ProductApplicationService implements ProductService {
         List<ProductReviewMedia> productReviewMedia = productReviewMediaRepository.findAllByProductId(operation.getProductId(), 10);
         Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
 
+        product.setUser(user);
+        product.setDeliveryMethods(new HashSet<>(prductDeliveryMethodList));
         product.setPrices(new HashSet<>(productPriceList));
         product.setMedia(new HashSet<>(productMediaList));
         product.setCharacteristics(new HashSet<>(productCharacteristicList));
@@ -116,14 +121,16 @@ public class ProductApplicationService implements ProductService {
     public GetProductDeliveryMethodsByProductId.Result getProductDeliveryMethodsByProductId(GetProductDeliveryMethodsByProductId operation) {
         Long productId = operation.getProductId();
 
-        Optional<List<DeliveryMethod>> deliveryMethods = productRepository.getProductDeliveryMethodsByProductId(productId);
-        Optional<List<DeliveryMethodDto>> deliveryMethodDtos = deliveryMethods.map(list -> list.stream().map(DeliveryMethodDto::of).toList());
+        boolean productExists = productRepository.existsById(productId);
 
-        if (deliveryMethodDtos.isPresent()) {
-            return GetProductDeliveryMethodsByProductId.Result.success(deliveryMethodDtos.get());
+        if (!productExists) {
+            return GetProductDeliveryMethodsByProductId.Result.notFound(productId);
         }
 
-        return GetProductDeliveryMethodsByProductId.Result.notFound(productId);
+        List<DeliveryMethod> deliveryMethods = productRepository.getProductDeliveryMethodsByProductId(productId);
+        List<DeliveryMethodDto> deliveryMethodDtos = deliveryMethods.stream().map(DeliveryMethodDto::of).toList();
+
+        return GetProductDeliveryMethodsByProductId.Result.success(deliveryMethodDtos);
     }
 
     @Override
@@ -485,7 +492,9 @@ public class ProductApplicationService implements ProductService {
 
         /* ========== Product Category ========== */
 
-        if (!product.getCategory().getId().equals(operation.getCategoryId())) {
+        Category productCategory = productRepository.getProductCategoryByProductId(operation.getProductId()).orElseThrow();
+
+        if (!productCategory.getId().equals(operation.getCategoryId())) {
             Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
 
             if (newCategory.isEmpty()) {
@@ -497,7 +506,8 @@ public class ProductApplicationService implements ProductService {
 
         /* ========== Product Delivery Methods ========== */
 
-        Set<Long> productDeliveryMethodIdsSet = product.getDeliveryMethods().stream().map(DeliveryMethod::getId).collect(Collectors.toSet());
+        List<DeliveryMethod> productDeliveryMethodList = productRepository.getProductDeliveryMethodsByProductId(operation.getProductId());
+        Set<Long> productDeliveryMethodIdsSet = productDeliveryMethodList.stream().map(DeliveryMethod::getId).collect(Collectors.toSet());
 
         if (
                 !(productDeliveryMethodIdsSet.containsAll(operation.getDeliveryMethodIds()) &&

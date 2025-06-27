@@ -6,6 +6,8 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.user.User;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +16,7 @@ public interface ProductRepository {
 
     Optional<Category> getProductCategoryByProductId(Long productId);
 
-    Optional<List<DeliveryMethod>> getProductDeliveryMethodsByProductId(Long productId);
+    List<DeliveryMethod> getProductDeliveryMethodsByProductId(Long productId);
 
     Optional<List<ProductMedia>> getProductMediaByProductId(Long productId);
 
@@ -29,4 +31,8 @@ public interface ProductRepository {
     List<Product> findAllByIds(List<Long> productIds);
 
     Optional<Double> getProductRating(Long productId);
+
+    Optional<User> getProductVendorByProductId(Long productId);
+
+    boolean existsById(Long productId);
 }

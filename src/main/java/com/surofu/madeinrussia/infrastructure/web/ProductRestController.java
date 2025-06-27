@@ -44,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -768,10 +767,10 @@ public class ProductRestController {
 
             @Parameter(
                     description = "Media files for the product (images, videos)",
-                    required = true,
+                    required = false,
                     content = @Content(mediaType = "multipart/form-data")
             )
-            @RequestPart("productMedia") List<MultipartFile> productMedia,
+            @RequestPart(value = "productMedia", required = false) List<MultipartFile> productMedia,
 
             @Parameter(
                     description = "Media files for the product (images, videos)",
@@ -822,8 +821,8 @@ public class ProductRestController {
                 ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate()),
                 updateProductCommand.oldProductMedia(),
                 updateProductCommand.oldAboutVendorMedia(),
-                productMedia == null ? new ArrayList<>() : productMedia,
-                productVendorDetailsMedia == null ? new ArrayList<>() : productVendorDetailsMedia
+                Objects.requireNonNullElse(productMedia, new ArrayList<>()),
+                Objects.requireNonNullElse(productVendorDetailsMedia, new ArrayList<>())
         );
         return productService.updateProduct(operation).process(updateProductProcessor);
     }

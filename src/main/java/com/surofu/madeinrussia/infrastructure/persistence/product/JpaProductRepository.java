@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -30,7 +31,7 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<List<DeliveryMethod>> getProductDeliveryMethodsByProductId(Long productId) {
+    public List<DeliveryMethod> getProductDeliveryMethodsByProductId(Long productId) {
         return repository.getProductDeliveryMethodsByProductId(productId);
     }
 
@@ -70,5 +71,15 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<Double> getProductRating(Long productId) {
         return repository.getProductRatingById(productId);
+    }
+
+    @Override
+    public Optional<User> getProductVendorByProductId(Long productId) {
+        return repository.getProductUserByProductId(productId);
+    }
+
+    @Override
+    public boolean existsById(Long productId) {
+        return repository.existsById(productId);
     }
 }

@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,7 +27,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     Optional<Category> getProductCategoryByProductId(@Param("productId") Long productId);
 
     @Query("select p.deliveryMethods from Product p where p.id = :productId")
-    Optional<List<DeliveryMethod>> getProductDeliveryMethodsByProductId(@Param("productId") Long productId);
+    List<DeliveryMethod> getProductDeliveryMethodsByProductId(@Param("productId") Long productId);
 
     @Query("select m from ProductMedia m where m.product.id = :productId")
     Optional<List<ProductMedia>> getProductMediaByProductId(@Param("productId") Long productId);
@@ -36,6 +37,9 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select faq from ProductFaq faq where faq.product.id = :productId")
     Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
+
+    @Query("select p.user from Product p where p.id = :productId")
+    Optional<User> getProductUserByProductId(@Param("productId") Long productId);
 
     @Query(value = """
             SELECT input.id 
