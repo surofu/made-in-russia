@@ -32,6 +32,7 @@ import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +51,6 @@ public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMediaRepository productMediaRepository;
-    private final ProductReviewMediaRepository productReviewMediaRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryMethodRepository deliveryMethodRepository;
     private final FileStorageRepository fileStorageRepository;
@@ -459,6 +459,7 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "productById", key = "#operation.getProductId()")
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
         Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
 
