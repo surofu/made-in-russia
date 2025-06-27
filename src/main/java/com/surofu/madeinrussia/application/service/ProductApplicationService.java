@@ -39,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,14 +65,34 @@ public class ProductApplicationService implements ProductService {
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
+        LocalDateTime startTotal = LocalDateTime.now();
+
+        LocalDateTime startGetProductById = LocalDateTime.now();
         Optional<Product> product = productRepository.getProductById(operation.getProductId());
+        LocalDateTime endGetProductById = LocalDateTime.now();
+        System.out.printf("productRepository.getProductById: %s ms\n", startGetProductById.until(endGetProductById, ChronoUnit.MILLIS));
 
         if (product.isEmpty()) {
             return GetProductById.Result.notFound(operation.getProductId());
         }
 
+        LocalDateTime startGetMedia = LocalDateTime.now();
         List<ProductMedia> productMedia = productMediaRepository.findAllByProductId(operation.getProductId());
+        LocalDateTime endGetMedia = LocalDateTime.now();
+        System.out.printf("productMediaRepository.findAllByProductId: %s ms\n", startGetMedia.until(endGetMedia, ChronoUnit.MILLIS));
+
         product.get().setMedia(new HashSet<>(productMedia));
+
+        LocalDateTime startGetRating = LocalDateTime.now();
+        Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
+        LocalDateTime endGetRating = LocalDateTime.now();
+        System.out.printf("productRepository.getProductRating: %s : %s ms\n", productRating, startGetRating.until(endGetRating, ChronoUnit.MILLIS));
+
+        product.get().setRating(productRating);
+
+        LocalDateTime endTotal = LocalDateTime.now();
+        System.out.printf("Total getProductById: %s ms\n", startTotal.until(endTotal, ChronoUnit.MILLIS));
+
         return GetProductById.Result.success(ProductDto.of(product.get()));
     }
 

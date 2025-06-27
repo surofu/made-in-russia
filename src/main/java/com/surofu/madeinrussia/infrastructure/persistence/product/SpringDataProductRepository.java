@@ -32,9 +32,6 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     @Query("select faq from ProductFaq faq where faq.product.id = :productId")
     Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
 
-    @Query("select p.user from Product p where p.id = :productId")
-    Optional<User> getProductUserByProductId(@Param("productId") Long productId);
-
     @Query(value = """
             SELECT input.id 
             FROM unnest(?1) WITH ORDINALITY AS input(id, ord)
@@ -57,7 +54,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
                                                          END, 1) AS DOUBLE PRECISION)
                                                  END
                                              FROM product_reviews r
-                                             WHERE r.product_id = id
+                                             WHERE r.product_id = :productId
             """, nativeQuery = true)
     Optional<Double> getProductRatingById(@Param("productId") Long productId);
 }

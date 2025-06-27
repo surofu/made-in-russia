@@ -32,7 +32,5 @@ public interface ProductRepository {
 
     Optional<Double> getProductRating(Long productId);
 
-    Optional<User> getProductVendorByProductId(Long productId);
-
     boolean existsById(Long productId);
 }

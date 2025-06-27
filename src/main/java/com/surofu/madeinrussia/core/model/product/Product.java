@@ -83,7 +83,7 @@ public final class Product implements Serializable {
     private Category category;
 
     @Fetch(FetchMode.SUBSELECT)
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "products_delivery_methods",
             joinColumns = @JoinColumn(name = "product_id"),

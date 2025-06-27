@@ -74,11 +74,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<User> getProductVendorByProductId(Long productId) {
-        return repository.getProductUserByProductId(productId);
-    }
-
-    @Override
     public boolean existsById(Long productId) {
         return repository.existsById(productId);
     }

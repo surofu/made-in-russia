@@ -42,10 +42,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Validated
 @RestController
@@ -107,7 +110,14 @@ public class ProductRestController {
             Long productId
     ) {
         GetProductById operation = GetProductById.of(productId);
-        return productService.getProductById(operation).process(getProductByIdProcessor);
+
+        LocalDateTime start = LocalDateTime.now();
+        var result = productService.getProductById(operation).process(getProductByIdProcessor);
+        LocalDateTime end = LocalDateTime.now();
+
+        System.out.printf("Time: %s ms%n", start.until(end, ChronoUnit.MILLIS));
+
+        return result;
     }
 
     @GetMapping("{productId}/category")

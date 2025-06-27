@@ -326,7 +326,7 @@ public class ProductDto implements Serializable {
         return ProductDto.builder()
                 .id(product.getId())
                 .user(VendorDto.of(product.getUser()))
-                .category(CategoryDto.of(product.getCategory()))
+                .category(CategoryDto.ofWithoutChildren(product.getCategory()))
                 .deliveryMethods(product.getDeliveryMethods().stream()
                         .map(DeliveryMethodDto::of)
                         .collect(Collectors.toList())

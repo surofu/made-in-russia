@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -48,8 +49,8 @@ public final class Category implements Serializable {
     )
     private Set<Category> children = new HashSet<>();
 
-    @Embedded
-    private CategoryChildrenCount childrenCount;
+    @Formula("(select count(*) from categories c where c.parent_category_id = id)")
+    private Long childrenCount;
 
     @Embedded
     private CategorySlug slug;

@@ -44,7 +44,7 @@ class CategoryApplicationServiceTest {
             mockCategory.setId((long) i);
             mockCategory.setSlug(CategorySlug.of("l1_slug_" + i));
             mockCategory.setChildren(Set.of());
-            mockCategory.setChildrenCount(CategoryChildrenCount.of(0L));
+            mockCategory.setChildrenCount(0L);
             mockCategory.setName(CategoryName.of(String.format("Cat %s", i)));
             mockCategory.setCreationDate(CategoryCreationDate.of(TEST_DATE_TIME));
             mockCategory.setLastModificationDate(CategoryLastModificationDate.of(TEST_DATE_TIME));
@@ -91,7 +91,7 @@ class CategoryApplicationServiceTest {
                 mockCategoryId,
                 null,
                 Set.of(),
-                    CategoryChildrenCount.of(0L),
+                0L,
                 CategorySlug.of("l1_slug"),
                 CategoryName.of("Cat 1"),
                 CategoryImageUrl.of("https://example.com"),
