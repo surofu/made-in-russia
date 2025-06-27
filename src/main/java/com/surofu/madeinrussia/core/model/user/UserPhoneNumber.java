@@ -15,9 +15,6 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserPhoneNumber implements Serializable {
 
-    @Transient
-    private final Pattern PHONE_NUMBER_PATTERN = Pattern.compile("^\\+?[0-9]{10,15}$");
-
     @Column(name = "phone_number", nullable = false, unique = true)
     private String value;
 
@@ -26,12 +23,12 @@ public final class UserPhoneNumber implements Serializable {
             throw new IllegalArgumentException("Номер телефона не может быть пустым");
         }
 
-        if (phoneNumber.length() > 255) {
-            throw new IllegalArgumentException("Номер телефона не может быть больше 255 символов");
+        if (phoneNumber.length() < 7) {
+            throw new IllegalArgumentException("Номер телефона не может быть меньше 7 символов");
         }
 
-        if (!PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches()) {
-            throw new IllegalArgumentException("Номер телефона должен соответствовать выражению \\+?[0-9]{10,15}$");
+        if (phoneNumber.length() > 255) {
+            throw new IllegalArgumentException("Номер телефона не может быть больше 255 символов");
         }
 
         this.value = phoneNumber;
