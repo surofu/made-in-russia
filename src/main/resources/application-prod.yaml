@@ -1,4 +1,8 @@
 spring:
+  main:
+    banner-mode: off
+  jmx:
+    enabled: false
   jpa:
     hibernate:
       ddl-auto: none

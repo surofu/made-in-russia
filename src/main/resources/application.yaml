@@ -1,12 +1,5 @@
 server:
   port: ${PORT}
-  undertow:
-    threads:
-      #      io: 4 Количество IO-потоков (по умолчанию зависит от ядер CPU)
-      worker: 20                 # Максимальное количество рабочих потоков
-    no-request-timeout: 30000    # Таймаут бездействия (60 сек)
-    direct-buffers: true         # Использование прямых буферов (лучше для производительности)
-    buffer-size: 256             # Размер буфера (можно уменьшить, если мало RAM)
 
 #========= Spring =========#
 spring:
@@ -38,17 +31,30 @@ spring:
     hikari:
       initialization-fail-timeout: 30000
       connection-timeout: 30000
-      maximum-pool-size: 10
+      maximum-pool-size: 50
       minimum-idle: 5
       idle-timeout: 600000
-      max-lifetime: 1800000
-      auto-commit: true
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+      auto-commit: false
       pool-name: HikariPool
       transaction-isolation: TRANSACTION_READ_COMMITTED
       connection-test-query: SELECT 1
       driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
+    properties:
+      hibernate:
+        connection.provider_disables_autocommit: true
+        generate_statistics: true # Для мониторинга
+        order_inserts: true       # Оптимизация batch-операций
+        order_updates: true
+        batch_versioned_data: true
+        jdbc:
+          batch_size: 30          # Размер batch-операций
+          fetch_size: 100         # Размер выборки для ResultSet
+        query:
+          in_clause_parameter_padding: true # Оптимизация IN-условий
   flyway:
     url: ${POSTGRES_URL}
     user: ${POSTGRES_USERNAME}
