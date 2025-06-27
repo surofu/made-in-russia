@@ -5,5 +5,5 @@ import com.surofu.madeinrussia.core.model.product.productReview.productReviewMed
 import java.util.List;
 
 public interface ProductReviewMediaRepository {
-    List<ProductReviewMedia> findAllByProductId(Long productId, int limit);
+    List<ProductReviewMedia> findAllByProductId(Long productId);
 }

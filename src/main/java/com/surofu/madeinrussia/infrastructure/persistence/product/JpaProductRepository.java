@@ -22,7 +22,7 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public Optional<Product> getProductById(Long productId) {
-        return repository.getProductById(productId);
+        return repository.findById(productId);
     }
 
     @Override

@@ -43,7 +43,7 @@ class ProductApplicationServiceTest {
     public void setup() {
         lenient().doReturn(new ArrayList<>())
                 .when(productReviewMediaRepository)
-                .findAllByProductId(anyLong(), anyInt());
+                .findAllByProductId(anyLong());
     }
 
     @Test

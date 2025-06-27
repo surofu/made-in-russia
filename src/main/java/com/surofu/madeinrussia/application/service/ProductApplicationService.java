@@ -37,6 +37,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,14 +64,15 @@ public class ProductApplicationService implements ProductService {
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        return productRepository.getProductById(operation.getProductId())
-                .map(product -> {
-                    product.setReviewsMedia(new HashSet<>(productReviewMediaRepository
-                            .findAllByProductId(operation.getProductId(), 10)));
-                    product.setRating(productRepository.getProductRating(operation.getProductId()).orElse(null));
-                    return GetProductById.Result.success(ProductDto.of(product));
-                })
-                .orElseGet(() -> GetProductById.Result.notFound(operation.getProductId()));
+        Optional<Product> product = productRepository.getProductById(operation.getProductId());
+
+        if (product.isEmpty()) {
+            return GetProductById.Result.notFound(operation.getProductId());
+        }
+
+        List<ProductMedia> productMedia = productMediaRepository.findAllByProductId(operation.getProductId());
+        product.get().setMedia(new HashSet<>(productMedia));
+        return GetProductById.Result.success(ProductDto.of(product.get()));
     }
 
     @Override

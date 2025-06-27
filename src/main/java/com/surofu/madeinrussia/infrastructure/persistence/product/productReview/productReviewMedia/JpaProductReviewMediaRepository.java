@@ -14,7 +14,7 @@ public class JpaProductReviewMediaRepository implements ProductReviewMediaReposi
     private final SpringDataProductReviewMediaRepository repository;
 
     @Override
-    public List<ProductReviewMedia> findAllByProductId(Long productId, int limit) {
-        return repository.findAllByProductId(productId, limit);
+    public List<ProductReviewMedia> findAllByProductId(Long productId) {
+        return repository.findAllByProductReview_Product_Id(productId);
     }
 }

@@ -8,13 +8,5 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface SpringDataProductReviewMediaRepository extends JpaRepository<ProductReviewMedia, Long> {
-
-
-    @Query("""
-                select prm from ProductReviewMedia prm
-                where prm.productReview.product.id = :productId
-                order by prm.lastModificationDate.value DESC
-                limit :limit
-            """)
-    List<ProductReviewMedia> findAllByProductId(@Param("productId") Long productId, @Param("limit") int limit);
+    List<ProductReviewMedia> findAllByProductReview_Product_Id(Long productReviewProductId);
 }

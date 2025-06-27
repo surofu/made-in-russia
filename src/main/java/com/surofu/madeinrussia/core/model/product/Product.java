@@ -59,7 +59,6 @@ public final class Product implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Fetch(FetchMode.JOIN)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
@@ -75,7 +74,7 @@ public final class Product implements Serializable {
     )
     private ProductVendorDetails productVendorDetails;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
             name = "category_id",
             nullable = false,
@@ -92,7 +91,6 @@ public final class Product implements Serializable {
     )
     private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -112,10 +110,8 @@ public final class Product implements Serializable {
             joinColumns = @JoinColumn(name = "parent_product_id"),
             inverseJoinColumns = @JoinColumn(name = "similar_product_id")
     )
-    @OrderBy("id")
     private Set<Product> similarProducts = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -125,7 +121,6 @@ public final class Product implements Serializable {
     @OrderBy("creationDate")
     private Set<ProductCharacteristic> characteristics = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -138,7 +133,6 @@ public final class Product implements Serializable {
     @Transient
     private Set<ProductReviewMedia> reviewsMedia = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -148,7 +142,6 @@ public final class Product implements Serializable {
     @OrderBy("creationDate")
     private Set<ProductFaq> faq = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
@@ -158,10 +151,9 @@ public final class Product implements Serializable {
     @OrderBy("creationDate")
     private Set<ProductPrice> prices = new HashSet<>();
 
-    @Fetch(FetchMode.JOIN)
     @OneToMany(
             mappedBy = "product",
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
             orphanRemoval = true
     )
