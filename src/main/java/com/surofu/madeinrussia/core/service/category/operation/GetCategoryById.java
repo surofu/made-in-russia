@@ -13,7 +13,7 @@ public class GetCategoryById {
         <T> T process(Processor<T> processor);
 
         static Result success(CategoryDto categoryDto) {
-            log.info("Successfully processed get category by id: {}", categoryDto);
+            log.info("Successfully processed get category by id: {}", categoryDto.getId());
             return Success.of(categoryDto);
         }
 

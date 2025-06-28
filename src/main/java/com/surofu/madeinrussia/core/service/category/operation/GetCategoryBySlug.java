@@ -14,7 +14,7 @@ public class GetCategoryBySlug {
         <T> T process(Processor<T> processor);
 
         static Result success(CategoryDto categoryDto) {
-            log.info("Successfully processed get category by slug: {}", categoryDto);
+            log.info("Successfully processed get category by slug: {}", categoryDto.getSlug());
             return Success.of(categoryDto);
         }
 

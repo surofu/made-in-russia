@@ -12,7 +12,7 @@ public class GetDeliveryMethodById {
     public interface Result {
         <T> T process(Processor<T> processor);
         static Result success(DeliveryMethodDto deliveryMethodDto) {
-            log.info("Successfully processed delivery method: {}", deliveryMethodDto);
+            log.info("Successfully processed delivery method: {}", deliveryMethodDto.getId());
             return Success.of(deliveryMethodDto);
         }
 

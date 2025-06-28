@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +19,11 @@ public class JpaProductSummaryViewRepository implements ProductSummaryViewReposi
     @Override
     public Page<ProductSummaryView> getProductSummaryViewPage(Specification<ProductSummaryView> specification, Pageable pageable) {
         return repository.findAll(specification, pageable);
+    }
+
+    @Override
+    public List<ProductSummaryView> getProductSummaryViewByIds(List<Long> ids) {
+        return repository.findAllById(ids);
     }
 
     @Override

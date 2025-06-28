@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface SpringDataDeliveryMethodRepository extends JpaRepository<DeliveryMethod, Long> {
 
     @Query(value = """
-            SELECT input.id 
+            SELECT input.id
             FROM unnest(?1) WITH ORDINALITY AS input(id, ord)
             LEFT JOIN delivery_methods d ON d.id = input.id
             WHERE d.id IS NULL

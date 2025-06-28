@@ -8,7 +8,6 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodLastModif
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodName;
 import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
-import com.surofu.madeinrussia.core.repository.ProductReviewMediaRepository;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,17 +31,11 @@ class ProductApplicationServiceTest {
     @Mock
     ProductRepository productRepository;
 
-    @Mock
-    ProductReviewMediaRepository productReviewMediaRepository;
-
     @InjectMocks
     ProductApplicationService productApplicationService;
 
     @BeforeEach
     public void setup() {
-        lenient().doReturn(new ArrayList<>())
-                .when(productReviewMediaRepository)
-                .findAllByProductId(anyLong());
     }
 
     @Test

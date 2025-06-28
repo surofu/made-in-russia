@@ -2,13 +2,11 @@ package com.surofu.madeinrussia.core.model.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.regex.Pattern;
 
 @Getter
 @Embeddable

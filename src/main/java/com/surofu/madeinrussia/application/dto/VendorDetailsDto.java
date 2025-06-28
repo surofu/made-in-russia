@@ -74,14 +74,6 @@ public final class VendorDetailsDto implements Serializable {
     )
     private String inn;
 
-//    @Schema(
-//            description = "Bank payment details for vendor transactions in ЕРИП system format",
-//            example = "ЕРИП 12345АБВГ6890",
-//            maxLength = 255,
-//            requiredMode = Schema.RequiredMode.REQUIRED
-//    )
-//    private String paymentDetails;
-
     @Schema(
             description = "List of countries where the vendor has business operations",
             requiredMode = Schema.RequiredMode.REQUIRED

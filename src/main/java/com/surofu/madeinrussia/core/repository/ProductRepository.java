@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.user.User;
 
 import java.util.List;
 import java.util.Optional;

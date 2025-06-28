@@ -1,12 +1,13 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
+import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewsByIds;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -38,6 +39,7 @@ public class ProductSummaryViewRestController {
     private final ProductSummaryService productSummaryService;
 
     private final GetProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getProductSummaryPageProcessor;
+    private final GetProductSummaryViewsByIds.Result.Processor<ResponseEntity<?>> getProductSummaryViewsByIdsProcessor;
     private final GetProductSummaryViewById.Result.Processor<ResponseEntity<?>> getProductSummaryByIdProcessor;
 
     @GetMapping
@@ -179,6 +181,40 @@ public class ProductSummaryViewRestController {
                 maxPrice
         );
         return productSummaryService.getProductSummaryPage(operation).process(getProductSummaryPageProcessor);
+    }
+
+    @GetMapping("ids")
+    public ResponseEntity<?> getProductsByIds(
+            @Parameter(
+                    name = "ids",
+                    description = "Find product summaries by it's ids",
+                    in = ParameterIn.QUERY,
+                    schema = @Schema(
+                            type = "array",
+                            format = "int64",
+                            example = "[1, 2, 3]",
+                            minLength = 1,
+                            maxLength = 100
+                    ),
+                    explode = Explode.FALSE,
+                    examples = {
+                            @ExampleObject(
+                                    name = "Single product id",
+                                    value = "1",
+                                    description = "Filter by single product ID"
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple product ids",
+                                    value = "1,2,3",
+                                    description = "Find by multiple product IDs"
+                            )
+                    }
+            )
+            @RequestParam
+            List<Long> ids
+    ) {
+        GetProductSummaryViewsByIds operation = GetProductSummaryViewsByIds.of(ids);
+        return productSummaryService.getProductSummaryViewsByIds(operation).process(getProductSummaryViewsByIdsProcessor);
     }
 
     @GetMapping("{productId}")

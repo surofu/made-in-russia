@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
+import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewsByIds;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,19 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
 
         return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetProductSummaryViewsByIds.Result getProductSummaryViewsByIds(GetProductSummaryViewsByIds operation) {
+        List<ProductSummaryView> productSummaryViewList = productSummaryViewRepository.getProductSummaryViewByIds(operation.getProductIds());
+        List<ProductSummaryViewDto> productSummaryViewDtoList = new ArrayList<>(productSummaryViewList.size());
+
+        for (ProductSummaryView productSummaryView : productSummaryViewList) {
+            productSummaryViewDtoList.add(ProductSummaryViewDto.of(productSummaryView));
+        }
+
+        return GetProductSummaryViewsByIds.Result.success(productSummaryViewDtoList);
     }
 
     @Override

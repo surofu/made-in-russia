@@ -57,9 +57,6 @@ public final class VendorDetails implements Serializable {
     @Embedded
     private VendorDetailsInn inn;
 
-//    @Embedded
-//    private VendorDetailsPaymentDetails paymentDetails;
-
     @OneToMany(
             fetch = FetchType.EAGER,
             mappedBy = "vendorDetails",

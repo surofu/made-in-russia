@@ -6,8 +6,6 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.user.User;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,7 +31,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
 
     @Query(value = """
-            SELECT input.id 
+            SELECT input.id
             FROM unnest(?1) WITH ORDINALITY AS input(id, ord)
             LEFT JOIN products p ON p.id = input.id
             WHERE p.id IS NULL
