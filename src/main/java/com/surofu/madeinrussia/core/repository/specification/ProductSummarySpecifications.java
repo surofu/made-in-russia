@@ -45,10 +45,18 @@ public class ProductSummarySpecifications {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.function("jsonb_extract_path_text", String.class,
+            Expression<String> categoryIdExpression = criteriaBuilder.function(
+                    "jsonb_extract_path_text",
+                    String.class,
                     root.get("category"),
                     criteriaBuilder.literal("id")
-            ).in(categoryIds);
+            );
+
+            List<String> categoryIdStrings = categoryIds.stream()
+                    .map(String::valueOf)
+                    .toList();
+
+            return categoryIdExpression.in(categoryIdStrings);
         };
     }
 

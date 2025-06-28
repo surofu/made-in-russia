@@ -654,8 +654,8 @@ public class MeRestController {
                 page,
                 size,
                 title,
-                categoryIds,
                 deliveryMethodIds,
+                categoryIds,
                 minPrice,
                 maxPrice
         );
