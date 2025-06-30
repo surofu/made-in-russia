@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.userPassword;
+package com.surofu.madeinrussia.core.model.user.password;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

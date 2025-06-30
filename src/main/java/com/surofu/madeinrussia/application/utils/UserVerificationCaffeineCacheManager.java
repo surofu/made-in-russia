@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.application.utils;
 
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import org.springframework.cache.Cache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.stereotype.Component;

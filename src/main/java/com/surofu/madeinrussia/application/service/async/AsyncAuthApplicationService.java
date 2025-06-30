@@ -6,8 +6,8 @@ import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheMa
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;

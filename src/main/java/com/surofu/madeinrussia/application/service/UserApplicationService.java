@@ -5,7 +5,7 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;

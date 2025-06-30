@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

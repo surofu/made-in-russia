@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.userPassword;
+package com.surofu.madeinrussia.core.model.user.password;
 
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;

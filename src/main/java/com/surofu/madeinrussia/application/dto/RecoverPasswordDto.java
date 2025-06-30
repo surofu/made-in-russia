@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 
 public record RecoverPasswordDto(
         String recoverCode,

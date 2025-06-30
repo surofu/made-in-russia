@@ -5,7 +5,7 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;

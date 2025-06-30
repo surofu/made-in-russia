@@ -7,7 +7,7 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodCreationD
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodLastModificationDate;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodName;
 import com.surofu.madeinrussia.core.model.product.*;
-import com.surofu.madeinrussia.core.repository.ProductRepository;
+import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -30,6 +31,18 @@ class ProductApplicationServiceTest {
 
     @Mock
     ProductRepository productRepository;
+
+    @Mock
+    ProductMediaRepository productMediaRepository;
+
+    @Mock
+    CategoryRepository categoryRepository;
+
+    @Mock
+    DeliveryMethodRepository deliveryMethodRepository;
+
+    @Mock
+    FileStorageRepository fileStorageRepository;
 
     @InjectMocks
     ProductApplicationService productApplicationService;
@@ -67,6 +80,10 @@ class ProductApplicationServiceTest {
         doReturn(Optional.of(mockProduct))
                 .when(productRepository)
                 .getProductById(mockProductId);
+
+        doReturn(List.of())
+                .when(productMediaRepository)
+                .findAllByProductId(anyLong());
 
         // when
         GetProductById getProductByIdOperation = GetProductById.of(mockCategoryId);
@@ -128,6 +145,8 @@ class ProductApplicationServiceTest {
         mockProduct.setTitle(ProductTitle.of(String.format("Product %s", mockProductId)));
         mockProduct.setPreviewImageUrl(ProductPreviewImageUrl.of(String.format("Product %s image url", mockProductId)));
         mockProduct.setPrices(Set.of());
+        mockProduct.setDiscountExpirationDate(ProductDiscountExpirationDate.of(ZonedDateTime.now().plusDays(30)));
+        mockProduct.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(5));
         mockProduct.setCreationDate(ProductCreationDate.of(TEST_DATE_TIME));
         mockProduct.setLastModificationDate(ProductLastModificationDate.of(TEST_DATE_TIME));
         return mockProduct;

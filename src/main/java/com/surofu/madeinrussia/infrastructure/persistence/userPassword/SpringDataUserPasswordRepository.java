@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.persistence.userPassword;
 
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

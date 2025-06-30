@@ -8,7 +8,7 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
-import com.surofu.madeinrussia.core.model.userPassword.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.Register;
 import org.instancio.Instancio;
@@ -55,19 +55,19 @@ class AuthApplicationServiceTest {
 
     @BeforeEach
     public void setup() {
-        lenient().doReturn(CompletableFuture.completedFuture(null))
+        lenient().doNothing()
                 .when(asyncAuthApplicationService).saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(any());
 
         lenient().doReturn(CompletableFuture.completedFuture(null))
                 .when(asyncAuthApplicationService).saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(any());
 
-        lenient().doReturn(CompletableFuture.completedFuture(null))
+        lenient().doNothing()
                 .when(asyncAuthApplicationService).saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(any());
 
-        lenient().doReturn(CompletableFuture.completedFuture(null))
+        lenient().doNothing()
                 .when(asyncAuthApplicationService).saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(any(), any());
 
-        lenient().doReturn(CompletableFuture.completedFuture(null))
+        lenient().doNothing()
                 .when(asyncSessionApplicationService).removeSessionById(anyLong());
 
         lenient().doReturn(CompletableFuture.completedFuture(null))
@@ -75,6 +75,9 @@ class AuthApplicationServiceTest {
 
         lenient().doReturn(CompletableFuture.completedFuture(null))
                 .when(asyncSessionApplicationService).saveOrUpdateSessionFromHttpRequest(any());
+
+        lenient().doReturn(CompletableFuture.completedFuture(null))
+                .when(asyncAuthApplicationService).saveRegisterDataInCacheAndSendVerificationCodeToEmail(any());
     }
 
     @RepeatedTest(10)
@@ -82,9 +85,11 @@ class AuthApplicationServiceTest {
         // given
         ArgumentCaptor<UserEmail> userEmailArgumentCaptor = ArgumentCaptor.forClass(UserEmail.class);
         ArgumentCaptor<UserLogin> userLoginArgumentCaptor = ArgumentCaptor.forClass(UserLogin.class);
+        ArgumentCaptor<UserPhoneNumber> userPhoneNumberArgumentCaptor = ArgumentCaptor.forClass(UserPhoneNumber.class);
 
         doReturn(false).when(userRepository).existsUserByEmail(userEmailArgumentCaptor.capture());
         doReturn(false).when(userRepository).existsUserByLogin(userLoginArgumentCaptor.capture());
+        doReturn(false).when(userRepository).existsUserByPhoneNumber(userPhoneNumberArgumentCaptor.capture());
 
         // when
         UserEmail userEmail = Instancio.of(UserEmail.class)
@@ -127,21 +132,5 @@ class AuthApplicationServiceTest {
         verify(userRepository, times(1)).existsUserByEmail(userEmailArgumentCaptor.capture());
         verify(userRepository, times(1)).existsUserByLogin(userLoginArgumentCaptor.capture());
         verify(asyncAuthApplicationService, times(1)).saveRegisterDataInCacheAndSendVerificationCodeToEmail(registerOperation);
-    }
-
-    @Test
-    void loginWithEmail() {
-    }
-
-    @Test
-    void loginWithLogin() {
-    }
-
-    @Test
-    void verifyEmail() {
-    }
-
-    @Test
-    void logout() {
     }
 }

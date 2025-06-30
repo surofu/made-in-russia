@@ -46,7 +46,7 @@ spring:
     properties:
       hibernate:
         connection.provider_disables_autocommit: true
-        generate_statistics: true # Для мониторинга
+        generate_statistics: false # Для мониторинга
         order_inserts: true       # Оптимизация batch-операций
         order_updates: true
         batch_versioned_data: true

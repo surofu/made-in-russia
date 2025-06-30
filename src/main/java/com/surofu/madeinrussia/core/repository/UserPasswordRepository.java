@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.repository;
 
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 
 import java.util.Optional;
 

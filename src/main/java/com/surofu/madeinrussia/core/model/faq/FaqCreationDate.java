@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.userPassword;
+package com.surofu.madeinrussia.core.model.faq;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -16,19 +16,19 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class UserPasswordCreationDate implements Serializable {
+public final class FaqCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private UserPasswordCreationDate(ZonedDateTime date) {
+    private FaqCreationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static UserPasswordCreationDate of(ZonedDateTime date) {
-        return new UserPasswordCreationDate(date);
+    public static FaqCreationDate of(ZonedDateTime date) {
+        return new FaqCreationDate(date);
     }
 
     @Override

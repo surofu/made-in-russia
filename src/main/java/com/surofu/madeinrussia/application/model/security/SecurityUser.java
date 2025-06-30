@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.application.model.security;
 
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
-import com.surofu.madeinrussia.core.model.userPassword.UserPassword;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
