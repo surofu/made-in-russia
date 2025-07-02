@@ -18,4 +18,6 @@ public interface ProductService {
     CreateProduct.Result createProduct(CreateProduct operation);
 
     UpdateProduct.Result updateProduct(UpdateProduct operation);
+
+    GetSearchHints.Result getSearchHints(GetSearchHints operation);
 }

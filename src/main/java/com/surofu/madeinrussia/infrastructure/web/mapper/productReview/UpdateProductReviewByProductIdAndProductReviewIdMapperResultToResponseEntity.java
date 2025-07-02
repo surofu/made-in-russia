@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web.mapper.productReview;
 
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
-import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
+import com.surofu.madeinrussia.core.service.product.review.operation.UpdateProductReview;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;

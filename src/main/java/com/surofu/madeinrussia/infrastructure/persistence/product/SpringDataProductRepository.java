@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.infrastructure.persistence.view.SearchHintView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,4 +56,18 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
                                              WHERE r.product_id = :productId
             """, nativeQuery = true)
     Optional<Double> getProductRatingById(@Param("productId") Long productId);
+
+    @Query("""
+            select
+            p.id as productId,
+            p.title.value as productTitle,
+            p.previewImageUrl.value as productImage,
+            p.category.id as categoryId,
+            p.category.name.value as categoryName,
+            p.category.imageUrl.value as categoryImage
+            from Product p
+            where p.title.value ilike concat('%', :searchTerm, '%')
+            order by p.category.name.value, p.title.value
+            """)
+    List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm);
 }

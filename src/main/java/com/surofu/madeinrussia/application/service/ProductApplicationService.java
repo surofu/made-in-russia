@@ -30,6 +30,7 @@ import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVe
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
+import com.surofu.madeinrussia.infrastructure.persistence.view.SearchHintView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -808,6 +809,38 @@ public class ProductApplicationService implements ProductService {
         }
 
         return UpdateProduct.Result.success();
+    }
+
+    @Override
+    public GetSearchHints.Result getSearchHints(GetSearchHints operation) {
+        List<SearchHintView> searchHintViews = productRepository.findHintViews(operation.getSearchTerm());
+
+        Map<CategoryHintDto, List<ProductHintDto>> groupedProductHint = searchHintViews.stream()
+                .collect(Collectors.groupingBy(
+                        hint -> CategoryHintDto.builder()
+                                .id(hint.getCategoryId())
+                                .name(hint.getCategoryName())
+                                .image(hint.getCategoryImage())
+                                .build(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                hint -> ProductHintDto.builder()
+                                        .id(hint.getProductId())
+                                        .title(hint.getProductTitle())
+                                        .image(hint.getProductImage())
+                                        .build(),
+                                Collectors.toList()
+                        )
+                ));
+
+        List<SearchHintDto> groupedSearchHints = groupedProductHint.entrySet().stream()
+                .map(entry -> SearchHintDto.builder()
+                        .category(entry.getKey())
+                        .products(entry.getValue())
+                        .build()
+                ).toList();
+
+        return GetSearchHints.Result.success(groupedSearchHints);
     }
 
     private record PreloadContentInfo<T>(

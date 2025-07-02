@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.infrastructure.persistence.view.SearchHintView;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,4 +33,6 @@ public interface ProductRepository {
     Optional<Double> getProductRating(Long productId);
 
     boolean existsById(Long productId);
+
+    List<SearchHintView> findHintViews(String searchTerm);
 }

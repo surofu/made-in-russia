@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.productReview;
 
-import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
+import com.surofu.madeinrussia.core.service.product.review.operation.GetProductReviewPageByProductId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;

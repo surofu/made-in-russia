@@ -15,16 +15,17 @@ import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewCon
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
-import com.surofu.madeinrussia.core.service.productReview.ProductReviewService;
-import com.surofu.madeinrussia.core.service.productReview.operation.CreateProductReview;
-import com.surofu.madeinrussia.core.service.productReview.operation.DeleteProductReview;
-import com.surofu.madeinrussia.core.service.productReview.operation.GetProductReviewPageByProductId;
-import com.surofu.madeinrussia.core.service.productReview.operation.UpdateProductReview;
+import com.surofu.madeinrussia.core.service.product.review.ProductReviewService;
+import com.surofu.madeinrussia.core.service.product.review.operation.CreateProductReview;
+import com.surofu.madeinrussia.core.service.product.review.operation.DeleteProductReview;
+import com.surofu.madeinrussia.core.service.product.review.operation.GetProductReviewPageByProductId;
+import com.surofu.madeinrussia.core.service.product.review.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -71,6 +72,7 @@ public class ProductRestController {
     private final DeleteProductReview.Result.Processor<ResponseEntity<?>> deleteProductReviewProcessor;
     private final CreateProduct.Result.Processor<ResponseEntity<?>> createProductProcessor;
     private final UpdateProduct.Result.Processor<ResponseEntity<?>> updateProductProcessor;
+    private final GetSearchHints.Result.Processor<ResponseEntity<?>> getSearchHintsProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -834,5 +836,81 @@ public class ProductRestController {
                 Objects.requireNonNullElse(productVendorDetailsMedia, new ArrayList<>())
         );
         return productService.updateProduct(operation).process(updateProductProcessor);
+    }
+
+    @GetMapping("hints")
+    @Operation(
+            summary = "Get product search hints",
+            description = "Retrieve product search hints grouped by category based on the search text. " +
+                    "Returns a list of categories with their matching products for autocomplete functionality.",
+            parameters = {
+                    @Parameter(
+                            name = "text",
+                            description = "Search text to find matching products. If not provided or empty, " +
+                                    "default value '$$$' is used which may return no results.",
+                            required = false,
+                            example = "смартфон",
+                            schema = @Schema(type = "string", minLength = 1, maxLength = 100)
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Search hints retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            type = "array",
+                                            implementation = SearchHintDto.class,
+                                            description = "List of categories with their matching products"
+                                    ),
+                                    examples = @ExampleObject(
+                                            name = "search_hints_example",
+                                            summary = "Example search hints response",
+                                            value = """
+                                                    [
+                                                        {
+                                                            "category": "Электроника",
+                                                            "products": [
+                                                                {
+                                                                    "id": 1,
+                                                                    "title": "Смартфон Apple iPhone 14"
+                                                                },
+                                                                {
+                                                                    "id": 2,
+                                                                    "title": "Смартфон Samsung Galaxy S23"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "category": "Аксессуары",
+                                                            "products": [
+                                                                {
+                                                                    "id": 15,
+                                                                    "title": "Чехол для смартфона"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid search parameters",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            },
+            tags = {"Products", "Search"}
+    )
+    public ResponseEntity<?> getSearchHints(
+            @RequestParam(required = false, defaultValue = "$$$") String text
+    ) {
+        GetSearchHints operation = GetSearchHints.of(text);
+        return productService.getSearchHints(operation).process(getSearchHintsProcessor);
     }
 }

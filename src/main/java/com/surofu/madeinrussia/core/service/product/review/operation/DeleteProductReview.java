@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.service.productReview.operation;
+package com.surofu.madeinrussia.core.service.product.review.operation;
 
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.user.UserLogin;

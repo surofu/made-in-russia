@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.service.productReview.operation;
+package com.surofu.madeinrussia.core.service.product.review.operation;
 
 import com.surofu.madeinrussia.application.dto.ProductReviewDto;
 import lombok.Value;
