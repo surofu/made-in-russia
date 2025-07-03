@@ -13,6 +13,7 @@ import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
 import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
+import com.surofu.madeinrussia.core.service.vendor.operation.DeleteVendorFaqById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,6 +55,7 @@ public class VendorRestController {
     private final GetVendorReviewPageById.Result.Processor<ResponseEntity<?>> getVendorReviewPageByIdProcessor;
     private final GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?>> getProductSummaryViewPageByVendorIdProcessor;
     private final CreateVendorFaq.Result.Processor<ResponseEntity<?>> createVendorFaqProcessor;
+    private final DeleteVendorFaqById.Result.Processor<ResponseEntity<?>> deleteVendorFaqProcessor;
 
     @GetMapping("{vendorId}")
     @Operation(
@@ -380,5 +382,15 @@ public class VendorRestController {
                 VendorFaqAnswer.of(createVendorFaqCommand.answer())
         );
         return vendorService.createVendorFaq(operation).process(createVendorFaqProcessor);
+    }
+
+    @DeleteMapping("faq/{faqId}")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    public ResponseEntity<?> deleteVendorFaq(
+            @PathVariable Long faqId,
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        DeleteVendorFaqById operation = DeleteVendorFaqById.of(securityUser, faqId);
+        return vendorService.deleteVendorFaqById(operation).process(deleteVendorFaqProcessor);
     }
 }

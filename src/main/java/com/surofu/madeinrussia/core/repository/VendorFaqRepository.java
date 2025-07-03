@@ -4,4 +4,6 @@ import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
 
 public interface VendorFaqRepository {
     void save(VendorFaq vendorFaq);
+
+    boolean existsByIdAndVendorId(Long faqId, Long vendorId);
 }

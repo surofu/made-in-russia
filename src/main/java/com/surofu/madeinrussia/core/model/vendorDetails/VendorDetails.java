@@ -58,7 +58,7 @@ public final class VendorDetails implements Serializable {
     private VendorDetailsInn inn;
 
     @OneToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
             cascade = CascadeType.ALL,
             orphanRemoval = true
@@ -66,7 +66,7 @@ public final class VendorDetails implements Serializable {
     private Set<VendorCountry> vendorCountries = new HashSet<>();
 
     @OneToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
             cascade = CascadeType.ALL,
             orphanRemoval = true
@@ -74,7 +74,7 @@ public final class VendorDetails implements Serializable {
     private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
     @OneToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
             cascade = CascadeType.ALL,
             orphanRemoval = true

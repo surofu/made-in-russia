@@ -24,7 +24,7 @@ public final class VendorFaq {
     private Long id;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "vendor_details_id",
             nullable = false,

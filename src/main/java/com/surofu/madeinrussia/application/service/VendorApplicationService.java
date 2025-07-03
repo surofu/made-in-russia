@@ -15,10 +15,12 @@ import com.surofu.madeinrussia.core.repository.VendorViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
 import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
+import com.surofu.madeinrussia.core.service.vendor.operation.DeleteVendorFaqById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -125,5 +127,22 @@ public class VendorApplicationService implements VendorService {
         vendorFaqRepository.save(faq);
 
         return CreateVendorFaq.Result.success();
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"product"}, allEntries = true)
+    public DeleteVendorFaqById.Result deleteVendorFaqById(DeleteVendorFaqById operation) {
+        if (!vendorFaqRepository.existsByIdAndVendorId(operation.getFaqId(), operation.getSecurityUser().getUser().getId())) {
+            return DeleteVendorFaqById.Result.notFound(operation.getFaqId());
+        }
+
+        VendorDetails newVendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
+        newVendorDetails.getFaq().removeIf(faq -> faq.getId().equals(operation.getFaqId()));
+        operation.getSecurityUser().getUser().setVendorDetails(newVendorDetails);
+
+        userRepository.saveUser(operation.getSecurityUser().getUser());
+
+        return DeleteVendorFaqById.Result.success(operation.getFaqId());
     }
 }
