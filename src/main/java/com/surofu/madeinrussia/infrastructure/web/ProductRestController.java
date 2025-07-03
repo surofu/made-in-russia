@@ -154,10 +154,10 @@ public class ProductRestController {
                     name = "article",
                     description = "Article code/SKU of the product to be retrieved",
                     required = true,
-                    example = "ART-12345",
+                    example = "ABCD-1234",
                     schema = @Schema(
                             type = "string",
-                            pattern = "^[A-Za-z0-9\\-_]{1,50}$",
+                            pattern = "^[A-Za-z]{4}-[0-9]{4}$",
                             minLength = 1,
                             maxLength = 50
                     )

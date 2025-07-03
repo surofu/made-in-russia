@@ -2,6 +2,9 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.faq.CreateFaqCommand;
 import com.surofu.madeinrussia.application.command.faq.UpdateFaqCommand;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.core.model.faq.FaqAnswer;
 import com.surofu.madeinrussia.core.model.faq.FaqQuestion;
 import com.surofu.madeinrussia.core.service.faq.FaqService;
@@ -9,6 +12,13 @@ import com.surofu.madeinrussia.core.service.faq.operation.CreateFaq;
 import com.surofu.madeinrussia.core.service.faq.operation.DeleteFaqById;
 import com.surofu.madeinrussia.core.service.faq.operation.GetAllFaq;
 import com.surofu.madeinrussia.core.service.faq.operation.UpdateFaqById;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/faq")
+@Tag(name = "FAQ", description = "Frequently Asked Questions management API")
 public class FaqRestController {
 
     private final FaqService service;
@@ -28,6 +39,26 @@ public class FaqRestController {
     private final DeleteFaqById.Result.Processor<ResponseEntity<?>> deleteFaqProcessor;
 
     @GetMapping
+    @Operation(
+            summary = "Get all FAQ items",
+            description = "Retrieves all frequently asked questions and their answers",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved all FAQ items"
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
     public ResponseEntity<?> getAllFaq() {
         GetAllFaq operation = GetAllFaq.of();
         return service.getAllFaq(operation).process(getAllFaqProcessor);
@@ -35,7 +66,69 @@ public class FaqRestController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> createFaq(@RequestBody @Valid CreateFaqCommand createFaqCommand) {
+    @Operation(
+            summary = "Create new FAQ item",
+            description = "Creates a new frequently asked question with its answer. Requires ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created FAQ item",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters or validation errors",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions (ROLE_ADMIN required)",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> createFaq(
+            @Parameter(
+                    description = "FAQ creation request containing question and answer",
+                    required = true,
+                    schema = @Schema(implementation = CreateFaqCommand.class)
+            )
+            @RequestBody @Valid CreateFaqCommand createFaqCommand
+    ) {
         CreateFaq operation = CreateFaq.of(
                 FaqQuestion.of(createFaqCommand.question()),
                 FaqAnswer.of(createFaqCommand.answer())
@@ -45,8 +138,86 @@ public class FaqRestController {
 
     @PutMapping("{faqId}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @Operation(
+            summary = "Update FAQ item by ID",
+            description = "Updates an existing frequently asked question and its answer by ID. Requires ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully updated FAQ item",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters or validation errors",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions (ROLE_ADMIN required)",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "FAQ item not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
     public ResponseEntity<?> updateFaqById(
+            @Parameter(
+                    name = "faqId",
+                    description = "ID of the FAQ item to be updated",
+                    required = true,
+                    example = "1",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
             @PathVariable Long faqId,
+
+            @Parameter(
+                    description = "FAQ update request containing new question and answer",
+                    required = true,
+                    schema = @Schema(implementation = UpdateFaqCommand.class)
+            )
             @RequestBody @Valid UpdateFaqCommand updateFaqCommand
     ) {
         UpdateFaqById operation = UpdateFaqById.of(
@@ -59,7 +230,67 @@ public class FaqRestController {
 
     @DeleteMapping("{faqId}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> deleteFaqById(@PathVariable Long faqId) {
+    @Operation(
+            summary = "Delete FAQ item by ID",
+            description = "Deletes an existing frequently asked question by ID. Requires ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "204",
+                            description = "Successfully deleted FAQ item"
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions (ROLE_ADMIN required)",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "FAQ item not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> deleteFaqById(
+            @Parameter(
+                    name = "faqId",
+                    description = "ID of the FAQ item to be deleted",
+                    required = true,
+                    example = "1",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable Long faqId
+    ) {
         DeleteFaqById operation = DeleteFaqById.of(faqId);
         return service.deleteFaqById(operation).process(deleteFaqProcessor);
     }
