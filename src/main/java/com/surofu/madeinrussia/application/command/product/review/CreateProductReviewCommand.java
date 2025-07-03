@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.command.productReview;
+package com.surofu.madeinrussia.application.command.product.review;
 
 public record CreateProductReviewCommand(
     String text,

@@ -1,13 +1,18 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
+import com.surofu.madeinrussia.application.command.vendor.CreateVendorFaqCommand;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.VendorDto;
-import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqAnswer;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqQuestion;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
+import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,11 +23,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +53,7 @@ public class VendorRestController {
     private final GetVendorById.Result.Processor<ResponseEntity<?>> getVendorByIdProcessor;
     private final GetVendorReviewPageById.Result.Processor<ResponseEntity<?>> getVendorReviewPageByIdProcessor;
     private final GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?>> getProductSummaryViewPageByVendorIdProcessor;
+    private final CreateVendorFaq.Result.Processor<ResponseEntity<?>> createVendorFaqProcessor;
 
     @GetMapping("{vendorId}")
     @Operation(
@@ -305,5 +314,71 @@ public class VendorRestController {
         );
 
         return vendorService.getVendorReviewPageById(operation).process(getVendorReviewPageByIdProcessor);
+    }
+
+    @PostMapping("faq")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @Operation(
+            summary = "Create a new vendor FAQ",
+            description = "Creates a new frequently asked question and answer pair for the authenticated vendor",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created vendor FAQ",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters or validation errors",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions (ROLE_VENDOR required)",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> createVendorFaq(
+            @Parameter(
+                    description = "Vendor FAQ creation request containing question and answer",
+                    required = true,
+                    schema = @Schema(implementation = CreateVendorFaqCommand.class)
+            )
+            @RequestBody @Valid CreateVendorFaqCommand createVendorFaqCommand,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        CreateVendorFaq operation = CreateVendorFaq.of(
+                securityUser,
+                VendorFaqQuestion.of(createVendorFaqCommand.question()),
+                VendorFaqAnswer.of(createVendorFaqCommand.answer())
+        );
+        return vendorService.createVendorFaq(operation).process(createVendorFaqProcessor);
     }
 }

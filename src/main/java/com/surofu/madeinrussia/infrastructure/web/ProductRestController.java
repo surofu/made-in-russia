@@ -2,8 +2,8 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.product.create.CreateProductCommand;
 import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
-import com.surofu.madeinrussia.application.command.productReview.CreateProductReviewCommand;
-import com.surofu.madeinrussia.application.command.productReview.UpdateProductReviewCommand;
+import com.surofu.madeinrussia.application.command.product.review.CreateProductReviewCommand;
+import com.surofu.madeinrussia.application.command.product.review.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
@@ -778,7 +778,6 @@ public class ProductRestController {
 
             @Parameter(
                     description = "Media files for the product (images, videos)",
-                    required = false,
                     content = @Content(mediaType = "multipart/form-data")
             )
             @RequestPart(value = "productMedia", required = false) List<MultipartFile> productMedia,
@@ -848,7 +847,6 @@ public class ProductRestController {
                             name = "text",
                             description = "Search text to find matching products. If not provided or empty, " +
                                     "default value '$$$' is used which may return no results.",
-                            required = false,
                             example = "смартфон",
                             schema = @Schema(type = "string", minLength = 1, maxLength = 100)
                     )

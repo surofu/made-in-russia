@@ -5,17 +5,20 @@ import com.surofu.madeinrussia.application.dto.page.VendorReviewPageDto;
 import com.surofu.madeinrussia.application.service.async.AsyncVendorViewApplicationService;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.repository.VendorFaqRepository;
 import com.surofu.madeinrussia.core.repository.VendorViewRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
+import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
 import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +40,7 @@ public class VendorApplicationService implements VendorService {
     private final UserRepository userRepository;
     private final VendorViewRepository vendorViewRepository;
     private final ProductReviewRepository productReviewRepository;
-    private final CacheManager cacheManager;
+    private final VendorFaqRepository vendorFaqRepository;
 
     private final AsyncVendorViewApplicationService asyncVendorViewApplicationService;
 
@@ -107,5 +110,20 @@ public class VendorApplicationService implements VendorService {
         }
 
         return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
+    }
+
+    @Override
+    @Transactional
+    public CreateVendorFaq.Result createVendorFaq(CreateVendorFaq operation) {
+        VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
+
+        VendorFaq faq = new VendorFaq();
+        faq.setVendorDetails(vendorDetails);
+        faq.setQuestion(operation.getQuestion());
+        faq.setAnswer(operation.getAnswer());
+
+        vendorFaqRepository.save(faq);
+
+        return CreateVendorFaq.Result.success();
     }
 }
