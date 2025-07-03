@@ -37,8 +37,6 @@ public class FaqApplicationService implements FaqService {
             faqDtoList.add(FaqDto.of(faq));
         }
 
-        System.out.println("Retrieved from datasource");
-
         return GetAllFaq.Result.success(faqDtoList);
     }
 

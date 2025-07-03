@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.ProductDescription;
 import com.surofu.madeinrussia.core.model.product.ProductTitle;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
@@ -43,9 +44,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +60,7 @@ public class ProductRestController {
     private final ProductReviewService productReviewService;
 
     private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
+    private final GetProductByArticle.Result.Processor<ResponseEntity<?>> getProductByArticleProcessor;
     private final GetProductCategoryByProductId.Result.Processor<ResponseEntity<?>> getProductCategoryByProductIdProcessor;
     private final GetProductDeliveryMethodsByProductId.Result.Processor<ResponseEntity<?>> getProductDeliveryMethodsByProductIdProcessor;
     private final GetProductMediaByProductId.Result.Processor<ResponseEntity<?>> getProductMediaByProductIdProcessor;
@@ -111,14 +111,61 @@ public class ProductRestController {
             Long productId
     ) {
         GetProductById operation = GetProductById.of(productId);
+        return productService.getProductById(operation).process(getProductByIdProcessor);
+    }
 
-        LocalDateTime start = LocalDateTime.now();
-        var result = productService.getProductById(operation).process(getProductByIdProcessor);
-        LocalDateTime end = LocalDateTime.now();
-
-        System.out.printf("Time: %s ms%n", start.until(end, ChronoUnit.MILLIS));
-
-        return result;
+    @GetMapping("article/{article}")
+    @Operation(
+            summary = "Get product by article code",
+            description = "Retrieves a single product by its unique article code/SKU identifier",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product found and returned",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ProductDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseErrorDto.class
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid article code format",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = ValidationExceptionDto.class
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> getProductByArticle(
+            @Parameter(
+                    name = "article",
+                    description = "Article code/SKU of the product to be retrieved",
+                    required = true,
+                    example = "ART-12345",
+                    schema = @Schema(
+                            type = "string",
+                            pattern = "^[A-Za-z0-9\\-_]{1,50}$",
+                            minLength = 1,
+                            maxLength = 50
+                    )
+            )
+            @PathVariable String article
+    ) {
+        GetProductByArticle operation = GetProductByArticle.of(ProductArticleCode.of(article));
+        return productService.getProductByArticle(operation).process(getProductByArticleProcessor);
     }
 
     @GetMapping("{productId}/category")

@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.core.repository;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
@@ -13,6 +14,8 @@ import java.util.Optional;
 
 public interface ProductRepository {
     Optional<Product> getProductById(Long productId);
+
+    Optional<Product> getProductByArticleCode(ProductArticleCode articleCode);
 
     Optional<Category> getProductCategoryByProductId(Long productId);
 

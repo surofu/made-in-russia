@@ -39,8 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,40 +58,37 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "productById",
+            value = "product",
             key = "#operation.getProductId()",
             unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
     )
     public GetProductById.Result getProductById(GetProductById operation) {
-        LocalDateTime startTotal = LocalDateTime.now();
-
-        LocalDateTime startGetProductById = LocalDateTime.now();
         Optional<Product> product = productRepository.getProductById(operation.getProductId());
-        LocalDateTime endGetProductById = LocalDateTime.now();
-        System.out.printf("productRepository.getProductById: %s ms\n", startGetProductById.until(endGetProductById, ChronoUnit.MILLIS));
 
         if (product.isEmpty()) {
             return GetProductById.Result.notFound(operation.getProductId());
         }
 
-        LocalDateTime startGetMedia = LocalDateTime.now();
-        List<ProductMedia> productMedia = productMediaRepository.findAllByProductId(operation.getProductId());
-        LocalDateTime endGetMedia = LocalDateTime.now();
-        System.out.printf("productMediaRepository.findAllByProductId: %s ms\n", startGetMedia.until(endGetMedia, ChronoUnit.MILLIS));
+        Product fullProduct = loadFullProduct(product.get());
+        return GetProductById.Result.success(ProductDto.of(fullProduct));
+    }
 
-        product.get().setMedia(new HashSet<>(productMedia));
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "product",
+            key = "#operation.getArticleCode().toString()",
+            unless = "#result == null or #result.class.simpleName != 'Success'"
+    )
+    public GetProductByArticle.Result getProductByArticle(GetProductByArticle operation) {
+        Optional<Product> product = productRepository.getProductByArticleCode(operation.getArticleCode());
 
-        LocalDateTime startGetRating = LocalDateTime.now();
-        Double productRating = productRepository.getProductRating(operation.getProductId()).orElse(null);
-        LocalDateTime endGetRating = LocalDateTime.now();
-        System.out.printf("productRepository.getProductRating: %s : %s ms\n", productRating, startGetRating.until(endGetRating, ChronoUnit.MILLIS));
+        if (product.isEmpty()) {
+            return GetProductByArticle.Result.notFound(operation.getArticleCode());
+        }
 
-        product.get().setRating(productRating);
-
-        LocalDateTime endTotal = LocalDateTime.now();
-        System.out.printf("Total getProductById: %s ms\n", startTotal.until(endTotal, ChronoUnit.MILLIS));
-
-        return GetProductById.Result.success(ProductDto.of(product.get()));
+        Product fullProduct = loadFullProduct(product.get());
+        return GetProductByArticle.Result.success(ProductDto.of(fullProduct));
     }
 
     @Override
@@ -459,7 +454,7 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "productById", key = "#operation.getProductId()")
+    @CacheEvict(value = "product", key = "#operation.getProductId()")
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
         Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
 
@@ -841,6 +836,14 @@ public class ProductApplicationService implements ProductService {
                 ).toList();
 
         return GetSearchHints.Result.success(groupedSearchHints);
+    }
+
+    protected Product loadFullProduct(Product product) {
+        List<ProductMedia> productMedia = productMediaRepository.findAllByProductId(product.getId());
+        product.setMedia(new HashSet<>(productMedia));
+        Double productRating = productRepository.getProductRating(product.getId()).orElse(null);
+        product.setRating(productRating);
+        return product;
     }
 
     private record PreloadContentInfo<T>(

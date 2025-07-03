@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.infrastructure.persistence.product;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
@@ -18,6 +19,8 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select p.category from Product p where p.id = :productId")
     Optional<Category> getProductCategoryByProductId(@Param("productId") Long productId);
+
+    Optional<Product> findByArticleCode(ProductArticleCode articleCode);
 
     @Query("select p.deliveryMethods from Product p where p.id = :productId")
     List<DeliveryMethod> getProductDeliveryMethodsByProductId(@Param("productId") Long productId);

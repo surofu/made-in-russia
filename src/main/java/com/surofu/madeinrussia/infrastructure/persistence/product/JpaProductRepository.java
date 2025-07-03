@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.infrastructure.persistence.product;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
@@ -23,6 +24,11 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<Product> getProductById(Long productId) {
         return repository.findById(productId);
+    }
+
+    @Override
+    public Optional<Product> getProductByArticleCode(ProductArticleCode articleCode) {
+        return repository.findByArticleCode(articleCode);
     }
 
     @Override
