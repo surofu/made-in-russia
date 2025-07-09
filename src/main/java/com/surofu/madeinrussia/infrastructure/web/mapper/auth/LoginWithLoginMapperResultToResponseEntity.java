@@ -1,13 +1,19 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.auth;
 
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.service.auth.operation.LoginWithLogin;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoginWithLoginMapperResultToResponseEntity implements LoginWithLogin.Result.Processor<ResponseEntity<?>> {
+@RequiredArgsConstructor
+public class LoginWithLoginMapperResultToResponseEntity
+        implements LoginWithLogin.Result.Processor<ResponseEntity<?>> {
+
+    private final LocalizationManager localizationManager;
 
     @Override
     public ResponseEntity<?> processSuccess(LoginWithLogin.Result.Success result) {
@@ -16,7 +22,7 @@ public class LoginWithLoginMapperResultToResponseEntity implements LoginWithLogi
 
     @Override
     public ResponseEntity<?> processInvalidCredentials(LoginWithLogin.Result.InvalidCredentials result) {
-        String message = "Неверный логин или пароль";
+        String message = localizationManager.localize("auth.invalid_login_or_password");
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }

@@ -2,102 +2,107 @@ package com.surofu.madeinrussia.infrastructure.web.mapper.product;
 
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.service.product.operation.UpdateProduct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateProductMapperResultToResponseEntity
         implements UpdateProduct.Result.Processor<ResponseEntity<?>> {
 
+    private final LocalizationManager localizationManager;
+
     @Override
     public ResponseEntity<?> processSuccess(UpdateProduct.Result.Success result) {
-        String message = "Продукт успешно изменен";
+        String message = localizationManager.localize("product.update.success");
         SimpleResponseMessageDto responseMessageDto = SimpleResponseMessageDto.of(message);
         return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> processProductNotFound(UpdateProduct.Result.ProductNotFound result) {
-        String message = String.format("Товар с ID '%s' не найден", result.getProductId());
+        String message = localizationManager.localize("product.not_found_by_id", result.getProductId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processInvalidOwner(UpdateProduct.Result.InvalidOwner result) {
-        String message = String.format("Операция недоступна. Вы('%s') не являетесь автором товара с ID '%s'", result.getUserLogin().toString(), result.getProductId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
+        String message = localizationManager.localize("product.error.not_owner");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ResponseEntity<?> processErrorSavingFiles(UpdateProduct.Result.ErrorSavingFiles result) {
-        String message = "Ошибка сохранения файлов";
+        String message = localizationManager.localize("product.error.save_files");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<?> processErrorSavingProduct(UpdateProduct.Result.ErrorSavingProduct result) {
-        String message = "Ошибка сохранения данных о товаре";
+        String message = localizationManager.localize("product.error.save_product_data");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<?> processErrorDeletingFiles(UpdateProduct.Result.ErrorDeletingFiles result) {
-        String message = "Ошибка удаления файлов";
+        String message = localizationManager.localize("product.error.delete_files");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<?> processCategoryNotFound(UpdateProduct.Result.CategoryNotFound result) {
-        String message = String.format("Категория с ID '%s' не найдена", result.getCategoryId());
+        String message = localizationManager.localize("category.not_found_by_id", result.getCategoryId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processDeliveryMethodNotFound(UpdateProduct.Result.DeliveryMethodNotFound result) {
-        String message = String.format("Способ доставки с ID '%s' не найден", result.getDeliveryMethodId());
+        String message = localizationManager.localize("delivery_method.not_found_by_id", result.getDeliveryMethodId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processEmptyFile(UpdateProduct.Result.EmptyFile result) {
-        String message = "Обнаружен пустой файл";
+        String message = localizationManager.localize("product.error.empty_file");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public ResponseEntity<?> processInvalidMediaType(UpdateProduct.Result.InvalidMediaType result) {
-        String message = "Неизвестный формат файла";
+        String message = localizationManager.localize("product.error.invalid_file_format", result.getMediaType());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public ResponseEntity<?> processSimilarProductNotFound(UpdateProduct.Result.SimilarProductNotFound result) {
-        String message = String.format("Похожий товар с ID '%s' не найден", result.getProductId());
+        String message = localizationManager.localize("vendor.not_found_by_id", result.getProductId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processOldProductMediaNotFound(UpdateProduct.Result.OldProductMediaNotFound result) {
-        String message = String.format("Медиа файл товара с ID '%s' не найден", result.getProductMediaId());
+        String message = localizationManager.localize("product_media.not_found_by_id", result.getProductMediaId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processOldVendorDetailsMediaNotFound(UpdateProduct.Result.OldVendorDetailsMediaNotFound result) {
-        String message = String.format("Медиа файл о продавце с ID '%s' не найден", result.getVendorDetailsMediaId());
+        String message = localizationManager.localize("vendor_media.not_found_by_id", result.getVendorDetailsMediaId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

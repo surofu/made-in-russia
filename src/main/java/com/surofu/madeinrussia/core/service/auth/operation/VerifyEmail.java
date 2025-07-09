@@ -21,9 +21,9 @@ public class VerifyEmail {
             return Success.of(verifyEmailSuccessDto);
         }
 
-        static Result accountNotFound(UserEmail email) {
-            log.warn("Account with email '{}' not found", email);
-            return AccountNotFound.INSTANCE;
+        static Result accountNotFound(UserEmail userEmail) {
+            log.warn("Account with email '{}' not found", userEmail.toString());
+            return AccountNotFound.of(userEmail);
         }
 
         static Result invalidVerificationCode(String verificationCode) {
@@ -41,8 +41,9 @@ public class VerifyEmail {
             }
         }
 
-        enum AccountNotFound implements Result {
-            INSTANCE;
+        @Value(staticConstructor = "of")
+        class AccountNotFound implements Result {
+            UserEmail userEmail;
 
             @Override
             public <T> T process(Processor<T> processor) {

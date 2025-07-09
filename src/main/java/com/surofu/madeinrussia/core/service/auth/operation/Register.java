@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
@@ -21,9 +20,9 @@ public class Register {
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(SimpleResponseMessageDto responseMessageDto) {
-            log.info("Successfully processed register user with message: {}", responseMessageDto.getMessage());
-            return Success.of(responseMessageDto);
+        static Result success(UserEmail userEmail) {
+            log.info("Successfully processed register user: {}", userEmail.toString());
+            return Success.of(userEmail);
         }
 
         static Result userWithEmailAlreadyExists(UserEmail userEmail) {
@@ -43,7 +42,7 @@ public class Register {
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            SimpleResponseMessageDto responseMessageDto;
+            UserEmail userEmail;
 
             @Override
             public <T> T process(Processor<T> processor) {

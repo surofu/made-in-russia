@@ -1,14 +1,19 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.product;
 
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class GetProductSummaryViewPageByVendorIdMapperResultToResponseEntity
-implements GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?>> {
+        implements GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?>> {
+
+    private final LocalizationManager localizationManager;
 
     @Override
     public ResponseEntity<?> processSuccess(GetProductSummaryViewPageByVendorId.Result.Success result) {
@@ -17,7 +22,7 @@ implements GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?
 
     @Override
     public ResponseEntity<?> processVendorNotFound(GetProductSummaryViewPageByVendorId.Result.VendorNotFound result) {
-        String message = String.format("Продавец с ID '%s' не найден", result.getVendorId());
+        String message = localizationManager.localize("vendor.not_found_by_id", result.getVendorId());
         SimpleResponseMessageDto responseMessageDto = SimpleResponseMessageDto.of(message);
         return new ResponseEntity<>(responseMessageDto, HttpStatus.NOT_FOUND);
     }

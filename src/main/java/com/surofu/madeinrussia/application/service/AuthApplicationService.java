@@ -63,19 +63,13 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", operation.getUserEmail().toString());
-
-        SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
-                .message(registerSuccessMessage)
-                .build();
-
         asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation)
                 .exceptionally(ex -> {
                     log.error("Error while saving register code", ex);
                     return null;
                 });
 
-        return Register.Result.success(registerSuccessMessageDto);
+        return Register.Result.success(operation.getUserEmail());
     }
 
     @Override
@@ -93,23 +87,16 @@ public class AuthApplicationService implements AuthService {
             return RegisterVendor.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", operation.getUserEmail().toString());
-
-        SimpleResponseMessageDto registerSuccessMessageDto = SimpleResponseMessageDto.builder()
-                .message(registerSuccessMessage)
-                .build();
-
         asyncAuthApplicationService.saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(operation)
                 .exceptionally(ex -> {
                     log.error("Error while saving register code", ex);
                     return null;
                 });
 
-        return RegisterVendor.Result.success(registerSuccessMessageDto);
+        return RegisterVendor.Result.success(operation.getUserEmail());
     }
 
     @Override
-    @Transactional
     public LoginWithEmail.Result loginWithEmail(LoginWithEmail operation) {
         LoginSuccessDto loginSuccessDto;
 
@@ -121,15 +108,13 @@ public class AuthApplicationService implements AuthService {
 
         try {
             loginSuccessDto = login(userEmail, userPasswordPassword);
-        } catch (AuthenticationException ex) {
+            return LoginWithEmail.Result.success(loginSuccessDto);
+        } catch (Exception ex) {
             return LoginWithEmail.Result.invalidCredentials(userEmail, userPasswordPassword);
         }
-
-        return LoginWithEmail.Result.success(loginSuccessDto);
     }
 
     @Override
-    @Transactional
     public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
         String rawLogin = operation.getCommand().login();
         UserLogin userLogin = UserLogin.of(rawLogin);
@@ -147,12 +132,10 @@ public class AuthApplicationService implements AuthService {
 
         try {
             loginSuccessDto = login(userEmail.get(), userPasswordPassword);
-        } catch (AuthenticationException ex) {
-            log.warn("Authentication failed", ex);
+            return LoginWithLogin.Result.success(loginSuccessDto);
+        } catch (Exception ex) {
             return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
         }
-
-        return LoginWithLogin.Result.success(loginSuccessDto);
     }
 
     @Override
@@ -281,7 +264,7 @@ public class AuthApplicationService implements AuthService {
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }
 
-    private LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
+    protected LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
         Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(userEmail.toString(), userPasswordPassword.toString());
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
 

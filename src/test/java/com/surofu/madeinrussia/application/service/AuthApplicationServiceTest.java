@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
@@ -119,14 +118,6 @@ class AuthApplicationServiceTest {
         assertNotNull(registerResult);
         assertInstanceOf(Register.Result.class, registerResult);
         assertInstanceOf(Register.Result.Success.class, registerResult);
-
-        Register.Result.Success registerSuccessResult = (Register.Result.Success) registerResult;
-        SimpleResponseMessageDto simpleResponseMessageDto = registerSuccessResult.getResponseMessageDto();
-
-        assertNotNull(simpleResponseMessageDto);
-
-        String registerSuccessMessage = String.format("Код для подтверждения почты был отправлен на почту '%s'", registerOperation.getUserEmail().toString());
-        assertEquals(registerSuccessMessage, simpleResponseMessageDto.getMessage());
 
         verify(userRepository, times(1)).existsUserByEmail(userEmailArgumentCaptor.capture());
         verify(userRepository, times(1)).existsUserByLogin(userLoginArgumentCaptor.capture());

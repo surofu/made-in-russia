@@ -9,7 +9,6 @@ import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethodName;
 import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductById;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,10 +45,6 @@ class ProductApplicationServiceTest {
 
     @InjectMocks
     ProductApplicationService productApplicationService;
-
-    @BeforeEach
-    public void setup() {
-    }
 
     @Test
     void getProductById_WhenProductExistsByValidId_ReturnsSuccessResultWithValidProductDto() {

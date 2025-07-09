@@ -1,13 +1,19 @@
 package com.surofu.madeinrussia.infrastructure.web.mapper.auth;
 
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.service.auth.operation.VerifyEmail;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VerifyEmailMapperResultToResponseEntity implements VerifyEmail.Result.Processor<ResponseEntity<?>> {
+@RequiredArgsConstructor
+public class VerifyEmailMapperResultToResponseEntity
+        implements VerifyEmail.Result.Processor<ResponseEntity<?>> {
+
+    private final LocalizationManager localizationManager;
 
     @Override
     public ResponseEntity<?> processSuccess(VerifyEmail.Result.Success result) {
@@ -16,14 +22,14 @@ public class VerifyEmailMapperResultToResponseEntity implements VerifyEmail.Resu
 
     @Override
     public ResponseEntity<?> processAccountNotFound(VerifyEmail.Result.AccountNotFound result) {
-        String message = "Аккаунт для подтверждения не найден";
+        String message = localizationManager.localize("auth.email_verification.email_not_found", result.getUserEmail().toString());
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processInvalidVerificationCode(VerifyEmail.Result.InvalidVerificationCode result) {
-        String message = "Неверный код подтверждения почты";
+        String message = localizationManager.localize("auth.email_verification.invalid_code");
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }
