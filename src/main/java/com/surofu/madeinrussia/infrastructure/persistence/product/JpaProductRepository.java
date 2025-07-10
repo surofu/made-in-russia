@@ -8,7 +8,6 @@ import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductC
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
-import com.surofu.madeinrussia.infrastructure.persistence.view.SearchHintView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

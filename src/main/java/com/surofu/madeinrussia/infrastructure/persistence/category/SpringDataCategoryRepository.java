@@ -24,6 +24,37 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             """)
     List<Category> findAll();
 
+    @Query("""
+        select c from Category c
+        where c.slug.value like 'l2_%'
+            or c.slug.value like 'l1_%'
+        order by c.id
+    """)
+    List<Category> findAllL1AndL2();
+
+    @Query(value = """
+                select
+                c.id,
+                coalesce(
+                    c.name_translations -> :lang,
+                    c.name
+                ) as name,
+                c.slug,
+                c.parent_category_id as parent_id,
+                (
+                    select count(*) from categories cc
+                    where c.id = cc.parent_category_id
+                ) as children_count,
+                c.image_url as image,
+                c.creation_date,
+                c.last_modification_date
+                from categories c
+                where c.parent_category_id is null
+                or c.slug like 'l2_%'
+                order by c.id
+            """, nativeQuery = true)
+    List<CategoryView> findAllViewsL1AndL2ByLang(@Param("lang") String lang);
+
     @Override
     @Query("select c from Category c where c.id = :id")
     @EntityGraph(attributePaths = "children")

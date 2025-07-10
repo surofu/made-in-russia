@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.core.service.category.operation.GetAllCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
+import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -40,11 +41,11 @@ public class CategoryApplicationService implements CategoryService {
             unless = "#result.getCategoryDtos().isEmpty()"
     )
     public GetCategories.Result getCategories() {
-        List<Category> categories = repository.getCategories();
-        List<CategoryDto> categoryDtos = new ArrayList<>(categories.size());
+        List<Category> categories = repository.getCategoriesL1AndL2();
+        List<CategoryDto> categoryDtos = buildTree(categories);
 
         for (Category category : categories) {
-            categoryDtos.add(CategoryDto.of(category));
+            categoryDtos.add(CategoryDto.ofWithoutChildren(category));
         }
 
         return GetCategories.Result.success(categoryDtos);
@@ -57,6 +58,7 @@ public class CategoryApplicationService implements CategoryService {
         Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
 
         if (categoryDto.isPresent()) {
+            testGetCategoryViews();
             return GetCategoryById.Result.success(categoryDto.get());
         }
 
@@ -74,6 +76,19 @@ public class CategoryApplicationService implements CategoryService {
         }
 
         return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
+    }
+
+    private void testGetCategoryViews() {
+        List<CategoryView> categoryViewList = repository.getCategoryViewsL1AndL2ByLang("zh");
+        categoryViewList.forEach(view -> {
+            System.out.printf("""
+                    {
+                        id: %s,
+                        name: %s,
+                        parentId: %s
+                    }
+                    """, view.getId(), view.getName(), view.getParentId());
+        });
     }
 
     private List<CategoryDto> buildTree(List<Category> categories) {

@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.persistence.view;
+package com.surofu.madeinrussia.infrastructure.persistence.product;
 
 public interface SearchHintView {
     Long getProductId();

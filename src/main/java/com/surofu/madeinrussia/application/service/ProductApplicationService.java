@@ -30,7 +30,7 @@ import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVe
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
-import com.surofu.madeinrussia.infrastructure.persistence.view.SearchHintView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;

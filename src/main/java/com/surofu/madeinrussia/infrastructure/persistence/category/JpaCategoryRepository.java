@@ -26,6 +26,16 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public List<Category> getCategoriesL1AndL2() {
+        return repository.findAllL1AndL2();
+    }
+
+    @Override
+    public List<CategoryView> getCategoryViewsL1AndL2ByLang(String lang) {
+        return repository.findAllViewsL1AndL2ByLang(lang);
+    }
+
+    @Override
     public Optional<Category> getCategoryById(Long id) {
         return repository.findById(id);
     }
