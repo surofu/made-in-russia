@@ -253,13 +253,13 @@ public final class ProductSummaryViewDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
-    public static ProductSummaryViewDto of(ProductSummaryView productSummaryView) {
+    public static ProductSummaryViewDto of(String lang, ProductSummaryView productSummaryView) {
         return ProductSummaryViewDto.builder()
                 .id(productSummaryView.getId())
                 .user(productSummaryView.getUser())
                 .category(productSummaryView.getCategory())
                 .deliveryMethods(productSummaryView.getDeliveryMethods())
-                .title(productSummaryView.getTitle())
+                .title(productSummaryView.getTitleByLang(lang))
                 .originalPrice(productSummaryView.getOriginPrice())
                 .discount(productSummaryView.getDiscount())
                 .discountedPrice(productSummaryView.getDiscountedPrice())

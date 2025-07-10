@@ -36,6 +36,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -649,7 +651,9 @@ public class MeRestController {
             @AuthenticationPrincipal
             SecurityUser securityUser
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
         GetMeProductSummaryViewPage operation = GetMeProductSummaryViewPage.of(
+                locale,
                 securityUser,
                 page,
                 size,

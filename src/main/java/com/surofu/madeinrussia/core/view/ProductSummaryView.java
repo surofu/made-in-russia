@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Data
 @Entity
@@ -37,6 +39,9 @@ public final class ProductSummaryView implements Serializable {
 
     @Column(name = "title")
     private String title;
+
+    @Column(name = "title_translations", columnDefinition = "hstore")
+    private String titleTranslations;
 
     @Column(name = "price_original_price")
     private BigDecimal originPrice;
@@ -73,4 +78,17 @@ public final class ProductSummaryView implements Serializable {
     @Convert(converter = DeliveryMethodsConverter.class)
     @Column(name = "delivery_methods", columnDefinition = "jsonb")
     private List<DeliveryMethodDto> deliveryMethods;
+
+    public String getTitleByLang(String lang) {
+        System.out.println(titleTranslations + " " + lang);
+
+        if (titleTranslations == null || lang == null) {
+            return title;
+        }
+
+        Pattern pattern = Pattern.compile("\"" + lang + "\"=>\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(titleTranslations);
+
+        return matcher.find() ? matcher.group(1) : title;
+    }
 }

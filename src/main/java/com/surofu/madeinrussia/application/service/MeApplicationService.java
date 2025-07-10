@@ -137,8 +137,10 @@ public class MeApplicationService implements MeService {
                 .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
 
+
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
+        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
+                .map(p -> ProductSummaryViewDto.of(operation.getLocale().getLanguage(), p));
 
         return GetMeProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }

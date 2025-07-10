@@ -1,15 +1,14 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product;
 
-import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
+import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor

@@ -7,10 +7,12 @@ import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetProductSummaryViewPage {
+    Locale locale;
     int page;
     int size;
     String title;

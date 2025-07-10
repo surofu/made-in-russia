@@ -55,7 +55,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
+        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
+                .map(p -> ProductSummaryViewDto.of(operation.getLocale().getLanguage(), p));
 
         return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }
@@ -67,7 +68,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         List<ProductSummaryViewDto> productSummaryViewDtoList = new ArrayList<>(productSummaryViewList.size());
 
         for (ProductSummaryView productSummaryView : productSummaryViewList) {
-            productSummaryViewDtoList.add(ProductSummaryViewDto.of(productSummaryView));
+            productSummaryViewDtoList.add(ProductSummaryViewDto.of(operation.getLocale().getLanguage(), productSummaryView));
         }
 
         return GetProductSummaryViewsByIds.Result.success(productSummaryViewDtoList);
@@ -78,7 +79,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     public GetProductSummaryViewById.Result getProductSummaryViewById(GetProductSummaryViewById operation) {
         Long productSummaryId = operation.getProductSummaryId();
         Optional<ProductSummaryView> productSummaryView = productSummaryViewRepository.getProductSummaryViewById(productSummaryId);
-        Optional<ProductSummaryViewDto> productSummaryViewDto = productSummaryView.map(ProductSummaryViewDto::of);
+        Optional<ProductSummaryViewDto> productSummaryViewDto = productSummaryView
+                .map(p -> ProductSummaryViewDto.of(operation.getLocale().getLanguage(), p));
 
         if (productSummaryViewDto.isPresent()) {
             return GetProductSummaryViewById.Result.success(productSummaryViewDto.get());
@@ -113,7 +115,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                 .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()));
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage.map(ProductSummaryViewDto::of);
+        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
+                .map(p -> ProductSummaryViewDto.of(operation.getLocale().getLanguage(), p));
 
         return GetProductSummaryViewPageByVendorId.Result.success(productSummaryViewDtoPage);
     }

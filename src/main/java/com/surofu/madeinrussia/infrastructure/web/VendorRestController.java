@@ -30,6 +30,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @RestController
@@ -244,7 +246,9 @@ public class VendorRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
         GetProductSummaryViewPageByVendorId operation = GetProductSummaryViewPageByVendorId.of(
+                locale,
                 vendorId,
                 page,
                 size,

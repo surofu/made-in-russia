@@ -21,12 +21,14 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Validated
@@ -171,7 +173,9 @@ public class ProductSummaryViewRestController {
             @RequestParam(required = false)
             BigDecimal maxPrice
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
         GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(
+                locale,
                 page,
                 size,
                 title,
@@ -213,7 +217,8 @@ public class ProductSummaryViewRestController {
             @RequestParam
             List<Long> ids
     ) {
-        GetProductSummaryViewsByIds operation = GetProductSummaryViewsByIds.of(ids);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetProductSummaryViewsByIds operation = GetProductSummaryViewsByIds.of(locale, ids);
         return productSummaryService.getProductSummaryViewsByIds(operation).process(getProductSummaryViewsByIdsProcessor);
     }
 
@@ -253,7 +258,8 @@ public class ProductSummaryViewRestController {
             @PathVariable
             Long productId
     ) {
-        GetProductSummaryViewById operation = GetProductSummaryViewById.of(productId);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetProductSummaryViewById operation = GetProductSummaryViewById.of(locale, productId);
         return productSummaryService.getProductSummaryViewById(operation).process(getProductSummaryByIdProcessor);
     }
 }

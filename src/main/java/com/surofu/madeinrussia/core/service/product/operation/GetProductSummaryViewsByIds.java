@@ -5,10 +5,12 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetProductSummaryViewsByIds {
+    Locale locale;
     List<Long> productIds;
 
     public interface Result {
