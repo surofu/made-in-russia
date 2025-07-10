@@ -4,10 +4,13 @@ import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetDeliveryMethodById {
     Long deliveryMethodId;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);

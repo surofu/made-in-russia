@@ -12,12 +12,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Locale;
 
 @Validated
 @RestController
@@ -48,7 +51,9 @@ public class DeliveryMethodRestController {
             }
     )
     public ResponseEntity<?> getDeliveryMethods() {
-        return deliveryMethodService.getDeliveryMethods().process(getDeliveryMethodsProcessor);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetDeliveryMethods operation = GetDeliveryMethods.of(locale);
+        return deliveryMethodService.getDeliveryMethods(operation).process(getDeliveryMethodsProcessor);
     }
 
     @GetMapping("/{deliveryMethodId}")
@@ -80,7 +85,8 @@ public class DeliveryMethodRestController {
             @PathVariable
             Long deliveryMethodId
     ) {
-        GetDeliveryMethodById operation = GetDeliveryMethodById.of(deliveryMethodId);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetDeliveryMethodById operation = GetDeliveryMethodById.of(deliveryMethodId, locale);
         return deliveryMethodService.getDeliveryMethodById(operation).process(getDeliveryMethodByIdProcessor);
     }
 }

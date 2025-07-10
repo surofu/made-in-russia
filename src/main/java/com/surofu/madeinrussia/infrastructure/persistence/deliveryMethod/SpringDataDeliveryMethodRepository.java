@@ -32,4 +32,18 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
         from delivery_methods dm
     """, nativeQuery = true)
     List<DeliveryMethodView> findAllViewsByLang(@Param("lang") String lang);
+
+    @Query(value = """
+            select
+            dm.id,
+            coalesce(
+                dm.name_translations -> :lang,
+                dm.name
+            ) as name,
+            dm.creation_date,
+            dm.last_modification_date
+            from delivery_methods dm
+            where dm.id = :id
+            """, nativeQuery = true)
+    Optional<DeliveryMethodView> findByIdWithLang(@Param("id") Long id, @Param("lang") String lang);
 }

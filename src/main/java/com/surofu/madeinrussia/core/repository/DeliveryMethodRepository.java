@@ -13,6 +13,8 @@ public interface DeliveryMethodRepository {
 
     Optional<DeliveryMethod> getDeliveryMethodById(Long id);
 
+    Optional<DeliveryMethodView> getDeliveryMethodViewByIdWithLang(Long id, String lang);
+
     List<DeliveryMethod> getAllDeliveryMethodsByIds(List<Long> ids);
 
     Optional<Long> firstNotExists(List<Long> ids);

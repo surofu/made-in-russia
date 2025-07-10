@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -56,7 +57,9 @@ class DeliveryMethodApplicationServiceTest {
         doReturn(mockDeliveryMethods).when(deliveryMethodRepository).getAllDeliveryMethods();
 
         // when
-        GetDeliveryMethods.Result getDeliveryMethodsResult = deliveryMethodApplicationService.getDeliveryMethods();
+        GetDeliveryMethods.Result getDeliveryMethodsResult = deliveryMethodApplicationService.getDeliveryMethods(
+                GetDeliveryMethods.of(Locale.getDefault())
+        );
 
         // then
         assertNotNull(getDeliveryMethodsResult);
@@ -96,7 +99,7 @@ class DeliveryMethodApplicationServiceTest {
         doReturn(Optional.of(mockDeliveryMethod)).when(deliveryMethodRepository).getDeliveryMethodById(mockDeliveryMethodId);
 
         // when
-        GetDeliveryMethodById getDeliveryMethodByIdOperation = GetDeliveryMethodById.of(mockDeliveryMethodId);
+        GetDeliveryMethodById getDeliveryMethodByIdOperation = GetDeliveryMethodById.of(mockDeliveryMethodId, Locale.getDefault());
         GetDeliveryMethodById.Result getDeliveryMethodByIdResult = deliveryMethodApplicationService.getDeliveryMethodById(getDeliveryMethodByIdOperation);
 
         // then
@@ -123,7 +126,7 @@ class DeliveryMethodApplicationServiceTest {
 
         // when
         long deliveryMethodIdToFind = 1L;
-        GetDeliveryMethodById getDeliveryMethodByIdOperation = GetDeliveryMethodById.of(deliveryMethodIdToFind);
+        GetDeliveryMethodById getDeliveryMethodByIdOperation = GetDeliveryMethodById.of(deliveryMethodIdToFind, Locale.getDefault());
         GetDeliveryMethodById.Result getDeliveryMethodByIdResult = deliveryMethodApplicationService.getDeliveryMethodById(getDeliveryMethodByIdOperation);
 
         // then

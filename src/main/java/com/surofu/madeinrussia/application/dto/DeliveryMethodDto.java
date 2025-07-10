@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -60,6 +62,16 @@ public final class DeliveryMethodDto implements Serializable {
                 .name(deliveryMethod.getName().getValue())
                 .creationDate(deliveryMethod.getCreationDate().getValue())
                 .lastModificationDate(deliveryMethod.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static DeliveryMethodDto of(DeliveryMethodView view) {
+        return DeliveryMethodDto.builder()
+                .id(view.getId())
+                .name(view.getName())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

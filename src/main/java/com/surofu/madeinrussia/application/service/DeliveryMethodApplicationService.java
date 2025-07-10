@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.repository.DeliveryMethodRepository;
 import com.surofu.madeinrussia.core.service.deliveryMethod.DeliveryMethodService;
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethodById;
 import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDeliveryMethods;
+import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -23,15 +24,11 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "deliveryMethods",
-            unless = "#result.getDeliveryMethodDtos().isEmpty()"
-    )
-    public GetDeliveryMethods.Result getDeliveryMethods() {
-        List<DeliveryMethod> deliveryMethods = repository.getAllDeliveryMethods();
+    public GetDeliveryMethods.Result getDeliveryMethods(GetDeliveryMethods operation) {
+        List<DeliveryMethodView> deliveryMethods = repository.getAllDeliveryMethodViewsByLang(operation.getLocale().getLanguage());
         List<DeliveryMethodDto> deliveryMethodDtos = new ArrayList<>(deliveryMethods.size());
 
-        for (DeliveryMethod deliveryMethod : deliveryMethods) {
+        for (DeliveryMethodView deliveryMethod : deliveryMethods) {
             deliveryMethodDtos.add(DeliveryMethodDto.of(deliveryMethod));
         }
 
@@ -41,7 +38,8 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     @Override
     @Transactional(readOnly = true)
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
-        Optional<DeliveryMethod> deliveryMethod = repository.getDeliveryMethodById(operation.getDeliveryMethodId());
+        Optional<DeliveryMethodView> deliveryMethod = repository.getDeliveryMethodViewByIdWithLang(
+                operation.getDeliveryMethodId(), operation.getLocale().getLanguage());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);
 
         if (deliveryMethodDto.isPresent()) {
