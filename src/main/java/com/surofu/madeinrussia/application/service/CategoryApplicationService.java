@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.CategoryDto;
-import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.GetAllCategories;
@@ -10,11 +9,13 @@ import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,100 +25,83 @@ public class CategoryApplicationService implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "AllCategories",
-            unless = "#result.getCategoryDtos().isEmpty()"
-    )
-    public GetAllCategories.Result getAllCategories() {
-        List<Category> categories = repository.getAllCategoriesWithParent();
-        List<CategoryDto> categoryDtos = buildTree(categories);
+    public GetAllCategories.Result getAllCategories(GetAllCategories operation) {
+        List<CategoryView> categories = repository.getAllCategoriesViewsByLang(operation.getLocale().getLanguage());
+        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
         return GetAllCategories.Result.success(categoryDtos);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "categories",
-            unless = "#result.getCategoryDtos().isEmpty()"
-    )
-    public GetCategories.Result getCategories() {
-        List<Category> categories = repository.getCategoriesL1AndL2();
-        List<CategoryDto> categoryDtos = buildTree(categories);
-
-        for (Category category : categories) {
-            categoryDtos.add(CategoryDto.ofWithoutChildren(category));
-        }
-
+    public GetCategories.Result getCategories(GetCategories operation) {
+        List<CategoryView> categories = repository.getCategoryViewsL1AndL2ByLang(operation.getLocale().getLanguage());
+        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
         return GetCategories.Result.success(categoryDtos);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
-        Optional<Category> category = repository.getCategoryById(operation.getCategoryId());
-        Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
+        List<CategoryView> categories = repository.getCategoryViewWithChildrenByIdAndLang(operation.getCategoryId(), operation.getLocale().getLanguage());
+        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
 
-        if (categoryDto.isPresent()) {
-            testGetCategoryViews();
-            return GetCategoryById.Result.success(categoryDto.get());
+        if (categoryDtos.isEmpty()) {
+            return GetCategoryById.Result.notFound(operation.getCategoryId());
         }
 
-        return GetCategoryById.Result.notFound(operation.getCategoryId());
+        return GetCategoryById.Result.success(categoryDtos.stream().findFirst().get());
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation) {
-        Optional<Category> category = repository.getCategoryBySlug(operation.getCategorySlug());
-        Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
+        List<CategoryView> categories = repository.getCategoryViewWithChildrenBySlugAndLang(operation.getCategorySlug().toString(), operation.getLocale().getLanguage());
+        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
 
-        if (categoryDto.isPresent()) {
-            return GetCategoryBySlug.Result.success(categoryDto.get());
+        if (categoryDtos.isEmpty()) {
+            return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
         }
 
-        return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
+        return GetCategoryBySlug.Result.success(categoryDtos.stream().findFirst().get());
     }
 
-    private void testGetCategoryViews() {
-        List<CategoryView> categoryViewList = repository.getCategoryViewsL1AndL2ByLang("zh");
-        categoryViewList.forEach(view -> {
-            System.out.printf("""
-                    {
-                        id: %s,
-                        name: %s,
-                        parentId: %s
-                    }
-                    """, view.getId(), view.getName(), view.getParentId());
-        });
-    }
-
-    private List<CategoryDto> buildTree(List<Category> categories) {
+    private List<CategoryDto> buildTreeFromViews(List<CategoryView> categories) {
+        // Создаем Map для быстрого доступа к категориям по ID
         Map<Long, CategoryDto> dtoMap = new HashMap<>();
+
+        // Сначала создаем все DTO без детей
+        categories.forEach(view ->
+                dtoMap.put(view.getId(), CategoryDto.ofViewWithoutChildren(view)));
+
+        // Теперь строим дерево
         List<CategoryDto> roots = new ArrayList<>();
 
-        // Первый проход: создаем все DTO
-        categories.forEach(category -> {
-            CategoryDto dto = CategoryDto.ofWithoutChildren(category);
-            dtoMap.put(category.getId(), dto);
-        });
+        categories.forEach(view -> {
+            CategoryDto currentDto = dtoMap.get(view.getId());
+            Long parentId = view.getParentId();
 
-        // Второй проход: строим дерево
-        categories.forEach(category -> {
-            CategoryDto dto = dtoMap.get(category.getId());
-            if (category.getParent() == null) {
-                roots.add(dto);
+            if (parentId == null || !dtoMap.containsKey(parentId)) {
+                // Это корневой элемент
+                roots.add(currentDto);
             } else {
-                CategoryDto parentDto = dtoMap.get(category.getParent().getId());
-                if (parentDto != null) {
-                    parentDto.getChildren().add(dto);
-                }
+                // Добавляем к родителю
+                CategoryDto parentDto = dtoMap.get(parentId);
+                parentDto.getChildren().add(currentDto);
             }
         });
 
-        // Обновляем childrenCount для всех узлов
-        dtoMap.values().forEach(dto ->
-                dto.setChildrenCount((long) dto.getChildren().size()));
+        // Рекурсивно обновляем childrenCount
+        roots.forEach(this::updateChildrenCount);
 
         return roots;
+    }
+
+    private void updateChildrenCount(CategoryDto dto) {
+        long count = dto.getChildren().size();
+        for (CategoryDto child : dto.getChildren()) {
+            updateChildrenCount(child);
+            count += child.getChildrenCount(); // если нужно учитывать всех потомков
+        }
+        dto.setChildrenCount((long) dto.getChildren().size()); // или просто count для всех потомков
     }
 }

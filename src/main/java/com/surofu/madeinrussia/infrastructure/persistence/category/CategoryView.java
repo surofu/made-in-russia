@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.persistence.category;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 public interface CategoryView {
     Long getId();
+
+    Long getParentId();
 
     String getName();
 
@@ -11,11 +13,9 @@ public interface CategoryView {
 
     String getImage();
 
-    Long getParentId();
-
     Long getChildrenCount();
 
-    ZonedDateTime getCreationDate();
+    Instant getCreationDate();
 
-    ZonedDateTime getLastModificationDate();
+    Instant getLastModificationDate();
 }

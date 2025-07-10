@@ -12,10 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,7 +53,7 @@ class CategoryApplicationServiceTest {
         doReturn(mockCategories).when(categoryRepository).getCategories();
 
         // when
-        GetCategories.Result getCategoriesResult = categoryApplicationService.getCategories();
+        GetCategories.Result getCategoriesResult = categoryApplicationService.getCategories(GetCategories.of(Locale.getDefault()));
 
         // then
         assertNotNull(getCategoriesResult);
@@ -103,7 +100,7 @@ class CategoryApplicationServiceTest {
         doReturn(Optional.of(mockCategory)).when(categoryRepository).getCategoryById(mockCategoryId);
 
         // when
-        GetCategoryById getCategoryByIdOperation = GetCategoryById.of(mockCategoryId);
+        GetCategoryById getCategoryByIdOperation = GetCategoryById.of(mockCategoryId, Locale.getDefault());
         GetCategoryById.Result getCategoryByIdResult = categoryApplicationService.getCategoryById(getCategoryByIdOperation);
 
         // then
@@ -131,7 +128,7 @@ class CategoryApplicationServiceTest {
 
         // when
         long categoryId = 1L;
-        GetCategoryById getCategoryByIdOperation = GetCategoryById.of(categoryId);
+        GetCategoryById getCategoryByIdOperation = GetCategoryById.of(categoryId, Locale.getDefault());
         GetCategoryById.Result getCategoryByIdResult = categoryApplicationService.getCategoryById(getCategoryByIdOperation);
 
         assertNotNull(getCategoryByIdResult);

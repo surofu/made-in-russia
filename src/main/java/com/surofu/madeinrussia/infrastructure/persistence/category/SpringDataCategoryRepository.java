@@ -15,6 +15,27 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent")
     List<Category> findAllWithParent();
 
+    @Query(value = """
+        SELECT
+            c.id,
+            COALESCE(
+                c.name_translations -> :lang,
+                c.name
+            ) as name,
+            c.slug,
+            c.parent_category_id as parent_id,
+            (
+                SELECT COUNT(*) FROM categories cc
+                WHERE cc.parent_category_id = c.id
+            ) as children_count,
+            c.image_url as image,
+            c.creation_date,
+            c.last_modification_date
+        FROM categories c
+        ORDER BY c.id
+        """, nativeQuery = true)
+    List<CategoryView> findAllCategoryViewsByLang(@Param("lang") String lang);
+
     @Override
     @Query("""
             select c from Category c
@@ -25,11 +46,11 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     List<Category> findAll();
 
     @Query("""
-        select c from Category c
-        where c.slug.value like 'l2_%'
-            or c.slug.value like 'l1_%'
-        order by c.id
-    """)
+                select c from Category c
+                where c.slug.value like 'l2_%'
+                    or c.slug.value like 'l1_%'
+                order by c.id
+            """)
     List<Category> findAllL1AndL2();
 
     @Query(value = """
@@ -59,6 +80,103 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     @Query("select c from Category c where c.id = :id")
     @EntityGraph(attributePaths = "children")
     Optional<Category> findById(@Param("id") Long id);
+
+    @Query(value = """
+            WITH RECURSIVE category_tree AS (
+                SELECT 
+                    id,
+                    parent_category_id,
+                    name_translations,
+                    name,
+                    slug,
+                    image_url,
+                    creation_date,
+                    last_modification_date
+                FROM categories
+                WHERE id = :id
+            
+                UNION ALL
+            
+                SELECT 
+                    c.id,
+                    c.parent_category_id,
+                    c.name_translations,
+                    c.name,
+                    c.slug,
+                    c.image_url,
+                    c.creation_date,
+                    c.last_modification_date
+                FROM categories c
+                JOIN category_tree ct ON c.parent_category_id = ct.id
+            )
+            SELECT
+                ct.id,
+                COALESCE(
+                    ct.name_translations -> :lang,
+                    ct.name
+                ) as name,
+                ct.slug,
+                ct.parent_category_id as parent_id,
+                (
+                    SELECT COUNT(*) FROM categories cc
+                    WHERE cc.parent_category_id = ct.id
+                ) as children_count,
+                ct.image_url as image,
+                ct.creation_date,
+                ct.last_modification_date
+            FROM category_tree ct
+            ORDER BY ct.id
+            """, nativeQuery = true)
+    List<CategoryView> findCategoryWithChildrenViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+
+    @Query(value = """
+            WITH RECURSIVE category_tree AS (
+                SELECT 
+                    id,
+                    parent_category_id,
+                    name_translations,
+                    name,
+                    slug,
+                    image_url,
+                    creation_date,
+                    last_modification_date
+                FROM categories
+                WHERE slug = :slug
+            
+                UNION ALL
+            
+                SELECT 
+                    c.id,
+                    c.parent_category_id,
+                    c.name_translations,
+                    c.name,
+                    c.slug,
+                    c.image_url,
+                    c.creation_date,
+                    c.last_modification_date
+                FROM categories c
+                JOIN category_tree ct ON c.parent_category_id = ct.id
+            )
+            SELECT
+                ct.id,
+                COALESCE(
+                    ct.name_translations -> :lang,
+                    ct.name
+                ) as name,
+                ct.slug,
+                ct.parent_category_id as parent_id,
+                (
+                    SELECT COUNT(*) FROM categories cc
+                    WHERE cc.parent_category_id = ct.id
+                ) as children_count,
+                ct.image_url as image,
+                ct.creation_date,
+                ct.last_modification_date
+            FROM category_tree ct
+            ORDER BY ct.id
+            """, nativeQuery = true)
+    List<CategoryView> findCategoryWithChildrenViewBySlugAndLang(@Param("slug") String slug, @Param("lang") String lang);
 
     @Query("select c from Category c where c.slug = :slug")
     @EntityGraph(attributePaths = "children")

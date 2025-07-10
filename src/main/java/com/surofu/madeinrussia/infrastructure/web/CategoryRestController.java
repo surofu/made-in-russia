@@ -15,12 +15,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Locale;
 
 @Validated
 @RestController
@@ -50,7 +53,9 @@ public class CategoryRestController {
             }
     )
     public ResponseEntity<?> getCategories() {
-        return service.getCategories().process(getCategoriesProcessor);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetCategories operation = GetCategories.of(locale);
+        return service.getCategories(operation).process(getCategoriesProcessor);
     }
 
     @GetMapping("/{categoryIdOrSlug}")
@@ -93,12 +98,13 @@ public class CategoryRestController {
             @PathVariable
             String categoryIdOrSlug
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
         try {
             long categoryId = Long.parseLong(categoryIdOrSlug);
-            GetCategoryById operation = GetCategoryById.of(categoryId);
+            GetCategoryById operation = GetCategoryById.of(categoryId, locale);
             return service.getCategoryById(operation).process(getCategoryByIdProcessor);
         } catch (NumberFormatException e) {
-            GetCategoryBySlug operation = GetCategoryBySlug.of(CategorySlug.of(categoryIdOrSlug));
+            GetCategoryBySlug operation = GetCategoryBySlug.of(CategorySlug.of(categoryIdOrSlug), locale);
             return service.getCategoryBySlug(operation).process(getCategoryBySlugProcessor);
         }
     }

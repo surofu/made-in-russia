@@ -21,6 +21,11 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public List<CategoryView> getAllCategoriesViewsByLang(String lang) {
+        return repository.findAllCategoryViewsByLang(lang);
+    }
+
+    @Override
     public List<Category> getCategories() {
         return repository.findAll();
     }
@@ -38,6 +43,16 @@ public class JpaCategoryRepository implements CategoryRepository {
     @Override
     public Optional<Category> getCategoryById(Long id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public List<CategoryView> getCategoryViewWithChildrenByIdAndLang(Long id, String lang) {
+        return repository.findCategoryWithChildrenViewByIdAndLang(id, lang);
+    }
+
+    @Override
+    public List<CategoryView> getCategoryViewWithChildrenBySlugAndLang(String slug, String lang) {
+        return repository.findCategoryWithChildrenViewBySlugAndLang(slug, lang);
     }
 
     @Override

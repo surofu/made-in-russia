@@ -6,9 +6,9 @@ import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
 import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
 
 public interface CategoryService {
-    GetAllCategories.Result getAllCategories();
+    GetAllCategories.Result getAllCategories(GetAllCategories operation);
 
-    GetCategories.Result getCategories();
+    GetCategories.Result getCategories(GetCategories operation);
 
     GetCategoryById.Result getCategoryById(GetCategoryById operation);
 

@@ -10,11 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Locale;
 
 @Validated
 @RestController
@@ -42,6 +45,8 @@ public class AllCategoryRestController {
             }
     )
     public ResponseEntity<?> getAllCategories() {
-        return service.getAllCategories().process(getAllCategoriesProcessor);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetAllCategories operation = GetAllCategories.of(locale);
+        return service.getAllCategories(operation).process(getAllCategoriesProcessor);
     }
 }

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -160,6 +162,20 @@ public final class CategoryDto implements Serializable {
                 .children(new ArrayList<>())
                 .creationDate(category.getCreationDate().getValue())
                 .lastModificationDate(category.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static CategoryDto ofViewWithoutChildren(CategoryView category) {
+        return CategoryDto.builder()
+                .id(category.getId())
+                .slug(category.getSlug())
+                .name(category.getName())
+                .imageUrl(category.getImage())
+                .childrenCount(category.getChildrenCount())
+                .children(new ArrayList<>())
+                .creationDate(category.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(category.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

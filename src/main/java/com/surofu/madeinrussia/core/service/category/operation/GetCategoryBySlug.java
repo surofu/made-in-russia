@@ -5,10 +5,13 @@ import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetCategoryBySlug {
     CategorySlug categorySlug;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);

@@ -20,6 +20,11 @@ public class JpaDeliveryMethodRepository implements DeliveryMethodRepository {
     }
 
     @Override
+    public List<DeliveryMethodView> getAllDeliveryMethodViewsByLang(String lang) {
+        return repository.findAllViewsByLang(lang);
+    }
+
+    @Override
     public Optional<DeliveryMethod> getDeliveryMethodById(Long id) {
         return repository.findById(id);
     }

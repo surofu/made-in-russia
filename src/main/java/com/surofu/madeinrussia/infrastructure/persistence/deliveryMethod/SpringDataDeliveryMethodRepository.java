@@ -3,7 +3,9 @@ package com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataDeliveryMethodRepository extends JpaRepository<DeliveryMethod, Long> {
@@ -17,4 +19,17 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
             LIMIT 1
             """, nativeQuery = true)
     Optional<Long> firstNotExists(Long[] ids);
+
+    @Query(value = """
+        select
+        dm.id,
+        coalesce(
+            dm.name_translations -> :lang,
+            dm.name
+        ) as name,
+        dm.creation_date,
+        dm.last_modification_date
+        from delivery_methods dm
+    """, nativeQuery = true)
+    List<DeliveryMethodView> findAllViewsByLang(@Param("lang") String lang);
 }
