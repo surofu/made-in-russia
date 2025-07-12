@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SpringDataProductPackageOptionRepository extends JpaRepository<ProductPackageOption, Long> {
     List<ProductPackageOption> findAllByProduct_Id(Long productId);
+
+    List<ProductPackageOptionView> findAllViewsByProduct_Id(Long productId);
 }

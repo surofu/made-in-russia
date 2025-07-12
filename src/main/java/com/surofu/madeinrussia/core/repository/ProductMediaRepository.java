@@ -1,9 +1,9 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productMedia.ProductMediaView;
 
 import java.util.List;
 
 public interface ProductMediaRepository {
-    List<ProductMedia> findAllByProductId(Long productId);
+    List<ProductMediaView> getAllViewsByProductId(Long productId);
 }

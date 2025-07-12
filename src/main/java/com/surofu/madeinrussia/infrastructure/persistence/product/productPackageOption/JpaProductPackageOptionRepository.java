@@ -14,7 +14,12 @@ public class JpaProductPackageOptionRepository implements ProductPackageOptionsR
     private final SpringDataProductPackageOptionRepository repository;
 
     @Override
-    public List<ProductPackageOption> findAllByProductId(Long productId) {
+    public List<ProductPackageOption> getAllByProductId(Long productId) {
         return repository.findAllByProduct_Id(productId);
+    }
+
+    @Override
+    public List<ProductPackageOptionView> getAllViewsByProductId(Long productId) {
+        return repository.findAllViewsByProduct_Id(productId);
     }
 }

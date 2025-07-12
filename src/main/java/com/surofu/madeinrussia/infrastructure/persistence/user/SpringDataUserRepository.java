@@ -46,4 +46,8 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long> {
             where u.id = :vendorId and u.role = 'ROLE_VENDOR'
             """)
     boolean existsVendorById(@Param("vendorId") Long vendorId);
+
+    // View
+
+    Optional<UserView> findViewById(Long id);
 }

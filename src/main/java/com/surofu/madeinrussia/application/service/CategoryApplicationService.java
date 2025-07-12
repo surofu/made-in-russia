@@ -71,14 +71,14 @@ public class CategoryApplicationService implements CategoryService {
 
         // Сначала создаем все DTO без детей
         categories.forEach(view ->
-                dtoMap.put(view.getId(), CategoryDto.ofViewWithoutChildren(view)));
+                dtoMap.put(view.getId(), CategoryDto.ofWithoutChildren(view)));
 
         // Теперь строим дерево
         List<CategoryDto> roots = new ArrayList<>();
 
         categories.forEach(view -> {
             CategoryDto currentDto = dtoMap.get(view.getId());
-            Long parentId = view.getParentId();
+            Long parentId = view.getParentCategoryId();
 
             if (parentId == null || !dtoMap.containsKey(parentId)) {
                 // Это корневой элемент

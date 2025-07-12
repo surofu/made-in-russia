@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productFaq.ProductFaqView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -80,6 +81,17 @@ public final class ProductFaqDto implements Serializable {
                 .answer(productFaq.getAnswer().toString())
                 .creationDate(productFaq.getCreationDate().getValue())
                 .lastModificationDate(productFaq.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductFaqDto of(ProductFaqView view) {
+        return ProductFaqDto.builder()
+                .id(view.getId())
+                .question(view.getQuestion().toString())
+                .answer(view.getAnswer().toString())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

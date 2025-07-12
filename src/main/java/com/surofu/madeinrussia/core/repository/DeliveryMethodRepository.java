@@ -7,13 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DeliveryMethodRepository {
-    List<DeliveryMethod> getAllDeliveryMethods();
-
     List<DeliveryMethodView> getAllDeliveryMethodViewsByLang(String lang);
 
-    Optional<DeliveryMethod> getDeliveryMethodById(Long id);
+    List<DeliveryMethodView> getAllDeliveryMethodViewsByProductIdLang(Long productId, String lang);
 
-    Optional<DeliveryMethodView> getDeliveryMethodViewByIdWithLang(Long id, String lang);
+    Optional<DeliveryMethodView> getDeliveryMethodViewByIdAndLang(Long id, String lang);
 
     List<DeliveryMethod> getAllDeliveryMethodsByIds(List<Long> ids);
 

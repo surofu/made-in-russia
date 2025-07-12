@@ -5,11 +5,18 @@ import com.surofu.madeinrussia.core.repository.VendorFaqRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class JpaVendorFaqRepository implements VendorFaqRepository {
 
     private final SpringDataVendorFaqRepository repository;
+
+    @Override
+    public List<VendorFaqView> getAllViewsByVendorDetailsId(Long id) {
+        return repository.findAllViewsByVendorDetails_Id(id);
+    }
 
     @Override
     public void save(VendorFaq vendorFaq) {

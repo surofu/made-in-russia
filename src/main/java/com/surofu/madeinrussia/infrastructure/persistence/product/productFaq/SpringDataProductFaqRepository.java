@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface SpringDataProductFaqRepository extends JpaRepository<ProductFaq, Long> {
-    List<ProductFaq> findAllByProduct_Id(Long productId);
+    List<ProductFaqView> findAllByProduct_Id(Long productId);
 }

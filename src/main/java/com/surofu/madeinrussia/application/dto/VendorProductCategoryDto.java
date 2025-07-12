@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,6 +63,7 @@ public final class VendorProductCategoryDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
+    @Schema(hidden = true)
     public static VendorProductCategoryDto of(VendorProductCategory vendorProductCategory) {
         if (vendorProductCategory == null) {
             return null;
@@ -72,6 +74,20 @@ public final class VendorProductCategoryDto implements Serializable {
                 .name(vendorProductCategory.getName().getValue())
                 .creationDate(vendorProductCategory.getCreationDate().getValue())
                 .lastModificationDate(vendorProductCategory.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static VendorProductCategoryDto of(VendorProductCategoryView view) {
+        if (view == null) {
+            return null;
+        }
+
+        return VendorProductCategoryDto.builder()
+                .id(view.getId())
+                .name(view.getName().getValue())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

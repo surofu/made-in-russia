@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface SpringDataProductMediaRepository extends JpaRepository<ProductMedia, Long> {
-    List<ProductMedia> findAllByProduct_Id(Long productId);
+    List<ProductMediaView> findAllByProduct_IdOrderByPositionAsc(Long productId);
 }

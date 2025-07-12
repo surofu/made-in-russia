@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 
 import java.util.Optional;
 
@@ -27,4 +28,8 @@ public interface UserRepository {
     Optional<User> getVendorById(Long id);
 
     boolean existsVendorById(Long id);
+
+    // View
+
+    Optional<UserView> getViewById(Long id);
 }

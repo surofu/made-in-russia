@@ -5,13 +5,13 @@ import java.time.Instant;
 public interface CategoryView {
     Long getId();
 
-    Long getParentId();
+    Long getParentCategoryId();
 
     String getName();
 
     String getSlug();
 
-    String getImage();
+    String getImageUrl();
 
     Long getChildrenCount();
 

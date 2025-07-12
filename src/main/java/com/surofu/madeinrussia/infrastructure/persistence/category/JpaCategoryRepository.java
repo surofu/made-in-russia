@@ -16,23 +16,8 @@ public class JpaCategoryRepository implements CategoryRepository {
     private final SpringDataCategoryRepository repository;
 
     @Override
-    public List<Category> getAllCategoriesWithParent() {
-        return repository.findAllWithParent();
-    }
-
-    @Override
     public List<CategoryView> getAllCategoriesViewsByLang(String lang) {
         return repository.findAllCategoryViewsByLang(lang);
-    }
-
-    @Override
-    public List<Category> getCategories() {
-        return repository.findAll();
-    }
-
-    @Override
-    public List<Category> getCategoriesL1AndL2() {
-        return repository.findAllL1AndL2();
     }
 
     @Override
@@ -54,14 +39,14 @@ public class JpaCategoryRepository implements CategoryRepository {
     public List<CategoryView> getCategoryViewWithChildrenBySlugAndLang(String slug, String lang) {
         return repository.findCategoryWithChildrenViewBySlugAndLang(slug, lang);
     }
-
-    @Override
-    public Optional<Category> getCategoryBySlug(CategorySlug slug) {
-        return repository.findBySlug(slug);
-    }
-
+    
     @Override
     public List<Long> getCategoriesIdsByIds(List<Long> ids) {
         return repository.findAllIdsByIdWithAllChildren(ids);
+    }
+
+    @Override
+    public Optional<CategoryView> getCategoryViewByIdAndLang(Long id, String lang) {
+        return repository.findViewByIdAndLang(id, lang);
     }
 }

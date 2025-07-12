@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SpringDataProductDeliveryMethodDetailsRepository extends JpaRepository<ProductDeliveryMethodDetails, Long> {
     List<ProductDeliveryMethodDetails> findAllByProduct_Id(Long productId);
+
+    List<ProductDeliveryMethodDetailsView> findAllViewsByProduct_Id(Long productId);
 }

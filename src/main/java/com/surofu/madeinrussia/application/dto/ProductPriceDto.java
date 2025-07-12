@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.ProductPriceView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -143,6 +144,22 @@ public final class ProductPriceDto implements Serializable {
                 .discountedPrice(productPrice.getDiscountedPrice().getValue())
                 .creationDate(productPrice.getCreationDate().getValue())
                 .lastModificationDate(productPrice.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductPriceDto of(ProductPriceView view) {
+        return ProductPriceDto.builder()
+                .id(view.getId())
+                .from(view.getQuantityRange().getFrom())
+                .to(view.getQuantityRange().getTo())
+                .currency(view.getCurrency().toString())
+                .unit(view.getUnit().toString())
+                .originalPrice(view.getOriginalPrice().getValue())
+                .discount(view.getDiscount().getValue())
+                .discountedPrice(view.getDiscountedPrice().getValue())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

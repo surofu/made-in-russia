@@ -166,16 +166,20 @@ public final class CategoryDto implements Serializable {
     }
 
     @Schema(hidden = true)
-    public static CategoryDto ofViewWithoutChildren(CategoryView category) {
+    public static CategoryDto ofWithoutChildren(CategoryView view) {
+        if (view == null) {
+            return null;
+        }
+
         return CategoryDto.builder()
-                .id(category.getId())
-                .slug(category.getSlug())
-                .name(category.getName())
-                .imageUrl(category.getImage())
-                .childrenCount(category.getChildrenCount())
+                .id(view.getId())
+                .slug(view.getSlug())
+                .name(view.getName())
+                .imageUrl(view.getImageUrl())
+                .childrenCount(view.getChildrenCount())
                 .children(new ArrayList<>())
-                .creationDate(category.getCreationDate().atZone(ZoneId.systemDefault()))
-                .lastModificationDate(category.getLastModificationDate().atZone(ZoneId.systemDefault()))
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

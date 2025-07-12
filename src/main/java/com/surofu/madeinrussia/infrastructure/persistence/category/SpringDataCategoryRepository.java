@@ -23,12 +23,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
                 c.name
             ) as name,
             c.slug,
-            c.parent_category_id as parent_id,
+            c.parent_category_id,
             (
                 SELECT COUNT(*) FROM categories cc
                 WHERE cc.parent_category_id = c.id
             ) as children_count,
-            c.image_url as image,
+            c.image_url,
             c.creation_date,
             c.last_modification_date
         FROM categories c
@@ -61,12 +61,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
                     c.name
                 ) as name,
                 c.slug,
-                c.parent_category_id as parent_id,
+                c.parent_category_id,
                 (
                     select count(*) from categories cc
                     where c.id = cc.parent_category_id
                 ) as children_count,
-                c.image_url as image,
+                c.image_url,
                 c.creation_date,
                 c.last_modification_date
                 from categories c
@@ -83,7 +83,7 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
 
     @Query(value = """
             WITH RECURSIVE category_tree AS (
-                SELECT 
+                SELECT
                     id,
                     parent_category_id,
                     name_translations,
@@ -116,12 +116,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
                     ct.name
                 ) as name,
                 ct.slug,
-                ct.parent_category_id as parent_id,
+                ct.parent_category_id,
                 (
                     SELECT COUNT(*) FROM categories cc
                     WHERE cc.parent_category_id = ct.id
                 ) as children_count,
-                ct.image_url as image,
+                ct.image_url,
                 ct.creation_date,
                 ct.last_modification_date
             FROM category_tree ct
@@ -132,7 +132,7 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
 
     @Query(value = """
             WITH RECURSIVE category_tree AS (
-                SELECT 
+                SELECT
                     id,
                     parent_category_id,
                     name_translations,
@@ -165,12 +165,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
                     ct.name
                 ) as name,
                 ct.slug,
-                ct.parent_category_id as parent_id,
+                ct.parent_category_id,
                 (
                     SELECT COUNT(*) FROM categories cc
                     WHERE cc.parent_category_id = ct.id
                 ) as children_count,
-                ct.image_url as image,
+                ct.image_url,
                 ct.creation_date,
                 ct.last_modification_date
             FROM category_tree ct
@@ -192,4 +192,26 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             select * from category_tree
             """, nativeQuery = true)
     List<Long> findAllIdsByIdWithAllChildren(@Param("ids") Iterable<Long> ids);
+
+    @Query(value = """
+    select
+    c.id,
+    c.parent_category_id,
+    coalesce(
+        c.name_translations -> :lang,
+        c.name
+    ) as name,
+    (
+            select count(*)
+            from categories cc
+            where c.id = cc.parent_category_id
+    ) as children_count,
+    c.slug,
+    c.image_url,
+    c.creation_date,
+    c.last_modification_date
+    from categories c
+    where c.id = :id
+    """, nativeQuery = true)
+    Optional<CategoryView> findViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 }

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -351,6 +353,24 @@ public class ProductDto implements Serializable {
                 .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
                 .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().toString())
                 .daysBeforeDiscountExpires(getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductDto of(ProductView view) {
+        return ProductDto.builder()
+                .id(view.getId())
+                .article(view.getArticleCode())
+                .title(view.getTitle())
+                .mainDescription(view.getMainDescription())
+                .furtherDescription(view.getFurtherDescription())
+                .rating(view.getRating())
+                .reviewsCount(view.getReviewsCount())
+                .previewImageUrl(view.getPreviewImageUrl())
+                .minimumOrderQuantity(view.getMinimumOrderQuantity() == null ? null : view.getMinimumOrderQuantity().toString())
+                .daysBeforeDiscountExpires(view.getDiscountExpirationDate() == null ? null : getDaysBeforeDiscountExpires(view.getDiscountExpirationDate().atZone(ZoneId.systemDefault())))
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 

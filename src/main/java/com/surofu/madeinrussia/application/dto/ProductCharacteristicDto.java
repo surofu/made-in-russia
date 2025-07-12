@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productCharacteristic.ProductCharacteristicView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,6 +69,17 @@ public final class ProductCharacteristicDto implements Serializable {
                 .value(productCharacteristic.getValue().toString())
                 .creationDate(productCharacteristic.getCreationDate().getValue())
                 .lastModificationDate(productCharacteristic.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductCharacteristicDto of(ProductCharacteristicView view) {
+        return ProductCharacteristicDto.builder()
+                .id(view.getId())
+                .name(view.getName().toString())
+                .value(view.getValue().toString())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

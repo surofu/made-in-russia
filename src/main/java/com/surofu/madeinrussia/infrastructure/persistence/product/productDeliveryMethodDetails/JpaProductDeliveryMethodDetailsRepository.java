@@ -14,7 +14,13 @@ public class JpaProductDeliveryMethodDetailsRepository implements ProductDeliver
     private final SpringDataProductDeliveryMethodDetailsRepository repository;
 
     @Override
-    public List<ProductDeliveryMethodDetails> findAllByProductId(Long productId) {
+    public List<ProductDeliveryMethodDetails> getAllByProductId(Long productId) {
         return repository.findAllByProduct_Id(productId);
+
+    }
+
+    @Override
+    public List<ProductDeliveryMethodDetailsView> getAllViewsByProductId(Long productId) {
+        return repository.findAllViewsByProduct_Id(productId);
     }
 }

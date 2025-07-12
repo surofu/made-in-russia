@@ -21,17 +21,33 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
     Optional<Long> firstNotExists(Long[] ids);
 
     @Query(value = """
-        select
-        dm.id,
-        coalesce(
-            dm.name_translations -> :lang,
-            dm.name
-        ) as name,
-        dm.creation_date,
-        dm.last_modification_date
-        from delivery_methods dm
-    """, nativeQuery = true)
+                select
+                dm.id,
+                coalesce(
+                    dm.name_translations -> :lang,
+                    dm.name
+                ) as name,
+                dm.creation_date as "creationDate",
+                dm.last_modification_date as "lastModificationDate"
+                from delivery_methods dm
+            """, nativeQuery = true)
     List<DeliveryMethodView> findAllViewsByLang(@Param("lang") String lang);
+
+    @Query(value = """
+                select
+                dm.id,
+                coalesce(
+                    dm.name_translations -> :lang,
+                    dm.name
+                ) as name,
+                dm.creation_date as "creationDate",
+                dm.last_modification_date as "lastModificationDate"
+                from delivery_methods dm
+                join products_delivery_methods pdm on
+                    dm.id = pdm.delivery_method_id
+                where pdm.product_id = :productId
+            """, nativeQuery = true)
+    List<DeliveryMethodView> findViewsByProductIdWithByLang(@Param("productId") Long productId, @Param("lang") String lang);
 
     @Query(value = """
             select
@@ -40,10 +56,10 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
                 dm.name_translations -> :lang,
                 dm.name
             ) as name,
-            dm.creation_date,
-            dm.last_modification_date
+            dm.creation_date as "creationDate",
+            dm.last_modification_date as "lastModificationDate"
             from delivery_methods dm
             where dm.id = :id
             """, nativeQuery = true)
-    Optional<DeliveryMethodView> findByIdWithLang(@Param("id") Long id, @Param("lang") String lang);
+    Optional<DeliveryMethodView> findViewByIdWithLang(@Param("id") Long id, @Param("lang") String lang);
 }

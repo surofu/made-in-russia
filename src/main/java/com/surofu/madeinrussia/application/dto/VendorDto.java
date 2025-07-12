@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -73,6 +74,24 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setRegistrationDate(user.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(user.getLastModificationDate().getValue());
 
+        return vendorDto;
+    }
+
+    @Schema(hidden = true)
+    public static VendorDto of(UserView view) {
+        if (view == null) {
+            return null;
+        }
+
+        VendorDto vendorDto = new VendorDto();
+        vendorDto.setId(view.getId());
+        vendorDto.setEmail(view.getEmail().toString());
+        vendorDto.setLogin(view.getLogin().toString());
+        vendorDto.setPhoneNumber(view.getPhoneNumber().toString());
+        vendorDto.setRole(view.getRole().getName());
+        vendorDto.setRegistrationDate(view.getRegistrationDate().getValue());
+        vendorDto.setLastModificationDate(view.getLastModificationDate().getValue());
+        vendorDto.setVendorDetails(VendorDetailsDto.of(view.getVendorDetails()));
         return vendorDto;
     }
 }

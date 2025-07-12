@@ -30,11 +30,24 @@ import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVe
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
+import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
+import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productCharacteristic.ProductCharacteristicView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productFaq.ProductFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productMedia.ProductMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productPackageOption.ProductPackageOptionView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.ProductPriceView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia.ProductReviewMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,47 +61,53 @@ import java.util.stream.Collectors;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
     private final ProductMediaRepository productMediaRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryMethodRepository deliveryMethodRepository;
+    private final ProductCharacteristicRepository productCharacteristicRepository;
+    private final ProductFaqRepository productFaqRepository;
+    private final ProductPriceRepository productPriceRepository;
+    private final ProductReviewMediaRepository productReviewMediaRepository;
+    private final ProductVendorDetailsRepository productVendorDetailsRepository;
+    private final ProductVendorDetailsMediaRepository productVendorDetailsMediaRepository;
+    private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
+    private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final FileStorageRepository fileStorageRepository;
 
     private final String TEMP_URL = "TEMP_URL";
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "product",
-            key = "#operation.getProductId()",
-            unless = "#result instanceof T(com.surofu.madeinrussia.core.service.product.operation.GetProductById$Result$NotFound)"
-    )
     public GetProductById.Result getProductById(GetProductById operation) {
-        Optional<Product> product = productRepository.getProductById(operation.getProductId());
+        Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(
+                operation.getProductId(), operation.getLocale().getLanguage()
+        );
 
-        if (product.isEmpty()) {
+        if (productView.isEmpty()) {
             return GetProductById.Result.notFound(operation.getProductId());
         }
 
-        Product fullProduct = loadFullProduct(product.get());
-        return GetProductById.Result.success(ProductDto.of(fullProduct));
+        ProductDto productDto = ProductDto.of(productView.get());
+        ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), operation.getLocale());
+
+        return GetProductById.Result.success(fullProductDto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "product",
-            key = "#operation.getArticleCode().toString()",
-            unless = "#result == null or #result.class.simpleName != 'Success'"
-    )
     public GetProductByArticle.Result getProductByArticle(GetProductByArticle operation) {
-        Optional<Product> product = productRepository.getProductByArticleCode(operation.getArticleCode());
+        Optional<ProductView> productView = productRepository.getProductViewByArticleAndLang(
+                operation.getArticleCode().toString(), operation.getLocale().getLanguage());
 
-        if (product.isEmpty()) {
+        if (productView.isEmpty()) {
             return GetProductByArticle.Result.notFound(operation.getArticleCode());
         }
+        ProductDto productDto = ProductDto.of(productView.get());
 
-        Product fullProduct = loadFullProduct(product.get());
-        return GetProductByArticle.Result.success(ProductDto.of(fullProduct));
+        ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), operation.getLocale());
+
+        return GetProductByArticle.Result.success(fullProductDto);
     }
 
     @Override
@@ -838,12 +857,122 @@ public class ProductApplicationService implements ProductService {
         return GetSearchHints.Result.success(groupedSearchHints);
     }
 
-    protected Product loadFullProduct(Product product) {
-        List<ProductMedia> productMedia = productMediaRepository.findAllByProductId(product.getId());
-        product.setMedia(new HashSet<>(productMedia));
-        Double productRating = productRepository.getProductRating(product.getId()).orElse(null);
-        product.setRating(productRating);
-        return product;
+    protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
+        // Vendor
+        Optional<UserView> userView = userRepository.getViewById(view.getUserId());
+        if (userView.isPresent()) {
+            VendorDto vendorDto = VendorDto.of(userView.get());
+            productDto.setUser(vendorDto);
+        }
+
+        // Delivery Methods
+        List<DeliveryMethodView> deliveryMethodViewList = deliveryMethodRepository.getAllDeliveryMethodViewsByProductIdLang(
+                productDto.getId(),
+                locale.getLanguage()
+        );
+        List<DeliveryMethodDto> deliveryMethodDtoList = deliveryMethodViewList.stream().map(DeliveryMethodDto::of).toList();
+        productDto.setDeliveryMethods(deliveryMethodDtoList);
+
+        // Category
+        Optional<CategoryView> categoryView = categoryRepository.getCategoryViewByIdAndLang(
+                view.getCategoryId(),
+                locale.getLanguage()
+        );
+
+        if (categoryView.isPresent()) {
+            CategoryDto categoryDto = CategoryDto.ofWithoutChildren(categoryView.get());
+            productDto.setCategory(categoryDto);
+        }
+
+        // Media
+        List<ProductMediaView> productMediaList = productMediaRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductMediaDto> productMediaDtoList = productMediaList.stream()
+                .map(ProductMediaDto::of)
+                .toList();
+        productDto.setMedia(productMediaDtoList);
+
+        // Similar Products
+        List<SimilarProductView> similarProductViewList = productRepository.getAllSimilarProductViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
+        );
+        List<SimilarProductDto> similarProductDtoList = similarProductViewList.stream()
+                .map(SimilarProductDto::of)
+                .toList();
+        productDto.setSimilarProducts(similarProductDtoList);
+
+        // Characteristics
+        List<ProductCharacteristicView> productCharacteristicList = productCharacteristicRepository.findAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductCharacteristicDto> productCharacteristicDtoList = productCharacteristicList.stream()
+                .map(ProductCharacteristicDto::of)
+                .toList();
+        productDto.setCharacteristics(productCharacteristicDtoList);
+
+        // Faq
+        List<ProductFaqView> productFaqList = productFaqRepository.findAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductFaqDto> productFaqDtoList = productFaqList.stream()
+                .map(ProductFaqDto::of)
+                .toList();
+        productDto.setFaq(productFaqDtoList);
+
+        // Prices
+        List<ProductPriceView> productPriceList = productPriceRepository.findAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductPriceDto> productPriceDtoList = productPriceList.stream()
+                .map(ProductPriceDto::of)
+                .toList();
+        productDto.setPrices(productPriceDtoList);
+
+        // Reviews Media
+        List<ProductReviewMediaView> productReviewMediaList = productReviewMediaRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductReviewMediaDto> productReviewMediaDtoList = productReviewMediaList.stream()
+                .map(ProductReviewMediaDto::of)
+                .toList();
+        productDto.setReviewsMedia(productReviewMediaDtoList);
+
+        // About Vendor
+        ProductVendorDetailsView productVendorDetailsView = productVendorDetailsRepository.getViewByProductId(
+                productDto.getId()
+        ).orElse(null);
+        ProductVendorDetailsDto productVendorDetailsDto = ProductVendorDetailsDto.of(productVendorDetailsView);
+        productDto.setAboutVendor(productVendorDetailsDto);
+
+        // About Vendor Media
+        if (productVendorDetailsView != null) {
+            List<ProductVendorDetailsMediaView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsByProductVendorDetailsId(
+                    productVendorDetailsView.getId()
+            );
+            List<ProductVendorDetailsMediaDto> productVendorDetailsMediaDtoList = productVendorDetailsMediaViewList.stream()
+                    .map(ProductVendorDetailsMediaDto::of).toList();
+            productVendorDetailsDto.setMedia(productVendorDetailsMediaDtoList);
+        }
+
+        // Delivery Method Details
+        List<ProductDeliveryMethodDetailsView>productDeliveryMethodDetailsViewList = productDeliveryMethodDetailsRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductDeliveryMethodDetailsDto> productDeliveryMethodDetailsDtoList = productDeliveryMethodDetailsViewList.stream()
+                .map(ProductDeliveryMethodDetailsDto::of).toList();
+        productDto.setDeliveryMethodsDetails(productDeliveryMethodDetailsDtoList);
+
+        // Packaging Options
+        List<ProductPackageOptionView> productPackageOptionViewList = productPackageOptionsRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductPackageOptionDto> productPackageOptionDtoList = productPackageOptionViewList.stream()
+                .map(ProductPackageOptionDto::of).toList();
+        productDto.setPackagingOptions(productPackageOptionDtoList);
+
+        return productDto;
     }
 
     private record PreloadContentInfo<T>(

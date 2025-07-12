@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.productMedia;
 
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.core.repository.ProductMediaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,7 +13,7 @@ public class JpaProductMediaRepository implements ProductMediaRepository {
     private final SpringDataProductMediaRepository repository;
 
     @Override
-    public List<ProductMedia> findAllByProductId(Long productId) {
-        return repository.findAllByProduct_Id(productId);
+    public List<ProductMediaView> getAllViewsByProductId(Long productId) {
+        return repository.findAllByProduct_IdOrderByPositionAsc(productId);
     }
 }

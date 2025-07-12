@@ -80,8 +80,6 @@ public final class ProductSummaryView implements Serializable {
     private List<DeliveryMethodDto> deliveryMethods;
 
     public String getTitleByLang(String lang) {
-        System.out.println(titleTranslations + " " + lang);
-
         if (titleTranslations == null || lang == null) {
             return title;
         }

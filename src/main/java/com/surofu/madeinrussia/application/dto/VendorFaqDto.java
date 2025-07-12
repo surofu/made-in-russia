@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -69,6 +70,17 @@ public final class VendorFaqDto implements Serializable {
                 .answer(vendorFaq.getAnswer().toString())
                 .creationDate(vendorFaq.getCreationDate().getValue())
                 .lastModificationDate(vendorFaq.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static VendorFaqDto of(VendorFaqView view) {
+        return VendorFaqDto.builder()
+                .id(view.getId())
+                .question(view.getQuestion().toString())
+                .answer(view.getAnswer().toString())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

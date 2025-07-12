@@ -87,4 +87,21 @@ public class JpaProductRepository implements ProductRepository {
     public List<SearchHintView> findHintViews(String searchTerm) {
         return repository.findHintViews(searchTerm);
     }
+
+    // View
+
+    @Override
+    public Optional<ProductView> getProductViewByIdAndLang(Long productId, String lang) {
+        return repository.findProductViewByIdAndLang(productId, lang);
+    }
+
+    @Override
+    public Optional<ProductView> getProductViewByArticleAndLang(String article, String lang) {
+        return repository.findProductViewByArticleCodeAndLang(article, lang);
+    }
+
+    @Override
+    public List<SimilarProductView> getAllSimilarProductViewsByProductIdAndLang(Long id, String lang) {
+        return repository.findAllSimilarProductViewByIdAndLang(id, lang);
+    }
 }

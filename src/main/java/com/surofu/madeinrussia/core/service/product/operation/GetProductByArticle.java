@@ -5,9 +5,12 @@ import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetProductByArticle {
+    Locale locale;
     ProductArticleCode articleCode;
 
     public interface Result {

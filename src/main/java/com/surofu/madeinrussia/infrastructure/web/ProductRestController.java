@@ -35,6 +35,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @Validated
@@ -110,7 +112,8 @@ public class ProductRestController {
             @PathVariable
             Long productId
     ) {
-        GetProductById operation = GetProductById.of(productId);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetProductById operation = GetProductById.of(locale, productId);
         return productService.getProductById(operation).process(getProductByIdProcessor);
     }
 
@@ -164,7 +167,8 @@ public class ProductRestController {
             )
             @PathVariable String article
     ) {
-        GetProductByArticle operation = GetProductByArticle.of(ProductArticleCode.of(article));
+        Locale locale = LocaleContextHolder.getLocale();
+        GetProductByArticle operation = GetProductByArticle.of(locale, ProductArticleCode.of(article));
         return productService.getProductByArticle(operation).process(getProductByArticleProcessor);
     }
 

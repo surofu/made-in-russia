@@ -15,23 +15,18 @@ public class JpaDeliveryMethodRepository implements DeliveryMethodRepository {
     private final SpringDataDeliveryMethodRepository repository;
 
     @Override
-    public List<DeliveryMethod> getAllDeliveryMethods() {
-        return repository.findAll();
-    }
-
-    @Override
     public List<DeliveryMethodView> getAllDeliveryMethodViewsByLang(String lang) {
         return repository.findAllViewsByLang(lang);
     }
 
     @Override
-    public Optional<DeliveryMethod> getDeliveryMethodById(Long id) {
-        return repository.findById(id);
+    public List<DeliveryMethodView> getAllDeliveryMethodViewsByProductIdLang(Long productId, String lang) {
+        return repository.findViewsByProductIdWithByLang(productId, lang);
     }
 
     @Override
-    public Optional<DeliveryMethodView> getDeliveryMethodViewByIdWithLang(Long id, String lang) {
-        return repository.findByIdWithLang(id, lang);
+    public Optional<DeliveryMethodView> getDeliveryMethodViewByIdAndLang(Long id, String lang) {
+        return repository.findViewByIdWithLang(id, lang);
     }
 
     @Override

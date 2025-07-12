@@ -73,4 +73,118 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             order by p.category.name.value, p.title.value
             """)
     List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm);
+
+    // View
+
+    @Query(value = """
+        select
+        p.id,
+        p.user_id as "userId",
+        p.category_id,
+        p.article_code as "articleCode",
+        coalesce(
+            p.title_translations -> :lang,
+            p.title
+        ) as title,
+        coalesce(
+            p.main_description_translations -> :lang,
+            p.main_description
+        ) as "mainDescription",
+        coalesce(
+            p.further_description_translations -> :lang,
+            p.further_description
+        ) as "furtherDescription",
+        p.preview_image_url as "previewImageUrl",
+        p.minimum_order_quantity as "minimumOrderQuantity",
+        p.discount_expiration_date as "discountExpirationDate",
+        p.creation_date as "creationDate",
+        p.last_modification_date as "lastModificationDate",
+        (
+            select
+                case
+                    when count(pr.rating) = 0 then null
+                    else cast(round(
+                        case
+                            when avg(pr.rating) < 1.0 then 1.0
+                            when avg(pr.rating) > 5.0 then 5.0
+                            else avg(pr.rating)
+                        end, 1
+                    ) as double precision)
+                end
+            from product_reviews pr
+            where pr.product_id = :id
+        ) as "rating",
+        (
+            select count(*)
+            from product_reviews pr
+            where pr.product_id = :id
+        ) as "reviewsCount"
+        from products p
+        where p.id = :id
+    """, nativeQuery = true)
+    Optional<ProductView> findProductViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+    @Query(value = """
+        select
+        p.id,
+        p.user_id as "userId",
+        p.category_id,
+        p.article_code as "articleCode",
+        coalesce(
+            p.title_translations -> :lang,
+            p.title
+        ) as title,
+        coalesce(
+            p.main_description_translations -> :lang,
+            p.main_description
+        ) as "mainDescription",
+        coalesce(
+            p.further_description_translations -> :lang,
+            p.further_description
+        ) as "furtherDescription",
+        p.preview_image_url as "previewImageUrl",
+        p.minimum_order_quantity as "minimumOrderQuantity",
+        p.discount_expiration_date as "discountExpirationDate",
+        p.creation_date as "creationDate",
+        p.last_modification_date as "lastModificationDate",
+        (
+            select
+                case
+                    when count(pr.rating) = 0 then null
+                    else cast(round(
+                        case
+                            when avg(pr.rating) < 1.0 then 1.0
+                            when avg(pr.rating) > 5.0 then 5.0
+                            else avg(pr.rating)
+                        end, 1
+                    ) as double precision)
+                end
+            from product_reviews pr
+            join products pp on pr.product_id = pp.id
+            where pp.article_code = :article
+        ) as "rating",
+        (
+            select count(*)
+            from product_reviews pr
+            join products pp on pr.product_id = pp.id
+            where pp.article_code = :article
+        ) as "reviewsCount"
+        from products p
+        where p.article_code = :article
+    """, nativeQuery = true)
+    Optional<ProductView> findProductViewByArticleCodeAndLang(@Param("article") String article, @Param("lang") String lang);
+
+    @Query(value = """
+    select
+    p.id,
+    coalesce(
+        p.title_translations -> :lang,
+        p.title
+    ) as title,
+    p.preview_image_url
+    from products p
+    join similar_products sp on p.id = sp.similar_product_id
+    where sp.parent_product_id = :id
+    """, nativeQuery = true)
+    List<SimilarProductView> findAllSimilarProductViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 }

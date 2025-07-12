@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,6 +63,7 @@ public final class VendorCountryDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
+    @Schema(hidden = true)
     public static VendorCountryDto of(VendorCountry vendorCountry) {
         if (vendorCountry == null) {
             return null;
@@ -72,6 +74,20 @@ public final class VendorCountryDto implements Serializable {
                 .name(vendorCountry.getName().getValue())
                 .creationDate(vendorCountry.getCreationDate().getValue())
                 .lastModificationDate(vendorCountry.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static VendorCountryDto of(VendorCountryView view) {
+        if (view == null) {
+            return null;
+        }
+
+        return VendorCountryDto.builder()
+                .id(view.getId())
+                .name(view.getName().getValue())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

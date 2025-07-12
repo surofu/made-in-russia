@@ -1,9 +1,9 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productFaq.ProductFaqView;
 
 import java.util.List;
 
 public interface ProductFaqRepository {
-    List<ProductFaq> findAllByProductId(Long productId);
+    List<ProductFaqView> findAllViewsByProductId(Long productId);
 }

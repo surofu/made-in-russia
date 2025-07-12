@@ -1,9 +1,9 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.ProductPriceView;
 
 import java.util.List;
 
 public interface ProductPriceRepository {
-    List<ProductPrice> findAllByProductId(Long productId);
+    List<ProductPriceView> findAllViewsByProductId(Long productId);
 }

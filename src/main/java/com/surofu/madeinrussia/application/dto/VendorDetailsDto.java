@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.VendorDetailsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -134,6 +135,24 @@ public final class VendorDetailsDto implements Serializable {
                 .viewsCount(vendorDetails.getVendorViewsCount())
                 .creationDate(vendorDetails.getCreationDate().getValue())
                 .lastModificationDate(vendorDetails.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static VendorDetailsDto of(VendorDetailsView view) {
+        if (view == null) {
+            return null;
+        }
+
+        return VendorDetailsDto.builder()
+                .id(view.getId())
+                .inn(view.getInn().toString())
+                .viewsCount(view.getViewsCount())
+                .faq(view.getFaqs().stream().map(VendorFaqDto::of).toList())
+                .countries(view.getCountries().stream().map(VendorCountryDto::of).toList())
+                .productCategories(view.getProductCategories().stream().map(VendorProductCategoryDto::of).toList())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

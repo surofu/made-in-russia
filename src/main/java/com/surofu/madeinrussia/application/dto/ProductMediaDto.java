@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productMedia.ProductMediaView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,6 +78,19 @@ public final class ProductMediaDto {
                 .altText(productMedia.getAltText().toString())
                 .creationDate(productMedia.getCreationDate().getValue())
                 .lastModificationDate(productMedia.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductMediaDto of(ProductMediaView view) {
+        return ProductMediaDto.builder()
+                .id(view.getId())
+                .mediaType(view.getMediaType().getName())
+                .mimeType(view.getMimeType().toString())
+                .url(view.getUrl().toString())
+                .altText(view.getAltText().toString())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

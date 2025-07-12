@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia.ProductReviewMediaView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,6 +78,19 @@ public final class ProductReviewMediaDto {
                 .altText(productReviewMedia.getAltText().toString())
                 .creationDate(productReviewMedia.getCreationDate().getValue())
                 .lastModificationDate(productReviewMedia.getLastModificationDate().getValue())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static ProductReviewMediaDto of(ProductReviewMediaView view) {
+        return ProductReviewMediaDto.builder()
+                .id(view.getId())
+                .mediaType(view.getMediaType().getName())
+                .mimeType(view.getMimeType().toString())
+                .url(view.getUrl().toString())
+                .altText(view.getAltText().toString())
+                .creationDate(view.getCreationDate().getValue())
+                .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();
     }
 }

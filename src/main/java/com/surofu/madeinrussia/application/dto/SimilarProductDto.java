@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,13 +33,21 @@ public final class SimilarProductDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String imageUrl;
 
-    @Schema(description = "Creates SimilarProductDto from Product entity",
-            hidden = true)
+    @Schema(hidden = true)
     public static SimilarProductDto of(Product product) {
         return SimilarProductDto.builder()
                 .id(product.getId())
                 .title(product.getTitle().toString())
                 .imageUrl(product.getPreviewImageUrl().toString())
+                .build();
+    }
+
+    @Schema(hidden = true)
+    public static SimilarProductDto of(SimilarProductView view) {
+        return SimilarProductDto.builder()
+                .id(view.getId())
+                .title(view.getTitle())
+                .imageUrl(view.getPreviewImageUrl())
                 .build();
     }
 }

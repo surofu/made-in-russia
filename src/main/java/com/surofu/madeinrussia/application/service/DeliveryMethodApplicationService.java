@@ -36,7 +36,7 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService {
     @Override
     @Transactional(readOnly = true)
     public GetDeliveryMethodById.Result getDeliveryMethodById(GetDeliveryMethodById operation) {
-        Optional<DeliveryMethodView> deliveryMethod = repository.getDeliveryMethodViewByIdWithLang(
+        Optional<DeliveryMethodView> deliveryMethod = repository.getDeliveryMethodViewByIdAndLang(
                 operation.getDeliveryMethodId(), operation.getLocale().getLanguage());
         Optional<DeliveryMethodDto> deliveryMethodDto = deliveryMethod.map(DeliveryMethodDto::of);
 

@@ -3,10 +3,7 @@ package com.surofu.madeinrussia.core.model.product.productMedia;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.Product;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
