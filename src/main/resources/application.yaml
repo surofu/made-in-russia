@@ -1,5 +1,10 @@
 server:
   port: ${PORT}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript,application/javascript
+    min-response-size: 2KB
+    excluded-user-agents: MSIE 6.0,UCBrowser
 
 #========= Spring =========#
 spring:
