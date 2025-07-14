@@ -44,6 +44,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.P
 import com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia.ProductReviewMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,7 @@ public class ProductApplicationService implements ProductService {
     private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
     private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final FileStorageRepository fileStorageRepository;
+    private final TranslationRepository translationRepository;
 
     private final String TEMP_URL = "TEMP_URL";
 
@@ -190,6 +192,48 @@ public class ProductApplicationService implements ProductService {
         product.setUser(operation.getSecurityUser().getUser());
         product.setTitle(operation.getProductTitle());
         product.setDescription(operation.getProductDescription());
+
+        try {
+            TranslationResponse translationResponseEn = translationRepository.translateToEn(
+                    operation.getProductTitle().toString(),
+                    operation.getProductDescription().getMainDescription(),
+                    operation.getProductDescription().getFurtherDescription()
+            );
+            TranslationResponse translationResponseRu = translationRepository.translateToRu(
+                    operation.getProductTitle().toString(),
+                    operation.getProductDescription().getMainDescription(),
+                    operation.getProductDescription().getFurtherDescription()
+            );
+            TranslationResponse translationResponseZh = translationRepository.translateToZh(
+                    operation.getProductTitle().toString(),
+                    operation.getProductDescription().getMainDescription(),
+                    operation.getProductDescription().getFurtherDescription()
+            );
+            HstoreTranslationDto titleTranslationDto = new HstoreTranslationDto(
+                    translationResponseEn.getTranslations()[0].getText(),
+                    translationResponseRu.getTranslations()[0].getText(),
+                    translationResponseZh.getTranslations()[0].getText()
+            );
+
+            HstoreTranslationDto mainDescriptionTranslationDto = new HstoreTranslationDto(
+                    translationResponseEn.getTranslations()[1].getText(),
+                    translationResponseRu.getTranslations()[1].getText(),
+                    translationResponseZh.getTranslations()[1].getText()
+            );
+
+            HstoreTranslationDto furtherDescriptionTranslationDto = new HstoreTranslationDto(
+                    translationResponseEn.getTranslations()[2].getText(),
+                    translationResponseRu.getTranslations()[2].getText(),
+                    translationResponseZh.getTranslations()[2].getText()
+            );
+
+            product.getTitle().setTranslations(titleTranslationDto);
+            product.getDescription().setMainDescriptionTranslations(mainDescriptionTranslationDto);
+            product.getDescription().setFurtherDescriptionTranslations(furtherDescriptionTranslationDto);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return CreateProduct.Result.errorSavingFiles();
+        }
 
         if (operation.getCategoryId() == null) {
             throw new IllegalArgumentException("Категория товара не может быть пустой");

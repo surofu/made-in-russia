@@ -1,10 +1,14 @@
 package com.surofu.madeinrussia.core.model.product;
 
+import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 
@@ -15,6 +19,12 @@ public final class ProductTitle implements Serializable {
 
     @Column(name = "title", nullable = false)
     private String value;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "title_translations", nullable = false, columnDefinition = "hstore")
+    private String translations;
 
     private ProductTitle(String title) {
         if (title == null || title.trim().isEmpty()) {
@@ -30,6 +40,14 @@ public final class ProductTitle implements Serializable {
 
     public static ProductTitle of(String title) {
         return new ProductTitle(title);
+    }
+
+    public HstoreTranslationDto getTranslations() {
+        return HstoreParser.fromString(this.translations);
+    }
+
+    public void setTranslations(HstoreTranslationDto translations) {
+        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

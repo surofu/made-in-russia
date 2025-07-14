@@ -142,3 +142,8 @@ app:
       max-width: ${VIDEO_COMPRESS_MAX_WIDTH}
       max-height: ${VIDEO_COMPRESS_MAX_HEIGHT}
       quality: ${VIDEO_COMPRESS_QUALITY}
+  yandex:
+    translate:
+      uri: https://translate.api.cloud.yandex.net/translate/v2/translate
+      folder-id: ${YANDEX_TRANSLATE_FOLDER_ID}
+      secret: ${YANDEX_TRANSLATE_SECRET}

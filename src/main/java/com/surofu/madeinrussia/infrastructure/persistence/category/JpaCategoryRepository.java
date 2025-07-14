@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.category;
 
 import com.surofu.madeinrussia.core.model.category.Category;
-import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

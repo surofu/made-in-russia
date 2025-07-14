@@ -1,10 +1,14 @@
 package com.surofu.madeinrussia.core.model.product;
 
+import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 
@@ -18,6 +22,18 @@ public final class ProductDescription implements Serializable {
 
     @Column(name = "further_description", nullable = false, columnDefinition = "text")
     private String furtherDescription;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "main_description_translations", nullable = false, columnDefinition = "hstore")
+    private String mainDescriptionTranslations;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "further_description_translations", nullable = false, columnDefinition = "hstore")
+    private String furtherDescriptionTranslations;
 
     private ProductDescription(String mainDescription, String furtherDescription) {
         if (mainDescription == null || mainDescription.trim().isEmpty()) {
@@ -38,6 +54,22 @@ public final class ProductDescription implements Serializable {
 
         this.mainDescription = mainDescription;
         this.furtherDescription = furtherDescription;
+    }
+
+    public HstoreTranslationDto getMainDescriptionTranslations() {
+        return HstoreParser.fromString(this.mainDescriptionTranslations);
+    }
+
+    public void setMainDescriptionTranslations(HstoreTranslationDto translations) {
+        this.mainDescriptionTranslations = HstoreParser.toString(translations);
+    }
+
+    public HstoreTranslationDto getFurtherDescriptionTranslations() {
+        return HstoreParser.fromString(this.furtherDescriptionTranslations);
+    }
+
+    public void setFurtherDescriptionTranslations(HstoreTranslationDto translations) {
+        this.furtherDescriptionTranslations = HstoreParser.toString(translations);
     }
 
     public static ProductDescription of(String mainDescription, String furtherDescription) {

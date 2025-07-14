@@ -40,13 +40,11 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
-        List<Long> categoryIdsWithChildren = new ArrayList<>();
+        List<Long> categoryIdsWithChildren = new ArrayList<>(allChildCategoriesIds);
 
         if (operation.getCategoryIds() != null) {
             categoryIdsWithChildren.addAll(operation.getCategoryIds());
         }
-
-        categoryIdsWithChildren.addAll(allChildCategoriesIds);
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
@@ -99,13 +97,11 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
-        List<Long> categoryIdsWithChildren = new ArrayList<>();
+        List<Long> categoryIdsWithChildren = new ArrayList<>(allChildCategoriesIds);
 
         if (operation.getCategoryIds() != null) {
             categoryIdsWithChildren.addAll(operation.getCategoryIds());
         }
-
-        categoryIdsWithChildren.addAll(allChildCategoriesIds);
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
