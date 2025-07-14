@@ -4,10 +4,10 @@
     "profile": "转到个人资料页",
     "search": "网站搜索",
     "login": "登录",
-    "category": "TEST",
-    "reviews": "TEST",
-    "delivery": "TEST",
-    "about": "TEST us",
+    "category": "分类",
+    "reviews": "评论",
+    "delivery": "配送",
+    "about": "关于我们",
     "help": "帮助",
     "contacts": "联系方式",
     "more": "更多",
@@ -307,6 +307,13 @@
     "question":"问题",
     "answer":"答案",
     "faqTitle":"빠른 질문"
+},
+"CategoryMenu": {
+    "isEmptyAll": "未找到类别",
+    "categoryBack": "☰ 类别",
+    "backButton": "← 返回",
+    "subCategoryEmpty": "无子类别",
+    "categoryTitle": "类别"
 }
 
 

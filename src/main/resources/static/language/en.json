@@ -4,10 +4,10 @@
     "profile": "Go to profile page",
     "search": "Site search",
     "login": "Log in",
-    "category": "TEST",
-    "reviews": "TEST",
-    "delivery": "TEST",
-    "about": "TEST us",
+    "category": "Categories",
+    "reviews": "Reviews",
+    "delivery": "Delivery",
+    "about": "About us",
     "help": "Help",
     "contacts": "Contacts",
     "more": "More",
@@ -307,6 +307,13 @@
     "question":"Question",
     "answer":"Answer",
     "faqTitle":"Quick questions"
+},
+"CategoryMenu": {
+    "isEmptyAll": "No categories found",
+    "categoryBack": "☰ Categories",
+    "backButton": "← Back",
+    "subCategoryEmpty": "No subcategories",
+    "categoryTitle": "Categories"
 }
 
 }

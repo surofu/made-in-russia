@@ -4,10 +4,10 @@
      "profile": "Перейти на страницу профиля",
      "search": "Поиск по сайту",
      "login": "Войти",
-     "category": "ТЕСТ!!!!",
-     "reviews": "ТЕСТ!!!!",
-     "delivery": "ТЕСТ!!!!",
-     "about": "О ТЕСТ!!!!",
+     "category": "Категории",
+     "reviews": "Отзывы",
+     "delivery": "Доставка",
+     "about": "О нас",
      "help": "Помощь",
      "contacts": "Контакты",
      "more":"Еще",
@@ -313,5 +313,12 @@
     "question":"Вопрос",
     "answer":"Ответ",
     "faqTitle":"Быстрые вопросы"
+   },
+   "CategoryMenu":{
+    "isEmptyAll":"Категории не найдены",
+    "categoryBack":"☰ Категории",
+    "backButton":"← Назад",
+    "subCategoryEmpty":"Подкатегории отсутствуют",
+    "categoryTitle":"Категории"
    }
  }
