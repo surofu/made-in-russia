@@ -45,8 +45,10 @@ public class YandexTranslationRepository implements TranslationRepository {
         TranslationRequest translationRequest = new TranslationRequest(
                 language,
                 texts,
-                folderId
+                folderId,
+                "html"
         );
+
         String requestBody = objectMapper.writeValueAsString(translationRequest);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -69,7 +71,8 @@ public class YandexTranslationRepository implements TranslationRepository {
     private record TranslationRequest(
             String targetLanguageCode,
             String[] texts,
-            String folderId
+            String folderId,
+            String textType
     ) {
     }
 }
