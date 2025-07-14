@@ -20,9 +20,6 @@ RUN java -Djarmode=layertools -jar app.jar extract
 FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
-# Устанавливаем curl для healthcheck
-RUN apk add --no-cache curl
-
 # Копируем слои в правильном порядке для лучшего кеширования
 COPY --from=builder app/dependencies/ ./
 COPY --from=builder app/spring-boot-loader/ ./
@@ -30,16 +27,8 @@ COPY --from=builder app/snapshot-dependencies/ ./
 COPY --from=builder app/application/ ./
 
 # Оптимизированные JVM параметры для контейнеризации
-ENV JAVA_TOOL_OPTIONS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+TieredCompilation -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+UseTransparentHugePages"
-
-# Создаем директорию для дампов памяти
-RUN mkdir -p /data/heapdumps && chmod 777 /data/heapdumps
-
-# Ограничиваем количество потоков для Tomcat
-ENV CATALINA_OPTS="-XX:ActiveProcessorCount=2"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseContainerSupport"
 
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
