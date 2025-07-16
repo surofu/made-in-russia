@@ -1,18 +1,15 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.faq;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqAnswer;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqCreationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqLastModificationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqQuestion;
+import java.time.Instant;
 
 public interface VendorFaqView {
     Long getId();
 
-    VendorFaqQuestion getQuestion();
+    String getQuestion();
 
-    VendorFaqAnswer getAnswer();
+    String getAnswer();
 
-    VendorFaqCreationDate getCreationDate();
+    Instant getCreationDate();
 
-    VendorFaqLastModificationDate getLastModificationDate();
+    Instant getLastModificationDate();
 }

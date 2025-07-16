@@ -35,8 +35,6 @@ public interface ProductRepository {
 
     List<Product> findAllByIds(List<Long> productIds);
 
-    Optional<Double> getProductRating(Long productId);
-
     boolean existsById(Long productId);
 
     List<SearchHintView> findHintViews(String searchTerm);

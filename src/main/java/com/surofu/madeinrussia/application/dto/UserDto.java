@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -50,6 +51,25 @@ public final class UserDto extends AbstractAccountDto implements Serializable {
         userDto.setRegion(user.getRegion().getValue());
         userDto.setRegistrationDate(user.getRegistrationDate().getValue());
         userDto.setLastModificationDate(user.getLastModificationDate().getValue());
+
+        return userDto;
+    }
+
+    @Schema(hidden = true)
+    public static UserDto of(UserView view) {
+        if (view == null) {
+            return null;
+        }
+
+        UserDto userDto = new UserDto();
+        userDto.setId(view.getId());
+        userDto.setRole(view.getRole().getName());
+        userDto.setLogin(view.getLogin().getValue());
+        userDto.setEmail(view.getEmail().getValue());
+        userDto.setPhoneNumber(view.getPhoneNumber().getValue());
+        userDto.setRegion(view.getRegion().getValue());
+        userDto.setRegistrationDate(view.getRegistrationDate().getValue());
+        userDto.setLastModificationDate(view.getLastModificationDate().getValue());
 
         return userDto;
     }

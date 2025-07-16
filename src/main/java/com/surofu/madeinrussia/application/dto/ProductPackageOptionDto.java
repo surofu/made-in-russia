@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productPackageOption.ProductPackageOptionView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -45,11 +46,11 @@ public final class ProductPackageOptionDto implements Serializable {
     public static ProductPackageOptionDto of(ProductPackageOptionView view) {
         return ProductPackageOptionDto.builder()
                 .id(view.getId())
-                .name(view.getName().toString())
-                .price(view.getPrice().getValue())
-                .priceUnit(view.getPriceUnit().toString())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .name(view.getName())
+                .price(view.getPrice())
+                .priceUnit(view.getPriceUnit())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

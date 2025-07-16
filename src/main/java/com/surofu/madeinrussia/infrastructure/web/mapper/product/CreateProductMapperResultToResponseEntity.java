@@ -71,4 +71,11 @@ public class CreateProductMapperResultToResponseEntity
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
+
+    @Override
+    public ResponseEntity<?> processTranslationError(CreateProduct.Result.TranslationError result) {
+        String message = localizationManager.localize("product.error.translation");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

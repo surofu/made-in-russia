@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.ProductPriceView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

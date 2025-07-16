@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface VendorProductCategoryRepository {
 
-    List<VendorProductCategoryView> getAllViewsByVendorDetailsId(Long id);
+    List<VendorProductCategoryView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang);
 }

@@ -6,7 +6,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqVi
 import java.util.List;
 
 public interface VendorFaqRepository {
-    List<VendorFaqView> getAllViewsByVendorDetailsId(Long id);
+    List<VendorFaqView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang);
 
     void save(VendorFaq vendorFaq);
 

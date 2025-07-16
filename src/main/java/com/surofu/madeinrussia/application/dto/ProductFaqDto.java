@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productFaq.ProductFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -88,10 +89,10 @@ public final class ProductFaqDto implements Serializable {
     public static ProductFaqDto of(ProductFaqView view) {
         return ProductFaqDto.builder()
                 .id(view.getId())
-                .question(view.getQuestion().toString())
-                .answer(view.getAnswer().toString())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .question(view.getQuestion())
+                .answer(view.getAnswer())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

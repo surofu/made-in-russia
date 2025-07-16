@@ -31,6 +31,11 @@ public class VerifyEmail {
             return InvalidVerificationCode.INSTANCE;
         }
 
+        static Result translationError(Exception e) {
+            log.warn("Translation error: {}", e.getMessage());
+            return TranslationError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             VerifyEmailSuccessDto verifyEmailSuccessDto;
@@ -60,10 +65,20 @@ public class VerifyEmail {
             }
         }
 
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processAccountNotFound(AccountNotFound result);
             T processInvalidVerificationCode(InvalidVerificationCode result);
+            T processTranslationError(TranslationError result);
         }
     }
 }

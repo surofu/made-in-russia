@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetails;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethodDetails.ProductDeliveryMethodDetailsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -42,10 +43,10 @@ public final class ProductDeliveryMethodDetailsDto implements Serializable {
     public static ProductDeliveryMethodDetailsDto of(ProductDeliveryMethodDetailsView view) {
         return ProductDeliveryMethodDetailsDto.builder()
                 .id(view.getId())
-                .name(view.getName().toString())
-                .value(view.getValue().toString())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .name(view.getName())
+                .value(view.getValue())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

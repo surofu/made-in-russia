@@ -10,9 +10,9 @@ import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.*;
@@ -22,6 +22,10 @@ import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +53,9 @@ public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
-    private final VendorViewRepository vendorViewRepository;
+    private final VendorCountryRepository vendorCountryRepository;
+    private final VendorProductCategoryRepository vendorProductCategoryRepository;
+    private final VendorFaqRepository vendorFaqRepository;
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
@@ -72,17 +78,37 @@ public class MeApplicationService implements MeService {
             );
         }
 
-        User user = securityUser.getUser();
+        UserView userView = userRepository.getViewById(operation.getSecurityUser().getUser().getId()).orElseThrow();
 
-        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
-            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(user.getVendorDetails().getId());
-            user.getVendorDetails().setVendorViewsCount(viewsCount);
+        if (userView.getRole().equals(UserRole.ROLE_VENDOR)) {
+            VendorDto vendorDto = VendorDto.of(userView);
 
-            VendorDto vendorDto = VendorDto.of(user);
+            List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    operation.getLocale().getLanguage()
+            );
+
+            List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    operation.getLocale().getLanguage()
+            );
+            List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
+                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    operation.getLocale().getLanguage()
+            );
+
+            List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
+            List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
+            List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
+
+            vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
+            vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
+            vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
+
             return GetMe.Result.success(vendorDto);
         }
 
-        UserDto userDto = UserDto.of(user);
+        UserDto userDto = UserDto.of(userView);
         return GetMe.Result.success(userDto);
     }
 

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -85,9 +86,9 @@ public final class VendorCountryDto implements Serializable {
 
         return VendorCountryDto.builder()
                 .id(view.getId())
-                .name(view.getName().getValue())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .name(view.getName())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

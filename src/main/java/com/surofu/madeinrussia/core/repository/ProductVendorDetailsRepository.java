@@ -5,5 +5,5 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorD
 import java.util.Optional;
 
 public interface ProductVendorDetailsRepository {
-    Optional<ProductVendorDetailsView> getViewByProductId(Long productId);
+    Optional<ProductVendorDetailsView> getViewByProductIdAndLang(Long productId, String lang);
 }

@@ -97,7 +97,8 @@ public class MeRestController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMeByJwt(@Parameter(hidden = true)
                                         @AuthenticationPrincipal SecurityUser securityUser) {
-        GetMe operation = GetMe.of(securityUser);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetMe operation = GetMe.of(securityUser, locale);
         return meService.getMeByJwt(operation).process(getMeByJwtProcessor);
     }
 

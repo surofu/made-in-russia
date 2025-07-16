@@ -13,7 +13,7 @@ public class JpaVendorProductCountryRepository implements VendorProductCategoryR
     private final SpringDataVendorProductCountryRepository repository;
 
     @Override
-    public List<VendorProductCategoryView> getAllViewsByVendorDetailsId(Long id) {
-        return repository.findAllViewsByVendorDetails_Id(id);
+    public List<VendorProductCategoryView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang) {
+        return repository.findAllViewsByVendorDetailsIdAndLang(id, lang);
     }
 }

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,10 +56,10 @@ public final class ProductVendorDetailsDto implements Serializable {
 
         return ProductVendorDetailsDto.builder()
                 .id(view.getId())
-                .mainDescription(view.getDescription().getMainDescription())
-                .furtherDescription(view.getDescription().getFurtherDescription())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .mainDescription(view.getMainDescription())
+                .furtherDescription(view.getFurtherDescription())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

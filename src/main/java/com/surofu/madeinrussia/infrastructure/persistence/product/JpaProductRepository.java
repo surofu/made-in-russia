@@ -74,11 +74,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<Double> getProductRating(Long productId) {
-        return repository.getProductRatingById(productId);
-    }
-
-    @Override
     public boolean existsById(Long productId) {
         return repository.existsById(productId);
     }

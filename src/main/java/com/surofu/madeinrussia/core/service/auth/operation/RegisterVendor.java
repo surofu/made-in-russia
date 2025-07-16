@@ -51,6 +51,11 @@ public class RegisterVendor {
             return UserWithPhoneNumberAlreadyExists.of(userPhoneNumber);
         }
 
+        static Result vendorWithInnAlreadyExists(VendorDetailsInn inn) {
+            log.warn("Vendor with inn '{}' already exists", inn.toString());
+            return VendorWithInnAlreadyExists.of(inn);
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             UserEmail userEmail;
@@ -91,11 +96,22 @@ public class RegisterVendor {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class VendorWithInnAlreadyExists implements Result {
+            VendorDetailsInn inn;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processVendorWithInnAlreadyExists(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processUserWithEmailAlreadyExists(UserWithEmailAlreadyExists result);
             T processUserWithLoginAlreadyExists(UserWithLoginAlreadyExists result);
             T processUserWithPhoneNumberAlreadyExists(UserWithPhoneNumberAlreadyExists result);
+            T processVendorWithInnAlreadyExists(VendorWithInnAlreadyExists result);
         }
     }
 }

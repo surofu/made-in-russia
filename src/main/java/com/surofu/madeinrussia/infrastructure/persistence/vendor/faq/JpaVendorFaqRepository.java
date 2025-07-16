@@ -14,8 +14,8 @@ public class JpaVendorFaqRepository implements VendorFaqRepository {
     private final SpringDataVendorFaqRepository repository;
 
     @Override
-    public List<VendorFaqView> getAllViewsByVendorDetailsId(Long id) {
-        return repository.findAllViewsByVendorDetails_Id(id);
+    public List<VendorFaqView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang) {
+        return repository.findAllViewsByVendorDetailsIdAndLang(id, lang);
     }
 
     @Override

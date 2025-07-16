@@ -33,4 +33,11 @@ public class VerifyEmailMapperResultToResponseEntity
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }
+
+    @Override
+    public ResponseEntity<?> processTranslationError(VerifyEmail.Result.TranslationError result) {
+        String message = localizationManager.localize("auth.email_verification.translation_error");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

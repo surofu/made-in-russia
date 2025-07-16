@@ -14,10 +14,17 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.repository.VendorDetailsRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
+import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,6 +36,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -37,7 +46,9 @@ import java.util.Optional;
 public class AuthApplicationService implements AuthService {
     private final UserRepository userRepository;
     private final UserPasswordRepository userPasswordRepository;
+    private final TranslationRepository translationRepository;
     private final AuthenticationManager authenticationManager;
+    private final VendorDetailsRepository vendorDetailsRepository;
     private final JwtUtils jwtUtils;
 
     private final AsyncAuthApplicationService asyncAuthApplicationService;
@@ -85,6 +96,10 @@ public class AuthApplicationService implements AuthService {
 
         if (userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
             return RegisterVendor.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
+        }
+
+        if (vendorDetailsRepository.existsByInn(operation.getVendorDetailsInn())) {
+            return RegisterVendor.Result.vendorWithInnAlreadyExists(operation.getVendorDetailsInn());
         }
 
         asyncAuthApplicationService.saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(operation)
@@ -156,6 +171,44 @@ public class AuthApplicationService implements AuthService {
         if (user == null) {
             log.error("User with email {} not found in cache", operation.getUserEmail());
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
+        }
+
+        if (user.getVendorDetails() != null) {
+            List<String> vendorCountryNames = user.getVendorDetails().getVendorCountries().stream()
+                    .map(VendorCountry::getName).map(VendorCountryName::toString).toList();
+            List<String> vendorPcNames = user.getVendorDetails().getVendorProductCategories().stream()
+                    .map(VendorProductCategory::getName).map(VendorProductCategoryName::toString).toList();
+
+            List<String> vendorStrings = new ArrayList<>(vendorCountryNames.size() + vendorPcNames.size());
+
+            vendorStrings.addAll(vendorCountryNames);
+            vendorStrings.addAll(vendorPcNames);
+
+            try {
+                TranslationResponse enTranslationResponse = translationRepository.translateToEn(vendorStrings.toArray(new String[0]));
+                TranslationResponse ruTranslationResponse = translationRepository.translateToRu(vendorStrings.toArray(new String[0]));
+                TranslationResponse zhTranslationResponse = translationRepository.translateToZh(vendorStrings.toArray(new String[0]));
+
+                for (int i = 0; i < vendorCountryNames.size(); i++) {
+                    VendorCountry vendorCountry = user.getVendorDetails().getVendorCountries()
+                            .toArray(VendorCountry[]::new)[i];
+                    vendorCountry.getName().setTranslations(new HstoreTranslationDto(
+                            enTranslationResponse.getTranslations()[i].getText(),
+                            ruTranslationResponse.getTranslations()[i].getText(),
+                            zhTranslationResponse.getTranslations()[i].getText()
+                    ));
+
+                    VendorProductCategory vendorProductCategory = user.getVendorDetails().getVendorProductCategories()
+                            .toArray(VendorProductCategory[]::new)[i];
+                    vendorProductCategory.getName().setTranslations(new HstoreTranslationDto(
+                       enTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
+                       ruTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
+                       zhTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText()
+                    ));
+                }
+            } catch (Exception e) {
+                return VerifyEmail.Result.translationError(e);
+            }
         }
 
         UserPassword userPassword = userVerificationCaffeineCacheManager.getUserPassword(operation.getUserEmail());

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -77,10 +78,10 @@ public final class VendorFaqDto implements Serializable {
     public static VendorFaqDto of(VendorFaqView view) {
         return VendorFaqDto.builder()
                 .id(view.getId())
-                .question(view.getQuestion().toString())
-                .answer(view.getAnswer().toString())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .question(view.getQuestion())
+                .answer(view.getAnswer())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

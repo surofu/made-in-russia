@@ -5,5 +5,5 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorC
 import java.util.List;
 
 public interface VendorCountryRepository {
-    List<VendorCountryView> getAllViewsByVendorDetailsId(Long id);
+    List<VendorCountryView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang);
 }

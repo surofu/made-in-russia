@@ -1,10 +1,13 @@
 package com.surofu.madeinrussia.core.model.product.productCharacteristic;
 
+import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 
@@ -15,6 +18,10 @@ public final class ProductCharacteristicName implements Serializable {
 
     @Column(name = "name", nullable = false)
     private String value;
+
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
+    private String translations;
 
     private ProductCharacteristicName(String name) {
         if (name == null || name.trim().isEmpty()) {
@@ -30,6 +37,14 @@ public final class ProductCharacteristicName implements Serializable {
 
     public static ProductCharacteristicName of(String name) {
         return new ProductCharacteristicName(name);
+    }
+
+    public HstoreTranslationDto getTranslations() {
+        return HstoreParser.fromString(translations);
+    }
+
+    public void setTranslations(HstoreTranslationDto translations) {
+        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

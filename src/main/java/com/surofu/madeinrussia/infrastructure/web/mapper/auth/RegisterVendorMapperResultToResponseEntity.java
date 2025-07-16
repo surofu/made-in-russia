@@ -43,4 +43,11 @@ public class RegisterVendorMapperResultToResponseEntity
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }
+
+    @Override
+    public ResponseEntity<?> processVendorWithInnAlreadyExists(RegisterVendor.Result.VendorWithInnAlreadyExists result) {
+        String message = localizationManager.localize("auth.register.vendor_with_inn_already_exists", result.getInn().toString());
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
+    }
 }

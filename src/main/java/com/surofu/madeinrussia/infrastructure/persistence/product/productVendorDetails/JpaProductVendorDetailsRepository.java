@@ -13,7 +13,7 @@ public class JpaProductVendorDetailsRepository implements ProductVendorDetailsRe
     private final SpringDataProductVendorDetailsRepository repository;
 
     @Override
-    public Optional<ProductVendorDetailsView> getViewByProductId(Long productId) {
-        return repository.findViewByProductId(productId);
+    public Optional<ProductVendorDetailsView> getViewByProductIdAndLang(Long productId, String lang) {
+        return repository.findViewByProductIdAndLang(productId, lang);
     }
 }

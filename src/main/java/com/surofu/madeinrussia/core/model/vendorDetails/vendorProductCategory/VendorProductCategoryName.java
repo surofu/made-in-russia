@@ -1,10 +1,13 @@
 package com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory;
 
+import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 
@@ -16,6 +19,10 @@ public final class VendorProductCategoryName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
+    private String translations;
+
     private VendorProductCategoryName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Название категории товаров продавца не может быть пустым");
@@ -26,6 +33,14 @@ public final class VendorProductCategoryName implements Serializable {
 
     public static VendorProductCategoryName of(String name) {
         return new VendorProductCategoryName(name);
+    }
+
+    public HstoreTranslationDto getTranslations() {
+        return HstoreParser.fromString(translations);
+    }
+
+    public void setTranslations(HstoreTranslationDto translations) {
+        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

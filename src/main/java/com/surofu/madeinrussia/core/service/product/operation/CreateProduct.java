@@ -75,6 +75,11 @@ public class CreateProduct {
             return SimilarProductNotFound.of(similarProductId);
         }
 
+        static Result translationError(Exception e) {
+            log.warn("Translation error: {}", e.getMessage());
+            return TranslationError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -151,6 +156,15 @@ public class CreateProduct {
             }
         }
 
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processErrorSavingFiles(ErrorSavingFiles result);
@@ -160,6 +174,7 @@ public class CreateProduct {
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
             T processSimilarProductNotFound(SimilarProductNotFound result);
+            T processTranslationError(TranslationError result);
         }
     }
 }

@@ -1,15 +1,15 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails;
 
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsCreationDate;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsDescription;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsLastModificationDate;
+import java.time.Instant;
 
 public interface ProductVendorDetailsView {
     Long getId();
 
-    ProductVendorDetailsDescription getDescription();
+    String getMainDescription();
 
-    ProductVendorDetailsCreationDate getCreationDate();
+    String getFurtherDescription();
 
-    ProductVendorDetailsLastModificationDate getLastModificationDate();
+    Instant getCreationDate();
+
+    Instant getLastModificationDate();
 }

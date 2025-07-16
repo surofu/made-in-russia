@@ -35,17 +35,20 @@ import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.Deliver
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productCharacteristic.ProductCharacteristicView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productFaq.ProductFaqView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productMedia.ProductMediaView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productPackageOption.ProductPackageOptionView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productPrice.ProductPriceView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia.ProductReviewMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethodDetails.ProductDeliveryMethodDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -63,6 +66,9 @@ public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final VendorCountryRepository vendorCountryRepository;
+    private final VendorProductCategoryRepository vendorProductCategoryRepository;
+    private final VendorFaqRepository vendorFaqRepository;
     private final ProductMediaRepository productMediaRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryMethodRepository deliveryMethodRepository;
@@ -231,8 +237,7 @@ public class ProductApplicationService implements ProductService {
             product.getDescription().setMainDescriptionTranslations(mainDescriptionTranslationDto);
             product.getDescription().setFurtherDescriptionTranslations(furtherDescriptionTranslationDto);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return CreateProduct.Result.errorSavingFiles();
+            return CreateProduct.Result.translationError(e);
         }
 
         if (operation.getCategoryId() == null) {
@@ -300,12 +305,45 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>();
 
-        for (CreateProductCharacteristicCommand command : operation.getCreateProductCharacteristicCommands()) {
-            ProductCharacteristic productCharacteristic = new ProductCharacteristic();
-            productCharacteristic.setProduct(product);
-            productCharacteristic.setName(ProductCharacteristicName.of(command.name()));
-            productCharacteristic.setValue(ProductCharacteristicValue.of(command.value()));
-            productCharacteristicSet.add(productCharacteristic);
+        List<String> productCns = operation.getCreateProductCharacteristicCommands().stream()
+                .map(CreateProductCharacteristicCommand::name).toList();
+        List<String> productCvs = operation.getCreateProductCharacteristicCommands().stream()
+                .map(CreateProductCharacteristicCommand::value).toList();
+
+        List<String> productCharacteristicsStringsToTranslate = new ArrayList<>(
+                productCns.size() + productCvs.size()
+        );
+        productCharacteristicsStringsToTranslate.addAll(productCns);
+        productCharacteristicsStringsToTranslate.addAll(productCvs);
+
+        try {
+            TranslationResponse enTranslationResponse = translationRepository.translateToEn(productCharacteristicsStringsToTranslate.toArray(String[]::new));
+            TranslationResponse ruTranslationResponse = translationRepository.translateToRu(productCharacteristicsStringsToTranslate.toArray(String[]::new));
+            TranslationResponse zhTranslationResponse = translationRepository.translateToZh(productCharacteristicsStringsToTranslate.toArray(String[]::new));
+
+            for (int i = 0; i < operation.getCreateProductCharacteristicCommands().size(); i++) {
+                CreateProductCharacteristicCommand command = operation.getCreateProductCharacteristicCommands().get(i);
+                ProductCharacteristic productCharacteristic = new ProductCharacteristic();
+                productCharacteristic.setProduct(product);
+                productCharacteristic.setName(ProductCharacteristicName.of(command.name()));
+                productCharacteristic.setValue(ProductCharacteristicValue.of(command.value()));
+
+                productCharacteristic.getName().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[i].getText(),
+                        ruTranslationResponse.getTranslations()[i].getText(),
+                        zhTranslationResponse.getTranslations()[i].getText()
+                ));
+
+                productCharacteristic.getValue().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[productCns.size() + i].getText(),
+                        ruTranslationResponse.getTranslations()[productCns.size() + i].getText(),
+                        zhTranslationResponse.getTranslations()[productCns.size() + i].getText()
+                ));
+
+                productCharacteristicSet.add(productCharacteristic);
+            }
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
         }
 
         product.setCharacteristics(productCharacteristicSet);
@@ -314,12 +352,43 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductFaq> productFaqSet = new HashSet<>();
 
-        for (CreateProductFaqCommand command : operation.getCreateProductFaqCommands()) {
-            ProductFaq productFaq = new ProductFaq();
-            productFaq.setProduct(product);
-            productFaq.setQuestion(ProductFaqQuestion.of(command.question()));
-            productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
-            productFaqSet.add(productFaq);
+        List<String> productQuestions = operation.getCreateProductFaqCommands().stream()
+                .map(CreateProductFaqCommand::question).toList();
+        List<String> productAnswers = operation.getCreateProductFaqCommands().stream()
+                .map(CreateProductFaqCommand::answer).toList();
+
+        List<String> productFaqStrings = new ArrayList<>(productQuestions.size() + productAnswers.size());
+        productFaqStrings.addAll(productQuestions);
+        productFaqStrings.addAll(productAnswers);
+
+        try {
+            TranslationResponse enTranslationResponse = translationRepository.translateToEn(productFaqStrings.toArray(String[]::new));
+            TranslationResponse ruTranslationResponse = translationRepository.translateToRu(productFaqStrings.toArray(String[]::new));
+            TranslationResponse zhTranslationResponse = translationRepository.translateToZh(productFaqStrings.toArray(String[]::new));
+
+            for (int i = 0; i < operation.getCreateProductFaqCommands().size(); i++) {
+                CreateProductFaqCommand command = operation.getCreateProductFaqCommands().get(i);
+                ProductFaq productFaq = new ProductFaq();
+                productFaq.setProduct(product);
+                productFaq.setQuestion(ProductFaqQuestion.of(command.question()));
+                productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
+
+                productFaq.getQuestion().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[i].getText(),
+                        ruTranslationResponse.getTranslations()[i].getText(),
+                        zhTranslationResponse.getTranslations()[i].getText()
+                ));
+
+                productFaq.getAnswer().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[productQuestions.size() + i].getText(),
+                        ruTranslationResponse.getTranslations()[productQuestions.size() + i].getText(),
+                        zhTranslationResponse.getTranslations()[productQuestions.size() + i].getText()
+                ));
+
+                productFaqSet.add(productFaq);
+            }
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
         }
 
         product.setFaq(productFaqSet);
@@ -328,12 +397,43 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>();
 
-        for (CreateProductDeliveryMethodDetailsCommand command : operation.getCreateProductDeliveryMethodDetailsCommands()) {
-            ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
-            productDeliveryMethodDetails.setProduct(product);
-            productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
-            productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
-            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+        List<String> productDmdNames = operation.getCreateProductDeliveryMethodDetailsCommands().stream()
+                .map(CreateProductDeliveryMethodDetailsCommand::name).toList();
+        List<String> productDmdValues = operation.getCreateProductDeliveryMethodDetailsCommands().stream()
+                .map(CreateProductDeliveryMethodDetailsCommand::value).toList();
+
+        List<String> productDmdStrings = new ArrayList<>(operation.getCreateProductDeliveryMethodDetailsCommands().size() * 2);
+        productDmdStrings.addAll(productDmdNames);
+        productDmdStrings.addAll(productDmdValues);
+
+        try {
+            TranslationResponse enTranslationResponse = translationRepository.translateToEn(productDmdStrings.toArray(String[]::new));
+            TranslationResponse ruTranslationResponse = translationRepository.translateToRu(productDmdStrings.toArray(String[]::new));
+            TranslationResponse zhTranslationResponse = translationRepository.translateToZh(productDmdStrings.toArray(String[]::new));
+
+            for (int i = 0; i < operation.getCreateProductDeliveryMethodDetailsCommands().size(); i++) {
+                CreateProductDeliveryMethodDetailsCommand command = operation.getCreateProductDeliveryMethodDetailsCommands().get(i);
+                ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
+                productDeliveryMethodDetails.setProduct(product);
+                productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
+                productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
+
+                productDeliveryMethodDetails.getName().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[i].getText(),
+                        ruTranslationResponse.getTranslations()[i].getText(),
+                        zhTranslationResponse.getTranslations()[i].getText()
+                ));
+
+                productDeliveryMethodDetails.getValue().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[operation.getCreateProductDeliveryMethodDetailsCommands().size() + i].getText(),
+                        ruTranslationResponse.getTranslations()[operation.getCreateProductDeliveryMethodDetailsCommands().size() + i].getText(),
+                        zhTranslationResponse.getTranslations()[operation.getCreateProductDeliveryMethodDetailsCommands().size() + i].getText()
+                ));
+
+                productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+            }
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
         }
 
         product.setDeliveryMethodDetails(productDeliveryMethodDetailsSet);
@@ -342,13 +442,32 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductPackageOption> productPackageOptionSet = new HashSet<>();
 
-        for (CreateProductPackageOptionCommand command : operation.getCreateProductPackageOptionCommands()) {
-            ProductPackageOption productPackageOption = new ProductPackageOption();
-            productPackageOption.setProduct(product);
-            productPackageOption.setName(ProductPackageOptionName.of(command.name()));
-            productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
-            productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
-            productPackageOptionSet.add(productPackageOption);
+        List<String> productPoNames = operation.getCreateProductPackageOptionCommands().stream()
+                .map(CreateProductPackageOptionCommand::name).toList();
+
+        try {
+            TranslationResponse enTranslationResponse = translationRepository.translateToEn(productPoNames.toArray(String[]::new));
+            TranslationResponse ruTranslationResponse = translationRepository.translateToRu(productPoNames.toArray(String[]::new));
+            TranslationResponse zhTranslationResponse = translationRepository.translateToZh(productPoNames.toArray(String[]::new));
+
+            for (int i = 0; i < operation.getCreateProductPackageOptionCommands().size(); i++) {
+                CreateProductPackageOptionCommand command = operation.getCreateProductPackageOptionCommands().get(i);
+                ProductPackageOption productPackageOption = new ProductPackageOption();
+                productPackageOption.setProduct(product);
+                productPackageOption.setName(ProductPackageOptionName.of(command.name()));
+                productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
+                productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+
+                productPackageOption.getName().setTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[i].getText(),
+                        ruTranslationResponse.getTranslations()[i].getText(),
+                        zhTranslationResponse.getTranslations()[i].getText()
+                ));
+
+                productPackageOptionSet.add(productPackageOption);
+            }
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
         }
 
         product.setPackageOptions(productPackageOptionSet);
@@ -405,6 +524,35 @@ public class ProductApplicationService implements ProductService {
                     operation.getCreateProductVendorDetailsCommand().mainDescription(),
                     operation.getCreateProductVendorDetailsCommand().furtherDescription()
             ));
+
+            try {
+                TranslationResponse enTranslationResponse = translationRepository.translateToEn(
+                        operation.getCreateProductVendorDetailsCommand().mainDescription(),
+                        operation.getCreateProductVendorDetailsCommand().furtherDescription()
+                );
+                TranslationResponse ruTranslationResponse = translationRepository.translateToRu(
+                        operation.getCreateProductVendorDetailsCommand().mainDescription(),
+                        operation.getCreateProductVendorDetailsCommand().furtherDescription()
+                );
+                TranslationResponse zhTranslationResponse = translationRepository.translateToZh(
+                        operation.getCreateProductVendorDetailsCommand().mainDescription(),
+                        operation.getCreateProductVendorDetailsCommand().furtherDescription()
+                );
+
+                productVendorDetails.getDescription().setMainDescriptionTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[0].getText(),
+                        ruTranslationResponse.getTranslations()[0].getText(),
+                        zhTranslationResponse.getTranslations()[0].getText()
+                ));
+
+                productVendorDetails.getDescription().setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                        enTranslationResponse.getTranslations()[1].getText(),
+                        ruTranslationResponse.getTranslations()[1].getText(),
+                        zhTranslationResponse.getTranslations()[1].getText()
+                ));
+            } catch (Exception e) {
+                return CreateProduct.Result.translationError(e);
+            }
 
             /* ========== Product Vendor Details Media ========== */
 
@@ -906,6 +1054,37 @@ public class ProductApplicationService implements ProductService {
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
         if (userView.isPresent()) {
             VendorDto vendorDto = VendorDto.of(userView.get());
+
+            // Vendor Countries
+            List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream()
+                    .map(VendorCountryDto::of)
+                    .toList();
+
+            // Vendor Product Categories
+            List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream()
+                    .map(VendorProductCategoryDto::of)
+                    .toList();
+
+            // Vendor Faq
+            List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream()
+                    .map(VendorFaqDto::of)
+                    .toList();
+
+            vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
+            vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
+            vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
             productDto.setUser(vendorDto);
         }
 
@@ -948,8 +1127,9 @@ public class ProductApplicationService implements ProductService {
         productDto.setSimilarProducts(similarProductDtoList);
 
         // Characteristics
-        List<ProductCharacteristicView> productCharacteristicList = productCharacteristicRepository.findAllViewsByProductId(
-                productDto.getId()
+        List<ProductCharacteristicView> productCharacteristicList = productCharacteristicRepository.findAllViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         );
         List<ProductCharacteristicDto> productCharacteristicDtoList = productCharacteristicList.stream()
                 .map(ProductCharacteristicDto::of)
@@ -957,8 +1137,9 @@ public class ProductApplicationService implements ProductService {
         productDto.setCharacteristics(productCharacteristicDtoList);
 
         // Faq
-        List<ProductFaqView> productFaqList = productFaqRepository.findAllViewsByProductId(
-                productDto.getId()
+        List<ProductFaqView> productFaqList = productFaqRepository.findAllViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         );
         List<ProductFaqDto> productFaqDtoList = productFaqList.stream()
                 .map(ProductFaqDto::of)
@@ -984,8 +1165,9 @@ public class ProductApplicationService implements ProductService {
         productDto.setReviewsMedia(productReviewMediaDtoList);
 
         // About Vendor
-        ProductVendorDetailsView productVendorDetailsView = productVendorDetailsRepository.getViewByProductId(
-                productDto.getId()
+        ProductVendorDetailsView productVendorDetailsView = productVendorDetailsRepository.getViewByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         ).orElse(null);
         ProductVendorDetailsDto productVendorDetailsDto = ProductVendorDetailsDto.of(productVendorDetailsView);
         productDto.setAboutVendor(productVendorDetailsDto);
@@ -1001,16 +1183,18 @@ public class ProductApplicationService implements ProductService {
         }
 
         // Delivery Method Details
-        List<ProductDeliveryMethodDetailsView>productDeliveryMethodDetailsViewList = productDeliveryMethodDetailsRepository.getAllViewsByProductId(
-                productDto.getId()
+        List<ProductDeliveryMethodDetailsView> productDeliveryMethodDetailsViewList = productDeliveryMethodDetailsRepository.getAllViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         );
         List<ProductDeliveryMethodDetailsDto> productDeliveryMethodDetailsDtoList = productDeliveryMethodDetailsViewList.stream()
                 .map(ProductDeliveryMethodDetailsDto::of).toList();
         productDto.setDeliveryMethodsDetails(productDeliveryMethodDetailsDtoList);
 
         // Packaging Options
-        List<ProductPackageOptionView> productPackageOptionViewList = productPackageOptionsRepository.getAllViewsByProductId(
-                productDto.getId()
+        List<ProductPackageOptionView> productPackageOptionViewList = productPackageOptionsRepository.getAllViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         );
         List<ProductPackageOptionDto> productPackageOptionDtoList = productPackageOptionViewList.stream()
                 .map(ProductPackageOptionDto::of).toList();

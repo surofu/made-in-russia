@@ -1,15 +1,13 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryCreationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryLastModificationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import java.time.Instant;
 
 public interface VendorProductCategoryView {
     Long getId();
 
-    VendorProductCategoryName getName();
+    String getName();
 
-    VendorProductCategoryCreationDate getCreationDate();
+    Instant getCreationDate();
 
-    VendorProductCategoryLastModificationDate getLastModificationDate();
+    Instant getLastModificationDate();
 }

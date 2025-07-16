@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto;
 
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productReview.productReviewMedia.ProductReviewMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

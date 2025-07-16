@@ -1,15 +1,13 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.country;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryCreationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryLastModificationDate;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
+import java.time.Instant;
 
 public interface VendorCountryView {
     Long getId();
 
-    VendorCountryName getName();
+    String getName();
 
-    VendorCountryCreationDate getCreationDate();
+    Instant getCreationDate();
 
-    VendorCountryLastModificationDate getLastModificationDate();
+    Instant getLastModificationDate();
 }
