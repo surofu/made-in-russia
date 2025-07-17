@@ -545,6 +545,7 @@ public class ProductApplicationService implements ProductService {
         return CreateProduct.Result.success();
     }
 
+    // TODO: Refactor Update Product
     @Override
     @Transactional
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
