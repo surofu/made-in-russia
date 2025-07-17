@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.command.product.update;
 
+import com.surofu.madeinrussia.application.dto.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
@@ -11,11 +12,17 @@ public record UpdateProductCommand(
         @Schema(description = "Product title", example = "iPhone 15 Pro Max", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String title,
 
+        TranslationDto titleTranslations,
+
         @Schema(description = "Main product description", example = "Latest iPhone with advanced camera system", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String mainDescription,
 
+        TranslationDto mainDescriptionTranslations,
+
         @Schema(description = "Further detailed product description", example = "Extended description with technical details", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String furtherDescription,
+
+        TranslationDto furtherDescriptionTranslations,
 
         @Validated
         @NotNull(message = "Категория товара не может быть пустой")

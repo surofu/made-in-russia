@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.command.product.update;
 
+import com.surofu.madeinrussia.application.dto.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -10,6 +11,8 @@ public record UpdateProductPackageOptionCommand(
                 example = "Gift wrapping",
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
+
+        TranslationDto nameTranslations,
 
         @Schema(description = "Additional price for this package option",
                 example = "9.99",

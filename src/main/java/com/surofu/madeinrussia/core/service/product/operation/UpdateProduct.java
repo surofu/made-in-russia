@@ -104,6 +104,16 @@ public class UpdateProduct {
             return OldVendorDetailsMediaNotFound.of(oldVendorDetailsMediaId);
         }
 
+        static Result emptyTranslations(String moduleName) {
+            log.warn("Empty translations in module: {}", moduleName);
+            return EmptyTranslations.INSTANCE;
+        }
+
+        static Result translationError(Exception e) {
+            log.warn("Translation error: {}", e.getMessage());
+            return TranslationError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -230,6 +240,24 @@ public class UpdateProduct {
             }
         }
 
+        enum EmptyTranslations implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyTranslations(this);
+            }
+        }
+
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processProductNotFound(ProductNotFound result);
@@ -244,6 +272,8 @@ public class UpdateProduct {
             T processSimilarProductNotFound(SimilarProductNotFound result);
             T processOldProductMediaNotFound(OldProductMediaNotFound result);
             T processOldVendorDetailsMediaNotFound(OldVendorDetailsMediaNotFound result);
+            T processEmptyTranslations(EmptyTranslations result);
+            T processTranslationError(TranslationError result);
         }
     }
 }

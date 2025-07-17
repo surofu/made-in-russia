@@ -349,6 +349,6 @@ public class MeApplicationService implements MeService {
             });
         }
 
-        return Page.empty();
+        return Page.empty(pageable);
     }
 }

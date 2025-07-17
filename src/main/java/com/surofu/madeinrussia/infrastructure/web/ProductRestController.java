@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.ProductDescription;
 import com.surofu.madeinrussia.core.model.product.ProductTitle;
@@ -60,6 +61,7 @@ public class ProductRestController {
 
     private final ProductService productService;
     private final ProductReviewService productReviewService;
+    private final LocalizationManager localizationManager;
 
     private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
     private final GetProductByArticle.Result.Processor<ResponseEntity<?>> getProductByArticleProcessor;
@@ -843,31 +845,66 @@ public class ProductRestController {
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         if (updateProductCommand.prices() == null || updateProductCommand.prices().isEmpty()) {
-            String message = "Цены товара не могут быть пустыми";
+            String message = localizationManager.localize("validation.product.update.empty_prices");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
         if (updateProductCommand.characteristics() == null || updateProductCommand.characteristics().isEmpty()) {
-            String message = "Характеристики товара не могут быть пустыми";
+            String message = localizationManager.localize("validation.product.update.empty_characteristics");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
         if ((productMedia == null || productMedia.isEmpty()) && updateProductCommand.oldProductMedia().isEmpty()) {
-            String message = "Медиа контент товаре не может быть пустым";
+            String message = localizationManager.localize("validation.product.update.empty_media");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
+        // Title
+        ProductTitle productTitle = ProductTitle.of(Objects.requireNonNullElse(updateProductCommand.title(), ""));
+        TranslationDto titleTranslations = Objects.requireNonNullElse(
+          updateProductCommand.titleTranslations(),
+          new TranslationDto(null, null, null)
+        );
+        productTitle.setTranslations(new HstoreTranslationDto(
+                titleTranslations.en(),
+                titleTranslations.ru(),
+                titleTranslations.zh()
+        ));
+
+        // Description
+
+        TranslationDto mainDescriptionTranslations = Objects.requireNonNullElse(
+                updateProductCommand.mainDescriptionTranslations(),
+                new TranslationDto(null, null, null)
+        );
+        TranslationDto furtherDescriptionTranslations = Objects.requireNonNullElse(
+                updateProductCommand.furtherDescriptionTranslations(),
+                new TranslationDto(null, null, null)
+        );
+
+        ProductDescription productDescription = ProductDescription.of(
+                Objects.requireNonNullElse(updateProductCommand.mainDescription(), ""),
+                Objects.requireNonNullElse(updateProductCommand.furtherDescription(), "")
+        );
+        productDescription.setMainDescriptionTranslations(new HstoreTranslationDto(
+                mainDescriptionTranslations.en(),
+                mainDescriptionTranslations.ru(),
+                mainDescriptionTranslations.zh()
+        ));
+        productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                furtherDescriptionTranslations.en(),
+                furtherDescriptionTranslations.ru(),
+                furtherDescriptionTranslations.zh()
+        ));
+
         UpdateProduct operation = UpdateProduct.of(
                 productId,
                 securityUser,
-                ProductTitle.of(Objects.requireNonNullElse(updateProductCommand.title(), "")),
-                ProductDescription.of(
-                        Objects.requireNonNullElse(updateProductCommand.mainDescription(), ""),
-                        Objects.requireNonNullElse(updateProductCommand.furtherDescription(), "")
-                ),
+                productTitle,
+                productDescription,
                 updateProductCommand.categoryId(),
                 updateProductCommand.deliveryMethodIds(),
                 updateProductCommand.similarProducts(),

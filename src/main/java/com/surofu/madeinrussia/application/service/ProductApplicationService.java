@@ -51,9 +51,9 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqVi
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -191,6 +191,7 @@ public class ProductApplicationService implements ProductService {
         return GetProductFaqByProductId.Result.notFound(productId);
     }
 
+    // TODO: Refactor Create Product
     @Override
     @Transactional
     public CreateProduct.Result createProduct(CreateProduct operation) {
@@ -663,23 +664,81 @@ public class ProductApplicationService implements ProductService {
         return CreateProduct.Result.success();
     }
 
+    // TODO: Refactor Update Product
     @Override
     @Transactional
-    @CacheEvict(value = "product", key = "#operation.getProductId()")
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
-        Optional<Product> optionalProduct = productRepository.getProductById(operation.getProductId());
+        Optional<Product> existingProduct = productRepository.getProductById(operation.getProductId());
 
-        if (optionalProduct.isEmpty()) {
+        if (existingProduct.isEmpty()) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.productNotFound(operation.getProductId());
         }
 
-        Product product = optionalProduct.get();
+        Product product = existingProduct.get();
 
         if (!product.getUser().getId().equals(operation.getSecurityUser().getUser().getId())) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.invalidOwner(operation.getProductId(), operation.getSecurityUser().getUser().getLogin());
         }
 
+        // Title
+
+        String titleTranslationEn = product.getTitle().getTranslations().textEn();
+        String titleTranslationRu = product.getTitle().getTranslations().textRu();
+        String titleTranslationZh = product.getTitle().getTranslations().textZh();
+
+        if (
+                (titleTranslationEn == null || titleTranslationEn.isEmpty()) &&
+                        (titleTranslationRu == null || titleTranslationRu.isEmpty()) &&
+                        (titleTranslationZh == null || titleTranslationZh.isEmpty())
+        ) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Title");
+        }
+
+        try {
+            if (titleTranslationEn == null || titleTranslationEn.isEmpty()) {
+                if (titleTranslationRu != null && !titleTranslationRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(titleTranslationRu);
+                    titleTranslationEn = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(titleTranslationZh);
+                    titleTranslationEn = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (titleTranslationRu == null || titleTranslationRu.isEmpty()) {
+                if (titleTranslationEn != null && !titleTranslationEn.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(titleTranslationEn);
+                    titleTranslationRu = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(titleTranslationZh);
+                    titleTranslationRu = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (titleTranslationZh == null || titleTranslationZh.isEmpty()) {
+                if (titleTranslationRu != null && !titleTranslationRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(titleTranslationRu);
+                    titleTranslationZh = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(titleTranslationEn);
+                    titleTranslationZh = translationResponse.getTranslations()[0].getText();
+                }
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
+        }
+
         product.setTitle(operation.getProductTitle());
+        product.getTitle().setTranslations(new HstoreTranslationDto(
+                titleTranslationEn,
+                titleTranslationRu,
+                titleTranslationZh
+        ));
+
         product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
         product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
 
@@ -692,6 +751,116 @@ public class ProductApplicationService implements ProductService {
                 operation.getProductDescription().getFurtherDescription()
         ));
 
+        String productMdEn = operation.getProductDescription().getMainDescriptionTranslations().textEn();
+        String productMdRu = operation.getProductDescription().getMainDescriptionTranslations().textRu();
+        String productMdZh = operation.getProductDescription().getMainDescriptionTranslations().textZh();
+
+        if (
+                (productMdEn == null || productMdEn.isEmpty()) &&
+                        (productMdRu == null || productMdRu.isEmpty()) &&
+                        (productMdZh == null || productMdZh.isEmpty())
+        ) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Main Description");
+        }
+
+        /* ========== Product Main Description ========== */
+
+        try {
+            if (productMdEn == null || productMdEn.isEmpty()) {
+                if (productMdRu != null && !productMdRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productMdRu);
+                    productMdEn = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productMdZh);
+                    productMdEn = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productMdRu == null || productMdRu.isEmpty()) {
+                if (productMdEn != null && !productMdEn.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productMdEn);
+                    productMdRu = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productMdZh);
+                    productMdRu = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productMdZh == null || productMdZh.isEmpty()) {
+                if (productMdRu != null && !productMdRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productMdRu);
+                    productMdZh = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productMdEn);
+                    productMdZh = translationResponse.getTranslations()[0].getText();
+                }
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
+        }
+
+        product.getDescription().setMainDescriptionTranslations(new HstoreTranslationDto(
+                productMdEn,
+                productMdRu,
+                productMdZh
+        ));
+
+        /* ========== Product Further Description ========== */
+
+        String productFdEn = operation.getProductDescription().getFurtherDescriptionTranslations().textEn();
+        String productFdRu = operation.getProductDescription().getFurtherDescriptionTranslations().textRu();
+        String productFdZh = operation.getProductDescription().getFurtherDescriptionTranslations().textZh();
+
+        if ((productFdEn == null || productFdEn.isEmpty()) &&
+                (productFdRu == null || productFdRu.isEmpty()) &&
+                (productFdZh == null || productFdZh.isEmpty())) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Product Further Description");
+        }
+
+        try {
+            if (productFdEn == null || productFdEn.isEmpty()) {
+                if (productFdRu != null && !productFdRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productFdRu);
+                    productFdEn = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productFdZh);
+                    productFdEn = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productFdRu == null || productFdRu.isEmpty()) {
+                if (productFdEn != null && !productFdEn.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productFdEn);
+                    productFdRu = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productFdZh);
+                    productFdRu = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productFdZh == null || productFdZh.isEmpty()) {
+                if (productFdRu != null && !productFdRu.isEmpty()) {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productFdRu);
+                    productFdZh = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productFdEn);
+                    productFdZh = translationResponse.getTranslations()[0].getText();
+                }
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
+        }
+
+        product.getDescription().setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                productFdEn,
+                productFdRu,
+                productFdZh
+        ));
+
         /* ========== Product Category ========== */
 
         Category productCategory = product.getCategory();
@@ -700,6 +869,7 @@ public class ProductApplicationService implements ProductService {
             Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
 
             if (newCategory.isEmpty()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
             }
 
@@ -718,6 +888,7 @@ public class ProductApplicationService implements ProductService {
             Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
 
             if (firstNotExistsDeliveryMethodId.isPresent()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
             }
 
@@ -736,6 +907,7 @@ public class ProductApplicationService implements ProductService {
             Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
 
             if (firstNotExistsSimilarProductId.isPresent()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
             }
 
@@ -765,12 +937,116 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>();
 
-        for (UpdateProductCharacteristicCommand command : operation.getUpdateProductCharacteristicCommands()) {
-            ProductCharacteristic productCharacteristic = new ProductCharacteristic();
-            productCharacteristic.setProduct(product);
-            productCharacteristic.setName(ProductCharacteristicName.of(command.name()));
-            productCharacteristic.setValue(ProductCharacteristicValue.of(command.value()));
-            productCharacteristicSet.add(productCharacteristic);
+        try {
+            for (UpdateProductCharacteristicCommand command : operation.getUpdateProductCharacteristicCommands()) {
+                ProductCharacteristic productCharacteristic = new ProductCharacteristic();
+                productCharacteristic.setProduct(product);
+                productCharacteristic.setName(ProductCharacteristicName.of(command.name()));
+                productCharacteristic.setValue(ProductCharacteristicValue.of(command.value()));
+
+                // Name
+                String nameEn = command.nameTranslations().en(),
+                        nameRu = command.nameTranslations().ru(),
+                        nameZh = command.nameTranslations().zh();
+
+                if (command.nameTranslations() == null || command.valueTranslation() == null) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Characteristics name or value");
+                }
+
+                if (
+                        (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) &&
+                                (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) &&
+                                (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Characteristics name");
+                }
+
+                if (
+                        (command.valueTranslation().en() == null || command.valueTranslation().en().isEmpty()) &&
+                                (command.valueTranslation().ru() == null || command.valueTranslation().ru().isEmpty()) &&
+                                (command.valueTranslation().zh() == null || command.valueTranslation().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Characteristics value");
+                }
+
+                if (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) {
+                    if (command.nameTranslations().en() != null && !command.nameTranslations().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().en());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().zh());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().ru());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().zh());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().ru());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().en());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productCharacteristic.getName().setTranslations(new HstoreTranslationDto(nameEn, nameRu, nameZh));
+
+                // Value
+
+                String valueEn = command.valueTranslation().en(),
+                        valueRu = command.valueTranslation().ru(),
+                        valueZh = command.valueTranslation().zh();
+
+                if (command.valueTranslation().ru() == null || command.valueTranslation().ru().isEmpty()) {
+                    if (command.valueTranslation().en() != null && !command.valueTranslation().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.valueTranslation().en());
+                        valueRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.valueTranslation().zh());
+                        valueRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.valueTranslation().en() == null || command.valueTranslation().en().isEmpty()) {
+                    if (command.valueTranslation().ru() != null && !command.valueTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.valueTranslation().ru());
+                        valueEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.valueTranslation().zh());
+                        valueEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.valueTranslation().zh() == null || command.valueTranslation().zh().isEmpty()) {
+                    if (command.valueTranslation().ru() != null && !command.valueTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.valueTranslation().ru());
+                        valueZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.valueTranslation().en());
+                        valueZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productCharacteristic.getValue().setTranslations(new HstoreTranslationDto(valueEn, valueRu, valueZh));
+
+                productCharacteristicSet.add(productCharacteristic);
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
         }
 
         product.getCharacteristics().clear();
@@ -780,12 +1056,116 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductFaq> productFaqSet = new HashSet<>();
 
-        for (UpdateProductFaqCommand command : operation.getUpdateProductFaqCommands()) {
-            ProductFaq productFaq = new ProductFaq();
-            productFaq.setProduct(product);
-            productFaq.setQuestion(ProductFaqQuestion.of(command.question()));
-            productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
-            productFaqSet.add(productFaq);
+        try {
+            for (UpdateProductFaqCommand command : operation.getUpdateProductFaqCommands()) {
+                ProductFaq productFaq = new ProductFaq();
+                productFaq.setProduct(product);
+                productFaq.setQuestion(ProductFaqQuestion.of(command.question()));
+                productFaq.setAnswer(ProductFaqAnswer.of(command.answer()));
+
+                // Question
+                String questionRu = command.questionTranslations().ru(),
+                        questionEn = command.questionTranslations().en(),
+                        questionZh = command.questionTranslations().zh();
+
+                if (command.questionTranslations() == null || command.answerTranslation() == null) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Faq question or answer");
+                }
+
+                if (
+                        (command.questionTranslations().en() == null || command.questionTranslations().en().isEmpty()) &&
+                                (command.questionTranslations().ru() == null || command.questionTranslations().ru().isEmpty()) &&
+                                (command.questionTranslations().zh() == null || command.questionTranslations().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Faq question");
+                }
+
+                if (
+                        (command.answerTranslation().en() == null || command.answerTranslation().en().isEmpty()) &&
+                                (command.answerTranslation().ru() == null || command.answerTranslation().ru().isEmpty()) &&
+                                (command.answerTranslation().zh() == null || command.answerTranslation().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Faq answer");
+                }
+
+                if (command.questionTranslations().ru() == null || command.questionTranslations().ru().isEmpty()) {
+                    if (command.questionTranslations().en() != null && !command.questionTranslations().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.questionTranslations().en());
+                        questionRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.questionTranslations().zh());
+                        questionRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.questionTranslations().en() == null || command.questionTranslations().en().isEmpty()) {
+                    if (command.questionTranslations().ru() != null && !command.questionTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.questionTranslations().ru());
+                        questionEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.questionTranslations().zh());
+                        questionEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.questionTranslations().zh() == null || command.questionTranslations().zh().isEmpty()) {
+                    if (command.questionTranslations().ru() != null && !command.questionTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.questionTranslations().ru());
+                        questionZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.questionTranslations().en());
+                        questionZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productFaq.getQuestion().setTranslations(new HstoreTranslationDto(questionEn, questionRu, questionZh));
+
+                // Answer
+
+                String answerRu = command.answerTranslation().ru(),
+                        answerEn = command.answerTranslation().en(),
+                        answerZh = command.answerTranslation().zh();
+
+                if (command.answerTranslation().ru() == null || command.answerTranslation().ru().isEmpty()) {
+                    if (command.answerTranslation().en() != null && !command.answerTranslation().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.answerTranslation().en());
+                        answerRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.answerTranslation().zh());
+                        answerRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.answerTranslation().en() == null || command.answerTranslation().en().isEmpty()) {
+                    if (command.answerTranslation().ru() != null && !command.answerTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.answerTranslation().ru());
+                        answerEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.answerTranslation().zh());
+                        answerEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.answerTranslation().zh() == null || command.answerTranslation().zh().isEmpty()) {
+                    if (command.answerTranslation().ru() != null && !command.answerTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.answerTranslation().ru());
+                        answerZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.answerTranslation().en());
+                        answerZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productFaq.getAnswer().setTranslations(new HstoreTranslationDto(answerEn, answerRu, answerZh));
+
+                productFaqSet.add(productFaq);
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
         }
 
         product.getFaq().clear();
@@ -795,12 +1175,115 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>();
 
-        for (UpdateProductDeliveryMethodDetailsCommand command : operation.getUpdateProductDeliveryMethodDetailsCommands()) {
-            ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
-            productDeliveryMethodDetails.setProduct(product);
-            productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
-            productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
-            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+        try {
+            for (UpdateProductDeliveryMethodDetailsCommand command : operation.getUpdateProductDeliveryMethodDetailsCommands()) {
+                ProductDeliveryMethodDetails productDeliveryMethodDetails = new ProductDeliveryMethodDetails();
+                productDeliveryMethodDetails.setProduct(product);
+                productDeliveryMethodDetails.setName(ProductDeliveryMethodDetailsName.of(command.name()));
+                productDeliveryMethodDetails.setValue(ProductDeliveryMethodDetailsValue.of(command.value()));
+
+                // Name
+                String nameRu = command.nameTranslations().ru(),
+                        nameEn = command.nameTranslations().en(),
+                        nameZh = command.nameTranslations().zh();
+
+                if (command.nameTranslations() == null || command.valueTranslation() == null) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Delivery Method Details name or value");
+                }
+
+                if (
+                        (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) &&
+                                (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) &&
+                                (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Delivery Method Details name");
+                }
+
+                if (
+                        (command.valueTranslation().ru() == null || command.valueTranslation().ru().isEmpty()) &&
+                                (command.valueTranslation().en() == null || command.valueTranslation().en().isEmpty()) &&
+                                (command.valueTranslation().zh() == null || command.valueTranslation().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Delivery Method Details value");
+                }
+
+                if (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) {
+                    if (command.nameTranslations().en() != null && !command.nameTranslations().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().en());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().zh());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().ru());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().zh());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().ru());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().en());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productDeliveryMethodDetails.getName().setTranslations(new HstoreTranslationDto(nameEn, nameRu, nameZh));
+
+                // Value
+                String valueRu = command.valueTranslation().ru(),
+                        valueEn = command.valueTranslation().en(),
+                        valueZh = command.valueTranslation().zh();
+
+                if (command.valueTranslation().ru() == null || command.valueTranslation().ru().isEmpty()) {
+                    if (command.valueTranslation().en() != null && !command.valueTranslation().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.valueTranslation().en());
+                        valueRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.valueTranslation().zh());
+                        valueRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.valueTranslation().en() == null || command.valueTranslation().en().isEmpty()) {
+                    if (command.valueTranslation().ru() != null && !command.valueTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.valueTranslation().ru());
+                        valueEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.valueTranslation().zh());
+                        valueEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.valueTranslation().zh() == null || command.valueTranslation().zh().isEmpty()) {
+                    if (command.valueTranslation().ru() != null && !command.valueTranslation().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.valueTranslation().ru());
+                        valueZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.valueTranslation().en());
+                        valueZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productDeliveryMethodDetails.getValue().setTranslations(new HstoreTranslationDto(valueEn, valueRu, valueZh));
+
+                productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
         }
 
         product.getDeliveryMethodDetails().clear();
@@ -810,13 +1293,69 @@ public class ProductApplicationService implements ProductService {
 
         Set<ProductPackageOption> productPackageOptionSet = new HashSet<>();
 
-        for (UpdateProductPackageOptionCommand command : operation.getUpdateProductPackageOptionCommands()) {
-            ProductPackageOption productPackageOption = new ProductPackageOption();
-            productPackageOption.setProduct(product);
-            productPackageOption.setName(ProductPackageOptionName.of(command.name()));
-            productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
-            productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
-            productPackageOptionSet.add(productPackageOption);
+        try {
+            for (UpdateProductPackageOptionCommand command : operation.getUpdateProductPackageOptionCommands()) {
+                ProductPackageOption productPackageOption = new ProductPackageOption();
+                productPackageOption.setProduct(product);
+                productPackageOption.setName(ProductPackageOptionName.of(command.name()));
+                productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
+                productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+
+                String nameRu = command.nameTranslations().ru(),
+                        nameEn = command.nameTranslations().en(),
+                        nameZh = command.nameTranslations().zh();
+
+                if (command.nameTranslations() == null) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Package Option");
+                }
+
+                if (
+                        (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) &&
+                                (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) &&
+                                (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty())
+                ) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateProduct.Result.emptyTranslations("Package Option");
+                }
+
+                if (command.nameTranslations().ru() == null || command.nameTranslations().ru().isEmpty()) {
+                    if (command.nameTranslations().en() != null && !command.nameTranslations().en().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().en());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToRu(command.nameTranslations().zh());
+                        nameRu = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().en() == null || command.nameTranslations().en().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().ru());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToEn(command.nameTranslations().zh());
+                        nameEn = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                if (command.nameTranslations().zh() == null || command.nameTranslations().zh().isEmpty()) {
+                    if (command.nameTranslations().ru() != null && !command.nameTranslations().ru().isEmpty()) {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().ru());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    } else {
+                        TranslationResponse translationResponse = translationRepository.translateToZh(command.nameTranslations().en());
+                        nameZh = translationResponse.getTranslations()[0].getText();
+                    }
+                }
+
+                productPackageOption.getName().setTranslations(new HstoreTranslationDto(nameEn, nameRu, nameZh));
+
+                productPackageOptionSet.add(productPackageOption);
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
         }
 
         product.getPackageOptions().clear();
@@ -875,10 +1414,130 @@ public class ProductApplicationService implements ProductService {
         product.getMedia().clear();
         product.getMedia().addAll(new HashSet<>(productMediaList));
 
+        /* ========== Product Vendor Details ========== */
+
         product.getProductVendorDetails().setDescription(ProductVendorDetailsDescription.of(
                 operation.getUpdateProductVendorDetailsCommand().mainDescription(),
                 operation.getUpdateProductVendorDetailsCommand().furtherDescription()
         ));
+
+        // Main Description
+        TranslationDto productVdMd = operation.getUpdateProductVendorDetailsCommand().mainDescriptionTranslations();
+
+        if (productVdMd == null) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Vendor Details Main Description");
+        }
+
+        if (
+                (productVdMd.en() == null || productVdMd.en().isEmpty()) &&
+                        (productVdMd.ru() == null || productVdMd.ru().isEmpty()) &&
+                        (productVdMd.zh() == null || productVdMd.zh().isEmpty())
+        ) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Vendor Details Main Description");
+        }
+
+        String productVdMdRu = productVdMd.ru();
+        String productVdMdEn = productVdMd.en();
+        String productVdMdZh = productVdMd.zh();
+
+        try {
+            if (productVdMd.ru() == null) {
+                if (productVdMd.en() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productVdMd.en());
+                    productVdMdRu = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productVdMd.zh());
+                    productVdMdRu = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productVdMd.en() == null) {
+                if (productVdMd.ru() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productVdMd.ru());
+                    productVdMdEn = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productVdMd.zh());
+                    productVdMdEn = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productVdMd.zh() == null) {
+                if (productVdMd.ru() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productVdMd.ru());
+                    productVdMdZh = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productVdMd.en());
+                    productVdMdZh = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            product.getProductVendorDetails().getDescription().setMainDescriptionTranslations(
+                    new HstoreTranslationDto(productVdMdEn, productVdMdRu, productVdMdZh));
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
+        }
+
+        // Further Description
+        TranslationDto productVdFd = operation.getUpdateProductVendorDetailsCommand().furtherDescriptionTranslations();
+
+        if (productVdFd == null) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Vendor Details Further Description");
+        }
+
+        if (
+                (productVdFd.en() == null || productVdFd.en().isEmpty()) &&
+                        (productVdFd.ru() == null || productVdFd.ru().isEmpty()) &&
+                        (productVdFd.zh() == null || productVdFd.zh().isEmpty())
+        ) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.emptyTranslations("Vendor Details Further Description");
+        }
+
+        String productVdFdRu = productVdFd.ru();
+        String productVdFdEn = productVdFd.en();
+        String productVdFdZh = productVdFd.zh();
+
+        try {
+            if (productVdFd.ru() == null) {
+                if (productVdFd.en() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productVdFd.en());
+                    productVdFdRu = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToRu(productVdFd.zh());
+                    productVdFdRu = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productVdFd.en() == null) {
+                if (productVdFd.ru() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productVdFd.ru());
+                    productVdFdEn = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToEn(productVdFd.zh());
+                    productVdFdEn = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            if (productVdFd.zh() == null) {
+                if (productVdFd.ru() != null) {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productVdFd.ru());
+                    productVdFdZh = translationResponse.getTranslations()[0].getText();
+                } else {
+                    TranslationResponse translationResponse = translationRepository.translateToZh(productVdFd.en());
+                    productVdFdZh = translationResponse.getTranslations()[0].getText();
+                }
+            }
+
+            product.getProductVendorDetails().getDescription().setFurtherDescriptionTranslations(
+                    new HstoreTranslationDto(productVdFdEn, productVdFdRu, productVdFdZh));
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.translationError(e);
+        }
 
         Set<Long> oldProductVendorDetailsMediaIdSet = operation.getOldVendorDetailsMedia().stream().map(UpdateOldMediaDto::id).collect(Collectors.toSet());
         List<ProductVendorDetailsMedia> oldProductVendorDetailsMediaSet = product.getProductVendorDetails().getMedia()
@@ -903,6 +1562,7 @@ public class ProductApplicationService implements ProductService {
                 if (file.getContentType() == null ||
                         (!file.getContentType().startsWith("image") &&
                                 !file.getContentType().startsWith("video"))) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     return UpdateProduct.Result.invalidMediaType(file.getContentType());
                 }
 
@@ -932,6 +1592,7 @@ public class ProductApplicationService implements ProductService {
             productRepository.save(product);
         } catch (Exception e) {
             log.error("Error saving product: {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct();
         }
 
@@ -985,6 +1646,7 @@ public class ProductApplicationService implements ProductService {
             }
         } catch (Exception e) {
             log.error("Error saving files: {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingFiles();
         }
 
@@ -1004,6 +1666,7 @@ public class ProductApplicationService implements ProductService {
             fileStorageRepository.deleteAllMediaByLink(linksForDelete);
         } catch (Exception e) {
             log.error("Error deleting files: {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorDeletingFiles();
         }
 
@@ -1011,6 +1674,7 @@ public class ProductApplicationService implements ProductService {
             productRepository.save(product);
         } catch (Exception e) {
             log.error("Error saving product after uploading files: {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct();
         }
 
