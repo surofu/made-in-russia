@@ -1,11 +1,6 @@
-meta:
-  environment: web
-  toolchain: docker
-
 build:
-  commands:
-    - echo "Using pre-built Docker image"
-
+  skip: yes
+  
 run:
   image: sutanisurofu/madeinrussia:latest
   containerPort: 8080
