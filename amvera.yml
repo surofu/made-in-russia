@@ -1,16 +1,11 @@
----
-version: null
 meta:
-  environment: docker
-  toolchain:
-    name: docker
-    version: latest
+  environment: web
+  toolchain: docker
+
 build:
-  dockerfile: Dockerfile
-  skip: true
+  commands:
+    - echo "Using pre-built Docker image"
+
 run:
-  image: sutanisurofu/madeinrussia
-  command: null
-  args: null
-  persistenceMount: /data
+  image: sutanisurofu/madeinrussia:latest
   containerPort: 8080
