@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Копируем только POM сначала для кеширования зависимостей
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -T1
 
 # Копируем исходники и собираем проект
 COPY src ./src
