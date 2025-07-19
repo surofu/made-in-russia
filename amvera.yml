@@ -7,7 +7,7 @@ meta:
     version: latest
 build:
   dockerfile: Dockerfile
-  skip: false
+  skip: true
 run:
   image: sutanisurofu/madeinrussia
   command: null
