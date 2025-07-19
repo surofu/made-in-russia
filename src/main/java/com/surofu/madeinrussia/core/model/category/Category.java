@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.category;
 
+import com.surofu.madeinrussia.core.model.okved.OkvedCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,6 +49,13 @@ public final class Category implements Serializable {
             orphanRemoval = true
     )
     private Set<Category> children = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "category",
+            fetch = FetchType.LAZY,
+            orphanRemoval = true
+    )
+    private Set<OkvedCategory> okvedCategories = new HashSet<>();
 
     @Formula("(select count(*) from categories c where c.parent_category_id = id)")
     private Long childrenCount;

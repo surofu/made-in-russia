@@ -5,22 +5,17 @@ import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 @Component
 @RequiredArgsConstructor
 public class YandexTranslationRepository implements TranslationRepository {
 
+    private final RestClient yandexTranslatorRestClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.yandex.translate.uri}")
-    private String uri;
     @Value("${app.yandex.translate.folder-id}")
     private String folderId;
     @Value("${app.yandex.translate.secret}")
@@ -51,21 +46,12 @@ public class YandexTranslationRepository implements TranslationRepository {
 
         String requestBody = objectMapper.writeValueAsString(translationRequest);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .version(HttpClient.Version.HTTP_2)
+        return yandexTranslatorRestClient.post()
                 .header("Content-Type", "application/json")
                 .header("Authorization", String.format("Api-Key %s", apiSecret))
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
-
-        HttpResponse<String> response = HttpClient
-                .newBuilder()
-                .proxy(ProxySelector.getDefault())
-                .build()
-                .send(request, HttpResponse.BodyHandlers.ofString());
-
-        return objectMapper.readValue(response.body(), YandexTranslationResponse.class);
+                .body(requestBody)
+                .retrieve()
+                .body(YandexTranslationResponse.class);
     }
 
     private record TranslationRequest(

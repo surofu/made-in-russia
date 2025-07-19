@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.repository;
 
 import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 
 import java.util.List;
@@ -10,6 +11,8 @@ public interface CategoryRepository {
     Optional<Category> getCategoryById(Long id);
 
     List<Long> getCategoriesIdsByIds(List<Long> ids);
+
+    Optional<Category> getCategoryWithOkvedCategoriesBySlug(CategorySlug slug);
 
     // View
 

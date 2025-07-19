@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.persistence.category;
 
 import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,6 +18,11 @@ public class JpaCategoryRepository implements CategoryRepository {
     @Override
     public List<CategoryView> getAllCategoriesViewsByLang(String lang) {
         return repository.findAllCategoryViewsByLang(lang);
+    }
+
+    @Override
+    public Optional<Category> getCategoryWithOkvedCategoriesBySlug(CategorySlug slug) {
+        return repository.findBySlug(slug);
     }
 
     @Override

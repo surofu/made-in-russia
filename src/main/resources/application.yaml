@@ -147,3 +147,5 @@ app:
       uri: https://translate.api.cloud.yandex.net/translate/v2/translate
       folder-id: ${YANDEX_TRANSLATE_FOLDER_ID}
       secret: ${YANDEX_TRANSLATE_SECRET}
+  okved:
+    uri: https://agentom.ru/api/okved

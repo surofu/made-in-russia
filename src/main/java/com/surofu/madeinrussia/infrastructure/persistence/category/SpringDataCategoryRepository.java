@@ -15,6 +15,13 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent")
     List<Category> findAllWithParent();
 
+    @Query("""
+    select c from Category c
+    join fetch c.okvedCategories
+    where c.slug.value = :#{#slug.value}
+    """)
+    Optional<Category> findWithOkvedCategoriesBySlug(@Param("slug") CategorySlug slug);
+
     @Query(value = """
         SELECT
             c.id,
