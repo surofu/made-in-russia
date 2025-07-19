@@ -1,8 +1,23 @@
 meta:
-  environment: docker
+  environment: java
   toolchain:
     name: docker
+    version: latest
+
 build:
-  dockerfile: Dockerfile
+  commands:
+    - echo "Using pre-built Docker image"
+
 run:
+  image: sutanisurofu/madeinrussia
   containerPort: 8080
+  healthcheckPath: /actuator/health
+
+env:
+  LOG_LEVEL: INFO
+  SPRING_PROFILES_ACTIVE: prod
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:+UseContainerSupport -Xmx400m"
+
+resources:
+  memory: 512Mi
+  cpu: 500m
