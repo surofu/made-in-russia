@@ -17,4 +17,9 @@ public class JpaOkvedCategoryRepository implements OkvedCategoryRepository {
     public List<OkvedCategory> getById(Long categoryId) {
         return repository.findByCategory_Id(categoryId);
     }
+
+    @Override
+    public List<OkvedCategory> getByIds(List<Long> ids) {
+        return repository.findByCategory_Ids(ids);
+    }
 }

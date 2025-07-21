@@ -26,6 +26,11 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public List<String> getOkvedCategoryIdsBySlug(CategorySlug slug) {
+        return repository.findOkvedCategoryIdsByCategoryId(slug);
+    }
+
+    @Override
     public List<CategoryView> getCategoryViewsL1AndL2ByLang(String lang) {
         return repository.findAllViewsL1AndL2ByLang(lang);
     }

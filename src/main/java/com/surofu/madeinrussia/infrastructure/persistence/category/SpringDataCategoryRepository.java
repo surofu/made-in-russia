@@ -12,16 +12,6 @@ import java.util.Optional;
 
 public interface SpringDataCategoryRepository extends JpaRepository<Category, Long> {
 
-    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent")
-    List<Category> findAllWithParent();
-
-    @Query("""
-    select c from Category c
-    join fetch c.okvedCategories
-    where c.slug.value = :#{#slug.value}
-    """)
-    Optional<Category> findWithOkvedCategoriesBySlug(@Param("slug") CategorySlug slug);
-
     @Query(value = """
         SELECT
             c.id,
@@ -136,6 +126,19 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             """, nativeQuery = true)
     List<CategoryView> findCategoryWithChildrenViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
+    @Query(value = """
+            with recursive category_ids_tree as (
+                select c.id from categories c
+                where c.slug = :#{#slug.value}
+                union all
+                select c.id from categories c
+                join category_ids_tree ct on c.parent_category_id = ct.id
+            )
+            select ok.okved_id from category_ids_tree ct
+            join categories_okved ok on ok.category_id = ct.id
+            order by ok.okved_id
+            """, nativeQuery = true)
+    List<String> findOkvedCategoryIdsByCategoryId(@Param("slug") CategorySlug slug);
 
     @Query(value = """
             WITH RECURSIVE category_tree AS (

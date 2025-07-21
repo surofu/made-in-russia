@@ -14,6 +14,8 @@ public interface CategoryRepository {
 
     Optional<Category> getCategoryWithOkvedCategoriesBySlug(CategorySlug slug);
 
+    List<String> getOkvedCategoryIdsBySlug(CategorySlug slug);
+
     // View
 
     List<CategoryView> getAllCategoriesViewsByLang(String lang);
