@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
 import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;

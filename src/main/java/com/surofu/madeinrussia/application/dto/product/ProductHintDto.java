@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

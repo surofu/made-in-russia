@@ -1,7 +1,8 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
-import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqView;
+import com.surofu.madeinrussia.application.dto.TranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
+import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,19 +18,10 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
-        name = "ProductFAQ",
-        description = "Represents a frequently asked question and answer for a product",
-        example = """
-                {
-                  "id": 42,
-                  "question": "What is the warranty period for this product?",
-                  "answer": "This product comes with a 2-year manufacturer warranty.",
-                  "creationDate": "2025-05-15T10:30:00Z",
-                  "lastModificationDate": "2025-06-20T14:15:00Z"
-                }
-                """
+        name = "ProductFaq with translations",
+        description = "Represents a frequently asked question and answer for a product with localization fields"
 )
-public final class ProductFaqDto implements Serializable {
+public final class ProductFaqWithTranslationDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the FAQ entry",
@@ -47,6 +39,8 @@ public final class ProductFaqDto implements Serializable {
     )
     private String question;
 
+    private TranslationDto questionTranslations;
+
     @Schema(
             description = "The answer to the question",
             example = "Yes, this product has an IP68 waterproof rating.",
@@ -55,6 +49,8 @@ public final class ProductFaqDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String answer;
+
+    private TranslationDto answerTranslations;
 
     @Schema(
             description = "Timestamp when the FAQ was created",
@@ -75,22 +71,13 @@ public final class ProductFaqDto implements Serializable {
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
-    public static ProductFaqDto of(ProductFaq productFaq) {
-        return ProductFaqDto.builder()
-                .id(productFaq.getId())
-                .question(productFaq.getQuestion().toString())
-                .answer(productFaq.getAnswer().toString())
-                .creationDate(productFaq.getCreationDate().getValue())
-                .lastModificationDate(productFaq.getLastModificationDate().getValue())
-                .build();
-    }
-
-    @Schema(hidden = true)
-    public static ProductFaqDto of(ProductFaqView view) {
-        return ProductFaqDto.builder()
+    public static ProductFaqWithTranslationDto of(ProductFaqWithTranslationsView view) {
+        return ProductFaqWithTranslationDto.builder()
                 .id(view.getId())
                 .question(view.getQuestion())
+                .questionTranslations(TranslationDto.of(HstoreParser.fromString(view.getQuestionTranslations())))
                 .answer(view.getAnswer())
+                .answerTranslations(TranslationDto.of(HstoreParser.fromString(view.getAnswerTranslations())))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

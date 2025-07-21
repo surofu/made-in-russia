@@ -187,4 +187,46 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     where sp.parent_product_id = :id
     """, nativeQuery = true)
     List<SimilarProductView> findAllSimilarProductViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+    @Query(value = """
+     select
+        p.id,
+        p.user_id as "userId",
+        p.category_id,
+        p.article_code as "articleCode",
+        p.title,
+        p.title_translations::text as "titleTranslations",
+        p.main_description as "mainDescription",
+        p.main_description_translations::text as "mainDescriptionTranslations",
+        p.further_description as "furtherDescription",
+        p.further_description_translations::text as "furtherDescriptionTranslations",
+        p.preview_image_url as "previewImageUrl",
+        p.minimum_order_quantity as "minimumOrderQuantity",
+        p.discount_expiration_date as "discountExpirationDate",
+        p.creation_date as "creationDate",
+        p.last_modification_date as "lastModificationDate",
+        (
+            select
+                case
+                    when count(pr.rating) = 0 then null
+                    else cast(round(
+                        case
+                            when avg(pr.rating) < 1.0 then 1.0
+                            when avg(pr.rating) > 5.0 then 5.0
+                            else avg(pr.rating)
+                        end, 1
+                    ) as double precision)
+                end
+            from product_reviews pr
+            where pr.product_id = :id
+        ) as "rating",
+        (
+            select count(*)
+            from product_reviews pr
+            where pr.product_id = :id
+        ) as "reviewsCount"
+        from products p
+        where p.id = :id
+    """, nativeQuery = true)
+    Optional<ProductWithTranslationsView> findProductWithTranslationsById(@Param("id") Long id);
 }

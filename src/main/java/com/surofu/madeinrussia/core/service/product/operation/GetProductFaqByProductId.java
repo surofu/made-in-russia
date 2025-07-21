@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
-import com.surofu.madeinrussia.application.dto.ProductFaqDto;
+import com.surofu.madeinrussia.application.dto.product.ProductFaqDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
+import com.surofu.madeinrussia.application.dto.product.ProductDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

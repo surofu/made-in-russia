@@ -5,6 +5,8 @@ import com.surofu.madeinrussia.core.service.product.operation.*;
 public interface ProductService {
     GetProductById.Result getProductById(GetProductById operation);
 
+    GetProductWithTranslationsById.Result getProductWithTranslationsByProductId(GetProductWithTranslationsById operation);
+
     GetProductByArticle.Result getProductByArticle(GetProductByArticle operation);
 
     GetProductCategoryByProductId.Result getProductCategoryByProductId(GetProductCategoryByProductId operation);

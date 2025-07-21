@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
-import com.surofu.madeinrussia.application.dto.ProductDto;
+import com.surofu.madeinrussia.application.dto.product.ProductDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

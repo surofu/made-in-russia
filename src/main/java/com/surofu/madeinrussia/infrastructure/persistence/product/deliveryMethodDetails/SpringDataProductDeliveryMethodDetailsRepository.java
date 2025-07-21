@@ -26,4 +26,18 @@ public interface SpringDataProductDeliveryMethodDetailsRepository extends JpaRep
             where d.product_id = :productId
             """, nativeQuery = true)
     List<ProductDeliveryMethodDetailsView> findAllViewsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
+
+    @Query(value = """
+            select
+            d.id,
+            d.name,
+            d.name_translations::text,
+            d.value,
+            d.value_translations::text,
+            d.creation_date,
+            d.last_modification_date
+            from product_delivery_method_details d
+            where d.product_id = :productId
+            """, nativeQuery = true)
+    List<ProductDeliveryMethodDetailsWithTranslationsView> findAllViewsWithTranslationsByProductId(@Param("productId") Long productId);
 }

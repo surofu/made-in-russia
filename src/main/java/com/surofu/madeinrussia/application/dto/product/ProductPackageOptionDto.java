@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
 import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
@@ -43,6 +43,7 @@ public final class ProductPackageOptionDto implements Serializable {
                 .build();
     }
 
+    @Schema(hidden = true)
     public static ProductPackageOptionDto of(ProductPackageOptionView view) {
         return ProductPackageOptionDto.builder()
                 .id(view.getId())

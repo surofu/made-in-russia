@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.vendor.CreateVendorFaqCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
-import com.surofu.madeinrussia.application.dto.VendorDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;

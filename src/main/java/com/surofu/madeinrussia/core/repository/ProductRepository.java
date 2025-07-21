@@ -8,6 +8,7 @@ import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductC
 import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.ProductWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
 
@@ -46,4 +47,6 @@ public interface ProductRepository {
     Optional<ProductView> getProductViewByArticleAndLang(String article, String lang);
 
     List<SimilarProductView> getAllSimilarProductViewsByProductIdAndLang(Long id, String lang);
+
+    Optional<ProductWithTranslationsView> getProductWithTranslationsByProductId(Long id);
 }

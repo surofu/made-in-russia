@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
 import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;

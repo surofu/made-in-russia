@@ -99,4 +99,9 @@ public class JpaProductRepository implements ProductRepository {
     public List<SimilarProductView> getAllSimilarProductViewsByProductIdAndLang(Long id, String lang) {
         return repository.findAllSimilarProductViewByIdAndLang(id, lang);
     }
+
+    @Override
+    public Optional<ProductWithTranslationsView> getProductWithTranslationsByProductId(Long id) {
+        return repository.findProductWithTranslationsById(id);
+    }
 }

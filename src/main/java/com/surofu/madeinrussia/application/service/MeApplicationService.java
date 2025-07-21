@@ -1,6 +1,12 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
+import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;

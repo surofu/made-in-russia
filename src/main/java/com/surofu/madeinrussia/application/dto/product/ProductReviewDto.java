@@ -1,5 +1,6 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
+import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

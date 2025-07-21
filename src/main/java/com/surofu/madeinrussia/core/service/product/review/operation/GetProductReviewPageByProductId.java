@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.product.review.operation;
 
-import com.surofu.madeinrussia.application.dto.ProductReviewDto;
+import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

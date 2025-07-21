@@ -1,5 +1,8 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
+import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
+import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;

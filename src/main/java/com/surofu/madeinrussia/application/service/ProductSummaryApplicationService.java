@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;

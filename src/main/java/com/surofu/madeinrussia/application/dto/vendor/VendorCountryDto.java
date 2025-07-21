@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.vendor;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;

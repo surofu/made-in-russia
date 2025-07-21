@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.okved.OkvedCompany;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.service.company.CompanyService;
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j

@@ -24,4 +24,18 @@ public interface SpringDataProductPackageOptionRepository extends JpaRepository<
             where o.product_id = :productId
             """, nativeQuery = true)
     List<ProductPackageOptionView> findAllViewsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
+
+    @Query(value = """
+            select
+            o.id,
+            o.name,
+            o.name_translations::text,
+            o.price,
+            o.price_unit,
+            o.creation_date,
+            o.last_modification_date
+            from product_package_options o
+            where o.product_id = :productId
+            """, nativeQuery = true)
+    List<ProductPackageOptionWithTranslationsView> findAllViewsWithTranslationsByProductId(@Param("productId") Long productId);
 }

@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto.page;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.surofu.madeinrussia.application.dto.ProductReviewDto;
+import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import lombok.Getter;
 import lombok.Setter;

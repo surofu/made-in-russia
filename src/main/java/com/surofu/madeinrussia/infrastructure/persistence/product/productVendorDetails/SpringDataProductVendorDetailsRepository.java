@@ -26,4 +26,18 @@ public interface SpringDataProductVendorDetailsRepository extends JpaRepository<
             where d.product_id = :productId
             """, nativeQuery = true)
     Optional<ProductVendorDetailsView> findViewByProductIdAndLang(@Param("productId") Long id, @Param("lang") String lang);
+
+    @Query(value = """
+            select
+            d.id,
+            d.main_description,
+            d.main_description_translations::text,
+            d.further_description,
+            d.further_description_translations::text,
+            d.creation_date,
+            d.last_modification_date
+            from product_vendor_details d
+            where d.product_id = :productId
+            """, nativeQuery = true)
+    Optional<ProductVendorDetailsWithTranslationsView> findViewWithTranslationsByProductId(@Param("productId") Long id);
 }

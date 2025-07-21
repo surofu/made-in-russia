@@ -16,4 +16,9 @@ public class JpaProductCharacteristicRepository implements ProductCharacteristic
     public List<ProductCharacteristicView> findAllViewsByProductIdAndLang(Long productId, String lang) {
         return repository.findAllByProductIdAndLang(productId, lang);
     }
+
+    @Override
+    public List<ProductCharacteristicWithTranslationsView> findAllViewsWithTranslationsByProductId(Long productId) {
+        return repository.findAllWithTranslationsByProductId(productId);
+    }
 }

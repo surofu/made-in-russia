@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.ProductReviewDto;
+import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.service.async.AsyncProductReviewApplicationService;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;

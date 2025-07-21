@@ -1,7 +1,9 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
+import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
+import com.surofu.madeinrussia.infrastructure.persistence.product.ProductWithTranslationsView;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,17 +21,16 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
-        name = "Product",
-        description = "Represents a product DTO"
+        name = "Product with translations",
+        description = "Represents a product DTO with all text localizations"
 )
-public class ProductDto implements Serializable {
+public class ProductWithTranslationsDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the product",
@@ -128,57 +129,16 @@ public class ProductDto implements Serializable {
     @Schema(
             description = "Technical specifications and product characteristics",
             type = "array",
-            implementation = ProductCharacteristicDto[].class,
-            example = """
-                    [
-                      {
-                        "id": 101,
-                        "name": "Weight",
-                        "value": "1.2 kg",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 102,
-                        "name": "Dimensions",
-                        "value": "30 x 20 x 5 cm",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 103,
-                        "name": "Material",
-                        "value": "Aluminum alloy",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 104,
-                        "name": "Warranty",
-                        "value": "2 years",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      }
-                    ]
-                    """
+            implementation = ProductCharacteristicWithTranslationsDto[].class
     )
-    private List<ProductCharacteristicDto> characteristics;
+    private List<ProductCharacteristicWithTranslationsDto> characteristics;
 
     @Schema(
             description = "Represents a frequently asked question and answer for a product",
             type = "array",
-            implementation = ProductFaqDto[].class,
-            example = """
-                    {
-                      "id": 42,
-                      "question": "What is the warranty period for this product?",
-                      "answer": "This product comes with a 2-year manufacturer warranty.",
-                      "creationDate": "2025-05-15T10:30:00Z",
-                      "lastModificationDate": "2025-06-20T14:15:00Z"
-                    }
-                    """
+            implementation = ProductFaqWithTranslationDto[].class
     )
-    private List<ProductFaqDto> faq;
+    private List<ProductFaqWithTranslationDto> faq;
 
     @Schema(
             description = "Represents pricing information for a product including discounts and quantity ranges",
@@ -220,6 +180,8 @@ public class ProductDto implements Serializable {
     )
     private String title;
 
+    TranslationDto titleTranslations;
+
     @Schema(
             description = "Full product description with features, specifications and usage details. HTML supported.",
             example = "<p>Flagship smartphone with 6.7\" AMOLED 120Hz display, Snapdragon 8 Gen 2 and 108MP triple camera.</p>",
@@ -228,6 +190,8 @@ public class ProductDto implements Serializable {
     )
     private String mainDescription;
 
+    TranslationDto mainDescriptionTranslations;
+
     @Schema(
             description = "Additional technical specifications and compatibility details",
             example = "- 5G/Wi-Fi 6 support\n- IP68 water resistance\n- Dolby Atmos stereo speakers",
@@ -235,6 +199,8 @@ public class ProductDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String furtherDescription;
+
+    TranslationDto furtherDescriptionTranslations;
 
     @Schema(
             description = """
@@ -280,11 +246,11 @@ public class ProductDto implements Serializable {
 
     private List<ProductReviewMediaDto> reviewsMedia;
 
-    private ProductVendorDetailsDto aboutVendor;
+    private ProductVendorDetailsWithTranslationsDto aboutVendor;
 
-    private List<ProductDeliveryMethodDetailsDto> deliveryMethodsDetails;
+    private List<ProductDeliveryMethodDetailsWithTranslationsDto> deliveryMethodsDetails;
 
-    private List<ProductPackageOptionDto> packagingOptions;
+    private List<ProductPackageOptionWithTranslationsDto> packagingOptions;
 
     @Schema(
             description = "Minimum quantity that must be ordered",
@@ -324,46 +290,16 @@ public class ProductDto implements Serializable {
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
-    public static ProductDto of(Product product) {
-        return ProductDto.builder()
-                .id(product.getId())
-                .user(VendorDto.of(product.getUser()))
-                .category(CategoryDto.ofWithoutChildren(product.getCategory()))
-                .deliveryMethods(product.getDeliveryMethods().stream()
-                        .map(DeliveryMethodDto::of)
-                        .collect(Collectors.toList())
-                )
-                .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
-                .similarProducts(product.getSimilarProducts().stream().map(SimilarProductDto::of).toList())
-                .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
-                .prices(product.getPrices().stream().map(ProductPriceDto::of).toList())
-                .article(product.getArticleCode().toString())
-                .title(product.getTitle().getValue())
-                .mainDescription(product.getDescription().getMainDescription())
-                .furtherDescription(product.getDescription().getFurtherDescription())
-                .previewImageUrl(product.getPreviewImageUrl().getValue())
-                .creationDate(product.getCreationDate().getValue())
-                .lastModificationDate(product.getLastModificationDate().getValue())
-                .rating(product.getRating())
-                .reviewsCount(product.getReviewsCount())
-                .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
-                .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
-                .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
-                .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
-                .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().toString())
-                .daysBeforeDiscountExpires(getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
-                .build();
-    }
-
-    @Schema(hidden = true)
-    public static ProductDto of(ProductView view) {
-        return ProductDto.builder()
+    public static ProductWithTranslationsDto of(ProductWithTranslationsView view) {
+        return ProductWithTranslationsDto.builder()
                 .id(view.getId())
                 .article(view.getArticleCode())
                 .title(view.getTitle())
+                .titleTranslations(TranslationDto.of(HstoreParser.fromString(view.getTitleTranslations())))
                 .mainDescription(view.getMainDescription())
+                .mainDescriptionTranslations(TranslationDto.of(HstoreParser.fromString(view.getMainDescriptionTranslations())))
                 .furtherDescription(view.getFurtherDescription())
+                .furtherDescriptionTranslations(TranslationDto.of(HstoreParser.fromString(view.getFurtherDescriptionTranslations())))
                 .rating(view.getRating())
                 .reviewsCount(view.getReviewsCount())
                 .previewImageUrl(view.getPreviewImageUrl())

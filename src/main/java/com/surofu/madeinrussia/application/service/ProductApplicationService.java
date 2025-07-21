@@ -3,6 +3,11 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.command.product.create.*;
 import com.surofu.madeinrussia.application.command.product.update.*;
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.product.*;
+import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
@@ -34,15 +39,21 @@ import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.ProductWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethodDetails.ProductDeliveryMethodDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethodDetails.ProductDeliveryMethodDetailsWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
@@ -98,8 +109,20 @@ public class ProductApplicationService implements ProductService {
 
         ProductDto productDto = ProductDto.of(productView.get());
         ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), operation.getLocale());
-
         return GetProductById.Result.success(fullProductDto);
+    }
+
+    @Override
+    public GetProductWithTranslationsById.Result getProductWithTranslationsByProductId(GetProductWithTranslationsById operation) {
+        Optional<ProductWithTranslationsView> view = productRepository.getProductWithTranslationsByProductId(operation.getId());
+
+        if (view.isEmpty()) {
+            return GetProductWithTranslationsById.Result.notFound(operation.getId());
+        }
+
+        ProductWithTranslationsDto dto = ProductWithTranslationsDto.of(view.get());
+        ProductWithTranslationsDto fullDto = loadFullProduct(dto, view.get(), Locale.getDefault());
+        return GetProductWithTranslationsById.Result.success(fullDto);
     }
 
     @Override
@@ -1010,7 +1033,7 @@ public class ProductApplicationService implements ProductService {
         return GetSearchHints.Result.success(groupedSearchHints);
     }
 
-    protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
+    private ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
         if (userView.isPresent()) {
@@ -1159,6 +1182,151 @@ public class ProductApplicationService implements ProductService {
         );
         List<ProductPackageOptionDto> productPackageOptionDtoList = productPackageOptionViewList.stream()
                 .map(ProductPackageOptionDto::of).toList();
+        productDto.setPackagingOptions(productPackageOptionDtoList);
+
+        return productDto;
+    }
+
+    private ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
+        // Vendor
+        Optional<UserView> userView = userRepository.getViewById(view.getUserId());
+        if (userView.isPresent()) {
+            VendorDto vendorDto = VendorDto.of(userView.get());
+
+            // Vendor Countries
+            List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream()
+                    .map(VendorCountryDto::of)
+                    .toList();
+
+            // Vendor Product Categories
+            List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream()
+                    .map(VendorProductCategoryDto::of)
+                    .toList();
+
+            // Vendor Faq
+            List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
+                    userView.get().getVendorDetails().getId(),
+                    locale.getLanguage()
+            );
+            List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream()
+                    .map(VendorFaqDto::of)
+                    .toList();
+
+            vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
+            vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
+            vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
+            productDto.setUser(vendorDto);
+        }
+
+        // Delivery Methods
+        List<DeliveryMethodView> deliveryMethodViewList = deliveryMethodRepository.getAllDeliveryMethodViewsByProductIdLang(
+                productDto.getId(),
+                locale.getLanguage()
+        );
+        List<DeliveryMethodDto> deliveryMethodDtoList = deliveryMethodViewList.stream().map(DeliveryMethodDto::of).toList();
+        productDto.setDeliveryMethods(deliveryMethodDtoList);
+
+        // Category
+        Optional<CategoryView> categoryView = categoryRepository.getCategoryViewByIdAndLang(
+                view.getCategoryId(),
+                locale.getLanguage()
+        );
+
+        if (categoryView.isPresent()) {
+            CategoryDto categoryDto = CategoryDto.ofWithoutChildren(categoryView.get());
+            productDto.setCategory(categoryDto);
+        }
+
+        // Media
+        List<ProductMediaView> productMediaList = productMediaRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductMediaDto> productMediaDtoList = productMediaList.stream()
+                .map(ProductMediaDto::of)
+                .toList();
+        productDto.setMedia(productMediaDtoList);
+
+        // Similar Products
+        List<SimilarProductView> similarProductViewList = productRepository.getAllSimilarProductViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
+        );
+        List<SimilarProductDto> similarProductDtoList = similarProductViewList.stream()
+                .map(SimilarProductDto::of)
+                .toList();
+        productDto.setSimilarProducts(similarProductDtoList);
+
+        // Characteristics
+        List<ProductCharacteristicWithTranslationsView> productCharacteristicList = productCharacteristicRepository
+                .findAllViewsWithTranslationsByProductId(productDto.getId());
+        List<ProductCharacteristicWithTranslationsDto> productCharacteristicDtoList = productCharacteristicList.stream()
+                .map(ProductCharacteristicWithTranslationsDto::of)
+                .toList();
+        productDto.setCharacteristics(productCharacteristicDtoList);
+
+        // Faq
+        List<ProductFaqWithTranslationsView> productFaqList = productFaqRepository
+                .findAllWithTranslationsByProductId(productDto.getId());
+        List<ProductFaqWithTranslationDto> productFaqDtoList = productFaqList.stream()
+                .map(ProductFaqWithTranslationDto::of)
+                .toList();
+        productDto.setFaq(productFaqDtoList);
+
+        // Prices
+        List<ProductPriceView> productPriceList = productPriceRepository.findAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductPriceDto> productPriceDtoList = productPriceList.stream()
+                .map(ProductPriceDto::of)
+                .toList();
+        productDto.setPrices(productPriceDtoList);
+
+        // Reviews Media
+        List<ProductReviewMediaView> productReviewMediaList = productReviewMediaRepository.getAllViewsByProductId(
+                productDto.getId()
+        );
+        List<ProductReviewMediaDto> productReviewMediaDtoList = productReviewMediaList.stream()
+                .map(ProductReviewMediaDto::of)
+                .toList();
+        productDto.setReviewsMedia(productReviewMediaDtoList);
+
+        // About Vendor
+        Optional<ProductVendorDetailsWithTranslationsView> productVendorDetailsView = productVendorDetailsRepository
+                .getViewWithTranslationsByProductId(productDto.getId());
+
+        if (productVendorDetailsView.isPresent()) {
+            ProductVendorDetailsWithTranslationsDto productVendorDetailsDto = ProductVendorDetailsWithTranslationsDto.of(productVendorDetailsView.get());
+            productDto.setAboutVendor(productVendorDetailsDto);
+
+            // About Vendor Media
+            List<ProductVendorDetailsMediaView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsByProductVendorDetailsId(
+                    productVendorDetailsView.get().getId()
+            );
+            List<ProductVendorDetailsMediaDto> productVendorDetailsMediaDtoList = productVendorDetailsMediaViewList.stream()
+                    .map(ProductVendorDetailsMediaDto::of).toList();
+            productVendorDetailsDto.setMedia(productVendorDetailsMediaDtoList);
+        }
+
+        // Delivery Method Details
+        List<ProductDeliveryMethodDetailsWithTranslationsView> productDeliveryMethodDetailsViewList = productDeliveryMethodDetailsRepository
+                .getAllViewsWithTranslationsByProductId(productDto.getId());
+        List<ProductDeliveryMethodDetailsWithTranslationsDto> productDeliveryMethodDetailsDtoList = productDeliveryMethodDetailsViewList.stream()
+                .map(ProductDeliveryMethodDetailsWithTranslationsDto::of).toList();
+        productDto.setDeliveryMethodsDetails(productDeliveryMethodDetailsDtoList);
+
+        // Packaging Options
+        List<ProductPackageOptionWithTranslationsView> productPackageOptionViewList = productPackageOptionsRepository
+                .getAllViewsWithTranslationsByProductId(productDto.getId());
+        List<ProductPackageOptionWithTranslationsDto> productPackageOptionDtoList = productPackageOptionViewList.stream()
+                .map(ProductPackageOptionWithTranslationsDto::of).toList();
         productDto.setPackagingOptions(productPackageOptionDtoList);
 
         return productDto;

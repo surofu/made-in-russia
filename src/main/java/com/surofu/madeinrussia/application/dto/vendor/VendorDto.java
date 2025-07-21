@@ -1,5 +1,6 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.vendor;
 
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import io.swagger.v3.oas.annotations.media.Schema;

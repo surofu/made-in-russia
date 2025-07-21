@@ -1,26 +1,27 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
-import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicView;
+import com.surofu.madeinrussia.application.dto.TranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
+import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.io.Serializable;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
-        description = "Data Transfer Object for product characteristics/specifications",
-        name = "ProductCharacteristic"
+        name = "ProductCharacteristic with translations",
+        description = "Dto for product characteristics with localization fields"
 )
-public final class ProductCharacteristicDto implements Serializable {
+public final class ProductCharacteristicWithTranslationsDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the characteristic",
@@ -37,6 +38,8 @@ public final class ProductCharacteristicDto implements Serializable {
     )
     private String name;
 
+    TranslationDto nameTranslations;
+
     @Schema(
             description = "Value of the characteristic with appropriate units",
             example = "5000 mAh",
@@ -44,6 +47,8 @@ public final class ProductCharacteristicDto implements Serializable {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String value;
+
+    TranslationDto valueTranslations;
 
     @Schema(
             description = "Timestamp when the characteristic was created",
@@ -63,22 +68,13 @@ public final class ProductCharacteristicDto implements Serializable {
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
-    public static ProductCharacteristicDto of(ProductCharacteristic productCharacteristic) {
-        return ProductCharacteristicDto.builder()
-                .id(productCharacteristic.getId())
-                .name(productCharacteristic.getName().toString())
-                .value(productCharacteristic.getValue().toString())
-                .creationDate(productCharacteristic.getCreationDate().getValue())
-                .lastModificationDate(productCharacteristic.getLastModificationDate().getValue())
-                .build();
-    }
-
-    @Schema(hidden = true)
-    public static ProductCharacteristicDto of(ProductCharacteristicView view) {
-        return ProductCharacteristicDto.builder()
+    public static ProductCharacteristicWithTranslationsDto of(ProductCharacteristicWithTranslationsView view) {
+        return ProductCharacteristicWithTranslationsDto.builder()
                 .id(view.getId())
                 .name(view.getName())
+                .nameTranslations(TranslationDto.of(HstoreParser.fromString(view.getNameTranslations())))
                 .value(view.getValue())
+                .valueTranslations(TranslationDto.of(HstoreParser.fromString(view.getValueTranslations())))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

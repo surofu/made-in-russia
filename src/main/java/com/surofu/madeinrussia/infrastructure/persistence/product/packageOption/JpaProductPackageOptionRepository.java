@@ -16,4 +16,9 @@ public class JpaProductPackageOptionRepository implements ProductPackageOptionsR
     public List<ProductPackageOptionView> getAllViewsByProductIdAndLang(Long productId, String lang) {
         return repository.findAllViewsByProductIdAndLang(productId, lang);
     }
+
+    @Override
+    public List<ProductPackageOptionWithTranslationsView> getAllViewsWithTranslationsByProductId(Long productId) {
+        return repository.findAllViewsWithTranslationsByProductId(productId);
+    }
 }

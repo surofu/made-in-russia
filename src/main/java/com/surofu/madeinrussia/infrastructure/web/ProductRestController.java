@@ -8,6 +8,9 @@ import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.product.ProductCharacteristicDto;
+import com.surofu.madeinrussia.application.dto.product.ProductDto;
+import com.surofu.madeinrussia.application.dto.product.ProductMediaDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
@@ -62,6 +65,7 @@ public class ProductRestController {
     private final LocalizationManager localizationManager;
 
     private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
+    private final GetProductWithTranslationsById.Result.Processor<ResponseEntity<?>> getProductWithTranslationsByIdProcessor;
     private final GetProductByArticle.Result.Processor<ResponseEntity<?>> getProductByArticleProcessor;
     private final GetProductCategoryByProductId.Result.Processor<ResponseEntity<?>> getProductCategoryByProductIdProcessor;
     private final GetProductDeliveryMethodsByProductId.Result.Processor<ResponseEntity<?>> getProductDeliveryMethodsByProductIdProcessor;
@@ -110,8 +114,15 @@ public class ProductRestController {
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
             )
             @PathVariable
-            Long productId
+            Long productId,
+
+            @RequestParam(name = "hasTranslations", required = false, defaultValue = "false") Boolean hasTranslations
     ) {
+        if (hasTranslations) {
+            GetProductWithTranslationsById operation = GetProductWithTranslationsById.of(productId);
+            return productService.getProductWithTranslationsByProductId(operation).process(getProductWithTranslationsByIdProcessor);
+        }
+
         Locale locale = LocaleContextHolder.getLocale();
         GetProductById operation = GetProductById.of(locale, productId);
         return productService.getProductById(operation).process(getProductByIdProcessor);
