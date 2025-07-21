@@ -1,6 +1,6 @@
 build:
   skip: yes
-  
+git [
 run:
   image: sutanisurofu/madeinrussia:latest
   containerPort: 8080

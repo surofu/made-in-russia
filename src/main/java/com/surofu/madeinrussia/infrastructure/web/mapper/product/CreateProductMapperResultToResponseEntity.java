@@ -73,6 +73,13 @@ public class CreateProductMapperResultToResponseEntity
     }
 
     @Override
+    public ResponseEntity<?> processEmptyTranslation(CreateProduct.Result.EmptyTranslation result) {
+        String message = localizationManager.localize("product.error.empty_translation");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
     public ResponseEntity<?> processTranslationError(CreateProduct.Result.TranslationError result) {
         String message = localizationManager.localize("product.error.translation");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);

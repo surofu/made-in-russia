@@ -323,7 +323,7 @@ public class VendorRestController {
     }
 
     @PostMapping("faq")
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @Operation(
             summary = "Create a new vendor FAQ",
             description = "Creates a new frequently asked question and answer pair for the authenticated vendor",
@@ -389,7 +389,7 @@ public class VendorRestController {
     }
 
     @DeleteMapping("faq/{faqId}")
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteVendorFaq(
             @PathVariable Long faqId,
             @AuthenticationPrincipal SecurityUser securityUser

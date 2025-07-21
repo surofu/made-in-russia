@@ -413,7 +413,7 @@ public class MeRestController {
     }
 
     @GetMapping("product-reviews")
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get user product reviews",
@@ -491,7 +491,7 @@ public class MeRestController {
     }
 
     @GetMapping("products-summary")
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Get paginated product summary view",

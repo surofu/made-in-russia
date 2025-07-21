@@ -17,6 +17,6 @@ public record UpdateProductCharacteristicCommand(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String value,
 
-        TranslationDto valueTranslation
+        TranslationDto valueTranslations
 ) {
 }

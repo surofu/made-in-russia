@@ -1,9 +1,9 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.product.create.CreateProductCommand;
-import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
 import com.surofu.madeinrussia.application.command.product.review.CreateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.product.review.UpdateProductReviewCommand;
+import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
@@ -24,11 +24,9 @@ import com.surofu.madeinrussia.core.service.product.review.operation.GetProductR
 import com.surofu.madeinrussia.core.service.product.review.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.StringToClassMapItem;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -659,7 +657,7 @@ public class ProductRestController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @Operation(
             summary = "Create new product",
             description = "Creates a new product with media files, prices, characteristics and FAQ",
@@ -726,30 +724,49 @@ public class ProductRestController {
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         if (createProductCommand.prices() == null || createProductCommand.prices().isEmpty()) {
-            String message = "Цены товара не могут быть пустыми";
+            String message = localizationManager.localize("validation.product.create.empty_prices");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
         if (createProductCommand.characteristics() == null || createProductCommand.characteristics().isEmpty()) {
-            String message = "Характеристики товара не могут быть пустыми";
+            String message = localizationManager.localize("validation.product.create.empty_characteristics");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
         if (productMedia == null || productMedia.isEmpty()) {
-            String message = "Медиа файлы товара не могут быть пустыми";
+            String message = localizationManager.localize("validation.product.create.empty_product_media");
             SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
         }
 
+        ProductTitle productTitle = ProductTitle.of(createProductCommand.title());
+        productTitle.setTranslations(new HstoreTranslationDto(
+                createProductCommand.titleTranslations().en(),
+                createProductCommand.titleTranslations().ru(),
+                createProductCommand.titleTranslations().zh()
+        ));
+
+        ProductDescription productDescription = ProductDescription.of(
+                createProductCommand.mainDescription(),
+                createProductCommand.furtherDescription()
+        );
+        productDescription.setMainDescriptionTranslations(new HstoreTranslationDto(
+                createProductCommand.mainDescriptionTranslations().en(),
+                createProductCommand.mainDescriptionTranslations().ru(),
+                createProductCommand.mainDescriptionTranslations().zh()
+        ));
+        productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                createProductCommand.furtherDescriptionTranslations().en(),
+                createProductCommand.furtherDescriptionTranslations().ru(),
+                createProductCommand.furtherDescriptionTranslations().zh()
+        ));
+
         CreateProduct operation = CreateProduct.of(
                 securityUser,
-                ProductTitle.of(createProductCommand.title()),
-                ProductDescription.of(
-                        createProductCommand.mainDescription(),
-                        createProductCommand.furtherDescription()
-                ),
+                productTitle,
+                productDescription,
                 createProductCommand.categoryId(),
                 createProductCommand.deliveryMethodIds(),
                 createProductCommand.similarProducts() == null ? new ArrayList<>() : createProductCommand.similarProducts(),
@@ -769,7 +786,7 @@ public class ProductRestController {
     }
 
     @PutMapping(value = "{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @Operation(
             summary = "Update product by ID",
             description = "Update the product with media files, prices, characteristics and FAQ",
@@ -806,7 +823,29 @@ public class ProductRestController {
                                     schema = @Schema(implementation = SimpleResponseErrorDto.class)
                             )
                     )
-            }
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(
+                                    type = "object",
+                                    properties = {
+                                            @StringToClassMapItem(
+                                                    key = "data",
+                                                    value = UpdateProductCommand.class
+                                            ),
+                                            @StringToClassMapItem(
+                                                    key = "productMedia",
+                                                    value = MultipartFile[].class
+                                            ),
+                                            @StringToClassMapItem(
+                                                    key = "aboutVendorMedia",
+                                                    value = MultipartFile[].class
+                                            )
+                                    }
+                            )
+                    )
+            )
     )
     public ResponseEntity<?> updateProductById(
             @Parameter(
@@ -824,7 +863,7 @@ public class ProductRestController {
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateProductCommand.class)
+                            schema = @Schema(implementation = UpdateProductCommand.class)
                     )
             )
             @RequestPart("data") @Valid UpdateProductCommand updateProductCommand,
@@ -865,8 +904,8 @@ public class ProductRestController {
         // Title
         ProductTitle productTitle = ProductTitle.of(Objects.requireNonNullElse(updateProductCommand.title(), ""));
         TranslationDto titleTranslations = Objects.requireNonNullElse(
-          updateProductCommand.titleTranslations(),
-          new TranslationDto(null, null, null)
+                updateProductCommand.titleTranslations(),
+                new TranslationDto(null, null, null)
         );
         productTitle.setTranslations(new HstoreTranslationDto(
                 titleTranslations.en(),
@@ -875,7 +914,6 @@ public class ProductRestController {
         ));
 
         // Description
-
         TranslationDto mainDescriptionTranslations = Objects.requireNonNullElse(
                 updateProductCommand.mainDescriptionTranslations(),
                 new TranslationDto(null, null, null)

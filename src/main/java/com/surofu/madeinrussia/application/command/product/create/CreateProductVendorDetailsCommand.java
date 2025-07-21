@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.command.product.create;
 
+import com.surofu.madeinrussia.application.dto.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -13,12 +14,16 @@ public record CreateProductVendorDetailsCommand(
         )
         String mainDescription,
 
+        TranslationDto mainDescriptionTranslations,
+
         @Schema(
                 description = "Additional detailed description (features, specifications, usage instructions, etc.)",
                 example = "Includes 10-piece set with non-slip handles. Dishwasher safe.",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED
         )
         String furtherDescription,
+
+        TranslationDto furtherDescriptionTranslations,
 
         @Schema(
                 description = "Alternative texts for product media (images, videos) for accessibility (SEO and screen readers)",

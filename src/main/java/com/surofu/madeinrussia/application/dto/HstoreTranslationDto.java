@@ -5,4 +5,7 @@ public record HstoreTranslationDto(
         String textRu,
         String textZh
 ) {
+    public static HstoreTranslationDto of(TranslationDto dto) {
+        return new HstoreTranslationDto(dto.en(), dto.ru(), dto.zh());
+    }
 }

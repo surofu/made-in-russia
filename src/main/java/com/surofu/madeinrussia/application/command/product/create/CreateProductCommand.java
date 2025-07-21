@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.command.product.create;
 
+import com.surofu.madeinrussia.application.dto.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -9,11 +10,17 @@ public record CreateProductCommand(
         @Schema(description = "Product title", example = "iPhone 15 Pro Max", requiredMode = Schema.RequiredMode.REQUIRED)
         String title,
 
+        TranslationDto titleTranslations,
+
         @Schema(description = "Main product description", example = "Latest iPhone with advanced camera system", requiredMode = Schema.RequiredMode.REQUIRED)
         String mainDescription,
 
+        TranslationDto mainDescriptionTranslations,
+
         @Schema(description = "Further detailed product description", example = "Extended description with technical details", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String furtherDescription,
+
+        TranslationDto furtherDescriptionTranslations,
 
         @Schema(description = "Category ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
         Long categoryId,

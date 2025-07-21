@@ -17,6 +17,6 @@ public record UpdateProductFaqCommand(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String answer,
 
-        TranslationDto answerTranslation
+        TranslationDto answerTranslations
 ) {
 }
