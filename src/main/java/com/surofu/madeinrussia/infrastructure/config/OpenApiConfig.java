@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 contact = @Contact(
                         name = "Stanislav",
                         email = "stanislavswork@gmail.com",
-                        url = "https://github.com/sutanirunofu"
+                        url = "https://github.com/surofu"
                 ),
                 title = "OpenApi specification - Stanislav",
                 description = "OpenApi for MadeInRussia",
@@ -28,10 +28,6 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 @Server(
                         description = "Amvera Environment",
                         url = "https://exporteru-prorumble.amvera.io"
-                ),
-                @Server(
-                        description = "Production Environment",
-                        url = "https://madeinrussia.onrender.com"
                 ),
                 @Server(
                         description = "Development Environment",
