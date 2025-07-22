@@ -8,5 +8,5 @@ import java.util.List;
 public interface ProductPackageOptionsRepository {
     List<ProductPackageOptionView> getAllViewsByProductIdAndLang(Long productId, String lang);
 
-    List<ProductPackageOptionWithTranslationsView> getAllViewsWithTranslationsByProductId(Long productId);
+    List<ProductPackageOptionWithTranslationsView> getAllViewsWithTranslationsByProductIdAndLang(Long productId, String lang);
 }

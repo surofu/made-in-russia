@@ -8,5 +8,5 @@ import java.util.List;
 public interface ProductFaqRepository {
     List<ProductFaqView> findAllViewsByProductIdAndLang(Long productId, String lang);
 
-    List<ProductFaqWithTranslationsView> findAllWithTranslationsByProductId(Long productId);
+    List<ProductFaqWithTranslationsView> findAllWithTranslationsByProductIdAndLang(Long productId, String lang);
 }

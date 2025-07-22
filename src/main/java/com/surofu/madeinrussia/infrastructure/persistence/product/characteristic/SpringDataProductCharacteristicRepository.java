@@ -30,14 +30,21 @@ public interface SpringDataProductCharacteristicRepository extends JpaRepository
     @Query(value = """
         select
         c.id,
-        c.name,
+        coalesce(
+            c.name_translations -> :lang,
+            c.name
+        ) as name,
         c.name_translations::text,
         c.value,
+        coalesce(
+            c.value_translations -> :lang,
+            c.value
+        ) as value,
         c.value_translations::text,
         c.creation_date,
         c.last_modification_date
         from product_characteristics c
         where c.product_id = :productId
     """, nativeQuery = true)
-    List<ProductCharacteristicWithTranslationsView> findAllWithTranslationsByProductId(@Param("productId") Long productId);
+    List<ProductCharacteristicWithTranslationsView> findAllWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
 }

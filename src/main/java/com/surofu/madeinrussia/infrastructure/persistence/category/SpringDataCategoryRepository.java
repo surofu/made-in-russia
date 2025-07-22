@@ -94,7 +94,7 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             
                 UNION ALL
             
-                SELECT 
+                SELECT
                     c.id,
                     c.parent_category_id,
                     c.name_translations,
@@ -156,7 +156,7 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             
                 UNION ALL
             
-                SELECT 
+                SELECT
                     c.id,
                     c.parent_category_id,
                     c.name_translations,

@@ -40,6 +40,8 @@ public interface ProductRepository {
 
     List<SearchHintView> findHintViews(String searchTerm);
 
+    void delete(Product product);
+
     // View
 
     Optional<ProductView> getProductViewByIdAndLang(Long productId, String lang);
@@ -48,5 +50,5 @@ public interface ProductRepository {
 
     List<SimilarProductView> getAllSimilarProductViewsByProductIdAndLang(Long id, String lang);
 
-    Optional<ProductWithTranslationsView> getProductWithTranslationsByProductId(Long id);
+    Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id, String lang);
 }

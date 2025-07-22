@@ -83,6 +83,11 @@ public class JpaProductRepository implements ProductRepository {
         return repository.findHintViews(searchTerm);
     }
 
+    @Override
+    public void delete(Product product) {
+        repository.delete(product);
+    }
+
     // View
 
     @Override
@@ -101,7 +106,7 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<ProductWithTranslationsView> getProductWithTranslationsByProductId(Long id) {
-        return repository.findProductWithTranslationsById(id);
+    public Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id, String lang) {
+        return repository.findProductWithTranslationsByIdAndLang(id, lang);
     }
 }

@@ -17,8 +17,7 @@ public class JpaProductFaqRepository implements ProductFaqRepository {
         return repository.findAllViewsByProductIdAndLang(productId, lang);
     }
 
-    @Override
-    public List<ProductFaqWithTranslationsView> findAllWithTranslationsByProductId(Long productId) {
-        return repository.findAllViewsWithTranslationsByProductId(productId);
+    public List<ProductFaqWithTranslationsView> findAllWithTranslationsByProductIdAndLang(Long productId, String lang) {
+        return repository.findAllViewsWithTranslationsByProductIdAndLang(productId, lang);
     }
 }

@@ -30,14 +30,20 @@ public interface SpringDataProductDeliveryMethodDetailsRepository extends JpaRep
     @Query(value = """
             select
             d.id,
-            d.name,
+            coalesce(
+                d.name_translations -> :lang,
+                d.name
+            ) as name,
             d.name_translations::text,
-            d.value,
+            coalesce(
+                d.value_translations -> :lang,
+                d.value
+            ) as value,
             d.value_translations::text,
             d.creation_date,
             d.last_modification_date
             from product_delivery_method_details d
             where d.product_id = :productId
             """, nativeQuery = true)
-    List<ProductDeliveryMethodDetailsWithTranslationsView> findAllViewsWithTranslationsByProductId(@Param("productId") Long productId);
+    List<ProductDeliveryMethodDetailsWithTranslationsView> findAllViewsWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
 }

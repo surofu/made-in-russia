@@ -24,4 +24,6 @@ public interface ProductService {
     UpdateProduct.Result updateProduct(UpdateProduct operation);
 
     GetSearchHints.Result getSearchHints(GetSearchHints operation);
+
+    DeleteProductById.Result deleteProductById(DeleteProductById operation);
 }

@@ -96,10 +96,10 @@ public class WebLocalizationRestController {
 
     @PostMapping("{languageCode}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Create or update localization",
             description = "Creates new or updates existing localization for specified language",
-            security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -144,10 +144,10 @@ public class WebLocalizationRestController {
 
     @DeleteMapping("{languageCode}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Delete localization",
             description = "Deletes localization for specified language",
-            security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(
                             responseCode = "200",

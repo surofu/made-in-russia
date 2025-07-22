@@ -18,7 +18,7 @@ public class JpaProductVendorDetailsRepository implements ProductVendorDetailsRe
     }
 
     @Override
-    public Optional<ProductVendorDetailsWithTranslationsView> getViewWithTranslationsByProductId(Long productId) {
-        return repository.findViewWithTranslationsByProductId(productId);
+    public Optional<ProductVendorDetailsWithTranslationsView> getViewWithTranslationsByProductIdAndLang(Long productId, String lang) {
+        return repository.findViewWithTranslationsByProductIdAndLang(productId, lang);
     }
 }

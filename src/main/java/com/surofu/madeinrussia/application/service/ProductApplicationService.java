@@ -9,6 +9,7 @@ import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
+import com.surofu.madeinrussia.application.service.async.AsyncProductApplicationService;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
@@ -93,6 +94,7 @@ public class ProductApplicationService implements ProductService {
     private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
+    private final AsyncProductApplicationService asyncProductApplicationService;
 
     private final String TEMP_URL = "TEMP_URL";
 
@@ -114,7 +116,8 @@ public class ProductApplicationService implements ProductService {
 
     @Override
     public GetProductWithTranslationsById.Result getProductWithTranslationsByProductId(GetProductWithTranslationsById operation) {
-        Optional<ProductWithTranslationsView> view = productRepository.getProductWithTranslationsByProductId(operation.getId());
+        Optional<ProductWithTranslationsView> view = productRepository.getProductWithTranslationsByProductIdAndLang(
+                operation.getId(), operation.getLocale().getLanguage());
 
         if (view.isEmpty()) {
             return GetProductWithTranslationsById.Result.notFound(operation.getId());
@@ -1187,6 +1190,29 @@ public class ProductApplicationService implements ProductService {
         return productDto;
     }
 
+    @Override
+    @Transactional
+    public DeleteProductById.Result deleteProductById(DeleteProductById operation) {
+        Optional<Product> product = productRepository.getProductById(operation.getProductId());
+
+        if (product.isEmpty()) {
+            return DeleteProductById.Result.notFound(operation.getProductId());
+        }
+
+        try {
+            asyncProductApplicationService.deleteProductMediaFiles(product.get())
+                    .thenCompose(unused -> asyncProductApplicationService.deleteProduct(product.get()))
+                    .join();
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteProductById.Result.deleteError(e);
+        }
+
+        return DeleteProductById.Result.success(operation.getProductId());
+    }
+
+    /* ========== PRIVATE ========== */
+
     private ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
@@ -1266,7 +1292,7 @@ public class ProductApplicationService implements ProductService {
 
         // Characteristics
         List<ProductCharacteristicWithTranslationsView> productCharacteristicList = productCharacteristicRepository
-                .findAllViewsWithTranslationsByProductId(productDto.getId());
+                .findAllViewsWithTranslationsByProductIdAndLang(productDto.getId(), locale.getLanguage());
         List<ProductCharacteristicWithTranslationsDto> productCharacteristicDtoList = productCharacteristicList.stream()
                 .map(ProductCharacteristicWithTranslationsDto::of)
                 .toList();
@@ -1274,7 +1300,7 @@ public class ProductApplicationService implements ProductService {
 
         // Faq
         List<ProductFaqWithTranslationsView> productFaqList = productFaqRepository
-                .findAllWithTranslationsByProductId(productDto.getId());
+                .findAllWithTranslationsByProductIdAndLang(productDto.getId(), locale.getLanguage());
         List<ProductFaqWithTranslationDto> productFaqDtoList = productFaqList.stream()
                 .map(ProductFaqWithTranslationDto::of)
                 .toList();
@@ -1300,7 +1326,7 @@ public class ProductApplicationService implements ProductService {
 
         // About Vendor
         Optional<ProductVendorDetailsWithTranslationsView> productVendorDetailsView = productVendorDetailsRepository
-                .getViewWithTranslationsByProductId(productDto.getId());
+                .getViewWithTranslationsByProductIdAndLang(productDto.getId(), locale.getLanguage());
 
         if (productVendorDetailsView.isPresent()) {
             ProductVendorDetailsWithTranslationsDto productVendorDetailsDto = ProductVendorDetailsWithTranslationsDto.of(productVendorDetailsView.get());
@@ -1317,14 +1343,14 @@ public class ProductApplicationService implements ProductService {
 
         // Delivery Method Details
         List<ProductDeliveryMethodDetailsWithTranslationsView> productDeliveryMethodDetailsViewList = productDeliveryMethodDetailsRepository
-                .getAllViewsWithTranslationsByProductId(productDto.getId());
+                .getAllViewsWithTranslationsByProductIdAndLang(productDto.getId(), locale.getLanguage());
         List<ProductDeliveryMethodDetailsWithTranslationsDto> productDeliveryMethodDetailsDtoList = productDeliveryMethodDetailsViewList.stream()
                 .map(ProductDeliveryMethodDetailsWithTranslationsDto::of).toList();
         productDto.setDeliveryMethodsDetails(productDeliveryMethodDetailsDtoList);
 
         // Packaging Options
         List<ProductPackageOptionWithTranslationsView> productPackageOptionViewList = productPackageOptionsRepository
-                .getAllViewsWithTranslationsByProductId(productDto.getId());
+                .getAllViewsWithTranslationsByProductIdAndLang(productDto.getId(), locale.getLanguage());
         List<ProductPackageOptionWithTranslationsDto> productPackageOptionDtoList = productPackageOptionViewList.stream()
                 .map(ProductPackageOptionWithTranslationsDto::of).toList();
         productDto.setPackagingOptions(productPackageOptionDtoList);

@@ -17,8 +17,7 @@ public class JpaProductDeliveryMethodDetailsRepository implements ProductDeliver
         return repository.findAllViewsByProductIdAndLang(productId, lang);
     }
 
-    @Override
-    public List<ProductDeliveryMethodDetailsWithTranslationsView> getAllViewsWithTranslationsByProductId(Long productId) {
-        return repository.findAllViewsWithTranslationsByProductId(productId);
+    public List<ProductDeliveryMethodDetailsWithTranslationsView> getAllViewsWithTranslationsByProductIdAndLang(Long productId, String lang) {
+        return repository.findAllViewsWithTranslationsByProductIdAndLang(productId, lang);
     }
 }

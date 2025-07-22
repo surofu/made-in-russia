@@ -8,5 +8,5 @@ import java.util.List;
 public interface ProductCharacteristicRepository {
     List<ProductCharacteristicView> findAllViewsByProductIdAndLang(Long productId, String lang);
 
-    List<ProductCharacteristicWithTranslationsView> findAllViewsWithTranslationsByProductId(Long productId);
+    List<ProductCharacteristicWithTranslationsView> findAllViewsWithTranslationsByProductIdAndLang(Long productId, String lang);
 }

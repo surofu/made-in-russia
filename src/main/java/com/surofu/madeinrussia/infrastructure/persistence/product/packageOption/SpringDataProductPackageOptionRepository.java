@@ -28,7 +28,10 @@ public interface SpringDataProductPackageOptionRepository extends JpaRepository<
     @Query(value = """
             select
             o.id,
-            o.name,
+            coalesce(
+                o.name_translations -> :lang,
+                o.name
+            ) as name,
             o.name_translations::text,
             o.price,
             o.price_unit,
@@ -37,5 +40,5 @@ public interface SpringDataProductPackageOptionRepository extends JpaRepository<
             from product_package_options o
             where o.product_id = :productId
             """, nativeQuery = true)
-    List<ProductPackageOptionWithTranslationsView> findAllViewsWithTranslationsByProductId(@Param("productId") Long productId);
+    List<ProductPackageOptionWithTranslationsView> findAllViewsWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
 }

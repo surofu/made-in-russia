@@ -8,5 +8,5 @@ import java.util.List;
 public interface ProductDeliveryMethodDetailsRepository {
     List<ProductDeliveryMethodDetailsView> getAllViewsByProductIdAndLang(Long productId, String lang);
 
-    List<ProductDeliveryMethodDetailsWithTranslationsView> getAllViewsWithTranslationsByProductId(Long productId);
+    List<ProductDeliveryMethodDetailsWithTranslationsView> getAllViewsWithTranslationsByProductIdAndLang(Long productId, String lang);
 }

@@ -194,11 +194,20 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
         p.user_id as "userId",
         p.category_id,
         p.article_code as "articleCode",
-        p.title,
+        coalesce(
+            p.title_translations -> :lang,
+            p.title
+        ) as title,
         p.title_translations::text as "titleTranslations",
-        p.main_description as "mainDescription",
+        coalesce(
+            p.main_description_translations -> :lang,
+            p.main_description
+        ) as "mainDescription",
         p.main_description_translations::text as "mainDescriptionTranslations",
-        p.further_description as "furtherDescription",
+        coalesce(
+            p.further_description_translations -> :lang,
+            p.further_description
+        ) as "furtherDescription",
         p.further_description_translations::text as "furtherDescriptionTranslations",
         p.preview_image_url as "previewImageUrl",
         p.minimum_order_quantity as "minimumOrderQuantity",
@@ -228,5 +237,5 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
         from products p
         where p.id = :id
     """, nativeQuery = true)
-    Optional<ProductWithTranslationsView> findProductWithTranslationsById(@Param("id") Long id);
+    Optional<ProductWithTranslationsView> findProductWithTranslationsByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 }

@@ -29,7 +29,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.StringToClassMapItem;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,6 +82,7 @@ public class ProductRestController {
     private final CreateProduct.Result.Processor<ResponseEntity<?>> createProductProcessor;
     private final UpdateProduct.Result.Processor<ResponseEntity<?>> updateProductProcessor;
     private final GetSearchHints.Result.Processor<ResponseEntity<?>> getSearchHintsProcessor;
+    private final DeleteProductById.Result.Processor<ResponseEntity<?>> deleteProductByIdProcessor;
 
     @GetMapping("{productId}")
     @Operation(
@@ -1048,5 +1052,107 @@ public class ProductRestController {
     ) {
         GetSearchHints operation = GetSearchHints.of(text);
         return productService.getSearchHints(operation).process(getSearchHintsProcessor);
+    }
+
+    @DeleteMapping("{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Delete product by ID",
+            description = "Permanently deletes a product and all its associated media files from the system. " +
+                    "Operation sequence: 1) Delete all media files 2) Delete product record. " +
+                    "This operation is irreversible and requires ADMIN privileges.",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Unique identifier of the product to delete",
+                            required = true,
+                            example = "123",
+                            schema = @Schema(type = "integer", format = "int64", minimum = "1")
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Product deleted successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            implementation = SimpleResponseMessageDto.class,
+                                            description = "Success confirmation message"
+                                    ),
+                                    examples = @ExampleObject(
+                                            name = "success_response",
+                                            summary = "Success response example",
+                                            value = """
+                        {
+                            "message": "Product deleted successfully"
+                        }
+                        """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class),
+                                    examples = @ExampleObject(
+                                            name = "not_found_response",
+                                            summary = "Not found response example",
+                                            value = """
+                        {
+                            "error": "Not Found",
+                            "message": "Product with ID '123' not found",
+                            "status": 404
+                        }
+                        """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class),
+                                    examples = @ExampleObject(
+                                            name = "forbidden_response",
+                                            summary = "Forbidden response example",
+                                            value = """
+                        {
+                            "error": "Forbidden",
+                            "message": "Access denied",
+                            "status": 403
+                        }
+                        """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error during deletion",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class),
+                                    examples = @ExampleObject(
+                                            name = "error_response",
+                                            summary = "Error response example",
+                                            value = """
+                        {
+                            "error": "Internal Server Error",
+                            "message": "Failed to delete product media files",
+                            "status": 500
+                        }
+                        """
+                                    )
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> deleteProductById(@PathVariable Long id) {
+        DeleteProductById operation = DeleteProductById.of(id);
+        return productService.deleteProductById(operation).process(deleteProductByIdProcessor);
     }
 }
