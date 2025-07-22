@@ -133,9 +133,9 @@ public class YandexTranslationRepository implements TranslationRepository {
 
         TranslationResponse translationResponseEn, translationResponseRu, translationResponseZh;
 
-        translationResponseEn = futureEn.get();
-        translationResponseRu = futureRu.get();
-        translationResponseZh = futureZh.get();
+        translationResponseEn = forTranslateEnStrings.length > 0 ? futureEn.get() : new YandexTranslationResponse(new YandexTranslation[]{});
+        translationResponseRu = forTranslateRuStrings.length > 0 ? futureRu.get() : new YandexTranslationResponse(new YandexTranslation[]{});
+        translationResponseZh = forTranslateZhStrings.length > 0 ? futureZh.get() : new YandexTranslationResponse(new YandexTranslation[]{});
 
         executor.shutdown();
 

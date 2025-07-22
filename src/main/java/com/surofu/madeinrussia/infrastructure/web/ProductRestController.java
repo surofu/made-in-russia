@@ -118,12 +118,13 @@ public class ProductRestController {
 
             @RequestParam(name = "hasTranslations", required = false, defaultValue = "false") Boolean hasTranslations
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
+
         if (hasTranslations) {
-            GetProductWithTranslationsById operation = GetProductWithTranslationsById.of(productId);
+            GetProductWithTranslationsById operation = GetProductWithTranslationsById.of(productId, locale);
             return productService.getProductWithTranslationsByProductId(operation).process(getProductWithTranslationsByIdProcessor);
         }
 
-        Locale locale = LocaleContextHolder.getLocale();
         GetProductById operation = GetProductById.of(locale, productId);
         return productService.getProductById(operation).process(getProductByIdProcessor);
     }

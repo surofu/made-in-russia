@@ -121,7 +121,7 @@ public class ProductApplicationService implements ProductService {
         }
 
         ProductWithTranslationsDto dto = ProductWithTranslationsDto.of(view.get());
-        ProductWithTranslationsDto fullDto = loadFullProduct(dto, view.get(), Locale.getDefault());
+        ProductWithTranslationsDto fullDto = loadFullProduct(dto, view.get(), operation.getLocale());
         return GetProductWithTranslationsById.Result.success(fullDto);
     }
 
