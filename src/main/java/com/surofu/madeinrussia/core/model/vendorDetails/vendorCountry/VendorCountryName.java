@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry;
 
-import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.*;
 import lombok.*;

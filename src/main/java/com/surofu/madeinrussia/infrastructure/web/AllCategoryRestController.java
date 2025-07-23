@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.GetAllCategories;
 import io.swagger.v3.oas.annotations.Operation;

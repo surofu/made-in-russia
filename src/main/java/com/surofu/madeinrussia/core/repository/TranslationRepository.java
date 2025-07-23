@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.vendor.operation;
 
-import com.surofu.madeinrussia.application.dto.page.VendorReviewPageDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorReviewPageDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

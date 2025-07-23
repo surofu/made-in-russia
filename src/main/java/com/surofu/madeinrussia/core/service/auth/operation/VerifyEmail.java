@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.dto.VerifyEmailSuccessDto;
+import com.surofu.madeinrussia.application.dto.auth.VerifyEmailSuccessDto;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;

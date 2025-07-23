@@ -9,10 +9,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class TaskExecutorConfig {
 
     @Bean
-    public TaskExecutor taskExecutor() {
+    public TaskExecutor appTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(2);
+        int corePoolSize = Runtime.getRuntime().availableProcessors();
+        executor.setCorePoolSize(corePoolSize);
+        executor.setMaxPoolSize(corePoolSize);
         executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("MadeInRussiaTaskExecutor-");
         executor.initialize();

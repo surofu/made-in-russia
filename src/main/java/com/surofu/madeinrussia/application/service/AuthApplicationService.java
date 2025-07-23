@@ -1,6 +1,11 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
+import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
+import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordSuccessDto;
+import com.surofu.madeinrussia.application.dto.auth.VerifyEmailSuccessDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;

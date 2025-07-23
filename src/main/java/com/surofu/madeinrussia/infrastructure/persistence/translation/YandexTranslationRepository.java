@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.infrastructure.persistence.translation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import lombok.RequiredArgsConstructor;

@@ -60,6 +60,20 @@ public class CloudinaryRepository implements FileStorageRepository {
     }
 
     @Override
+    public void deleteMediaByLink(String link) throws Exception {
+        String[] split = link.split("/");
+
+        if (split.length < 2) {
+            return;
+        }
+
+        String folderName = split[split.length - 2];
+        String mediaId = split[split.length - 1];
+        String publicId = folderName + "/" + mediaId;
+        cloudinary.api().deleteResources(Collections.singleton(publicId), Map.of());
+    }
+
+    @Override
     public void deleteAllMediaByLink(List<String> links) throws Exception {
         List<String> publicIdList = new ArrayList<>();
 

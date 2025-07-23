@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;

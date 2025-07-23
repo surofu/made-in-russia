@@ -5,12 +5,15 @@ import com.surofu.madeinrussia.application.command.product.review.CreateProductR
 import com.surofu.madeinrussia.application.command.product.review.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
-import com.surofu.madeinrussia.application.dto.page.GetProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.product.GetProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.product.ProductCharacteristicDto;
 import com.surofu.madeinrussia.application.dto.product.ProductDto;
 import com.surofu.madeinrussia.application.dto.product.ProductMediaDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.product.ProductArticleCode;

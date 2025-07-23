@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.application.dto.TranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;

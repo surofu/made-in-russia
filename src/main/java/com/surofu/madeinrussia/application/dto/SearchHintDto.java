@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
+import com.surofu.madeinrussia.application.dto.category.CategoryHintDto;
 import com.surofu.madeinrussia.application.dto.product.ProductHintDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

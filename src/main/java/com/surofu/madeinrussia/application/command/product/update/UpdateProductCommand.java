@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.command.product.update;
 
-import com.surofu.madeinrussia.application.dto.TranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;

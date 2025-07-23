@@ -15,7 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "web_localization")
-public class WebLocalization implements Serializable {
+public final class WebLocalization implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

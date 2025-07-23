@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.core.view;
 
 import com.surofu.madeinrussia.application.converter.CategoryConverter;
 import com.surofu.madeinrussia.application.converter.UserConverter;
-import com.surofu.madeinrussia.application.dto.CategoryDto;
+import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import com.surofu.madeinrussia.application.converter.DeliveryMethodsConverter;
 import com.surofu.madeinrussia.application.dto.UserDto;

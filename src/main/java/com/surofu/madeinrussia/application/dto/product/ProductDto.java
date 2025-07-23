@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;

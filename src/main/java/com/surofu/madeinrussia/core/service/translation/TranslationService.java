@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.translation;
 
-import com.surofu.madeinrussia.application.dto.TranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 
 import java.util.Map;

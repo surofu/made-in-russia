@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.service.async;
 
-import com.surofu.madeinrussia.application.dto.RecoverPasswordDto;
+import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
 import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
 import com.surofu.madeinrussia.core.model.user.User;

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.utils;
 
-import com.surofu.madeinrussia.application.dto.RecoverPasswordDto;
+import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import org.springframework.cache.Cache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;

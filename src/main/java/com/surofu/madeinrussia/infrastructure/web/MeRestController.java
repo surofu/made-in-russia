@@ -2,14 +2,14 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
-import com.surofu.madeinrussia.application.dto.SessionDto;
+import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
-import com.surofu.madeinrussia.application.dto.page.GetMeProductReviewPageDto;
-import com.surofu.madeinrussia.application.dto.page.GetMeVendorProductReviewPageDto;
-import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.me.GetMeProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.me.GetMeVendorProductReviewPageDto;
+import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;

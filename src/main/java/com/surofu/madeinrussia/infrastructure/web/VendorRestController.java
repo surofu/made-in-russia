@@ -5,7 +5,7 @@ import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
-import com.surofu.madeinrussia.application.dto.page.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPageDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqAnswer;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqQuestion;
@@ -323,11 +323,11 @@ public class VendorRestController {
     }
 
     @PostMapping("faq")
+    @SecurityRequirement(name = "Bearer Authentication")
     @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     @Operation(
             summary = "Create a new vendor FAQ",
             description = "Creates a new frequently asked question and answer pair for the authenticated vendor",
-            security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(
                             responseCode = "201",
@@ -389,6 +389,7 @@ public class VendorRestController {
     }
 
     @DeleteMapping("faq/{faqId}")
+    @SecurityRequirement(name = "Bearer Authentication")
     @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteVendorFaq(
             @PathVariable Long faqId,

@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.utils;
 
-import com.surofu.madeinrussia.application.dto.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 
 import java.util.Objects;
 

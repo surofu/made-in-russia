@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.me.operation;
 
-import com.surofu.madeinrussia.application.dto.SessionDto;
+import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import lombok.Value;
