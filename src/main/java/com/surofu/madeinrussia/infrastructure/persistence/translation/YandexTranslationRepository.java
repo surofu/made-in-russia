@@ -88,6 +88,10 @@ public class YandexTranslationRepository implements TranslationRepository {
 
     @Override
     public Map<String, HstoreTranslationDto> expend(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, InterruptedException, ExecutionException {
+        if (map == null || map.isEmpty()) {
+            throw new EmptyTranslationException();
+        }
+
         List<Map.Entry<String, String>> forTranslateEn = new ArrayList<>();
         List<Map.Entry<String, String>> forTranslateRu = new ArrayList<>();
         List<Map.Entry<String, String>> forTranslateZh = new ArrayList<>();

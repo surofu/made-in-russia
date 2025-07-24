@@ -27,7 +27,7 @@ public final class AdvertisementSubtitle implements Serializable {
     private String translations;
 
     private AdvertisementSubtitle(String subtitle) {
-        if (subtitle == null || subtitle.isEmpty()) {
+        if (subtitle == null || subtitle.trim().isEmpty()) {
             throw new IllegalArgumentException("Subtitle cannot be null or empty.");
         }
 

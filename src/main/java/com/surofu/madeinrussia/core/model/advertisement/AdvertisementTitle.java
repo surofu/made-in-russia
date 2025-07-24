@@ -27,7 +27,7 @@ public final class AdvertisementTitle implements Serializable {
     private String translations;
 
     private AdvertisementTitle(String title) {
-        if (title == null || title.isEmpty()) {
+        if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be null or empty.");
         }
 

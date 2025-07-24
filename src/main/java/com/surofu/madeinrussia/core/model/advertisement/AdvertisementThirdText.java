@@ -17,22 +17,18 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class AdvertisementThirdText implements Serializable {
 
-    @Column(name = "third_text", nullable = false)
+    @Column(name = "third_text")
     private String value;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
-    @Column(name = "third_text_translations", nullable = false, columnDefinition = "hstore")
+    @Column(name = "third_text_translations", columnDefinition = "hstore")
     private String translations;
 
     private AdvertisementThirdText(String text) {
-        if (text == null || text.isEmpty()) {
-            throw new IllegalArgumentException("Third text cannot be null or empty.");
-        }
-
-        if (text.length() > 255) {
-            throw new IllegalArgumentException("Third text cannot be longer than 255 characters.");
+        if (text != null && text.length() > 255) {
+            throw new IllegalArgumentException("Third text cannot be longer than 255 characters");
         }
 
         this.value = text;

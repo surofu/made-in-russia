@@ -7,6 +7,10 @@ import java.util.Objects;
 public class HstoreParser {
 
     public static String toString(HstoreTranslationDto translation) {
+        if (translation == null) {
+            return null;
+        }
+
         String en = Objects.requireNonNullElse(translation.textEn(), "").replace("\"", "\\\"");
         String ru = Objects.requireNonNullElse(translation.textRu(), "").replace("\"", "\\\"");
         String zh = Objects.requireNonNullElse(translation.textZh(), "").replace("\"", "\\\"");
@@ -15,7 +19,7 @@ public class HstoreParser {
 
     public static HstoreTranslationDto fromString(String str) {
         if (str == null) {
-            return new HstoreTranslationDto("", "", "");
+            return null;
         }
 
         String[] splitEn1 = str.split("en\"=>\"");

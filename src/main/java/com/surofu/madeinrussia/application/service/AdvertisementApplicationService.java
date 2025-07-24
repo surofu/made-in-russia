@@ -91,7 +91,10 @@ public class AdvertisementApplicationService implements AdvertisementService {
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
         translationMap.put(TranslationKeys.TITLE.name(), operation.getTitle().getTranslations());
         translationMap.put(TranslationKeys.SUBTITLE.name(), operation.getSubtitle().getTranslations());
-        translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
+
+        if (operation.getThirdText().getTranslations() != null) {
+            translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
+        }
 
         Map<String, HstoreTranslationDto> translationResultMap;
 

@@ -17,7 +17,7 @@ public final class AdvertisementImage implements Serializable {
     private String url;
 
     private AdvertisementImage(String url) {
-        if (url == null || url.isEmpty()) {
+        if (url == null || url.trim().isEmpty()) {
             throw new IllegalArgumentException("Image url cannot be null or empty.");
         }
 

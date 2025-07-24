@@ -238,7 +238,7 @@ public class AdvertisementRestController {
             description = "Deletes an advertisement by its unique identifier",
             responses = {
                     @ApiResponse(
-                            responseCode = "204",
+                            responseCode = "200",
                             description = "Advertisement successfully deleted",
                             content = @Content
                     ),
