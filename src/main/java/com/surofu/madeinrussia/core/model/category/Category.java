@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
@@ -36,6 +37,7 @@ public final class Category implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "parent_category_id",
@@ -43,6 +45,7 @@ public final class Category implements Serializable {
     )
     private Category parent;
 
+    @ToString.Exclude
     @OneToMany(
             mappedBy = "parent",
             fetch = FetchType.LAZY,

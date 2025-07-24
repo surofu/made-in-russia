@@ -88,7 +88,7 @@ public class UpdateProductMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSimilarProductNotFound(UpdateProduct.Result.SimilarProductNotFound result) {
-        String message = localizationManager.localize("vendor.not_found_by_id", result.getProductId());
+        String message = localizationManager.localize("product.not_found_by_id", result.getProductId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

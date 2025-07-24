@@ -40,13 +40,13 @@ public class CreateProduct {
             return Success.INSTANCE;
         }
 
-        static Result errorSavingFiles() {
-            log.warn("Error saving product files");
+        static Result errorSavingFiles(Exception e) {
+            log.warn("Error saving product files: {}", e.getMessage());
             return ErrorSavingFiles.INSTANCE;
         }
 
-        static Result errorSavingProduct() {
-            log.warn("Error saving product");
+        static Result errorSavingProduct(Exception e) {
+            log.warn("Error saving product: {}", e.getMessage());
             return ErrorSavingProduct.INSTANCE;
         }
 

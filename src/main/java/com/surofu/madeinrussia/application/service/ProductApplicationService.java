@@ -2,7 +2,8 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.command.product.create.*;
 import com.surofu.madeinrussia.application.command.product.update.*;
-import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
+import com.surofu.madeinrussia.application.dto.SearchHintDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryHintDto;
 import com.surofu.madeinrussia.application.dto.product.*;
@@ -64,6 +65,8 @@ import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -98,6 +101,7 @@ public class ProductApplicationService implements ProductService {
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
     private final AsyncProductApplicationService asyncProductApplicationService;
+    private final EntityManager entityManager;
 
     private final String TEMP_URL = "TEMP_URL";
 
@@ -220,7 +224,6 @@ public class ProductApplicationService implements ProductService {
         return GetProductFaqByProductId.Result.notFound(productId);
     }
 
-    // TODO: Refactor Create Product
     @Override
     @Transactional
     public CreateProduct.Result createProduct(CreateProduct operation) {
@@ -507,8 +510,7 @@ public class ProductApplicationService implements ProductService {
         try {
             productRepository.save(product);
         } catch (Exception e) {
-            log.error("Error saving product: {}", e.getMessage(), e);
-            return CreateProduct.Result.errorSavingProduct();
+            return CreateProduct.Result.errorSavingProduct(e);
         }
 
         try {
@@ -561,20 +563,18 @@ public class ProductApplicationService implements ProductService {
             }
         } catch (Exception e) {
             log.error("Error saving files: {}", e.getMessage(), e);
-            return CreateProduct.Result.errorSavingFiles();
+            return CreateProduct.Result.errorSavingFiles(e);
         }
 
         try {
             productRepository.save(product);
         } catch (Exception e) {
-            log.error("Error saving product after uploading files: {}", e.getMessage(), e);
-            return CreateProduct.Result.errorSavingProduct();
+            return CreateProduct.Result.errorSavingProduct(e);
         }
 
         return CreateProduct.Result.success();
     }
 
-    // TODO: Refactor Update Product
     @Override
     @Transactional
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
@@ -634,6 +634,7 @@ public class ProductApplicationService implements ProductService {
                 !(productDeliveryMethodIdsSet.containsAll(operation.getDeliveryMethodIds()) &&
                         new HashSet<>(operation.getDeliveryMethodIds()).containsAll(productDeliveryMethodIdsSet))
         ) {
+            entityManager.setFlushMode(FlushModeType.COMMIT);
             Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
 
             if (firstNotExistsDeliveryMethodId.isPresent()) {
@@ -917,9 +918,8 @@ public class ProductApplicationService implements ProductService {
         try {
             productRepository.save(product);
         } catch (Exception e) {
-            log.error("Error saving product: {}", e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct();
+            return UpdateProduct.Result.errorSavingProduct(e);
         }
 
         try {
@@ -971,9 +971,8 @@ public class ProductApplicationService implements ProductService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error saving files: {}", e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingFiles();
+            return UpdateProduct.Result.errorSavingFiles(e);
         }
 
         try {
@@ -991,17 +990,15 @@ public class ProductApplicationService implements ProductService {
 
             fileStorageRepository.deleteAllMediaByLink(linksForDelete);
         } catch (Exception e) {
-            log.error("Error deleting files: {}", e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorDeletingFiles();
+            return UpdateProduct.Result.errorDeletingFiles(e);
         }
 
         try {
             productRepository.save(product);
         } catch (Exception e) {
-            log.error("Error saving product after uploading files: {}", e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct();
+            return UpdateProduct.Result.errorSavingProduct(e);
         }
 
         return UpdateProduct.Result.success();
