@@ -29,6 +29,10 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
 
     private TranslationDto subtitleTranslations;
 
+    private Boolean isBig;
+
+    private ZonedDateTime expirationDate;
+
     private String imageUrl;
 
     private ZonedDateTime creationDate;
@@ -43,6 +47,8 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
                 .subtitle(advertisement.getSubtitle().toString())
                 .subtitleTranslations(TranslationDto.of(advertisement.getSubtitle().getTranslations()))
                 .imageUrl(advertisement.getImage().toString())
+                .isBig(advertisement.getIsBig().getValue())
+                .expirationDate(advertisement.getExpirationDate() == null ? null : advertisement.getExpirationDate().getValue())
                 .creationDate(advertisement.getCreationDate().getValue())
                 .lastModificationDate(advertisement.getLastModificationDate().getValue())
                 .build();
@@ -56,6 +62,8 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
                 .subtitle(view.getSubtitle())
                 .subtitleTranslations(TranslationDto.of(HstoreParser.fromString(view.getSubtitleTranslations())))
                 .imageUrl(view.getImageUrl())
+                .isBig(view.getIsBig())
+                .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

@@ -7,6 +7,8 @@ public interface AdvertisementService {
 
     GetAdvertisementById.Result getAdvertisementById(GetAdvertisementById operation);
 
+    GetAdvertisementWithTranslationsById.Result getAdvertisementWithTranslationsById(GetAdvertisementWithTranslationsById operation);
+
     CreateAdvertisement.Result createAdvertisement(CreateAdvertisement operation);
 
     UpdateAdvertisementById.Result updateAdvertisementById(UpdateAdvertisementById operation);

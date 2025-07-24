@@ -67,6 +67,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqVi
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -101,6 +102,8 @@ public class ProductApplicationService implements ProductService {
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
     private final AsyncProductApplicationService asyncProductApplicationService;
+
+    @PersistenceContext
     private final EntityManager entityManager;
 
     private final String TEMP_URL = "TEMP_URL";

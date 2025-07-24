@@ -123,7 +123,8 @@ public class ProductRestController {
             @PathVariable
             Long productId,
 
-            @RequestParam(name = "hasTranslations", required = false, defaultValue = "false") Boolean hasTranslations
+            @RequestParam(name = "hasTranslations", required = false, defaultValue = "false")
+            Boolean hasTranslations
     ) {
         Locale locale = LocaleContextHolder.getLocale();
 

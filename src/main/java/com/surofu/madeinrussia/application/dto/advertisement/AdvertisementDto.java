@@ -25,6 +25,10 @@ public final class AdvertisementDto implements Serializable {
 
     private String imageUrl;
 
+    private Boolean isBig;
+
+    private ZonedDateTime expirationDate;
+
     private ZonedDateTime creationDate;
 
     private ZonedDateTime lastModificationDate;
@@ -35,6 +39,8 @@ public final class AdvertisementDto implements Serializable {
                 .title(advertisement.getTitle().toString())
                 .subtitle(advertisement.getSubtitle().toString())
                 .imageUrl(advertisement.getImage().toString())
+                .isBig(advertisement.getIsBig().getValue())
+                .expirationDate(advertisement.getExpirationDate() == null ? null : advertisement.getExpirationDate().getValue())
                 .creationDate(advertisement.getCreationDate().getValue())
                 .lastModificationDate(advertisement.getLastModificationDate().getValue())
                 .build();
@@ -46,6 +52,8 @@ public final class AdvertisementDto implements Serializable {
                 .title(view.getTitle())
                 .subtitle(view.getSubtitle())
                 .imageUrl(view.getImageUrl())
+                .isBig(view.getIsBig())
+                .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

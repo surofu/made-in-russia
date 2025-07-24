@@ -3,6 +3,8 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.command.advertisement.SaveAdvertisementCommand;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.core.model.advertisement.AdvertisementExpirationDate;
+import com.surofu.madeinrussia.core.model.advertisement.AdvertisementIsBig;
 import com.surofu.madeinrussia.core.model.advertisement.AdvertisementSubtitle;
 import com.surofu.madeinrussia.core.model.advertisement.AdvertisementTitle;
 import com.surofu.madeinrussia.core.service.advertisement.AdvertisementService;
@@ -35,6 +37,7 @@ public class AdvertisementRestController {
 
     private final GetAllAdvertisements.Result.Processor<ResponseEntity<?>> getAllAdvertisementsProcessor;
     private final GetAdvertisementById.Result.Processor<ResponseEntity<?>> getAdvertisementByIdProcessor;
+    private final GetAdvertisementWithTranslationsById.Result.Processor<ResponseEntity<?>> getAdvertisementWithTranslationsByIdProcessor;
     private final CreateAdvertisement.Result.Processor<ResponseEntity<?>> createAdvertisementProcessor;
     private final UpdateAdvertisementById.Result.Processor<ResponseEntity<?>> updateAdvertisementByIdProcessor;
     private final DeleteAdvertisementById.Result.Processor<ResponseEntity<?>> deleteAdvertisementByIdProcessor;
@@ -81,14 +84,22 @@ public class AdvertisementRestController {
                     )
             }
     )
-    public ResponseEntity<?> get(
+    public ResponseEntity<?> getById(
             @Parameter(
                     description = "ID of the advertisement to retrieve",
                     required = true,
                     example = "1"
             )
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam(name = "hasTranslations", required = false, defaultValue = "false")
+            Boolean hasTranslations) {
         Locale locale = LocaleContextHolder.getLocale();
+
+        if (hasTranslations) {
+            GetAdvertisementWithTranslationsById operation = GetAdvertisementWithTranslationsById.of(id, locale);
+            return service.getAdvertisementWithTranslationsById(operation).process(getAdvertisementWithTranslationsByIdProcessor);
+        }
+
         GetAdvertisementById operation = GetAdvertisementById.of(id, locale);
         return service.getAdvertisementById(operation).process(getAdvertisementByIdProcessor);
     }
@@ -144,7 +155,9 @@ public class AdvertisementRestController {
         title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
-        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, image);
+        AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
+        AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
+        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, isBig, expirationDate, image);
         return service.createAdvertisement(operation).process(createAdvertisementProcessor);
     }
 
@@ -210,7 +223,9 @@ public class AdvertisementRestController {
         title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
-        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, image);
+        AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
+        AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
+        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, isBig, expirationDate, image);
         return service.updateAdvertisementById(operation).process(updateAdvertisementByIdProcessor);
     }
 

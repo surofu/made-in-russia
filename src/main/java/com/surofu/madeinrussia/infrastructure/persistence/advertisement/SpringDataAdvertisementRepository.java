@@ -22,6 +22,8 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.subtitle
             ) as subtitle,
             a.image_url,
+            a.is_big,
+            a.expiration_date,
             a.creation_date,
             a.last_modification_date
             from advertisements a
@@ -41,6 +43,8 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.subtitle
             ) as subtitle,
             a.image_url,
+            a.is_big,
+            a.expiration_date,
             a.creation_date,
             a.last_modification_date
             from advertisements a
@@ -62,6 +66,8 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
             ) as subtitle,
             a.subtitle_translations::text,
             a.image_url,
+            a.is_big,
+            a.expiration_date,
             a.creation_date,
             a.last_modification_date
             from advertisements a
