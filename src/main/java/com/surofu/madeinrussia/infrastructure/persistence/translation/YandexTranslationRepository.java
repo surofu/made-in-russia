@@ -87,7 +87,7 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
-    public Map<String, HstoreTranslationDto> expend(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, IOException, InterruptedException, ExecutionException {
+    public Map<String, HstoreTranslationDto> expend(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, InterruptedException, ExecutionException {
         List<Map.Entry<String, String>> forTranslateEn = new ArrayList<>();
         List<Map.Entry<String, String>> forTranslateRu = new ArrayList<>();
         List<Map.Entry<String, String>> forTranslateZh = new ArrayList<>();
@@ -181,7 +181,7 @@ public class YandexTranslationRepository implements TranslationRepository {
         return result;
     }
 
-    private TranslationResponse translate(String language, String... texts) throws IOException, InterruptedException {
+    private TranslationResponse translate(String language, String... texts) throws IOException {
         TranslationRequest translationRequest = new TranslationRequest(
                 language,
                 texts,

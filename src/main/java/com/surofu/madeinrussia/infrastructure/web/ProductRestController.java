@@ -4,7 +4,9 @@ import com.surofu.madeinrussia.application.command.product.create.CreateProductC
 import com.surofu.madeinrussia.application.command.product.review.CreateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.product.review.UpdateProductReviewCommand;
 import com.surofu.madeinrussia.application.command.product.update.UpdateProductCommand;
-import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
+import com.surofu.madeinrussia.application.dto.SearchHintDto;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
@@ -796,6 +798,7 @@ public class ProductRestController {
                 createProductCommand.deliveryMethodDetails() == null ? new ArrayList<>() : createProductCommand.deliveryMethodDetails(),
                 createProductCommand.packageOptions() == null ? new ArrayList<>() : createProductCommand.packageOptions(),
                 createProductCommand.aboutVendor(),
+                createProductCommand.mediaAltTexts() == null ? new ArrayList<>() : createProductCommand.mediaAltTexts(),
                 createProductCommand.aboutVendor().mediaAltTexts() == null ? new ArrayList<>() : createProductCommand.aboutVendor().mediaAltTexts(),
                 createProductCommand.minimumOrderQuantity(),
                 ZonedDateTime.now().plusDays(createProductCommand.discountExpirationDate()),
@@ -1089,10 +1092,10 @@ public class ProductRestController {
                                             name = "success_response",
                                             summary = "Success response example",
                                             value = """
-                        {
-                            "message": "Product deleted successfully"
-                        }
-                        """
+                                                    {
+                                                        "message": "Product deleted successfully"
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -1106,12 +1109,12 @@ public class ProductRestController {
                                             name = "not_found_response",
                                             summary = "Not found response example",
                                             value = """
-                        {
-                            "error": "Not Found",
-                            "message": "Product with ID '123' not found",
-                            "status": 404
-                        }
-                        """
+                                                    {
+                                                        "error": "Not Found",
+                                                        "message": "Product with ID '123' not found",
+                                                        "status": 404
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -1125,12 +1128,12 @@ public class ProductRestController {
                                             name = "forbidden_response",
                                             summary = "Forbidden response example",
                                             value = """
-                        {
-                            "error": "Forbidden",
-                            "message": "Access denied",
-                            "status": 403
-                        }
-                        """
+                                                    {
+                                                        "error": "Forbidden",
+                                                        "message": "Access denied",
+                                                        "status": 403
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -1144,12 +1147,12 @@ public class ProductRestController {
                                             name = "error_response",
                                             summary = "Error response example",
                                             value = """
-                        {
-                            "error": "Internal Server Error",
-                            "message": "Failed to delete product media files",
-                            "status": 500
-                        }
-                        """
+                                                    {
+                                                        "error": "Internal Server Error",
+                                                        "message": "Failed to delete product media files",
+                                                        "status": 500
+                                                    }
+                                                    """
                                     )
                             )
                     )

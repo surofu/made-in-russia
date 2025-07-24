@@ -25,11 +25,7 @@ public record CreateProductVendorDetailsCommand(
 
         TranslationDto furtherDescriptionTranslations,
 
-        @Schema(
-                description = "Alternative texts for product media (images, videos) for accessibility (SEO and screen readers)",
-                example = "[\"Stainless steel frying pan on a stove\", \"10-piece kitchen set packaging\"]",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        List<String> mediaAltTexts
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        List<CreateProductVendorDetailsMediaAltTextCommand> mediaAltTexts
 ) {
 }

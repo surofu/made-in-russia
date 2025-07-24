@@ -1,21 +1,19 @@
-package com.surofu.madeinrussia.infrastructure.persistence.product.media;
+package com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.media;
 
 import com.surofu.madeinrussia.core.model.media.MediaType;
 
 import java.time.Instant;
 
-public interface ProductMediaView {
+public interface ProductVendorDetailsMediaView {
     Long getId();
 
     MediaType getMediaType();
 
-    String getMimeType();
-
-    Integer getPosition();
-
     String getUrl();
 
     String getAltText();
+
+    Integer getPosition();
 
     Instant getCreationDate();
 

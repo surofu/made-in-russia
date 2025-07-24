@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.infrastructure.web.mapper.advertisement;
 
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
-import com.surofu.madeinrussia.core.service.advertisement.operation.GetAdvertisementById;
 import com.surofu.madeinrussia.core.service.advertisement.operation.GetAdvertisementWithTranslationsById;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

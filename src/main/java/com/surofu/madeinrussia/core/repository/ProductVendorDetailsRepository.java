@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsWithTranslationsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.ProductVendorDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.ProductVendorDetailsWithTranslationsView;
 
 import java.util.Optional;
 

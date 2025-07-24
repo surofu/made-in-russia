@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails;
+package com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails;
 
 import java.time.Instant;
 

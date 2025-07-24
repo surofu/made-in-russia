@@ -4,7 +4,7 @@ import com.surofu.madeinrussia.core.model.media.MediaType;
 
 import java.time.Instant;
 
-public interface ProductMediaView {
+public interface ProductMediaWithTranslationsView {
     Long getId();
 
     MediaType getMediaType();
@@ -16,6 +16,8 @@ public interface ProductMediaView {
     String getUrl();
 
     String getAltText();
+
+    String getAltTextTranslations();
 
     Instant getCreationDate();
 

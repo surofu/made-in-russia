@@ -26,7 +26,8 @@ public class CreateProduct {
     List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
     List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
     CreateProductVendorDetailsCommand createProductVendorDetailsCommand;
-    List<String> mediaAltTexts;
+    List<CreateProductMediaAltTextCommand> createProductMediaAltTextCommands;
+    List<CreateProductVendorDetailsMediaAltTextCommand> createProductVendorDetailsMediaAltTextCommands;
     Integer minimumOrderQuantity;
     ZonedDateTime discountExpirationDate;
     List<MultipartFile> productMedia;

@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsWithTranslationsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.ProductVendorDetailsWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +23,7 @@ public final class ProductVendorDetailsWithTranslationsDto implements Serializab
 
     private Long id;
 
-    private List<ProductVendorDetailsMediaDto> media = new ArrayList<>();
+    private List<ProductVendorDetailsMediaWithTranslationsDto> media = new ArrayList<>();
 
     private String mainDescription;
 

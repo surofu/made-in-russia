@@ -59,6 +59,9 @@ public record CreateProductCommand(
         @Schema(description = "Expiration date/time for the discount (ISO 8601 format)",
                 example = "2025-12-31T23:59:59Z",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        Integer discountExpirationDate
+        Integer discountExpirationDate,
+
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        List<CreateProductMediaAltTextCommand> mediaAltTexts
 ) {
 }

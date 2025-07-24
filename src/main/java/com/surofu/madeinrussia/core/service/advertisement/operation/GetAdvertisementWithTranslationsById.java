@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.service.advertisement.operation;
 
-import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementWithTranslationsDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

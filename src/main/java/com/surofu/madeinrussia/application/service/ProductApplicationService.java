@@ -54,13 +54,15 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethod
 import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaqWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.ProductVendorDetailsWithTranslationsView;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.ProductVendorDetailsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.ProductVendorDetailsWithTranslationsView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.media.ProductVendorDetailsMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.media.ProductVendorDetailsMediaWithTranslationsView;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
@@ -70,12 +72,16 @@ import jakarta.persistence.FlushModeType;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -102,6 +108,7 @@ public class ProductApplicationService implements ProductService {
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
     private final AsyncProductApplicationService asyncProductApplicationService;
+    private final TaskExecutor appTaskExecutor;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -213,7 +220,7 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRED)
     public GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation) {
         Long productId = operation.getProductId();
 
@@ -230,11 +237,12 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional
     public CreateProduct.Result createProduct(CreateProduct operation) {
+        entityManager.setFlushMode(FlushModeType.COMMIT);
+
         Product product = new Product();
         product.setUser(operation.getSecurityUser().getUser());
 
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
-        Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
 
         /* ========== Product Title ========== */
         product.setTitle(operation.getProductTitle());
@@ -324,49 +332,14 @@ public class ProductApplicationService implements ProductService {
         }
 
         /* ========== Product Media ========== */
-        Set<ProductMedia> productMediaSet = new HashSet<>();
-
-        for (int i = 0; i < operation.getProductMedia().size(); i++) {
-            MultipartFile file = operation.getProductMedia().get(i);
-
-            if (file.isEmpty()) {
-                return CreateProduct.Result.emptyFile();
-            }
-
-            ProductMedia productMedia = new ProductMedia();
-            productMedia.setProduct(product);
-            productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-            productMedia.setPosition(ProductMediaPosition.of(i));
-            productMedia.setAltText(ProductMediaAltText.of("Temp value"));
-
-            if (file.getContentType() == null ||
-                    (!file.getContentType().startsWith("image") &&
-                            !file.getContentType().startsWith("video"))) {
-                return CreateProduct.Result.invalidMediaType(file.getContentType());
-            }
-
-            productMedia.setUrl(ProductMediaUrl.of(UUID.randomUUID().toString()));
-
-            if (file.getContentType().startsWith("image")) {
-                productMedia.setMediaType(MediaType.IMAGE);
-                preloadContentSet.add(new PreloadContentInfo<>(productMedia, file, "productImages"));
-            } else if (file.getContentType().startsWith("video")) {
-                productMedia.setMediaType(MediaType.VIDEO);
-                preloadContentSet.add(new PreloadContentInfo<>(productMedia, file, "productVideos"));
-            }
-
-            if (i == 0) {
-                product.setPreviewImageUrl(ProductPreviewImageUrl.of(TEMP_URL));
-            }
-
-            productMediaSet.add(productMedia);
+        for (int i = 0; i < operation.getCreateProductMediaAltTextCommands().size(); i++) {
+            CreateProductMediaAltTextCommand command = operation.getCreateProductMediaAltTextCommands().get(i);
+            translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.of(command.translations()));
         }
 
-        product.setMedia(productMediaSet);
-
         /* ========== Product Vendor Details ========== */
+        ProductVendorDetails productVendorDetails = new ProductVendorDetails();
         if (operation.getCreateProductVendorDetailsCommand() != null) {
-            ProductVendorDetails productVendorDetails = new ProductVendorDetails();
             productVendorDetails.setProduct(product);
             productVendorDetails.setDescription(ProductVendorDetailsDescription.of(
                     operation.getCreateProductVendorDetailsCommand().mainDescription(),
@@ -379,41 +352,10 @@ public class ProductApplicationService implements ProductService {
                     HstoreTranslationDto.of(operation.getCreateProductVendorDetailsCommand().furtherDescriptionTranslations()));
 
             /* ========== Product Vendor Details Media ========== */
-            Set<ProductVendorDetailsMedia> productVendorDetailsMediaSet = new HashSet<>();
-
-            for (int i = 0; i < operation.getProductVendorDetailsMedia().size(); i++) {
-                MultipartFile file = operation.getProductVendorDetailsMedia().get(i);
-
-                if (file.isEmpty()) {
-                    return CreateProduct.Result.emptyFile();
-                }
-
-                ProductVendorDetailsMedia productVendorDetailsMedia = new ProductVendorDetailsMedia();
-                productVendorDetailsMedia.setProductVendorDetails(productVendorDetails);
-                productVendorDetailsMedia.setPosition(ProductVendorDetailsMediaPosition.of(i));
-
-                if (file.getContentType() == null ||
-                        (!file.getContentType().startsWith("image") &&
-                                !file.getContentType().startsWith("video"))) {
-                    return CreateProduct.Result.invalidMediaType(Objects.requireNonNull(file.getContentType()));
-                }
-
-                String altText = Objects.requireNonNullElse(operation.getCreateProductVendorDetailsCommand().mediaAltTexts().get(i), "");
-                productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(UUID.randomUUID().toString(), altText));
-
-                if (file.getContentType().startsWith("image")) {
-                    productVendorDetailsMedia.setMediaType(MediaType.IMAGE);
-                    preloadContentSet.add(new PreloadContentInfo<>(productVendorDetailsMedia, file, "productVendorDetailsImages"));
-                } else if (file.getContentType().startsWith("video")) {
-                    productVendorDetailsMedia.setMediaType(MediaType.VIDEO);
-                    preloadContentSet.add(new PreloadContentInfo<>(productVendorDetailsMedia, file, "productVendorDetailsVideos"));
-                }
-
-                productVendorDetailsMediaSet.add(productVendorDetailsMedia);
+            for (int i = 0; i < operation.getCreateProductVendorDetailsMediaAltTextCommands().size(); i++) {
+                CreateProductVendorDetailsMediaAltTextCommand command = operation.getCreateProductVendorDetailsMediaAltTextCommands().get(i);
+                translationMap.put(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.of(command.translations()));
             }
-
-            productVendorDetails.setMedia(productVendorDetailsMediaSet);
-            product.setProductVendorDetails(productVendorDetails);
         }
 
         /* ========== Translation ========== */
@@ -503,84 +445,172 @@ public class ProductApplicationService implements ProductService {
 
         product.setPackageOptions(productPackageOptionSet);
 
+        // Media Futures
+        List<CompletableFuture<String>> allMediaFutureList = new ArrayList<>(operation.getProductMedia().size() + operation.getProductVendorDetailsMedia().size());
+
+        // Media Alt Texts
+        List<ProductMedia> productMediaList = new ArrayList<>(operation.getProductMedia().size());
+        for (int i = 0; i < operation.getProductMedia().size(); i++) {
+            MultipartFile file = operation.getProductMedia().get(i);
+            ProductMedia productMedia = new ProductMedia();
+            productMedia.setProduct(product);
+            productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+            productMedia.setPosition(ProductMediaPosition.of(i));
+
+            ProductMediaAltText altText = ProductMediaAltText.of(file.getOriginalFilename());
+            if (operation.getCreateProductMediaAltTextCommands().size() > i) {
+                CreateProductMediaAltTextCommand command = operation.getCreateProductMediaAltTextCommands().get(i);
+                HstoreTranslationDto translatedProductMediaAltTexts = resultMap.get(TranslationKeys.MEDIA_ALT_TEXT.with(i));
+                altText = ProductMediaAltText.of(command.altText());
+                altText.setTranslations(translatedProductMediaAltTexts);
+            }
+            productMedia.setAltText(altText);
+
+            if (file.getContentType() == null) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return CreateProduct.Result.invalidMediaType("null");
+            }
+
+            String folderName;
+
+            if (file.getContentType().contains("image")) {
+                productMedia.setMediaType(MediaType.IMAGE);
+                folderName = "productImages";
+            } else if (file.getContentType().contains("video")) {
+                productMedia.setMediaType(MediaType.VIDEO);
+                folderName = "productVideos";
+            } else {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return CreateProduct.Result.invalidMediaType(file.getContentType());
+            }
+
+            CompletableFuture<String> productMediaFuture = CompletableFuture.supplyAsync(
+                    () -> {
+                        try {
+                            return fileStorageRepository.uploadImageToFolder(file, folderName);
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
+                    },
+                    appTaskExecutor
+            );
+
+            productMediaList.add(productMedia);
+            allMediaFutureList.add(productMediaFuture);
+        }
+
+        if (operation.getCreateProductMediaAltTextCommands().isEmpty()) {
+            for (int i = 0; i < productMediaList.size(); i++) {
+                String altText = operation.getProductMedia().get(i).getOriginalFilename();
+                productMediaList.get(i).getAltText().setTranslations(new HstoreTranslationDto(altText, altText, altText));
+            }
+        }
+
+        product.setMedia(new HashSet<>(productMediaList));
+
         // Vendor Details
         HstoreTranslationDto translatedVendorDetailsMainDescription = resultMap.get(TranslationKeys.VENDOR_DETAILS_MAIN_DESCRIPTION.name());
         HstoreTranslationDto translatedVendorDetailsFurtherDescription = resultMap.get(TranslationKeys.VENDOR_DETAILS_FURTHER_DESCRIPTION.name());
-        product.getProductVendorDetails().getDescription().setMainDescriptionTranslations(translatedVendorDetailsMainDescription);
-        product.getProductVendorDetails().getDescription().setFurtherDescriptionTranslations(translatedVendorDetailsFurtherDescription);
+        productVendorDetails.getDescription().setMainDescriptionTranslations(translatedVendorDetailsMainDescription);
+        productVendorDetails.getDescription().setFurtherDescriptionTranslations(translatedVendorDetailsFurtherDescription);
 
-        /* ========== Save Data ========== */
-        try {
-            productRepository.save(product);
-        } catch (Exception e) {
-            return CreateProduct.Result.errorSavingProduct(e);
+        // Vendor Details Media
+        List<ProductVendorDetailsMedia> productVendorDetailsMediaList = new ArrayList<>(operation.getProductVendorDetailsMedia().size());
+
+        for (int i = 0; i < operation.getProductVendorDetailsMedia().size(); i++) {
+            MultipartFile file = operation.getProductVendorDetailsMedia().get(i);
+            ProductVendorDetailsMedia productVendorDetailsMedia = new ProductVendorDetailsMedia();
+            productVendorDetailsMedia.setProductVendorDetails(productVendorDetails);
+            productVendorDetailsMedia.setPosition(ProductVendorDetailsMediaPosition.of(i));
+
+            if (file.getContentType() == null) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return CreateProduct.Result.invalidMediaType("null");
+            }
+
+            String folderName;
+
+            if (file.getContentType().contains("image")) {
+                productVendorDetailsMedia.setMediaType(MediaType.IMAGE);
+                folderName = "productVendorDetailsImages";
+            } else if (file.getContentType().contains("video")) {
+                productVendorDetailsMedia.setMediaType(MediaType.VIDEO);
+                folderName = "productVendorDetailsVideos";
+            } else {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return CreateProduct.Result.invalidMediaType(file.getContentType());
+            }
+
+            ProductVendorDetailsMediaImage image = ProductVendorDetailsMediaImage.of(TEMP_URL, file.getOriginalFilename());
+            if (operation.getCreateProductVendorDetailsMediaAltTextCommands().size() > i) {
+                CreateProductVendorDetailsMediaAltTextCommand command = operation.getCreateProductVendorDetailsMediaAltTextCommands().get(i);
+                HstoreTranslationDto translatedProductVendorDetailsMediaAltTexts = resultMap.get(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i));
+                image = ProductVendorDetailsMediaImage.of(TEMP_URL, command.altText());
+                image.setAltTextTranslations(translatedProductVendorDetailsMediaAltTexts);
+            }
+            productVendorDetailsMedia.setImage(image);
+
+            CompletableFuture<String> productVendorDetailsMediaFuture = CompletableFuture.supplyAsync(
+                    () -> {
+                        try {
+                            return fileStorageRepository.uploadImageToFolder(file, folderName);
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
+                    },
+                    appTaskExecutor
+            );
+
+            productVendorDetailsMediaList.add(productVendorDetailsMedia);
+            allMediaFutureList.add(productVendorDetailsMediaFuture);
         }
 
+        productVendorDetails.setMedia(new HashSet<>(productVendorDetailsMediaList));
+        product.setProductVendorDetails(productVendorDetails);
+
+        /* ========== Upload Media ========== */
+        CompletableFuture<Void> allMediaFuture = CompletableFuture.allOf(allMediaFutureList.toArray(CompletableFuture[]::new));
+
         try {
-            for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
-                if (contentInfo.entity() instanceof ProductMedia) {
-                    ProductMedia productMedia = product.getMedia().stream()
-                            .filter(m -> m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
-                            .findFirst().orElseThrow();
+            allMediaFuture.join();
 
-                    if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
-                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
-                        productMedia.setUrl(ProductMediaUrl.of(url));
+            for (int i = 0; i < operation.getProductMedia().size(); i++) {
+                CompletableFuture<String> productMediaFuture = allMediaFutureList.get(i);
+                String url = productMediaFuture.get();
+                productMediaList.get(i).setUrl(ProductMediaUrl.of(url));
 
-                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
-                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                        }
-                    }
-
-                    if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
-                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
-                        productMedia.setUrl(ProductMediaUrl.of(url));
-
-                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
-                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                        }
-                    }
-                }
-
-                if (contentInfo.entity() instanceof ProductVendorDetailsMedia) {
-                    ProductVendorDetailsMedia productVendorDetailsMedia = product.getProductVendorDetails().getMedia().stream()
-                            .filter(m -> m.getImage().getUrl().equals(((ProductVendorDetailsMedia) contentInfo.entity()).getImage().getUrl()))
-                            .findFirst().orElseThrow();
-
-                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.IMAGE)) {
-                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
-                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                                url,
-                                productVendorDetailsMedia.getImage().getAltText()
-                        ));
-                    }
-
-                    if (productVendorDetailsMedia.getMediaType().equals(MediaType.VIDEO)) {
-                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
-                        productVendorDetailsMedia.setImage(ProductVendorDetailsMediaImage.of(
-                                url,
-                                productVendorDetailsMedia.getImage().getAltText()
-                        ));
-                    }
+                if (i == 0) {
+                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
                 }
             }
+
+            for (int i = operation.getProductMedia().size(); i < allMediaFutureList.size(); i++) {
+                CompletableFuture<String> productVendorDetailsMediaFuture = allMediaFutureList.get(i);
+                String url = productVendorDetailsMediaFuture.get();
+                ProductVendorDetailsMedia oldMedia = productVendorDetailsMediaList.get(i - operation.getProductMedia().size());
+                ProductVendorDetailsMediaImage image = ProductVendorDetailsMediaImage.of(url, oldMedia.getImage().getAltText());
+                image.setAltTextTranslations(oldMedia.getImage().getAltTextTranslations());
+                productVendorDetailsMediaList.get(i - operation.getProductMedia().size()).setImage(image);
+            }
         } catch (Exception e) {
-            log.error("Error saving files: {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProduct.Result.errorSavingFiles(e);
         }
 
+        /* ========== Save Data ========== */
         try {
-            productRepository.save(product);
+            saveProduct(product);
+            return CreateProduct.Result.success();
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProduct.Result.errorSavingProduct(e);
         }
-
-        return CreateProduct.Result.success();
     }
 
     @Override
     @Transactional
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
+        entityManager.setFlushMode(FlushModeType.COMMIT);
         Optional<Product> existingProduct = productRepository.getProductById(operation.getProductId());
 
         if (existingProduct.isEmpty()) {
@@ -637,7 +667,6 @@ public class ProductApplicationService implements ProductService {
                 !(productDeliveryMethodIdsSet.containsAll(operation.getDeliveryMethodIds()) &&
                         new HashSet<>(operation.getDeliveryMethodIds()).containsAll(productDeliveryMethodIdsSet))
         ) {
-            entityManager.setFlushMode(FlushModeType.COMMIT);
             Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
 
             if (firstNotExistsDeliveryMethodId.isPresent()) {
@@ -1098,8 +1127,9 @@ public class ProductApplicationService implements ProductService {
         }
 
         // Media
-        List<ProductMediaView> productMediaList = productMediaRepository.getAllViewsByProductId(
-                productDto.getId()
+        List<ProductMediaView> productMediaList = productMediaRepository.getAllViewsByProductIdAndLang(
+                productDto.getId(),
+                locale.getLanguage()
         );
         List<ProductMediaDto> productMediaDtoList = productMediaList.stream()
                 .map(ProductMediaDto::of)
@@ -1164,9 +1194,8 @@ public class ProductApplicationService implements ProductService {
 
         // About Vendor Media
         if (productVendorDetailsView != null) {
-            List<ProductVendorDetailsMediaView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsByProductVendorDetailsId(
-                    productVendorDetailsView.getId()
-            );
+            List<ProductVendorDetailsMediaView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsByProductVendorDetailsIdAndLang(
+                    productVendorDetailsView.getId(), locale.getLanguage());
             List<ProductVendorDetailsMediaDto> productVendorDetailsMediaDtoList = productVendorDetailsMediaViewList.stream()
                     .map(ProductVendorDetailsMediaDto::of).toList();
             productVendorDetailsDto.setMedia(productVendorDetailsMediaDtoList);
@@ -1215,7 +1244,6 @@ public class ProductApplicationService implements ProductService {
     }
 
     /* ========== PRIVATE ========== */
-
     private ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
@@ -1275,11 +1303,10 @@ public class ProductApplicationService implements ProductService {
         }
 
         // Media
-        List<ProductMediaView> productMediaList = productMediaRepository.getAllViewsByProductId(
-                productDto.getId()
-        );
-        List<ProductMediaDto> productMediaDtoList = productMediaList.stream()
-                .map(ProductMediaDto::of)
+        List<ProductMediaWithTranslationsView> productMediaList = productMediaRepository.getAllViewsWithTranslationsByProductIdAndLang(
+                productDto.getId(), locale.getLanguage());
+        List<ProductMediaWithTranslationsDto> productMediaDtoList = productMediaList.stream()
+                .map(ProductMediaWithTranslationsDto::of)
                 .toList();
         productDto.setMedia(productMediaDtoList);
 
@@ -1336,11 +1363,10 @@ public class ProductApplicationService implements ProductService {
             productDto.setAboutVendor(productVendorDetailsDto);
 
             // About Vendor Media
-            List<ProductVendorDetailsMediaView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsByProductVendorDetailsId(
-                    productVendorDetailsView.get().getId()
-            );
-            List<ProductVendorDetailsMediaDto> productVendorDetailsMediaDtoList = productVendorDetailsMediaViewList.stream()
-                    .map(ProductVendorDetailsMediaDto::of).toList();
+            List<ProductVendorDetailsMediaWithTranslationsView> productVendorDetailsMediaViewList = productVendorDetailsMediaRepository.getAllViewsWithTranslationsByProductVendorDetailsId(
+                    productVendorDetailsView.get().getId(), locale.getLanguage());
+            List<ProductVendorDetailsMediaWithTranslationsDto> productVendorDetailsMediaDtoList = productVendorDetailsMediaViewList.stream()
+                    .map(ProductVendorDetailsMediaWithTranslationsDto::of).toList();
             productVendorDetailsDto.setMedia(productVendorDetailsMediaDtoList);
         }
 
@@ -1520,6 +1546,11 @@ public class ProductApplicationService implements ProductService {
         return productPackageOption;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void saveProduct(Product product) {
+        productRepository.save(product);
+    }
+
     private enum TranslationKeys {
         TITLE,
         MAIN_DESCRIPTION,
@@ -1532,7 +1563,9 @@ public class ProductApplicationService implements ProductService {
         DELIVERY_METHOD_DETAILS_VALUE,
         PACKAGE_OPTIONS_NAME,
         VENDOR_DETAILS_MAIN_DESCRIPTION,
-        VENDOR_DETAILS_FURTHER_DESCRIPTION;
+        VENDOR_DETAILS_FURTHER_DESCRIPTION,
+        MEDIA_ALT_TEXT,
+        VENDOR_DETAILS_MEDIA_ALT_TEXT;
 
         public String with(int index) {
             return this.name() + "_" + index;
