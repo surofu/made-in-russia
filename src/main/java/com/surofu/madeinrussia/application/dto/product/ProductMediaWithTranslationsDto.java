@@ -1,7 +1,8 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaView;
+import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
+import com.surofu.madeinrussia.infrastructure.persistence.product.media.ProductMediaWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,7 @@ import java.time.ZonedDateTime;
         description = "Represents a product media content (images, videos)",
         name = "ProductMedia"
 )
-public final class ProductMediaDto {
+public final class ProductMediaWithTranslationsDto {
 
     @Schema(
             description = "Unique identifier of the media item",
@@ -53,6 +54,8 @@ public final class ProductMediaDto {
     )
     private String altText;
 
+    private TranslationDto altTextTranslations;
+
     @Schema(
             description = "Timestamp when the media was first uploaded",
             example = "2025-05-04T09:17:20.767615Z",
@@ -70,26 +73,14 @@ public final class ProductMediaDto {
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
-    public static ProductMediaDto of(ProductMedia productMedia) {
-        return ProductMediaDto.builder()
-                .id(productMedia.getId())
-                .mediaType(productMedia.getMediaType().getName())
-                .mimeType(productMedia.getMimeType().toString())
-                .url(productMedia.getUrl().toString())
-                .altText(productMedia.getAltText().toString())
-                .creationDate(productMedia.getCreationDate().getValue())
-                .lastModificationDate(productMedia.getLastModificationDate().getValue())
-                .build();
-    }
-
-    @Schema(hidden = true)
-    public static ProductMediaDto of(ProductMediaView view) {
-        return ProductMediaDto.builder()
+    public static ProductMediaWithTranslationsDto of(ProductMediaWithTranslationsView view) {
+        return ProductMediaWithTranslationsDto.builder()
                 .id(view.getId())
                 .mediaType(view.getMediaType().getName())
                 .mimeType(view.getMimeType())
                 .url(view.getUrl())
                 .altText(view.getAltText())
+                .altTextTranslations(TranslationDto.of(HstoreParser.fromString(view.getAltTextTranslations())))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

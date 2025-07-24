@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails;
+package com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails;
 
 import com.surofu.madeinrussia.core.repository.ProductVendorDetailsRepository;
 import lombok.RequiredArgsConstructor;

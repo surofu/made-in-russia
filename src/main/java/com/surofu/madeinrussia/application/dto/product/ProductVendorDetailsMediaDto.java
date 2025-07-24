@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
-import com.surofu.madeinrussia.infrastructure.persistence.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaView;
+import com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails.media.ProductVendorDetailsMediaView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -47,10 +48,10 @@ public final class ProductVendorDetailsMediaDto implements Serializable {
         return ProductVendorDetailsMediaDto.builder()
                 .id(view.getId())
                 .mediaType(view.getMediaType().getName())
-                .url(view.getImage().getUrl())
-                .altText(view.getImage().getAltText())
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .url(view.getUrl())
+                .altText(view.getAltText())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

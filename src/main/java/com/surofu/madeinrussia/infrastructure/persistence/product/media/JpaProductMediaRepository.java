@@ -13,7 +13,12 @@ public class JpaProductMediaRepository implements ProductMediaRepository {
     private final SpringDataProductMediaRepository repository;
 
     @Override
-    public List<ProductMediaView> getAllViewsByProductId(Long productId) {
-        return repository.findAllByProduct_IdOrderByPositionAsc(productId);
+    public List<ProductMediaView> getAllViewsByProductIdAndLang(Long productId, String lang) {
+        return repository.findAllByProductIdAndLang(productId, lang);
+    }
+
+    @Override
+    public List<ProductMediaWithTranslationsView> getAllViewsWithTranslationsByProductIdAndLang(Long productId, String lang) {
+        return repository.findAllWithTranslationsByProductIdAndLang(productId, lang);
     }
 }

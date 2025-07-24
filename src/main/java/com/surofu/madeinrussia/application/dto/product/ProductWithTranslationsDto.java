@@ -124,7 +124,7 @@ public class ProductWithTranslationsDto implements Serializable {
                     ]
                     """
     )
-    private List<ProductMediaDto> media;
+    private List<ProductMediaWithTranslationsDto> media;
 
     private List<SimilarProductDto> similarProducts;
 
