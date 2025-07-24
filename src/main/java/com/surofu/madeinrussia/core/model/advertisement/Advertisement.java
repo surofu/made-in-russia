@@ -31,6 +31,9 @@ public final class Advertisement implements Serializable {
     private AdvertisementImage image;
 
     @Embedded
+    private AdvertisementLink link;
+
+    @Embedded
     private AdvertisementIsBig isBig;
 
     @Embedded

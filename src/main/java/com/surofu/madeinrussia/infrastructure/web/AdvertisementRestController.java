@@ -154,9 +154,10 @@ public class AdvertisementRestController {
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
         thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
+        AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
-        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, thirdText, isBig, expirationDate, image);
+        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, thirdText, link, isBig, expirationDate, image);
         return service.createAdvertisement(operation).process(createAdvertisementProcessor);
     }
 
@@ -224,9 +225,10 @@ public class AdvertisementRestController {
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
         thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
+        AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
-        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, thirdText, isBig, expirationDate, image);
+        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, thirdText, link, isBig, expirationDate, image);
         return service.updateAdvertisementById(operation).process(updateAdvertisementByIdProcessor);
     }
 

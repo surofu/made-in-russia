@@ -12,6 +12,7 @@ public class UpdateAdvertisementById {
     AdvertisementTitle title;
     AdvertisementSubtitle subtitle;
     AdvertisementThirdText thirdText;
+    AdvertisementLink link;
     AdvertisementIsBig isBig;
     AdvertisementExpirationDate expirationDate;
     MultipartFile image;

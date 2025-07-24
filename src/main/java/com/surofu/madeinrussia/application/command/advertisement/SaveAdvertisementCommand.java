@@ -48,6 +48,12 @@ public record SaveAdvertisementCommand(
         TranslationDto thirdTextTranslations,
 
         @Schema(
+                description = "Link to the resource",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+        String link,
+
+        @Schema(
                 description = "Whether the ad is displayed in a large format",
                 example = "true",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED

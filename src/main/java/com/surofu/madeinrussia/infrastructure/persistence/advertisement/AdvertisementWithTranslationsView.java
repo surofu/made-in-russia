@@ -19,6 +19,8 @@ public interface AdvertisementWithTranslationsView {
 
     String getImageUrl();
 
+    String getLink();
+
     Boolean getIsBig();
 
     Instant getExpirationDate();

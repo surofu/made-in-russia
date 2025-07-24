@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.application.dto.advertisement;
 
 import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
-import com.surofu.madeinrussia.core.model.advertisement.Advertisement;
 import com.surofu.madeinrussia.infrastructure.persistence.advertisement.AdvertisementWithTranslationsView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,11 +32,13 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
 
     private TranslationDto thirdTextTranslations;
 
+    private String link;
+
+    private String imageUrl;
+
     private Boolean isBig;
 
     private ZonedDateTime expirationDate;
-
-    private String imageUrl;
 
     private ZonedDateTime creationDate;
 
@@ -53,7 +54,7 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
                 .thirdText(view.getThirdText())
                 .thirdTextTranslations(TranslationDto.of(HstoreParser.fromString(view.getThirdTextTranslations())))
                 .imageUrl(view.getImageUrl())
-                .isBig(view.getIsBig())
+                .link(view.getLink())
                 .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))

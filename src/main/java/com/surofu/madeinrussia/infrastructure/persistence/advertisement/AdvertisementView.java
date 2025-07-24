@@ -13,6 +13,8 @@ public interface AdvertisementView {
 
     String getImageUrl();
 
+    String getLink();
+
     Boolean getIsBig();
 
     Instant getExpirationDate();

@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.dto.advertisement;
 
-import com.surofu.madeinrussia.core.model.advertisement.Advertisement;
 import com.surofu.madeinrussia.infrastructure.persistence.advertisement.AdvertisementView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +26,8 @@ public final class AdvertisementDto implements Serializable {
 
     private String imageUrl;
 
+    private String link;
+
     private Boolean isBig;
 
     private ZonedDateTime expirationDate;
@@ -42,6 +43,7 @@ public final class AdvertisementDto implements Serializable {
                 .subtitle(view.getSubtitle())
                 .thirdText(view.getThirdText())
                 .imageUrl(view.getImageUrl())
+                .link(view.getLink())
                 .isBig(view.getIsBig())
                 .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))

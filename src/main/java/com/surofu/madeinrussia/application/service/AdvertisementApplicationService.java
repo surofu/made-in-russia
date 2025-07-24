@@ -85,6 +85,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         advertisement.setTitle(operation.getTitle());
         advertisement.setSubtitle(operation.getSubtitle());
         advertisement.setThirdText(operation.getThirdText());
+        advertisement.setLink(operation.getLink());
         advertisement.setIsBig(operation.getIsBig());
         advertisement.setExpirationDate(operation.getExpirationDate());
 
@@ -144,11 +145,18 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         advertisement.setTitle(operation.getTitle());
         advertisement.setSubtitle(operation.getSubtitle());
+        advertisement.setThirdText(operation.getThirdText());
+        advertisement.setLink(operation.getLink());
+        advertisement.setIsBig(operation.getIsBig());
+        advertisement.setExpirationDate(operation.getExpirationDate());
 
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
         translationMap.put(TranslationKeys.TITLE.name(), operation.getTitle().getTranslations());
         translationMap.put(TranslationKeys.SUBTITLE.name(), operation.getSubtitle().getTranslations());
-        translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
+
+        if (operation.getThirdText().getTranslations() != null) {
+            translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
+        }
 
         Map<String, HstoreTranslationDto> translationResultMap;
 
@@ -183,7 +191,6 @@ public class AdvertisementApplicationService implements AdvertisementService {
         advertisement.getSubtitle().setTranslations(translationResultMap.get(TranslationKeys.SUBTITLE.name()));
         advertisement.getThirdText().setTranslations(translationResultMap.get(TranslationKeys.THIRD_TEXT.name()));
         advertisement.setImage(AdvertisementImage.of(newImageUrl));
-
         try {
             advertisementRepository.save(advertisement);
             return UpdateAdvertisementById.Result.success(operation.getAdvertisementId());

@@ -26,6 +26,7 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.third_text
             ) as third_text,
             a.image_url,
+            a.link,
             a.is_big,
             a.expiration_date,
             a.creation_date,
@@ -51,6 +52,7 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.third_text
             ) as third_text,
             a.image_url,
+            a.link,
             a.is_big,
             a.expiration_date,
             a.creation_date,
@@ -79,6 +81,7 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
             ) as third_text,
             a.third_text_translations::text,
             a.image_url,
+            a.link,
             a.is_big,
             a.expiration_date,
             a.creation_date,
