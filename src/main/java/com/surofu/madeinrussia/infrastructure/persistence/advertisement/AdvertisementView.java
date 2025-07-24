@@ -9,6 +9,8 @@ public interface AdvertisementView {
 
     String getSubtitle();
 
+    String getThirdText();
+
     String getImageUrl();
 
     Boolean getIsBig();

@@ -21,6 +21,10 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.subtitle_translations -> :lang,
                 a.subtitle
             ) as subtitle,
+            coalesce(
+                a.third_text_translations -> :lang,
+                a.third_text
+            ) as third_text,
             a.image_url,
             a.is_big,
             a.expiration_date,
@@ -42,6 +46,10 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.subtitle_translations -> :lang,
                 a.subtitle
             ) as subtitle,
+            coalesce(
+                a.third_text_translations -> :lang,
+                a.third_text
+            ) as third_text,
             a.image_url,
             a.is_big,
             a.expiration_date,
@@ -65,6 +73,11 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.subtitle
             ) as subtitle,
             a.subtitle_translations::text,
+            coalesce(
+                a.third_text_translations -> :lang,
+                a.third_text
+            ) as third_text,
+            a.third_text_translations::text,
             a.image_url,
             a.is_big,
             a.expiration_date,

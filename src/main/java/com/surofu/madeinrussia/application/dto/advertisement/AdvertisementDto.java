@@ -23,6 +23,8 @@ public final class AdvertisementDto implements Serializable {
 
     private String subtitle;
 
+    private String thirdText;
+
     private String imageUrl;
 
     private Boolean isBig;
@@ -33,24 +35,12 @@ public final class AdvertisementDto implements Serializable {
 
     private ZonedDateTime lastModificationDate;
 
-    public static AdvertisementDto of(Advertisement advertisement) {
-        return AdvertisementDto.builder()
-                .id(advertisement.getId())
-                .title(advertisement.getTitle().toString())
-                .subtitle(advertisement.getSubtitle().toString())
-                .imageUrl(advertisement.getImage().toString())
-                .isBig(advertisement.getIsBig().getValue())
-                .expirationDate(advertisement.getExpirationDate() == null ? null : advertisement.getExpirationDate().getValue())
-                .creationDate(advertisement.getCreationDate().getValue())
-                .lastModificationDate(advertisement.getLastModificationDate().getValue())
-                .build();
-    }
-
     public static AdvertisementDto of(AdvertisementView view) {
         return AdvertisementDto.builder()
                 .id(view.getId())
                 .title(view.getTitle())
                 .subtitle(view.getSubtitle())
+                .thirdText(view.getThirdText())
                 .imageUrl(view.getImageUrl())
                 .isBig(view.getIsBig())
                 .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))

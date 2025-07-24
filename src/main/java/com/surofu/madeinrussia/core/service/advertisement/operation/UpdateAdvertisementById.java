@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.core.service.advertisement.operation;
 
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementExpirationDate;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementIsBig;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementSubtitle;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementTitle;
+import com.surofu.madeinrussia.core.model.advertisement.*;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +11,7 @@ public class UpdateAdvertisementById {
     Long advertisementId;
     AdvertisementTitle title;
     AdvertisementSubtitle subtitle;
+    AdvertisementThirdText thirdText;
     AdvertisementIsBig isBig;
     AdvertisementExpirationDate expirationDate;
     MultipartFile image;

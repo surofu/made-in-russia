@@ -25,6 +25,9 @@ public final class Advertisement implements Serializable {
     private AdvertisementSubtitle subtitle;
 
     @Embedded
+    private AdvertisementThirdText thirdText;
+
+    @Embedded
     private AdvertisementImage image;
 
     @Embedded

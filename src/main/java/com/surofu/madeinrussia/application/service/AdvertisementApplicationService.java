@@ -84,12 +84,14 @@ public class AdvertisementApplicationService implements AdvertisementService {
         Advertisement advertisement = new Advertisement();
         advertisement.setTitle(operation.getTitle());
         advertisement.setSubtitle(operation.getSubtitle());
+        advertisement.setThirdText(operation.getThirdText());
         advertisement.setIsBig(operation.getIsBig());
         advertisement.setExpirationDate(operation.getExpirationDate());
 
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
         translationMap.put(TranslationKeys.TITLE.name(), operation.getTitle().getTranslations());
         translationMap.put(TranslationKeys.SUBTITLE.name(), operation.getSubtitle().getTranslations());
+        translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
 
         Map<String, HstoreTranslationDto> translationResultMap;
 
@@ -114,6 +116,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         advertisement.getTitle().setTranslations(translationResultMap.get(TranslationKeys.TITLE.name()));
         advertisement.getSubtitle().setTranslations(translationResultMap.get(TranslationKeys.SUBTITLE.name()));
+        advertisement.getThirdText().setTranslations(translationResultMap.get(TranslationKeys.THIRD_TEXT.name()));
         advertisement.setImage(AdvertisementImage.of(imageUrl));
 
         try {
@@ -128,8 +131,6 @@ public class AdvertisementApplicationService implements AdvertisementService {
     @Override
     @Transactional
     public UpdateAdvertisementById.Result updateAdvertisementById(UpdateAdvertisementById operation) {
-        entityManager.setFlushMode(FlushModeType.COMMIT);
-
         Optional<Advertisement> optionalAdvertisement = advertisementRepository.getById(operation.getAdvertisementId());
 
         if (optionalAdvertisement.isEmpty()) {
@@ -144,6 +145,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
         translationMap.put(TranslationKeys.TITLE.name(), operation.getTitle().getTranslations());
         translationMap.put(TranslationKeys.SUBTITLE.name(), operation.getSubtitle().getTranslations());
+        translationMap.put(TranslationKeys.THIRD_TEXT.name(), operation.getThirdText().getTranslations());
 
         Map<String, HstoreTranslationDto> translationResultMap;
 
@@ -176,10 +178,10 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         advertisement.getTitle().setTranslations(translationResultMap.get(TranslationKeys.TITLE.name()));
         advertisement.getSubtitle().setTranslations(translationResultMap.get(TranslationKeys.SUBTITLE.name()));
+        advertisement.getThirdText().setTranslations(translationResultMap.get(TranslationKeys.THIRD_TEXT.name()));
         advertisement.setImage(AdvertisementImage.of(newImageUrl));
 
         try {
-            System.out.println(advertisement);
             advertisementRepository.save(advertisement);
             return UpdateAdvertisementById.Result.success(operation.getAdvertisementId());
         } catch (Exception e) {
@@ -216,6 +218,6 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     private enum TranslationKeys {
-        TITLE, SUBTITLE
+        TITLE, SUBTITLE, THIRD_TEXT
     }
 }

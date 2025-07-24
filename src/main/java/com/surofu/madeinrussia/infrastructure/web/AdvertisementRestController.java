@@ -3,10 +3,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.command.advertisement.SaveAdvertisementCommand;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementExpirationDate;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementIsBig;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementSubtitle;
-import com.surofu.madeinrussia.core.model.advertisement.AdvertisementTitle;
+import com.surofu.madeinrussia.core.model.advertisement.*;
 import com.surofu.madeinrussia.core.service.advertisement.AdvertisementService;
 import com.surofu.madeinrussia.core.service.advertisement.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -155,9 +152,11 @@ public class AdvertisementRestController {
         title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
+        AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
+        thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
-        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, isBig, expirationDate, image);
+        CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, thirdText, isBig, expirationDate, image);
         return service.createAdvertisement(operation).process(createAdvertisementProcessor);
     }
 
@@ -223,9 +222,11 @@ public class AdvertisementRestController {
         title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
+        AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
+        thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
-        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, isBig, expirationDate, image);
+        UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, thirdText, isBig, expirationDate, image);
         return service.updateAdvertisementById(operation).process(updateAdvertisementByIdProcessor);
     }
 

@@ -9,6 +9,8 @@ public record SaveAdvertisementCommand(
         TranslationDto titleTranslations,
         String subtitle,
         TranslationDto subtitleTranslations,
+        String thirdText,
+        TranslationDto thirdTextTranslations,
         Boolean isBig,
         ZonedDateTime expirationDate
 ) {

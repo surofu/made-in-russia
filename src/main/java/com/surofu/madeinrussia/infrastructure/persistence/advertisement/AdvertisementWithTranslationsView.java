@@ -13,6 +13,10 @@ public interface AdvertisementWithTranslationsView {
 
     String getSubtitleTranslations();
 
+    String getThirdText();
+
+    String getThirdTextTranslations();
+
     String getImageUrl();
 
     Boolean getIsBig();

@@ -29,6 +29,10 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
 
     private TranslationDto subtitleTranslations;
 
+    private String thirdText;
+
+    private TranslationDto thirdTextTranslations;
+
     private Boolean isBig;
 
     private ZonedDateTime expirationDate;
@@ -39,21 +43,6 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
 
     private ZonedDateTime lastModificationDate;
 
-    public static AdvertisementWithTranslationsDto of(Advertisement advertisement) {
-        return AdvertisementWithTranslationsDto.builder()
-                .id(advertisement.getId())
-                .title(advertisement.getTitle().toString())
-                .titleTranslations(TranslationDto.of(advertisement.getTitle().getTranslations()))
-                .subtitle(advertisement.getSubtitle().toString())
-                .subtitleTranslations(TranslationDto.of(advertisement.getSubtitle().getTranslations()))
-                .imageUrl(advertisement.getImage().toString())
-                .isBig(advertisement.getIsBig().getValue())
-                .expirationDate(advertisement.getExpirationDate() == null ? null : advertisement.getExpirationDate().getValue())
-                .creationDate(advertisement.getCreationDate().getValue())
-                .lastModificationDate(advertisement.getLastModificationDate().getValue())
-                .build();
-    }
-
     public static AdvertisementWithTranslationsDto of(AdvertisementWithTranslationsView view) {
         return AdvertisementWithTranslationsDto.builder()
                 .id(view.getId())
@@ -61,6 +50,8 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
                 .titleTranslations(TranslationDto.of(HstoreParser.fromString(view.getTitleTranslations())))
                 .subtitle(view.getSubtitle())
                 .subtitleTranslations(TranslationDto.of(HstoreParser.fromString(view.getSubtitleTranslations())))
+                .thirdText(view.getThirdText())
+                .thirdTextTranslations(TranslationDto.of(HstoreParser.fromString(view.getThirdTextTranslations())))
                 .imageUrl(view.getImageUrl())
                 .isBig(view.getIsBig())
                 .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
