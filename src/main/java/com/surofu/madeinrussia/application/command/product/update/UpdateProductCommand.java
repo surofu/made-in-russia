@@ -67,6 +67,8 @@ public record UpdateProductCommand(
 
         List<UpdateOldMediaDto> oldProductMedia,
 
-        List<UpdateOldMediaDto> oldAboutVendorMedia
+        List<UpdateOldMediaDto> oldAboutVendorMedia,
+
+        List<UpdateProductMediaAltTextCommand> mediaAltTexts
 ) {
 }

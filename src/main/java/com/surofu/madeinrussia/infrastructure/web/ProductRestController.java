@@ -975,6 +975,7 @@ public class ProductRestController {
                 updateProductCommand.deliveryMethodDetails(),
                 updateProductCommand.packageOptions(),
                 updateProductCommand.aboutVendor(),
+                updateProductCommand.mediaAltTexts(),
                 updateProductCommand.aboutVendor().mediaAltTexts(),
                 updateProductCommand.minimumOrderQuantity(),
                 ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate()),
