@@ -37,26 +37,24 @@ public class CloudinaryRepository implements FileStorageRepository {
     @Value("${app.compress.video.quality}")
     private int videoQuality;
 
-    private EagerTransformation imageTransformation;
-
-    private EagerTransformation videoTransformation;
-
     @Override
     public String uploadImageToFolder(MultipartFile file, String folderName) throws IOException {
         Map<Object, Object> options = new HashMap<>();
         options.put("resource_type", "image");
-        options.put("eager", List.of(getImageTransformation()));
+        options.put("eager", Collections.singletonList(getImageTransformation()));
         Map<?, ?> resultMap = uploadFileToFolder(file, folderName, options);
-        return resultMap.get("secure_url").toString();
+        List<Map> eagerList = (List<Map>) resultMap.get("eager");
+        return eagerList.get(0).get("secure_url").toString();
     }
 
     @Override
     public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException {
         Map<Object, Object> options = new HashMap<>();
         options.put("resource_type", "video");
-        options.put("eager", List.of(getVideoTransformation()));
+        options.put("eager", Collections.singletonList(getVideoTransformation()));
         Map<?, ?> resultMap = uploadFileToFolder(file, folderName, options);
-        return resultMap.get("secure_url").toString();
+        List<Map> eagerList = (List<Map>) resultMap.get("eager");
+        return eagerList.get(0).get("secure_url").toString();
     }
 
     @Override
@@ -97,49 +95,30 @@ public class CloudinaryRepository implements FileStorageRepository {
 
     private Map<?, ?> uploadFileToFolder(MultipartFile file, String folderName, Map<?, ?> options) throws IOException {
         Map<Object, Object> optionsMap = new HashMap<>();
-
-        EagerTransformation transformation = new EagerTransformation()
-                .width(imageMaxWidth)
-                .height(imageMaxHeight)
-                .quality(imageQuality)
-                .gravity("north_east")
-                .crop("fill");
-
         optionsMap.put("folder", folderName);
-        optionsMap.put("eager", List.of(transformation));
         optionsMap.put("eager_async", true);
+        optionsMap.put("quality", "auto:good");
         optionsMap.putAll(options);
-
         return cloudinary.uploader().upload(file.getBytes(), optionsMap);
     }
 
     private EagerTransformation getImageTransformation() {
-        if (imageTransformation != null) {
-            return imageTransformation;
-        }
-
-        imageTransformation = new EagerTransformation()
+        return new EagerTransformation()
                 .width(imageMaxWidth)
                 .height(imageMaxHeight)
                 .quality(imageQuality)
-                .gravity("north_east")
-                .crop("fill");
-
-        return imageTransformation;
+                .gravity("north")
+                .crop("fill")
+                .fetchFormat("webp");
     }
 
     private EagerTransformation getVideoTransformation() {
-        if (videoTransformation != null) {
-            return videoTransformation;
-        }
-
-        videoTransformation = new EagerTransformation()
+        return new EagerTransformation()
                 .width(videoMaxWidth)
                 .height(videoMaxHeight)
                 .quality(videoQuality)
-                .gravity("north_east")
-                .crop("fill");
-
-        return videoTransformation;
+                .gravity("north")
+                .crop("fill")
+                .fetchFormat("webm");
     }
 }

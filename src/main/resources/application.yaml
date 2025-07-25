@@ -1,4 +1,6 @@
 server:
+  http2:
+    enabled: true
   port: ${PORT}
   compression:
     enabled: true
