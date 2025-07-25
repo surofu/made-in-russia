@@ -214,10 +214,9 @@ public class AdvertisementRestController {
             @RequestPart("data") SaveAdvertisementCommand command,
             @Parameter(
                     description = "Updated advertisement image file",
-                    required = true,
                     content = @Content(mediaType = "application/octet-stream")
             )
-            @RequestPart("image") MultipartFile image
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         AdvertisementTitle title = AdvertisementTitle.of(command.title());
         title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));

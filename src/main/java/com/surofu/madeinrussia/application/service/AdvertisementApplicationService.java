@@ -3,6 +3,7 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementWithTranslationsDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.core.model.advertisement.Advertisement;
 import com.surofu.madeinrussia.core.model.advertisement.AdvertisementImage;
@@ -170,27 +171,31 @@ public class AdvertisementApplicationService implements AdvertisementService {
             return UpdateAdvertisementById.Result.translationError(e);
         }
 
-        String oldImageUrl = advertisement.getImage().toString();
-        String newImageUrl;
+        if (operation.getImage() != null) {
+            String oldImageUrl = advertisement.getImage().toString();
+            String newImageUrl;
 
-        try {
-            newImageUrl = fileStorageRepository.uploadImageToFolder(operation.getImage(), "advertisement");
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateAdvertisementById.Result.savingFileError(e);
-        }
+            try {
+                newImageUrl = fileStorageRepository.uploadImageToFolder(operation.getImage(), FileStorageFolders.ADVERTISEMENT_IMAGES.getValue());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateAdvertisementById.Result.savingFileError(e);
+            }
 
-        try {
-            fileStorageRepository.deleteMediaByLink(oldImageUrl);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateAdvertisementById.Result.deletingFileError(e);
+            try {
+                fileStorageRepository.deleteMediaByLink(oldImageUrl);
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateAdvertisementById.Result.deletingFileError(e);
+            }
+
+            advertisement.setImage(AdvertisementImage.of(newImageUrl));
         }
 
         advertisement.getTitle().setTranslations(translationResultMap.get(TranslationKeys.TITLE.name()));
         advertisement.getSubtitle().setTranslations(translationResultMap.get(TranslationKeys.SUBTITLE.name()));
         advertisement.getThirdText().setTranslations(translationResultMap.get(TranslationKeys.THIRD_TEXT.name()));
-        advertisement.setImage(AdvertisementImage.of(newImageUrl));
+
         try {
             advertisementRepository.save(advertisement);
             return UpdateAdvertisementById.Result.success(operation.getAdvertisementId());

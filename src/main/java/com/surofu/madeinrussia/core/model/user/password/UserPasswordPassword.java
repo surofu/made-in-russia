@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user.password;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -22,15 +23,15 @@ public final class UserPasswordPassword implements Serializable {
 
     public static UserPasswordPassword of(String password) {
         if (password == null || password.trim().isEmpty()) {
-            throw new IllegalArgumentException("Пароль не может быть пустым");
+            throw new LocalizedValidationException("validation.password.empty");
         }
 
         if (password.length() < 4) {
-            throw new IllegalArgumentException("Пароль не может быть менее 4 символов");
+            throw new IllegalArgumentException("validation.password.min_length");
         }
 
-        if (password.length() >= 10_000) {
-            throw new IllegalArgumentException("Пароль не может быть больше 10,000 символов");
+        if (password.length() > 10_000) {
+            throw new IllegalArgumentException("validation.password.max_length");
         }
 
         return new UserPasswordPassword(password);

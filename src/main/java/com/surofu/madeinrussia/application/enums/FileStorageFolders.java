@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.enums;
 
 public enum FileStorageFolders {
+    ADVERTISEMENT_IMAGES("advertisement-images"),
     PRODUCT_IMAGES("product-images"),
     PRODUCT_VIDEOS("product-videos"),
     VENDOR_IMAGES("vendor-images"),

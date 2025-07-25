@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -22,15 +23,15 @@ public final class UserLogin implements Serializable {
 
     public static UserLogin of(String login) {
         if (login == null || login.trim().isEmpty()) {
-            throw new IllegalArgumentException("Логин не может быть пустым");
+            throw new LocalizedValidationException("validation.login.empty");
         }
 
-        if (login.length() < 3) {
-            throw new IllegalArgumentException("Логин не может быть менее 3 символов");
+        if (login.length() < 2) {
+            throw new LocalizedValidationException("validation.login.min_length");
         }
 
         if (login.length() > 255) {
-            throw new IllegalArgumentException("Логин не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.login.max_length");
         }
 
         return new UserLogin(login);

@@ -23,7 +23,6 @@ public class RegisterVendor {
     UserPhoneNumber userPhoneNumber;
 
     VendorDetailsInn vendorDetailsInn;
-//    VendorDetailsPaymentDetails vendorDetailsPaymentDetails;
 
     List<VendorCountryName> vendorCountryNames;
     List<VendorProductCategoryName> vendorProductCategoryNames;

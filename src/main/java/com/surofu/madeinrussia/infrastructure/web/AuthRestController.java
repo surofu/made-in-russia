@@ -151,7 +151,6 @@ public class AuthRestController {
                 UserRegion.of(registerVendorCommand.countries().get(0)),
                 UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
                 VendorDetailsInn.of(registerVendorCommand.inn()),
-//                VendorDetailsPaymentDetails.of(registerVendorCommand.paymentDetails()),
                 registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
                 registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
         );
@@ -191,9 +190,12 @@ public class AuthRestController {
                             schema = @Schema(implementation = LoginWithEmailCommand.class)
                     )
             )
-            @RequestBody @Valid LoginWithEmailCommand loginWithEmailCommand
+            @RequestBody @Valid LoginWithEmailCommand command
     ) {
-        LoginWithEmail operation = LoginWithEmail.of(loginWithEmailCommand);
+        LoginWithEmail operation = LoginWithEmail.of(
+                UserEmail.of(command.email()),
+                UserPasswordPassword.of(command.password())
+        );
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
     }
 
@@ -244,9 +246,12 @@ public class AuthRestController {
                                             """)
                     )
             )
-            @RequestBody @Valid LoginWithLoginCommand loginWithLoginCommand
+            @RequestBody LoginWithLoginCommand command
     ) {
-        LoginWithLogin operation = LoginWithLogin.of(loginWithLoginCommand);
+        LoginWithLogin operation = LoginWithLogin.of(
+                UserLogin.of(command.login()),
+                UserPasswordPassword.of(command.password())
+        );
         return authService.loginWithLogin(operation).process(loginWithLoginProcessor);
     }
 

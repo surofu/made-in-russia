@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.application.command.auth.LoginWithEmailCommand;
 import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
@@ -10,7 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Value(staticConstructor = "of")
 public class LoginWithEmail {
-    LoginWithEmailCommand command;
+    UserEmail email;
+    UserPasswordPassword password;
 
     public interface Result {
         <T> T process(Processor<T> processor);

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
@@ -22,15 +23,15 @@ public final class UserEmail implements Serializable {
 
     private UserEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Почта не может быть пустой");
+            throw new LocalizedValidationException("validation.email.empty");
         }
 
         if (email.length() > 255) {
-            throw new IllegalArgumentException("Почта не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.email.length");
         }
 
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalArgumentException("Почта должна соответствовать выражению ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+            throw new LocalizedValidationException("validation.email.format");
         }
 
         this.value = email;

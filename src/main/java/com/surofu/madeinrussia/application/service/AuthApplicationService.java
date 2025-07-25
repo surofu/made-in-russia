@@ -118,43 +118,28 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public LoginWithEmail.Result loginWithEmail(LoginWithEmail operation) {
-        LoginSuccessDto loginSuccessDto;
-
-        String rawEmail = operation.getCommand().email();
-        String rawPassword = operation.getCommand().password();
-
-        UserEmail userEmail = UserEmail.of(rawEmail);
-        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
-
         try {
-            loginSuccessDto = login(userEmail, userPasswordPassword);
-            return LoginWithEmail.Result.success(loginSuccessDto);
+            LoginSuccessDto dto = login(operation.getEmail(), operation.getPassword());
+            return LoginWithEmail.Result.success(dto);
         } catch (Exception ex) {
-            return LoginWithEmail.Result.invalidCredentials(userEmail, userPasswordPassword);
+            return LoginWithEmail.Result.invalidCredentials(operation.getEmail(), operation.getPassword());
         }
     }
 
     @Override
     public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
-        String rawLogin = operation.getCommand().login();
-        UserLogin userLogin = UserLogin.of(rawLogin);
-
-        String rawPassword = operation.getCommand().password();
-        UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(rawPassword);
-
-        Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(userLogin);
+        Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(operation.getLogin());
 
         if (userEmail.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
+            return LoginWithLogin.Result.invalidCredentials(operation.getLogin(), operation.getPassword());
         }
 
-        LoginSuccessDto loginSuccessDto;
-
         try {
-            loginSuccessDto = login(userEmail.get(), userPasswordPassword);
-            return LoginWithLogin.Result.success(loginSuccessDto);
-        } catch (Exception ex) {
-            return LoginWithLogin.Result.invalidCredentials(userLogin, userPasswordPassword);
+            LoginSuccessDto dto = login(userEmail.get(), operation.getPassword());
+            return LoginWithLogin.Result.success(dto);
+        } catch (Exception e) {
+            log.warn("Invalid credentials: {}", e.getMessage());
+            return LoginWithLogin.Result.invalidCredentials(operation.getLogin(), operation.getPassword());
         }
     }
 
