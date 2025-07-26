@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordSuccessDto;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.core.model.auth.VerificationCode;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class VerifyRecoverPassword {
     UserEmail userEmail;
-    String recoverCode;
+    VerificationCode recoverCode;
     SessionInfo sessionInfo;
 
     public interface Result {

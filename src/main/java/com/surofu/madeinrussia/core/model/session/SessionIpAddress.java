@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,7 +19,7 @@ public final class SessionIpAddress implements Serializable {
 
     private SessionIpAddress(String ipAddress) {
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            throw new IllegalArgumentException("IP адрес сессии не может быть пустым");
+            throw new LocalizedValidationException("validation.session.ip.empty");
         }
 
         this.value = ipAddress;

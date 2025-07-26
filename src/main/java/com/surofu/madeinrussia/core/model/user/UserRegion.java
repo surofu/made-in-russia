@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class UserRegion implements Serializable {
 
     private UserRegion(String region) {
         if (region == null || region.trim().isEmpty()) {
-            throw new IllegalArgumentException("Регион не может быть пустым");
+            throw new LocalizedValidationException("validation.user.region.empty");
         }
 
         if (region.length() > 255) {
-            throw new IllegalArgumentException("Регион не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.user.region.max_length");
         }
 
         this.value = region;

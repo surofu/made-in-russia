@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class SessionOs implements Serializable {
 
     private SessionOs(String os) {
         if (os == null || os.trim().isEmpty()) {
-            throw new IllegalArgumentException("Операционная система сессии не может быть пустой");
+            throw new LocalizedValidationException("validation.session.os.empty");
         }
 
         if (os.length() > 255) {
-            throw new IllegalArgumentException("Операционная система сессии не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.session.os.max_length");
         }
 
         this.value = os;

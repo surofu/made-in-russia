@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,19 +24,11 @@ public final class AdvertisementLastModificationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private AdvertisementLastModificationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Last modification date cannot be null or empty.");
-        }
-
-        if (date.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException("Last modification date cannot be after now.");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static AdvertisementLastModificationDate of(ZonedDateTime title) {
-        return new AdvertisementLastModificationDate(title);
+    public static AdvertisementLastModificationDate of(ZonedDateTime date) {
+        return new AdvertisementLastModificationDate(date);
     }
 
     @Override

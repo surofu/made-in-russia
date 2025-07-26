@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.advertisement;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,18 +29,18 @@ public final class AdvertisementSubtitle implements Serializable {
 
     private AdvertisementSubtitle(String subtitle) {
         if (subtitle == null || subtitle.trim().isEmpty()) {
-            throw new IllegalArgumentException("Subtitle cannot be null or empty.");
+            throw new LocalizedValidationException("validation.subtitle.empty");
         }
 
         if (subtitle.length() > 255) {
-            throw new IllegalArgumentException("Subtitle cannot be longer than 255 characters.");
+            throw new LocalizedValidationException("validation.subtitle.max_length");
         }
 
         this.value = subtitle;
     }
 
-    public static AdvertisementSubtitle of(String title) {
-        return new AdvertisementSubtitle(title);
+    public static AdvertisementSubtitle of(String subtitle) {
+        return new AdvertisementSubtitle(subtitle);
     }
 
     public HstoreTranslationDto getTranslations() {

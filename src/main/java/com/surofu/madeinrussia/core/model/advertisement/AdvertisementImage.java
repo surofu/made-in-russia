@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.advertisement;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -13,23 +14,23 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class AdvertisementImage implements Serializable {
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, columnDefinition = "text")
     private String url;
 
     private AdvertisementImage(String url) {
         if (url == null || url.trim().isEmpty()) {
-            throw new IllegalArgumentException("Image url cannot be null or empty.");
+            throw new LocalizedValidationException("validation.image_url.empty");
         }
 
-        if (url.length() > 255) {
-            throw new IllegalArgumentException("Image url cannot be longer than 255 characters.");
+        if (url.length() > 20_000) {
+            throw new LocalizedValidationException("validation.image_url.max_length");
         }
 
         this.url = url;
     }
 
-    public static AdvertisementImage of(String title) {
-        return new AdvertisementImage(title);
+    public static AdvertisementImage of(String url) {
+        return new AdvertisementImage(url);
     }
 
     @Override

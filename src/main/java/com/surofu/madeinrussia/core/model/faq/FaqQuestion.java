@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.faq;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class FaqQuestion implements Serializable {
 
     private FaqQuestion(String question) {
         if (question == null || question.trim().isEmpty()) {
-            throw new IllegalArgumentException("Вопрос не может быть пустым");
+            throw new LocalizedValidationException("validation.faq.question.empty");
         }
 
         if (question.length() > 20_000) {
-            throw new IllegalArgumentException("Вопрос не может быть длиннее 20,000 символов");
+            throw new LocalizedValidationException("validation.faq.question.max_length");
         }
 
         this.value = question;

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -25,7 +26,11 @@ public final class VendorProductCategoryName implements Serializable {
 
     private VendorProductCategoryName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название категории товаров продавца не может быть пустым");
+            throw new LocalizedValidationException("validation.vendor.product_category.name.empty");
+        }
+
+        if (name.length() > 255) {
+            throw new LocalizedValidationException("validation.vendor.product_category.name.max_length");
         }
 
         this.value = name;

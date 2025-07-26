@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.application.utils;
 
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import jakarta.annotation.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.stereotype.Component;
@@ -17,14 +18,12 @@ public final class RecoverPasswordCaffeineCacheManager extends CaffeineCacheMana
         this.CACHE = super.createCaffeineCache(CACHE_NAME);
     }
 
-    public String getCacheName() {
-        return CACHE_NAME;
-    }
-
+    @Nullable
     public Cache getCache() {
         return getCache(CACHE_NAME);
     }
 
+    @Nullable
     public RecoverPasswordDto getRecoverPasswordDto(UserEmail userEmail) {
         return CACHE.get(userEmail.toString(), RecoverPasswordDto.class);
     }

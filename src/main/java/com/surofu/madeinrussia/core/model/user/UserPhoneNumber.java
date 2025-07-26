@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,15 +19,15 @@ public final class UserPhoneNumber implements Serializable {
 
     private UserPhoneNumber(String phoneNumber) {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Номер телефона не может быть пустым");
+            throw new LocalizedValidationException("validation.phone_number.empty");
         }
 
         if (phoneNumber.length() < 7) {
-            throw new IllegalArgumentException("Номер телефона не может быть меньше 7 символов");
+            throw new LocalizedValidationException("validation.phone_number.min_length");
         }
 
         if (phoneNumber.length() > 255) {
-            throw new IllegalArgumentException("Номер телефона не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.phone_number.max_length");
         }
 
         this.value = phoneNumber;

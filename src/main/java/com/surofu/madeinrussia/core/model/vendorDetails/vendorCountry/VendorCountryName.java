@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,11 +23,11 @@ public final class VendorCountryName implements Serializable {
 
     private VendorCountryName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название страны продавца не может быть пустым");
+            throw new LocalizedValidationException("validation.vendor.country.name.empty");
         }
 
         if (name.length() > 255) {
-            throw new IllegalArgumentException("Название страны продавца не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.vendor.country.name.max_length");
         }
 
         this.value = name;

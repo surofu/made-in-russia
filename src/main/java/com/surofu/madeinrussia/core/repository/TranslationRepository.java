@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface TranslationRepository {
-    TranslationResponse translateToEn(String ...texts) throws IOException, InterruptedException;
+    TranslationResponse translateToEn(String ...texts) throws IOException;
 
-    TranslationResponse translateToRu(String ...texts) throws IOException, InterruptedException;
+    TranslationResponse translateToRu(String ...texts) throws IOException;
 
-    TranslationResponse translateToZh(String ...texts) throws IOException, InterruptedException;
+    TranslationResponse translateToZh(String ...texts) throws IOException;
 
     HstoreTranslationDto expend(HstoreTranslationDto dto) throws EmptyTranslationException, IOException, InterruptedException;
 

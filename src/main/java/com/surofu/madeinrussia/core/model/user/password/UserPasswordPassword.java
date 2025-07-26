@@ -27,11 +27,11 @@ public final class UserPasswordPassword implements Serializable {
         }
 
         if (password.length() < 4) {
-            throw new IllegalArgumentException("validation.password.min_length");
+            throw new LocalizedValidationException("validation.password.min_length");
         }
 
         if (password.length() > 10_000) {
-            throw new IllegalArgumentException("validation.password.max_length");
+            throw new LocalizedValidationException("validation.password.max_length");
         }
 
         return new UserPasswordPassword(password);

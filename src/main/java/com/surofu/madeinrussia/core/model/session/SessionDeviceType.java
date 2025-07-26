@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class SessionDeviceType implements Serializable {
 
     private SessionDeviceType(String deviceType) {
         if (deviceType == null || deviceType.trim().isEmpty()) {
-            throw new IllegalArgumentException("Тип устройства сессии не может быть пустым");
+            throw new LocalizedValidationException("validation.session.device_type.empty");
         }
 
         if (deviceType.length() > 255) {
-            throw new IllegalArgumentException("Тип устройства сессии не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.session.device_type.max_length");
         }
 
         this.value = deviceType;

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,7 +19,7 @@ public final class SessionDeviceId implements Serializable {
 
     private SessionDeviceId(String deviceId) {
         if (deviceId == null || deviceId.trim().isEmpty()) {
-            throw new IllegalArgumentException("ID устройства сессии не может быть пустым");
+            throw new LocalizedValidationException("validation.session.device_id.empty");
         }
 
         this.value = deviceId;

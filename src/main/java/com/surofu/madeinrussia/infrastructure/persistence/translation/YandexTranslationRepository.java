@@ -29,17 +29,17 @@ public class YandexTranslationRepository implements TranslationRepository {
     private String apiSecret;
 
     @Override
-    public TranslationResponse translateToEn(String... texts) throws IOException, InterruptedException {
+    public TranslationResponse translateToEn(String... texts) throws IOException {
         return translate("en", texts);
     }
 
     @Override
-    public TranslationResponse translateToRu(String... texts) throws IOException, InterruptedException {
+    public TranslationResponse translateToRu(String... texts) throws IOException {
         return translate("ru", texts);
     }
 
     @Override
-    public TranslationResponse translateToZh(String... texts) throws IOException, InterruptedException {
+    public TranslationResponse translateToZh(String... texts) throws IOException {
         return translate("zh", texts);
     }
 

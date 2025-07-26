@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.category;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -17,8 +18,8 @@ public final class CategoryImageUrl implements Serializable {
     private String value;
 
     private CategoryImageUrl(String url) {
-        if (url.length() > 255) {
-            throw new IllegalArgumentException("Ссылка на изображение категории не может быть больше 20,000 символов");
+        if (url != null && url.length() > 20_000) {
+            throw new LocalizedValidationException("validation.category.image_url.max_length");
         }
 
         this.value = url;

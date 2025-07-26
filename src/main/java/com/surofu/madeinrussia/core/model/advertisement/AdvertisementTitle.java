@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.advertisement;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,11 +29,11 @@ public final class AdvertisementTitle implements Serializable {
 
     private AdvertisementTitle(String title) {
         if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be null or empty.");
+            throw new LocalizedValidationException("validation.title.empty");
         }
 
         if (title.length() > 255) {
-            throw new IllegalArgumentException("Title cannot be longer than 255 characters.");
+            throw new LocalizedValidationException("validation.title.max_length");
         }
 
         this.value = title;

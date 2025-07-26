@@ -1,12 +1,14 @@
 package com.surofu.madeinrussia.application.utils;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import jakarta.annotation.Nullable;
 
 import java.util.Objects;
 
 public class HstoreParser {
 
-    public static String toString(HstoreTranslationDto translation) {
+    @Nullable
+    public static String toString(@Nullable HstoreTranslationDto translation) {
         if (translation == null) {
             return null;
         }
@@ -17,7 +19,8 @@ public class HstoreParser {
         return String.format("\"en\"=>\"%s\", \"ru\"=>\"%s\", \"zh\"=>\"%s\"", en, ru, zh);
     }
 
-    public static HstoreTranslationDto fromString(String str) {
+    @Nullable
+    public static HstoreTranslationDto fromString(@Nullable String str) {
         if (str == null) {
             return null;
         }

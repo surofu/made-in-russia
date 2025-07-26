@@ -16,7 +16,6 @@ import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheMa
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
@@ -152,7 +151,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
         }
 
-        if (!verificationCodeFromCache.equals(operation.getVerificationCode())) {
+        if (!verificationCodeFromCache.equals(operation.getVerificationCode().toString())) {
             return VerifyEmail.Result.invalidVerificationCode(operation.getVerificationCode());
         }
 
@@ -276,7 +275,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyRecoverPassword.Result.emailNotFound(operation.getUserEmail());
         }
 
-        if (!recoverPasswordDto.recoverCode().equals(operation.getRecoverCode())) {
+        if (!recoverPasswordDto.recoverCode().equals(operation.getRecoverCode().toString())) {
             return VerifyRecoverPassword.Result.invalidRecoverCode(operation.getUserEmail(), recoverPasswordDto.recoverCode());
         }
 

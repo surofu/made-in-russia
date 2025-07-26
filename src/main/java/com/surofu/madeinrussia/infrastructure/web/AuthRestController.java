@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.core.model.auth.VerificationCode;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
@@ -302,7 +303,7 @@ public class AuthRestController {
         SessionInfo sessionInfo = SessionInfo.of(request);
         VerifyEmail operation = VerifyEmail.of(
                 UserEmail.of(verifyEmailCommand.email()),
-                verifyEmailCommand.code(),
+                VerificationCode.of(verifyEmailCommand.code()),
                 sessionInfo
         );
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
@@ -381,7 +382,7 @@ public class AuthRestController {
 
         VerifyRecoverPassword operation = VerifyRecoverPassword.of(
                 UserEmail.of(verifyRecoverPasswordCommand.email()),
-                verifyRecoverPasswordCommand.recoverCode(),
+                VerificationCode.of(verifyRecoverPasswordCommand.recoverCode()),
                 sessionInfo
         );
         return authService.verifyRecoverPassword(operation).process(verifyRecoverPasswordProcessor);

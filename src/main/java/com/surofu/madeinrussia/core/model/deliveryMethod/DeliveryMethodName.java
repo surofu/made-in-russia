@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.deliveryMethod;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class DeliveryMethodName implements Serializable {
 
     private DeliveryMethodName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название способа доставки не может быть пустым");
+            throw new LocalizedValidationException("validation.delivery_method.name.empty");
         }
 
         if (name.length() > 255) {
-            throw new IllegalArgumentException("Название способа доставки не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.delivery_method.name.max_length");
         }
 
         this.value = name;

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.category;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class CategoryName implements Serializable {
 
     private CategoryName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название категории не может быть пустым");
+            throw new LocalizedValidationException("validation.category.name.empty");
         }
 
         if (name.length() > 255) {
-            throw new IllegalArgumentException("Название категории не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.category.name.max_length");
         }
 
         this.value = name;

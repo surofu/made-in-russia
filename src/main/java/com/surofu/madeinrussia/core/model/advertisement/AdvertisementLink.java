@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.advertisement;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -17,8 +18,12 @@ public final class AdvertisementLink implements Serializable {
     private String value;
 
     private AdvertisementLink(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            throw new LocalizedValidationException("validation.external_link.empty");
+        }
+
         if (url.length() > 20_000) {
-            throw new IllegalArgumentException("Link url cannot be longer than 20,000 characters");
+            throw new LocalizedValidationException("validation.external_link.max_length");
         }
 
         this.value = url;

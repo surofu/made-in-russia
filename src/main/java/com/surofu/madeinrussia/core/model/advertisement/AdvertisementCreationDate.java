@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Embeddable
@@ -23,19 +24,11 @@ public final class AdvertisementCreationDate implements Serializable {
     private ZonedDateTime value = ZonedDateTime.now();
 
     private AdvertisementCreationDate(ZonedDateTime date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Creation date cannot be null or empty.");
-        }
-
-        if (date.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException("Creation date cannot be after now.");
-        }
-
-        this.value = date;
+        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static AdvertisementCreationDate of(ZonedDateTime title) {
-        return new AdvertisementCreationDate(title);
+    public static AdvertisementCreationDate of(ZonedDateTime date) {
+        return new AdvertisementCreationDate(date);
     }
 
     @Override

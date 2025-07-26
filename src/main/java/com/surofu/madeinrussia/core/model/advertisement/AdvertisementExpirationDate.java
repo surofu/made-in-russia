@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.advertisement;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,6 +19,10 @@ public final class AdvertisementExpirationDate implements Serializable {
     private ZonedDateTime value;
 
     private AdvertisementExpirationDate(ZonedDateTime date) {
+        if (date == null) {
+            throw new LocalizedValidationException("validation.advertisement.expiration_date.empty");
+        }
+
         this.value = date;
     }
 
