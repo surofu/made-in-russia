@@ -15,12 +15,22 @@ public class JpaFaqRepository implements FaqRepository {
     private final SpringDataFaqRepository repository;
 
     @Override
-    public List<Faq> getAllFaq() {
-        return repository.findAll();
+    public List<FaqView> getAllViewsByLang(String lang) {
+        return repository.findAllViewsByLang(lang);
     }
 
     @Override
-    public Optional<Faq> getFaqById(Long id) {
+    public Optional<FaqView> getViewByIdAndLang(Long id, String lang) {
+        return repository.findViewByIdAndLang(id, lang);
+    }
+
+    @Override
+    public Optional<FaqWithTranslationsView> getViewWithTranslationsByIdAndLang(Long id, String lang) {
+        return repository.findViewWithTranslationsByIdAndLang(id, lang);
+    }
+
+    @Override
+    public Optional<Faq> getById(Long id) {
         return repository.findById(id);
     }
 
@@ -30,7 +40,9 @@ public class JpaFaqRepository implements FaqRepository {
     }
 
     @Override
-    public void deleteFaqById(Long id) {
-        repository.deleteById(id);
+    public void delete(Faq faq) {
+        repository.delete(faq);
     }
+
+
 }

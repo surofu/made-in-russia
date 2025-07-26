@@ -1,12 +1,13 @@
-package com.surofu.madeinrussia.application.dto;
+package com.surofu.madeinrussia.application.dto.faq;
 
-import com.surofu.madeinrussia.core.model.faq.Faq;
+import com.surofu.madeinrussia.infrastructure.persistence.faq.FaqView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -25,13 +26,13 @@ public final class FaqDto implements Serializable {
 
     private ZonedDateTime lastModificationDate;
 
-    public static FaqDto of(Faq faq) {
+    public static FaqDto of(FaqView view) {
         return FaqDto.builder()
-                .id(faq.getId())
-                .question(faq.getQuestion().getValue())
-                .answer(faq.getAnswer().getValue())
-                .creationDate(faq.getCreationDate().getValue())
-                .lastModificationDate(faq.getLastModificationDate().getValue())
+                .id(view.getId())
+                .question(view.getQuestion())
+                .answer(view.getAnswer())
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }

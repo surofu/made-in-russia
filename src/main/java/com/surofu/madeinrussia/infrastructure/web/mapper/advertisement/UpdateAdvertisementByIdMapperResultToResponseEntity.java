@@ -32,7 +32,7 @@ implements UpdateAdvertisementById.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processTranslationError(UpdateAdvertisementById.Result.TranslationError result) {
-        String message = localizationManager.localize("advertisement.translation_error");
+        String message = localizationManager.localize("translation.translation_error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -46,7 +46,7 @@ implements UpdateAdvertisementById.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processEmptyTransaction(UpdateAdvertisementById.Result.EmptyTransaction result) {
-        String message = localizationManager.localize("advertisement.empty_translations");
+        String message = localizationManager.localize("translation.empty_translations");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }

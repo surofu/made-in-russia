@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.service.faq.operation;
 
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.core.model.faq.FaqAnswer;
 import com.surofu.madeinrussia.core.model.faq.FaqQuestion;
 import lombok.Value;
@@ -10,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateFaqById {
     Long faqId;
     FaqQuestion question;
+    HstoreTranslationDto questionTranslations;
     FaqAnswer answer;
+    HstoreTranslationDto answerTranslations;
 
     public interface Result {
 
@@ -24,6 +27,21 @@ public class UpdateFaqById {
         static Result notFound(Long faqId) {
             log.warn("Faq with ID '{}' not found", faqId);
             return NotFound.of(faqId);
+        }
+
+        static Result emptyTranslations(Exception e) {
+            log.warn("Empty translations: {}", e.getMessage());
+            return EmptyTranslations.INSTANCE;
+        }
+
+        static Result translationError(Exception e) {
+            log.error("Translation error: {}", e.getMessage());
+            return TranslationError.INSTANCE;
+        }
+
+        static Result saveFaqError(Exception e) {
+            log.error("Faq error: {}", e.getMessage());
+            return SaveFaqError.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -46,10 +64,44 @@ public class UpdateFaqById {
             }
         }
 
+        enum EmptyTranslations implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyTranslations(this);
+            }
+        }
+
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
+        enum SaveFaqError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveFaqError(this);
+            }
+        }
+
+
         interface Processor<T> {
             T processSuccess(Success result);
 
             T processNotFound(NotFound result);
+
+            T processEmptyTranslations(EmptyTranslations result);
+
+            T processTranslationError(TranslationError error);
+
+            T processSaveFaqError(SaveFaqError error);
         }
     }
 }

@@ -1,12 +1,13 @@
 package com.surofu.madeinrussia.core.service.faq;
 
-import com.surofu.madeinrussia.core.service.faq.operation.CreateFaq;
-import com.surofu.madeinrussia.core.service.faq.operation.DeleteFaqById;
-import com.surofu.madeinrussia.core.service.faq.operation.GetAllFaq;
-import com.surofu.madeinrussia.core.service.faq.operation.UpdateFaqById;
+import com.surofu.madeinrussia.core.service.faq.operation.*;
 
 public interface FaqService {
     GetAllFaq.Result getAllFaq(GetAllFaq operation);
+
+    GetFaqById.Result getFaqById(GetFaqById operation);
+
+    GetFaqWithTranslationsById.Result getFaqWithTranslationsById(GetFaqWithTranslationsById operation);
 
     CreateFaq.Result createFaq(CreateFaq operation);
 

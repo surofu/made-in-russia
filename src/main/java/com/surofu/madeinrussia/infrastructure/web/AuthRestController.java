@@ -309,8 +309,8 @@ public class AuthRestController {
         return authService.verifyEmail(operation).process(verifyEmailProcessor);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("logout")
+    @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Logout user",

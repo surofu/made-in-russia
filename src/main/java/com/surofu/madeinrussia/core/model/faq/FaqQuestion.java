@@ -1,11 +1,15 @@
 package com.surofu.madeinrussia.core.model.faq;
 
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
+import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 
@@ -16,6 +20,12 @@ public final class FaqQuestion implements Serializable {
 
     @Column(name = "question", nullable = false)
     private String value;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ColumnTransformer(write = "?::hstore")
+    @Column(name = "question_translations", nullable = false, columnDefinition = "hstore")
+    private String translations;
 
     private FaqQuestion(String question) {
         if (question == null || question.trim().isEmpty()) {
@@ -31,6 +41,14 @@ public final class FaqQuestion implements Serializable {
 
     public static FaqQuestion of(String question) {
         return new FaqQuestion(question);
+    }
+
+    public HstoreTranslationDto getTranslations() {
+        return HstoreParser.fromString(translations);
+    }
+
+    public void setTranslations(HstoreTranslationDto translations) {
+        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

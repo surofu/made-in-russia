@@ -1,14 +1,16 @@
 package com.surofu.madeinrussia.core.service.faq.operation;
 
-import com.surofu.madeinrussia.application.dto.FaqDto;
+import com.surofu.madeinrussia.application.dto.faq.FaqDto;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetAllFaq {
+    Locale locale;
 
     public interface Result {
 
