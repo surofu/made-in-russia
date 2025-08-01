@@ -19,6 +19,8 @@ public abstract class AbstractAccountDto {
     )
     private Long id;
 
+    private Boolean isEnabled;
+
     @Schema(
             description = "User's role with permissions",
             example = "ROLE_USER",

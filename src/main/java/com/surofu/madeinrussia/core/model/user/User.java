@@ -34,6 +34,9 @@ public final class User implements Serializable {
     @Column(name = "role", nullable = false, columnDefinition = "user_role")
     private UserRole role = UserRole.ROLE_USER;
 
+    @Embedded
+    private UserIsEnabled isEnabled;
+
     @OneToOne(
             mappedBy = "user",
             cascade = CascadeType.ALL,

@@ -43,6 +43,35 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
                 a.title_translations -> :lang,
                 a.title
             ) as title,
+            a.title_translations::text,
+            coalesce(
+                a.subtitle_translations -> :lang,
+                a.subtitle
+            ) as subtitle,
+            a.subtitle_translations::text,
+            coalesce(
+                a.third_text_translations -> :lang,
+                a.third_text
+            ) as third_text,
+            a.third_text_translations::text,
+            a.image_url,
+            a.link,
+            a.is_big,
+            a.expiration_date,
+            a.creation_date,
+            a.last_modification_date
+            from advertisements a
+            order by a.creation_date desc
+            """, nativeQuery = true)
+    List<AdvertisementWithTranslationsView> findAllWithTranslationsViewsByLang(@Param("lang") String lang);
+
+    @Query(value = """
+            select
+            a.id,
+            coalesce(
+                a.title_translations -> :lang,
+                a.title
+            ) as title,
             coalesce(
                 a.subtitle_translations -> :lang,
                 a.subtitle

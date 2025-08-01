@@ -13,6 +13,8 @@ public interface AdvertisementRepository {
 
     List<AdvertisementView> getAllViewsByLang(String lang);
 
+    List<AdvertisementWithTranslationsView> getAllViewsWithTranslationsByLang(String lang);
+
     Optional<AdvertisementView> getViewByIdAndLang(Long id, String lang);
 
     Optional<AdvertisementWithTranslationsView> getViewWithTranslationsByIdAndLang(Long id, String lang);

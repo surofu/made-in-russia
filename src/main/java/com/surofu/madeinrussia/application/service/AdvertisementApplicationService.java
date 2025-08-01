@@ -48,6 +48,13 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     @Override
+    public GetAllAdvertisementsWithTranslations.Result getAllAdvertisementsWithTranslations(GetAllAdvertisementsWithTranslations operation) {
+        List<AdvertisementWithTranslationsView> viewList = advertisementRepository.getAllViewsWithTranslationsByLang(operation.getLocale().getLanguage());
+        List<AdvertisementWithTranslationsDto> dtoList = viewList.stream().map(AdvertisementWithTranslationsDto::of).toList();
+        return GetAllAdvertisementsWithTranslations.Result.success(dtoList);
+    }
+
+    @Override
     public GetAdvertisementById.Result getAdvertisementById(GetAdvertisementById operation) {
         Optional<AdvertisementView> view = advertisementRepository.getViewByIdAndLang(
                 operation.getId(), operation.getLocale().getLanguage());
@@ -101,7 +108,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         Map<String, HstoreTranslationDto> translationResultMap;
 
         try {
-            translationResultMap = translationRepository.expend(translationMap);
+            translationResultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateAdvertisement.Result.emptyTranslation(e);
@@ -162,7 +169,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         Map<String, HstoreTranslationDto> translationResultMap;
 
         try {
-            translationResultMap = translationRepository.expend(translationMap);
+            translationResultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateAdvertisementById.Result.emptyTranslation(e);

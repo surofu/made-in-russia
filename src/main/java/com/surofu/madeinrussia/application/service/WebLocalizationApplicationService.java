@@ -24,8 +24,8 @@ public class WebLocalizationApplicationService implements LocalizationService {
 
     @Override
     public GetAllLocalizations.Result getAllLocalizations() {
-        List<WebLocalization> webLocalizations = repository.getAll();
-        Map<String, Object> content = webLocalizations.stream()
+        List<WebLocalization> localization = repository.getAll();
+        Map<String, Object> content = localization.stream()
                 .collect(Collectors.toMap(
                         WebLocalization::getLanguageCode,
                         WebLocalization::getContent
@@ -35,27 +35,31 @@ public class WebLocalizationApplicationService implements LocalizationService {
 
     @Override
     public GetLocalizationByLanguageCode.Result getLocalizationByLanguageCode(GetLocalizationByLanguageCode operation) {
-        return repository.getByLanguageCode(operation.getLanguageCode())
-                .map(l -> GetLocalizationByLanguageCode.Result.success(l.getContent()))
-                .orElse(GetLocalizationByLanguageCode.Result.notFound(operation.getLanguageCode()));
+        Optional<WebLocalization> localization =  repository.getByLanguageCode(operation.getLanguageCode());
+
+        if (localization.isEmpty()) {
+            return GetLocalizationByLanguageCode.Result.notFound(operation.getLanguageCode());
+        }
+
+        return GetLocalizationByLanguageCode.Result.success(localization.get().getContent());
     }
 
     @Override
     public SaveLocalizationByLanguageCode.Result saveLocalization(SaveLocalizationByLanguageCode operation) {
-        WebLocalization webLocalization = repository.getByLanguageCode(operation.getLanguageCode())
+        WebLocalization localization = repository.getByLanguageCode(operation.getLanguageCode())
                 .orElse(new WebLocalization());
-        webLocalization.setLanguageCode(operation.getLanguageCode());
-        webLocalization.setContent(operation.getContent());
-        asyncService.save(webLocalization);
+        localization.setLanguageCode(operation.getLanguageCode());
+        localization.setContent(operation.getContent());
+        asyncService.save(localization);
         return SaveLocalizationByLanguageCode.Result.success();
     }
 
     @Override
     public DeleteLocalizationByLanguageCode.Result deleteLocalization(DeleteLocalizationByLanguageCode operation) {
-        Optional<WebLocalization> webLocalization = repository.getByLanguageCode(operation.getLanguageCode());
+        Optional<WebLocalization> localization = repository.getByLanguageCode(operation.getLanguageCode());
 
-        if (webLocalization.isPresent()) {
-            asyncService.delete(webLocalization.get());
+        if (localization.isPresent()) {
+            asyncService.delete(localization.get());
             return DeleteLocalizationByLanguageCode.Result.success();
         }
 

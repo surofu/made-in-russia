@@ -26,4 +26,11 @@ public class LoginWithEmailMapperResultToResponseEntity
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.BAD_REQUEST);
     }
+
+    @Override
+    public ResponseEntity<?> processAccountBlocked(LoginWithEmail.Result.AccountBlocked result) {
+        String message = localizationManager.localize("auth.account_blocked");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
+    }
 }

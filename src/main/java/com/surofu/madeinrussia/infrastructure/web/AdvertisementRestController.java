@@ -33,6 +33,7 @@ public class AdvertisementRestController {
     private final AdvertisementService service;
 
     private final GetAllAdvertisements.Result.Processor<ResponseEntity<?>> getAllAdvertisementsProcessor;
+    private final GetAllAdvertisementsWithTranslations.Result.Processor<ResponseEntity<?>> getAllAdvertisementsWithTranslationsProcessor;
     private final GetAdvertisementById.Result.Processor<ResponseEntity<?>> getAdvertisementByIdProcessor;
     private final GetAdvertisementWithTranslationsById.Result.Processor<ResponseEntity<?>> getAdvertisementWithTranslationsByIdProcessor;
     private final CreateAdvertisement.Result.Processor<ResponseEntity<?>> createAdvertisementProcessor;
@@ -55,8 +56,17 @@ public class AdvertisementRestController {
                     )
             }
     )
-    public ResponseEntity<?> getAll() {
+    public ResponseEntity<?> getAll(
+            @RequestParam(name = "hasTranslations", required = false, defaultValue = "false")
+            Boolean hasTranslations
+    ) {
         Locale locale = LocaleContextHolder.getLocale();
+
+        if (hasTranslations) {
+            GetAllAdvertisementsWithTranslations operation = GetAllAdvertisementsWithTranslations.of(locale);
+            return service.getAllAdvertisementsWithTranslations(operation).process(getAllAdvertisementsWithTranslationsProcessor);
+        }
+
         GetAllAdvertisements operation = GetAllAdvertisements.of(locale);
         return service.getAllAdvertisements(operation).process(getAllAdvertisementsProcessor);
     }

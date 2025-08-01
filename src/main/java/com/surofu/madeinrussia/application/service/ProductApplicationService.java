@@ -364,7 +364,7 @@ public class ProductApplicationService implements ProductService {
         Map<String, HstoreTranslationDto> resultMap;
 
         try {
-            resultMap = translationRepository.expend(translationMap);
+            resultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             return CreateProduct.Result.emptyTranslation(e.getMessage());
         } catch (Exception e) {
@@ -460,6 +460,7 @@ public class ProductApplicationService implements ProductService {
             productMedia.setPosition(ProductMediaPosition.of(i));
 
             ProductMediaAltText altText = ProductMediaAltText.of(file.getOriginalFilename());
+            altText.setTranslations(new HstoreTranslationDto(file.getOriginalFilename(), file.getOriginalFilename(), file.getOriginalFilename()));
             if (operation.getCreateProductMediaAltTextCommands().size() > i) {
                 CreateProductMediaAltTextCommand command = operation.getCreateProductMediaAltTextCommands().get(i);
                 HstoreTranslationDto translatedProductMediaAltTexts = resultMap.get(TranslationKeys.MEDIA_ALT_TEXT.with(i));
@@ -544,6 +545,7 @@ public class ProductApplicationService implements ProductService {
             }
 
             ProductVendorDetailsMediaImage image = ProductVendorDetailsMediaImage.of(TEMP_URL, file.getOriginalFilename());
+            image.setAltTextTranslations(new HstoreTranslationDto(file.getOriginalFilename(), file.getOriginalFilename(), file.getOriginalFilename()));
             if (operation.getCreateProductVendorDetailsMediaAltTextCommands().size() > i) {
                 CreateProductVendorDetailsMediaAltTextCommand command = operation.getCreateProductVendorDetailsMediaAltTextCommands().get(i);
                 HstoreTranslationDto translatedProductVendorDetailsMediaAltTexts = resultMap.get(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i));
@@ -876,7 +878,7 @@ public class ProductApplicationService implements ProductService {
         Map<String, HstoreTranslationDto> resultMap;
 
         try {
-            resultMap = translationRepository.expend(translationMap);
+            resultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.emptyTranslations(e.getMessage());

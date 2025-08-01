@@ -5,6 +5,8 @@ import com.surofu.madeinrussia.core.service.advertisement.operation.*;
 public interface AdvertisementService {
     GetAllAdvertisements.Result getAllAdvertisements(GetAllAdvertisements operation);
 
+    GetAllAdvertisementsWithTranslations.Result getAllAdvertisementsWithTranslations(GetAllAdvertisementsWithTranslations operation);
+
     GetAdvertisementById.Result getAdvertisementById(GetAdvertisementById operation);
 
     GetAdvertisementWithTranslationsById.Result getAdvertisementWithTranslationsById(GetAdvertisementWithTranslationsById operation);

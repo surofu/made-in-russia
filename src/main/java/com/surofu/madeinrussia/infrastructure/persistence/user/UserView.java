@@ -6,6 +6,8 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.VendorDetailsVi
 public interface UserView {
     Long getId();
 
+    UserIsEnabled getIsEnabled();
+
     UserEmail getEmail();
 
     UserLogin getLogin();

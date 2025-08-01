@@ -25,6 +25,11 @@ public class LoginWithLogin {
             return InvalidCredentials.INSTANCE;
         }
 
+        static Result accountBlocked(UserLogin login) {
+            log.warn("Account blocked with login: {}", login);
+            return AccountBlocked.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             LoginSuccessDto loginSuccessDto;
@@ -38,16 +43,25 @@ public class LoginWithLogin {
         enum InvalidCredentials implements Result {
             INSTANCE;
 
-
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processInvalidCredentials(this);
             }
         }
 
+        enum AccountBlocked implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processAccountBlocked(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processInvalidCredentials(InvalidCredentials result);
+            T processAccountBlocked(AccountBlocked result);
         }
     }
 }

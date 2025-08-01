@@ -10,6 +10,6 @@ public class SwaggerController {
 
     @GetMapping("/swagger")
     public String RedirectToSwaggerPage() {
-        return "redirect:/swagger-ui/index.html";
+        return "redirect:/api/swagger-ui/index.html";
     }
 }

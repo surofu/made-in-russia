@@ -105,6 +105,12 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 log.debug("Start try get SecurityUser");
                 SecurityUser securityUser = (SecurityUser) userService.loadUserByUsername(userEmail.toString());
+
+                if (!securityUser.isEnabled()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 log.debug("End try get SecurityUser");
                 log.debug("SecurityUser user email: {}", securityUser.getUser().getEmail().toString());
 

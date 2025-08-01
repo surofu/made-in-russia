@@ -5,16 +5,14 @@ import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,139 +47,76 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
-    public Map<String, HstoreTranslationDto> expend(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, InterruptedException, ExecutionException {
-        if (map == null || map.isEmpty()) {
-            throw new EmptyTranslationException();
+    public Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map)
+            throws EmptyTranslationException, ExecutionException {
+
+        if (map == null) {
+            throw new EmptyTranslationException("Input map cannot be null");
+        }
+        if (map.isEmpty()) {
+            throw new EmptyTranslationException("Input map cannot be empty");
         }
 
-        List<Map.Entry<String, String>> forTranslateEn = new ArrayList<>();
-        List<Map.Entry<String, String>> forTranslateRu = new ArrayList<>();
-        List<Map.Entry<String, String>> forTranslateZh = new ArrayList<>();
-
-        for (Map.Entry<String, HstoreTranslationDto> entry : map.entrySet()) {
-            String en = entry.getValue().textEn();
-            String ru = entry.getValue().textRu();
-            String zh = entry.getValue().textZh();
-
-            if ((en == null || en.isEmpty()) && (ru == null || ru.isEmpty()) && (zh == null || zh.isEmpty())) {
-                throw new EmptyTranslationException(entry.getKey());
-            }
-
-            if (en == null || en.isEmpty()) {
-                forTranslateEn.add(Map.entry(entry.getKey(),
-                        ru != null && !ru.isEmpty() ? ru : zh));
-            }
-
-            if (ru == null || ru.isEmpty()) {
-                forTranslateRu.add(Map.entry(entry.getKey(),
-                        en != null && !en.isEmpty() ? en : zh));
-            }
-
-            if (zh == null || zh.isEmpty()) {
-                forTranslateZh.add(Map.entry(entry.getKey(),
-                        ru != null && !ru.isEmpty() ? ru : en));
-            }
-        }
-
-        String[] forTranslateEnStrings = forTranslateEn.stream().map(Map.Entry::getValue).toArray(String[]::new);
-        String[] forTranslateRuStrings = forTranslateRu.stream().map(Map.Entry::getValue).toArray(String[]::new);
-        String[] forTranslateZhStrings = forTranslateZh.stream().map(Map.Entry::getValue).toArray(String[]::new);
-
+        // Копируем исходные данные в результат
         Map<String, HstoreTranslationDto> result = new ConcurrentHashMap<>(map);
+        TranslationMap translationMap = new TranslationMap();
 
-        CompletableFuture<Void> enFuture = CompletableFuture.supplyAsync(
-                () -> {
-                    try {
-                        if (forTranslateEnStrings.length == 0) {
-                            return null;
-                        }
+        // Анализ и подготовка переводов
+        for (Map.Entry<String, HstoreTranslationDto> entry : map.entrySet()) {
+            String key = entry.getKey();
+            HstoreTranslationDto dto = entry.getValue();
 
-                        TranslationResponse response = translateToEn(forTranslateEnStrings); // Исправлено на translateToEn
-                        List<String> list = Arrays.stream(response.getTranslations()).map(Translation::getText).toList();
+            String en = StringUtils.trimToNull(dto.textEn());
+            String ru = StringUtils.trimToNull(dto.textRu());
+            String zh = StringUtils.trimToNull(dto.textZh());
 
-                        for (int i = 0; i < list.size(); i++) {
-                            String resultText = list.get(i);
-                            String key = forTranslateEn.get(i).getKey();
-                            result.put(key, new HstoreTranslationDto(
-                                    resultText,
-                                    result.get(key).textRu(),
-                                    result.get(key).textZh()
-                            ));
-                        }
-                        return null;
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                },
-                appTaskExecutor
-        );
+            System.out.printf("key: %s, en: %s, ru: %s, zh: %s\n", key, en, ru, zh);
 
-        CompletableFuture<Void> ruFuture = CompletableFuture.supplyAsync(
-                () -> {
-                    try {
-                        if (forTranslateRuStrings.length == 0) {
-                            return null;
-                        }
+            if (en == null && ru == null && zh == null) {
+                throw new EmptyTranslationException(key);
+            }
 
-                        TranslationResponse response = translateToRu(forTranslateRuStrings); // Исправлено на translateToRu
-                        List<String> list = Arrays.stream(response.getTranslations()).map(Translation::getText).toList();
+            // Заполняем только отсутствующие переводы
+            if (en == null) {
+                if (ru != null) {
+                    translationMap.put(key, LanguageCode.RU, LanguageCode.EN, ru);
+                } else {
+                    translationMap.put(key, LanguageCode.ZH, LanguageCode.EN, zh);
+                }
+            }
 
-                        for (int i = 0; i < list.size(); i++) {
-                            String resultText = list.get(i);
-                            String key = forTranslateRu.get(i).getKey();
-                            result.put(key, new HstoreTranslationDto(
-                                    result.get(key).textEn(),
-                                    resultText,
-                                    result.get(key).textZh()
-                            ));
-                        }
-                        return null;
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                },
-                appTaskExecutor
-        );
+            if (ru == null) {
+                if (en != null) {
+                    translationMap.put(key, LanguageCode.EN, LanguageCode.RU, en);
+                } else {
+                    translationMap.put(key, LanguageCode.ZH, LanguageCode.RU, zh);
+                }
+            }
 
-        CompletableFuture<Void> zhFuture = CompletableFuture.supplyAsync(
-                () -> {
-                    try {
-                        if (forTranslateZhStrings.length == 0) {
-                            return null;
-                        }
-
-                        TranslationResponse response = translateToZh(forTranslateZhStrings);
-                        List<String> list = Arrays.stream(response.getTranslations()).map(Translation::getText).toList();
-
-                        for (int i = 0; i < list.size(); i++) {
-                            String resultText = list.get(i);
-                            String key = forTranslateZh.get(i).getKey();
-                            result.put(key, new HstoreTranslationDto(
-                                    result.get(key).textEn(),
-                                    result.get(key).textRu(),
-                                    resultText
-                            ));
-                        }
-                        return null;
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                },
-                appTaskExecutor
-        );
-
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(enFuture, ruFuture, zhFuture);
-
-        try {
-            allFutures.join();
-            enFuture.get();
-            ruFuture.get();
-            zhFuture.get();
-        } catch (Exception e) {
-            throw new ExecutionException(e);
+            if (zh == null) {
+                if (en != null) {
+                    translationMap.put(key, LanguageCode.EN, LanguageCode.ZH, en);
+                } else {
+                    translationMap.put(key, LanguageCode.RU, LanguageCode.ZH, ru);
+                }
+            }
         }
 
-        return result;
+        // Параллельное выполнение переводов
+        try {
+            CompletableFuture.allOf(
+                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.RU, LanguageCode.EN), result),
+                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.ZH, LanguageCode.EN), result),
+                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.EN, LanguageCode.RU), result),
+                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.ZH, LanguageCode.RU), result),
+                    translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.EN, LanguageCode.ZH), result),
+                    translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.RU, LanguageCode.ZH), result)
+            ).join();
+
+            return result;
+        } catch (CompletionException e) {
+            throw new ExecutionException("Failed to execute translations", e.getCause());
+        }
     }
 
     private TranslationResponse translate(String language, String... texts) throws IOException {
@@ -202,11 +137,78 @@ public class YandexTranslationRepository implements TranslationRepository {
                 .body(YandexTranslationResponse.class);
     }
 
+    private CompletableFuture<Void> translateAsync(LanguageCode language, Map<String, String> map, Map<String, HstoreTranslationDto> result) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (map == null || map.isEmpty()) {
+                return null;
+            }
+
+            try {
+                String[] strings = map.values().toArray(String[]::new);
+                TranslationResponse response = translate(language.name().toLowerCase(), strings);
+
+                int index = 0;
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    String key = entry.getKey();
+                    HstoreTranslationDto existing = result.get(key); // Берем существующую запись
+                    Translation translation = response.getTranslations()[index++];
+
+                    result.put(key, updateTranslation(existing, language, translation.getText()));
+                }
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+            return null;
+        }, appTaskExecutor);
+    }
+
+    private HstoreTranslationDto updateTranslation(HstoreTranslationDto existing, LanguageCode language, String text) {
+        return switch (language) {
+            case EN -> new HstoreTranslationDto(text, existing.textRu(), existing.textZh());
+            case RU -> new HstoreTranslationDto(existing.textEn(), text, existing.textZh());
+            case ZH -> new HstoreTranslationDto(existing.textEn(), existing.textRu(), text);
+        };
+    }
+
+    private enum LanguageCode {
+        EN, RU, ZH
+    }
+
     private record TranslationRequest(
             String targetLanguageCode,
             String[] texts,
             String folderId,
             String textType
     ) {
+    }
+
+    private static class TranslationMap {
+        private final Map<String, Map<LanguageCode, Map<LanguageCode, String>>> map;
+
+        public TranslationMap() {
+            map = new HashMap<>();
+        }
+
+        public void put(String key, LanguageCode from, LanguageCode to, String text) {
+            map.computeIfAbsent(key, k -> new HashMap<>())
+                    .computeIfAbsent(from, f -> new HashMap<>())
+                    .put(to, text);
+        }
+
+        public Map<String, String> get(LanguageCode from, LanguageCode to) {
+            Map<String, String> resultMap = new HashMap<>();
+
+            for (var entry : map.entrySet()) {
+                Map<LanguageCode, String> translations = entry.getValue().get(from);
+                if (translations == null) continue;
+
+                String text = translations.get(to);
+                if (text == null) continue;
+
+                resultMap.put(entry.getKey(), text);
+            }
+
+            return resultMap;
+        }
     }
 }

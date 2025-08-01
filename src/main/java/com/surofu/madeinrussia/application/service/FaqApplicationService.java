@@ -75,7 +75,7 @@ public class FaqApplicationService implements FaqService {
         Map<String, HstoreTranslationDto> resultMap;
 
         try {
-            resultMap = translationRepository.expend(translationMap);
+            resultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             return CreateFaq.Result.emptyTranslations(e);
         } catch (Exception e) {
@@ -118,7 +118,7 @@ public class FaqApplicationService implements FaqService {
         Map<String, HstoreTranslationDto> resultMap;
 
         try {
-            resultMap = translationRepository.expend(translationMap);
+            resultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
             return UpdateFaqById.Result.emptyTranslations(e);
         } catch (Exception e) {

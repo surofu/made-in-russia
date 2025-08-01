@@ -67,6 +67,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
 
         VendorDto vendorDto = new VendorDto();
         vendorDto.setId(user.getId());
+        vendorDto.setIsEnabled(user.getIsEnabled().getValue());
         vendorDto.setRole(user.getRole().getName());
         vendorDto.setLogin(user.getLogin().getValue());
         vendorDto.setEmail(user.getEmail().getValue());
@@ -86,6 +87,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
 
         VendorDto vendorDto = new VendorDto();
         vendorDto.setId(view.getId());
+        vendorDto.setIsEnabled(view.getIsEnabled().getValue());
         vendorDto.setEmail(view.getEmail().toString());
         vendorDto.setLogin(view.getLogin().toString());
         vendorDto.setPhoneNumber(view.getPhoneNumber().toString());

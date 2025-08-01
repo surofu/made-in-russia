@@ -32,6 +32,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.translation.Translatio
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -120,6 +121,8 @@ public class AuthApplicationService implements AuthService {
         try {
             LoginSuccessDto dto = login(operation.getEmail(), operation.getPassword());
             return LoginWithEmail.Result.success(dto);
+        } catch (DisabledException e) {
+          return LoginWithEmail.Result.accountBlocked(operation.getEmail());
         } catch (Exception ex) {
             return LoginWithEmail.Result.invalidCredentials(operation.getEmail(), operation.getPassword());
         }
@@ -136,8 +139,9 @@ public class AuthApplicationService implements AuthService {
         try {
             LoginSuccessDto dto = login(userEmail.get(), operation.getPassword());
             return LoginWithLogin.Result.success(dto);
+        } catch (DisabledException e) {
+            return LoginWithLogin.Result.accountBlocked(operation.getLogin());
         } catch (Exception e) {
-            log.warn("Invalid credentials: {}", e.getMessage());
             return LoginWithLogin.Result.invalidCredentials(operation.getLogin(), operation.getPassword());
         }
     }

@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,11 @@ public class LoginWithEmail {
             return InvalidCredentials.INSTANCE;
         }
 
+        static Result accountBlocked(UserEmail email) {
+            log.warn("Account blocked with email: {}", email);
+            return AccountBlocked.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             LoginSuccessDto loginSuccessDto;
@@ -45,9 +51,19 @@ public class LoginWithEmail {
             }
         }
 
+        enum AccountBlocked implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processAccountBlocked(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processInvalidCredentials(InvalidCredentials result);
+            T processAccountBlocked(AccountBlocked result);
         }
     }
 }

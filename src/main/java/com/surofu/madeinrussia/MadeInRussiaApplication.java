@@ -12,3 +12,5 @@ public class MadeInRussiaApplication {
         SpringApplication.run(MadeInRussiaApplication.class, args);
     }
 }
+
+// TODO: new url in swagger

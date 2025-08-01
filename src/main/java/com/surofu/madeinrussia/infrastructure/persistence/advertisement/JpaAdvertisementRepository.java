@@ -25,6 +25,11 @@ public class JpaAdvertisementRepository implements AdvertisementRepository {
     }
 
     @Override
+    public List<AdvertisementWithTranslationsView> getAllViewsWithTranslationsByLang(String lang) {
+        return repository.findAllWithTranslationsViewsByLang(lang);
+    }
+
+    @Override
     public Optional<AdvertisementView> getViewByIdAndLang(Long id, String lang) {
         return repository.findViewByIdAndLang(id, lang);
     }

@@ -44,6 +44,7 @@ public final class UserDto extends AbstractAccountDto implements Serializable {
 
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());
+        userDto.setIsEnabled(user.getIsEnabled().getValue());
         userDto.setRole(user.getRole().getName());
         userDto.setLogin(user.getLogin().getValue());
         userDto.setEmail(user.getEmail().getValue());
@@ -63,6 +64,7 @@ public final class UserDto extends AbstractAccountDto implements Serializable {
 
         UserDto userDto = new UserDto();
         userDto.setId(view.getId());
+        userDto.setIsEnabled(view.getIsEnabled().getValue());
         userDto.setRole(view.getRole().getName());
         userDto.setLogin(view.getLogin().getValue());
         userDto.setEmail(view.getEmail().getValue());
