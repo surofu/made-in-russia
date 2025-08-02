@@ -18,16 +18,12 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 ),
                 title = "OpenApi specification - Stanislav",
                 description = "OpenApi for MadeInRussia",
-                version = "1.0",
-                license = @License(
-                        name = "License",
-                        url = "https://google.com"
-                )
+                version = "1.0"
         ),
         servers = {
                 @Server(
-                        description = "Amvera Environment",
-                        url = "https://exporteru-prorumble.amvera.io"
+                        description = "Ultrahost Environment",
+                        url = "http://181.215.18.219"
                 ),
                 @Server(
                         description = "Development Environment",
