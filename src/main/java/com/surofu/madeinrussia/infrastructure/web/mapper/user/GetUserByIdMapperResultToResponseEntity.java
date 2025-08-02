@@ -17,7 +17,7 @@ public class GetUserByIdMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(GetUserById.Result.Success result) {
-        return new ResponseEntity<>(result.getUserDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getDto(), HttpStatus.OK);
     }
 
     @Override

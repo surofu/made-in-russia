@@ -1,10 +1,8 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
+import com.surofu.madeinrussia.application.command.user.ChangeUserRoleCommand;
 import com.surofu.madeinrussia.application.command.user.ForceUpdateUserCommand;
-import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
-import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
-import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +31,7 @@ public class UserRestController {
     private final DeleteUserByLogin.Result.Processor<ResponseEntity<?>> deleteUserByLoginProcessor;
     private final BanUserById.Result.Processor<ResponseEntity<?>> banUserByIdProcessor;
     private final UnbanUserById.Result.Processor<ResponseEntity<?>> unbanUserByIdProcessor;
+    private final ChangeUserRoleById.Result.Processor<ResponseEntity<?>> changeUserRoleByIdProcessor;
 
     @GetMapping("{identifier}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
@@ -91,17 +90,24 @@ public class UserRestController {
         return service.deleteUserByLogin(operation).process(deleteUserByLoginProcessor);
     }
 
-    @PostMapping("{id}/ban")
+    @PatchMapping("{id}/ban")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> banUserById(@PathVariable("id") Long id) {
         BanUserById operation = BanUserById.of(id);
         return service.banUserById(operation).process(banUserByIdProcessor);
     }
 
-    @PostMapping("{id}/unban")
+    @PatchMapping("{id}/unban")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> unbanUserById(@PathVariable("id") Long id) {
         UnbanUserById operation = UnbanUserById.of(id);
         return service.unbanUserById(operation).process(unbanUserByIdProcessor);
+    }
+
+    @PatchMapping("{id}/role")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> changeUserRoleById(@PathVariable("id") Long id, @RequestBody ChangeUserRoleCommand command) {
+        ChangeUserRoleById operation = ChangeUserRoleById.of(id, UserRole.of(command.role()));
+        return service.changeUserRoleById(operation).process(changeUserRoleByIdProcessor);
     }
 }

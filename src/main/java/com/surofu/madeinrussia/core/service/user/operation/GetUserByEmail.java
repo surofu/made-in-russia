@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
-import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -8,24 +8,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetUserByEmail {
-    UserEmail userEmail;
+    UserEmail email;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(UserDto userDto) {
-            log.info("Successfully processed user by email: {}", userDto);
-            return Success.of(userDto);
+        static Result success(AbstractAccountDto dto) {
+            log.info("Successfully processed user by email: {}", dto.getEmail());
+            return Success.of(dto);
         }
 
-        static Result notFound(UserEmail userEmail) {
-            log.warn("User with email '{}' not found", userEmail);
-            return NotFound.of(userEmail);
+        static Result notFound(UserEmail email) {
+            log.warn("User with email '{}' not found", email);
+            return NotFound.of(email);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            UserDto userDto;
+            AbstractAccountDto dto;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -35,7 +35,7 @@ public class GetUserByEmail {
 
         @Value(staticConstructor = "of")
         class NotFound implements Result {
-            UserEmail userEmail;
+            UserEmail email;
 
             @Override
             public <T> T process(Processor<T> processor) {

@@ -17,12 +17,12 @@ public class GetUserByLoginMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(GetUserByLogin.Result.Success result) {
-        return new ResponseEntity<>(result.getUserDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getDto(), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> processNotFound(GetUserByLogin.Result.NotFound result) {
-        String errorMessage = localizationManager.localize("user.not_found_by_login", result.getUserLogin().toString());
+        String errorMessage = localizationManager.localize("user.not_found_by_login", result.getLogin().toString());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

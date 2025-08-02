@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.core.service.user.operation;
 
-import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -8,24 +8,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetUserByLogin {
-    UserLogin userLogin;
+    UserLogin login;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(UserDto userDto) {
-            log.info("Successfully processed user by login: {}", userDto);
-            return Success.of(userDto);
+        static Result success(AbstractAccountDto dto) {
+            log.info("Successfully processed user by login: {}", dto.getLogin());
+            return Success.of(dto);
         }
 
-        static Result notFound(UserLogin userLogin) {
-            log.warn("User with login '{}' not found", userLogin);
-            return NotFound.of(userLogin);
+        static Result notFound(UserLogin login) {
+            log.warn("User with login '{}' not found", login);
+            return NotFound.of(login);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            UserDto userDto;
+            AbstractAccountDto dto;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -35,7 +35,7 @@ public class GetUserByLogin {
 
         @Value(staticConstructor = "of")
         class NotFound implements Result {
-            UserLogin userLogin;
+            UserLogin login;
 
             @Override
             public <T> T process(Processor<T> processor) {

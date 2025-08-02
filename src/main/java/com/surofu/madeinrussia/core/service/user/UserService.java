@@ -21,4 +21,6 @@ public interface UserService extends UserDetailsService {
     BanUserById.Result banUserById(BanUserById operation);
 
     UnbanUserById.Result unbanUserById(UnbanUserById operation);
+
+    ChangeUserRoleById.Result changeUserRoleById(ChangeUserRoleById operation);
 }

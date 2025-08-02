@@ -17,12 +17,12 @@ public class GetUserByEmailMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(GetUserByEmail.Result.Success result) {
-        return new ResponseEntity<>(result.getUserDto(), HttpStatus.OK);
+        return new ResponseEntity<>(result.getDto(), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> processNotFound(GetUserByEmail.Result.NotFound result) {
-        String errorMessage = localizationManager.localize("user.not_found_by_email", result.getUserEmail().toString());
+        String errorMessage = localizationManager.localize("user.not_found_by_email", result.getEmail().toString());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(errorMessage, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

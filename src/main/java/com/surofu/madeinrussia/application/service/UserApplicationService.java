@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
@@ -57,39 +58,54 @@ public class UserApplicationService implements UserService {
     @Transactional(readOnly = true)
     public GetUserById.Result getUserById(GetUserById operation) {
         Optional<User> user = userRepository.getUserById(operation.getUserId());
-        Optional<UserDto> userDto = user.map(UserDto::of);
 
-        if (userDto.isPresent()) {
-            return GetUserById.Result.success(userDto.get());
+        if (user.isEmpty()) {
+            return GetUserById.Result.notFound(operation.getUserId());
         }
 
-        return GetUserById.Result.notFound(operation.getUserId());
+        if (user.get().getVendorDetails() != null) {
+            VendorDto dto = VendorDto.of(user.get());
+            return GetUserById.Result.success(dto);
+        }
+
+        UserDto dto = UserDto.of(user.get());
+        return GetUserById.Result.success(dto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetUserByLogin.Result getUserByLogin(GetUserByLogin operation) {
-        Optional<User> user = userRepository.getUserByLogin(operation.getUserLogin());
-        Optional<UserDto> userDto = user.map(UserDto::of);
+        Optional<User> user = userRepository.getUserByLogin(operation.getLogin());
 
-        if (userDto.isPresent()) {
-            return GetUserByLogin.Result.success(userDto.get());
+        if (user.isEmpty()) {
+            return GetUserByLogin.Result.notFound(operation.getLogin());
         }
 
-        return GetUserByLogin.Result.notFound(operation.getUserLogin());
+        if (user.get().getVendorDetails() != null) {
+            VendorDto dto = VendorDto.of(user.get());
+            return GetUserByLogin.Result.success(dto);
+        }
+
+        UserDto dto = UserDto.of(user.get());
+        return GetUserByLogin.Result.success(dto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetUserByEmail.Result getUserByEmail(GetUserByEmail operation) {
-        Optional<User> user = userRepository.getUserByEmail(operation.getUserEmail());
-        Optional<UserDto> userDto = user.map(UserDto::of);
+        Optional<User> user = userRepository.getUserByEmail(operation.getEmail());
 
-        if (userDto.isPresent()) {
-            return GetUserByEmail.Result.success(userDto.get());
+        if (user.isEmpty()) {
+            return GetUserByEmail.Result.notFound(operation.getEmail());
         }
 
-        return GetUserByEmail.Result.notFound(operation.getUserEmail());
+        if (user.get().getVendorDetails() != null) {
+            VendorDto dto = VendorDto.of(user.get());
+            return GetUserByEmail.Result.success(dto);
+        }
+
+        UserDto dto = UserDto.of(user.get());
+        return GetUserByEmail.Result.success(dto);
     }
 
     @Override
@@ -218,6 +234,26 @@ public class UserApplicationService implements UserService {
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UnbanUserById.Result.saveError(operation.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public ChangeUserRoleById.Result changeUserRoleById(ChangeUserRoleById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return ChangeUserRoleById.Result.notFound(operation.getId());
+        }
+
+        user.get().setRole(operation.getRole());
+
+        try {
+            userRepository.saveUser(user.get());
+            return ChangeUserRoleById.Result.success(operation.getId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ChangeUserRoleById.Result.saveError(operation.getId(), e);
         }
     }
 }
