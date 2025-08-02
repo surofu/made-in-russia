@@ -1,8 +1,6 @@
 package com.surofu.madeinrussia.core.service.user;
 
-import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
-import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
-import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
+import com.surofu.madeinrussia.core.service.user.operation.*;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
@@ -11,4 +9,12 @@ public interface UserService extends UserDetailsService {
     GetUserByLogin.Result getUserByLogin(GetUserByLogin operation);
 
     GetUserByEmail.Result getUserByEmail(GetUserByEmail operation);
+
+    ForceUpdateUserById.Result forceUpdateUserById(ForceUpdateUserById operation);
+
+    DeleteUserById.Result deleteUserById(DeleteUserById operation);
+
+    DeleteUserByEmail.Result deleteUserByEmail(DeleteUserByEmail operation);
+
+    DeleteUserByLogin.Result deleteUserByLogin(DeleteUserByLogin operation);
 }

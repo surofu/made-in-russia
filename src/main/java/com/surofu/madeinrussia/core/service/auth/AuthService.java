@@ -18,4 +18,8 @@ public interface AuthService {
     RecoverPassword.Result recoverPassword(RecoverPassword operation);
 
     VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation);
+
+    ForceRegister.Result forceRegister(ForceRegister operation);
+
+    ForceRegisterVendor.Result forceRegisterVendor(ForceRegisterVendor operation);
 }

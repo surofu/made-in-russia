@@ -14,10 +14,10 @@ import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
 import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
-import com.surofu.madeinrussia.core.model.user.User;
-import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
@@ -40,10 +40,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -200,6 +199,7 @@ public class AuthApplicationService implements AuthService {
                     ));
                 }
             } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return VerifyEmail.Result.translationError(e);
             }
         }
@@ -308,6 +308,167 @@ public class AuthApplicationService implements AuthService {
         asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
 
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
+    }
+
+    @Override
+    @Transactional
+    public ForceRegister.Result forceRegister(ForceRegister operation) {
+        if (userRepository.existsUserByEmail(operation.getEmail())) {
+            return ForceRegister.Result.userWithEmailAlreadyExists(operation.getEmail());
+        }
+
+        if (userRepository.existsUserByLogin(operation.getLogin())) {
+            return ForceRegister.Result.userWithLoginAlreadyExists(operation.getLogin());
+        }
+
+        if (userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+            return ForceRegister.Result.userWithPhoneNumberAlreadyExists(operation.getPhoneNumber());
+        }
+
+        User user = new User();
+        user.setRole(UserRole.ROLE_USER);
+        user.setIsEnabled(UserIsEnabled.of(true));
+        user.setEmail(operation.getEmail());
+        user.setLogin(operation.getLogin());
+        user.setPhoneNumber(operation.getPhoneNumber());
+        user.setRegion(operation.getRegion());
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setUser(user);
+        user.setPassword(userPassword);
+
+        String passwordHash = passwordEncoder.encode(operation.getPassword().toString());
+        userPassword.setPassword(UserPasswordPassword.of(passwordHash));
+
+        try {
+            userRepository.saveUser(user);
+            return ForceRegister.Result.success(operation.getEmail());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceRegister.Result.saveError(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public ForceRegisterVendor.Result forceRegisterVendor(ForceRegisterVendor operation) {
+        // Validation
+        if (operation.getCountryNames().isEmpty()) {
+            return ForceRegisterVendor.Result.emptyVendorCountries();
+        }
+
+        if (operation.getProductCategoryNames().isEmpty()) {
+            return ForceRegisterVendor.Result.emptyVendorProductCategories();
+        }
+
+        if (userRepository.existsUserByEmail(operation.getEmail())) {
+            return ForceRegisterVendor.Result.vendorWithEmailAlreadyExists(operation.getEmail());
+        }
+
+        if (userRepository.existsUserByLogin(operation.getLogin())) {
+            return ForceRegisterVendor.Result.vendorWithLoginAlreadyExists(operation.getLogin());
+        }
+
+        if (userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+            return ForceRegisterVendor.Result.vendorWithPhoneNumberAlreadyExists(operation.getPhoneNumber());
+        }
+
+        if (vendorDetailsRepository.existsByInn(operation.getInn())) {
+            return ForceRegisterVendor.Result.vendorWithInnAlreadyExists(operation.getInn());
+        }
+
+        // Setting
+        User user = new User();
+        user.setRole(UserRole.ROLE_VENDOR);
+        user.setIsEnabled(UserIsEnabled.of(true));
+        user.setEmail(operation.getEmail());
+        user.setLogin(operation.getLogin());
+        user.setPhoneNumber(operation.getPhoneNumber());
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setUser(user);
+        user.setPassword(userPassword);
+        String passwordHash = passwordEncoder.encode(operation.getPassword().toString());
+        userPassword.setPassword(UserPasswordPassword.of(passwordHash));
+
+        VendorDetails vendorDetails = new VendorDetails();
+        vendorDetails.setUser(user);
+        user.setVendorDetails(vendorDetails);
+        vendorDetails.setInn(operation.getInn());
+
+        List<VendorCountry> vendorCountryList = new ArrayList<>();
+
+        for (VendorCountryName name : operation.getCountryNames()) {
+            VendorCountry country = new VendorCountry();
+            country.setVendorDetails(vendorDetails);
+            country.setName(name);
+            vendorCountryList.add(country);
+        }
+
+        List<VendorProductCategory> vendorProductCategoryList = new ArrayList<>();
+
+        for (VendorProductCategoryName name : operation.getProductCategoryNames()) {
+            VendorProductCategory productCategory = new VendorProductCategory();
+            productCategory.setVendorDetails(vendorDetails);
+            productCategory.setName(name);
+            vendorProductCategoryList.add(productCategory);
+        }
+
+        // Translation
+        List<String> vendorCountryNameList = vendorCountryList.stream().map(VendorCountry::getName).map(VendorCountryName::toString).toList();
+        List<String> vendorProductCategoryNameList = vendorProductCategoryList.stream().map(VendorProductCategory::getName).map(VendorProductCategoryName::toString).toList();
+
+        List<String> allNameList = new ArrayList<>(vendorCountryNameList.size() + vendorProductCategoryNameList.size());
+        allNameList.addAll(vendorCountryNameList);
+        allNameList.addAll(vendorProductCategoryNameList);
+
+        String[] stringArray = allNameList.toArray(new String[0]);
+
+        TranslationResponse responseEn, responseRu, responseZh;
+
+        try {
+            responseEn = translationRepository.translateToEn(stringArray);
+            responseRu = translationRepository.translateToRu(stringArray);
+            responseZh = translationRepository.translateToZh(stringArray);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceRegisterVendor.Result.translationError(e);
+        }
+
+        for (int i = 0; i < allNameList.size(); i++) {
+            if (vendorCountryList.size() > i) {
+                if (i == 0) {
+                    user.setRegion(UserRegion.of(responseEn.getTranslations()[i].getText()));
+                }
+
+                vendorCountryList.get(i).getName().setTranslations(new HstoreTranslationDto(
+                        responseEn.getTranslations()[i].getText(),
+                        responseRu.getTranslations()[i].getText(),
+                        responseZh.getTranslations()[i].getText()
+                ));
+            }
+
+            if (vendorCountryList.size() <= i) {
+                vendorProductCategoryList.get(i - vendorCountryList.size()).getName().setTranslations(new HstoreTranslationDto(
+                        responseEn.getTranslations()[i].getText(),
+                        responseRu.getTranslations()[i].getText(),
+                        responseZh.getTranslations()[i].getText()
+                ));
+            }
+        }
+
+        // Setting Translated
+        vendorDetails.setVendorCountries(new HashSet<>(vendorCountryList));
+        vendorDetails.setVendorProductCategories(new HashSet<>(vendorProductCategoryList));
+
+        // Save
+        try {
+            userRepository.saveUser(user);
+            return ForceRegisterVendor.Result.success(operation.getEmail());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceRegisterVendor.Result.saveError(e);
+        }
     }
 
     protected LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {

@@ -9,9 +9,7 @@ import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;
-import com.surofu.madeinrussia.core.service.user.operation.GetUserByEmail;
-import com.surofu.madeinrussia.core.service.user.operation.GetUserById;
-import com.surofu.madeinrussia.core.service.user.operation.GetUserByLogin;
+import com.surofu.madeinrussia.core.service.user.operation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +66,91 @@ public class UserApplicationService implements UserService {
         }
 
         return GetUserByEmail.Result.notFound(operation.getUserEmail());
+    }
+
+    @Override
+    @Transactional
+    public ForceUpdateUserById.Result forceUpdateUserById(ForceUpdateUserById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return ForceUpdateUserById.Result.notFound(operation.getId());
+        }
+
+        if (!user.get().getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
+            return ForceUpdateUserById.Result.emailAlreadyExists(operation.getEmail());
+        }
+
+        if (!user.get().getLogin().equals(operation.getLogin()) && userRepository.existsUserByLogin(operation.getLogin())) {
+            return ForceUpdateUserById.Result.loginAlreadyExists(operation.getLogin());
+        }
+
+        if (!user.get().getPhoneNumber().equals(operation.getPhoneNumber()) && userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+            return ForceUpdateUserById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
+        }
+
+        user.get().setEmail(operation.getEmail());
+        user.get().setLogin(operation.getLogin());
+        user.get().setPhoneNumber(operation.getPhoneNumber());
+        user.get().setRegion(operation.getRegion());
+
+        try {
+            userRepository.saveUser(user.get());
+            return ForceUpdateUserById.Result.success(operation.getId());
+        } catch (Exception e) {
+            return ForceUpdateUserById.Result.saveError(operation.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteUserById.Result deleteUserById(DeleteUserById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return DeleteUserById.Result.notFound(operation.getId());
+        }
+
+        try {
+            userRepository.delete(user.get());
+            return DeleteUserById.Result.success(operation.getId());
+        } catch (Exception e) {
+            return DeleteUserById.Result.deleteError(operation.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteUserByEmail.Result deleteUserByEmail(DeleteUserByEmail operation) {
+        Optional<User> user = userRepository.getUserByEmail(operation.getEmail());
+
+        if (user.isEmpty()) {
+            return DeleteUserByEmail.Result.notFound(operation.getEmail());
+        }
+
+        try {
+            userRepository.delete(user.get());
+            return DeleteUserByEmail.Result.success(operation.getEmail());
+        } catch (Exception e) {
+            return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteUserByLogin.Result deleteUserByLogin(DeleteUserByLogin operation) {
+        Optional<User> user = userRepository.getUserByLogin(operation.getLogin());
+
+        if (user.isEmpty()) {
+            return DeleteUserByLogin.Result.notFound(operation.getLogin());
+        }
+
+        try {
+            userRepository.delete(user.get());
+            return DeleteUserByLogin.Result.success(operation.getLogin());
+        } catch (Exception e) {
+            return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
+        }
     }
 
     @Override

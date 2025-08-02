@@ -33,6 +33,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/auth")
@@ -51,6 +53,8 @@ public class AuthRestController {
     private final Logout.Result.Processor<ResponseEntity<?>> logoutProcessor;
     private final RecoverPassword.Result.Processor<ResponseEntity<?>> recoverPasswordProcessor;
     private final VerifyRecoverPassword.Result.Processor<ResponseEntity<?>> verifyRecoverPasswordProcessor;
+    private final ForceRegister.Result.Processor<ResponseEntity<?>> forceRegisterProcessor;
+    private final ForceRegisterVendor.Result.Processor<ResponseEntity<?>> forceRegisterVendorProcessor;
 
     @PostMapping("register")
     @Operation(
@@ -362,9 +366,7 @@ public class AuthRestController {
                     ),
             }
     )
-    public ResponseEntity<?> recoverPassword(
-            @RequestBody @Valid RecoverPasswordCommand recoverPassword
-    ) {
+    public ResponseEntity<?> recoverPassword(@RequestBody RecoverPasswordCommand recoverPassword) {
         RecoverPassword operation = RecoverPassword.of(
                 UserEmail.of(recoverPassword.email()),
                UserPasswordPassword.of(recoverPassword.newPassword())
@@ -374,9 +376,8 @@ public class AuthRestController {
 
     @PostMapping("verify-recover-password")
     public ResponseEntity<?> verifyRecoverPassword(
-            @RequestBody @Valid VerifyRecoverPasswordCommand verifyRecoverPasswordCommand,
-            @Parameter(hidden = true)
-            HttpServletRequest request
+            @RequestBody VerifyRecoverPasswordCommand verifyRecoverPasswordCommand,
+            @Parameter(hidden = true) HttpServletRequest request
     ) {
         SessionInfo sessionInfo = SessionInfo.of(request);
 
@@ -386,5 +387,33 @@ public class AuthRestController {
                 sessionInfo
         );
         return authService.verifyRecoverPassword(operation).process(verifyRecoverPasswordProcessor);
+    }
+
+    @PostMapping("force-register")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> forceRegister(@RequestBody RegisterCommand command) {
+        ForceRegister operation = ForceRegister.of(
+                UserEmail.of(command.email()),
+                UserLogin.of(command.login()),
+                UserPasswordPassword.of(command.password()),
+                UserRegion.of(command.region()),
+                UserPhoneNumber.of(command.phoneNumber())
+        );
+        return authService.forceRegister(operation).process(forceRegisterProcessor);
+    }
+
+    @PostMapping("force-register-vendor")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> forceRegisterVendor(@RequestBody RegisterVendorCommand command) {
+        ForceRegisterVendor operation = ForceRegisterVendor.of(
+                UserEmail.of(command.email()),
+                UserLogin.of(command.login()),
+                UserPasswordPassword.of(command.password()),
+                UserPhoneNumber.of(command.phoneNumber()),
+                VendorDetailsInn.of(command.inn()),
+                command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
+                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>()
+        );
+        return authService.forceRegisterVendor(operation).process(forceRegisterVendorProcessor);
     }
 }

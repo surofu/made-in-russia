@@ -78,7 +78,6 @@ public class AsyncAuthApplicationService {
 
         VendorDetails vendorDetails = new VendorDetails();
         vendorDetails.setInn(operation.getVendorDetailsInn());
-//        vendorDetails.setPaymentDetails(operation.getVendorDetailsPaymentDetails());
 
         Set<VendorCountry> vendorCountries = new HashSet<>();
 

@@ -29,6 +29,8 @@ public interface UserRepository {
 
     boolean existsVendorById(Long id);
 
+    void delete(User user);
+
     // View
 
     Optional<UserView> getViewById(Long id);

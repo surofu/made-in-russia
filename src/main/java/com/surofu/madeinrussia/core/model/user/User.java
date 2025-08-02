@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.user;
 
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,6 +37,13 @@ public final class User implements Serializable {
 
     @Embedded
     private UserIsEnabled isEnabled;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private UserPassword password;
 
     @OneToOne(
             mappedBy = "user",

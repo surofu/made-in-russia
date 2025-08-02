@@ -1,48 +1,46 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorReviewPageDto;
 import com.surofu.madeinrussia.application.service.async.AsyncVendorViewApplicationService;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
-import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
-import com.surofu.madeinrussia.core.repository.UserRepository;
-import com.surofu.madeinrussia.core.repository.VendorFaqRepository;
-import com.surofu.madeinrussia.core.repository.VendorViewRepository;
+import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
-import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
-import com.surofu.madeinrussia.core.service.vendor.operation.DeleteVendorFaqById;
-import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
-import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
+import com.surofu.madeinrussia.core.service.vendor.operation.*;
+import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VendorApplicationService implements VendorService {
 
     private final UserRepository userRepository;
+    private final VendorDetailsRepository vendorDetailsRepository;
     private final VendorViewRepository vendorViewRepository;
     private final ProductReviewRepository productReviewRepository;
     private final VendorFaqRepository vendorFaqRepository;
+    private final TranslationRepository translationRepository;
 
     private final AsyncVendorViewApplicationService asyncVendorViewApplicationService;
 
@@ -131,7 +129,6 @@ public class VendorApplicationService implements VendorService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"product"}, allEntries = true)
     public DeleteVendorFaqById.Result deleteVendorFaqById(DeleteVendorFaqById operation) {
         if (!vendorFaqRepository.existsByIdAndVendorId(operation.getFaqId(), operation.getSecurityUser().getUser().getId())) {
             return DeleteVendorFaqById.Result.notFound(operation.getFaqId());
@@ -144,5 +141,116 @@ public class VendorApplicationService implements VendorService {
         userRepository.saveUser(operation.getSecurityUser().getUser());
 
         return DeleteVendorFaqById.Result.success(operation.getFaqId());
+    }
+
+    @Override
+    @Transactional
+    public ForceUpdateVendorById.Result forceUpdateVendorById(ForceUpdateVendorById operation) {
+        // Validation
+        if (operation.getVendorCountries().isEmpty()) {
+            return ForceUpdateVendorById.Result.emptyVendorCountries();
+        }
+
+        if (operation.getVendorProductCategories().isEmpty()) {
+            return ForceUpdateVendorById.Result.emptyVendorProductCategories();
+        }
+
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return ForceUpdateVendorById.Result.notFound(operation.getId());
+        }
+
+        if (!user.get().getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
+            return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
+        }
+
+        if (!user.get().getLogin().equals(operation.getLogin()) && userRepository.existsUserByLogin(operation.getLogin())) {
+            return ForceUpdateVendorById.Result.loginAlreadyExists(operation.getLogin());
+        }
+
+        if (!user.get().getPhoneNumber().equals(operation.getPhoneNumber()) && userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+            return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
+        }
+
+        if (!user.get().getVendorDetails().getInn().equals(operation.getInn()) && vendorDetailsRepository.existsByInn(operation.getInn())) {
+            return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
+        }
+
+        // Setting
+        user.get().setEmail(operation.getEmail());
+        user.get().setLogin(operation.getLogin());
+        user.get().setPhoneNumber(operation.getPhoneNumber());
+        user.get().getVendorDetails().setInn(operation.getInn());
+
+        List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
+
+        for (VendorCountryName name : operation.getVendorCountries()) {
+            VendorCountry vendorCountry = new VendorCountry();
+            vendorCountry.setVendorDetails(user.get().getVendorDetails());
+            vendorCountry.setName(name);
+            vendorCountryList.add(vendorCountry);
+        }
+
+        List<VendorProductCategory> vendorProductCategoryList = new ArrayList<>(operation.getVendorProductCategories().size());
+
+        for (VendorProductCategoryName name : operation.getVendorProductCategories()) {
+            VendorProductCategory vendorProductCategory = new VendorProductCategory();
+            vendorProductCategory.setVendorDetails(user.get().getVendorDetails());
+            vendorProductCategory.setName(name);
+            vendorProductCategoryList.add(vendorProductCategory);
+        }
+
+        List<String> countryNames = operation.getVendorCountries().stream().map(VendorCountryName::toString).toList();
+        List<String> productCategoryNames = operation.getVendorProductCategories().stream().map(VendorProductCategoryName::toString).toList();
+
+        List<String> allStringList = new ArrayList<>(countryNames.size() + productCategoryNames.size());
+        allStringList.addAll(countryNames);
+        allStringList.addAll(productCategoryNames);
+
+        String[] flatStrings = allStringList.toArray(new String[0]);
+
+        TranslationResponse translationEn, translationRu, translationZh;
+
+        try {
+            translationEn = translationRepository.translateToEn(flatStrings);
+            translationRu = translationRepository.translateToRu(flatStrings);
+            translationZh = translationRepository.translateToZh(flatStrings);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
+        }
+
+        for (int i = 0; i < allStringList.size(); i++) {
+            if (countryNames.size() > i) {
+                vendorCountryList.get(i).getName().setTranslations(new HstoreTranslationDto(
+                        translationEn.getTranslations()[i].getText(),
+                        translationRu.getTranslations()[i].getText(),
+                        translationZh.getTranslations()[i].getText()
+                ));
+            }
+
+            if (countryNames.size() <= i) {
+                vendorProductCategoryList.get(i - countryNames.size()).getName().setTranslations(new HstoreTranslationDto(
+                        translationEn.getTranslations()[i].getText(),
+                        translationRu.getTranslations()[i].getText(),
+                        translationZh.getTranslations()[i].getText()
+                ));
+            }
+        }
+
+        user.get().getVendorDetails().getVendorCountries().clear();
+        user.get().getVendorDetails().getVendorCountries().addAll(vendorCountryList);
+
+        user.get().getVendorDetails().getVendorProductCategories().clear();
+        user.get().getVendorDetails().getVendorProductCategories().addAll(vendorProductCategoryList);
+
+        try {
+            userRepository.saveUser(user.get());
+            return ForceUpdateVendorById.Result.success(operation.getId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
+        }
     }
 }

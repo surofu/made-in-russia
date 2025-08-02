@@ -1,21 +1,25 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.vendor.CreateVendorFaqCommand;
+import com.surofu.madeinrussia.application.command.vendor.ForceUpdateVendorCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
-import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserLogin;
+import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqAnswer;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqQuestion;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
-import com.surofu.madeinrussia.core.service.vendor.operation.CreateVendorFaq;
-import com.surofu.madeinrussia.core.service.vendor.operation.DeleteVendorFaqById;
-import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorById;
-import com.surofu.madeinrussia.core.service.vendor.operation.GetVendorReviewPageById;
+import com.surofu.madeinrussia.core.service.vendor.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -37,6 +41,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -58,6 +63,7 @@ public class VendorRestController {
     private final GetProductSummaryViewPageByVendorId.Result.Processor<ResponseEntity<?>> getProductSummaryViewPageByVendorIdProcessor;
     private final CreateVendorFaq.Result.Processor<ResponseEntity<?>> createVendorFaqProcessor;
     private final DeleteVendorFaqById.Result.Processor<ResponseEntity<?>> deleteVendorFaqProcessor;
+    private final ForceUpdateVendorById.Result.Processor<ResponseEntity<?>> forceUpdateVendorByIdProcessor;
 
     @GetMapping("{vendorId}")
     @Operation(
@@ -389,13 +395,29 @@ public class VendorRestController {
     }
 
     @DeleteMapping("faq/{faqId}")
-    @SecurityRequirement(name = "Bearer Authentication")
     @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<?> deleteVendorFaq(
             @PathVariable Long faqId,
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         DeleteVendorFaqById operation = DeleteVendorFaqById.of(securityUser, faqId);
         return vendorService.deleteVendorFaqById(operation).process(deleteVendorFaqProcessor);
+    }
+
+    @PutMapping("{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> forceUpdateVendorById(@PathVariable("id") Long id, @RequestBody ForceUpdateVendorCommand command) {
+        ForceUpdateVendorById operation = ForceUpdateVendorById.of(
+                id,
+                UserEmail.of(command.email()),
+                UserLogin.of(command.login()),
+                UserPhoneNumber.of(command.phoneNumber()),
+                VendorDetailsInn.of(command.inn()),
+                command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
+                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>()
+        );
+        return vendorService.forceUpdateVendorById(operation).process(forceUpdateVendorByIdProcessor);
     }
 }

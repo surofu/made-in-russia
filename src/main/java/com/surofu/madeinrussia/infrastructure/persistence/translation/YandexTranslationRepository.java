@@ -120,6 +120,10 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     private TranslationResponse translate(String language, String... texts) throws IOException {
+        if (texts == null || texts.length == 0) {
+            return new YandexTranslationResponse(new YandexTranslation[]{});
+        }
+
         TranslationRequest translationRequest = new TranslationRequest(
                 language,
                 texts,

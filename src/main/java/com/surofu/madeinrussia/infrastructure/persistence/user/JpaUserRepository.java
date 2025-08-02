@@ -65,6 +65,11 @@ public class JpaUserRepository implements UserRepository {
         return repository.existsVendorById(id);
     }
 
+    @Override
+    public void delete(User user) {
+        repository.delete(user);
+    }
+
     // View
 
     @Override

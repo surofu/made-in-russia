@@ -41,4 +41,11 @@ public final class UserLogin implements Serializable {
     public String toString() {
         return value;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return value != null && value.equals(((UserLogin) o).value);
+    }
 }
