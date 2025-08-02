@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -28,6 +30,28 @@ import java.util.Optional;
 public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
     private final UserPasswordRepository userPasswordRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.getUserByEmail(UserEmail.of(username))
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+
+        UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (servletRequestAttributes == null) {
+            log.error("Servlet RequestAttributes is null");
+            throw new UsernameNotFoundException(username);
+        }
+
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        SessionInfo sessionInfo = SessionInfo.of(request);
+
+        return new SecurityUser(user, userPassword, sessionInfo);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -98,6 +122,7 @@ public class UserApplicationService implements UserService {
             userRepository.saveUser(user.get());
             return ForceUpdateUserById.Result.success(operation.getId());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return ForceUpdateUserById.Result.saveError(operation.getId(), e);
         }
     }
@@ -115,6 +140,7 @@ public class UserApplicationService implements UserService {
             userRepository.delete(user.get());
             return DeleteUserById.Result.success(operation.getId());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserById.Result.deleteError(operation.getId(), e);
         }
     }
@@ -132,6 +158,7 @@ public class UserApplicationService implements UserService {
             userRepository.delete(user.get());
             return DeleteUserByEmail.Result.success(operation.getEmail());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
         }
     }
@@ -149,29 +176,48 @@ public class UserApplicationService implements UserService {
             userRepository.delete(user.get());
             return DeleteUserByLogin.Result.success(operation.getLogin());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
         }
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.getUserByEmail(UserEmail.of(username))
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+    @Transactional
+    public BanUserById.Result banUserById(BanUserById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
 
-        UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
-                .orElseThrow(() -> new UsernameNotFoundException(username));
-
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-
-        if (servletRequestAttributes == null) {
-            log.error("Servlet RequestAttributes is null");
-            throw new UsernameNotFoundException(username);
+        if (user.isEmpty()) {
+            return BanUserById.Result.notFound(operation.getId());
         }
 
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        SessionInfo sessionInfo = SessionInfo.of(request);
+        user.get().setIsEnabled(UserIsEnabled.of(false));
 
-        return new SecurityUser(user, userPassword, sessionInfo);
+        try {
+            userRepository.saveUser(user.get());
+            return BanUserById.Result.success(operation.getId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return BanUserById.Result.saveError(operation.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public UnbanUserById.Result unbanUserById(UnbanUserById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return UnbanUserById.Result.notFound(operation.getId());
+        }
+
+        user.get().setIsEnabled(UserIsEnabled.of(true));
+
+        try {
+            userRepository.saveUser(user.get());
+            return UnbanUserById.Result.success(operation.getId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UnbanUserById.Result.saveError(operation.getId(), e);
+        }
     }
 }

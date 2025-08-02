@@ -17,4 +17,8 @@ public interface UserService extends UserDetailsService {
     DeleteUserByEmail.Result deleteUserByEmail(DeleteUserByEmail operation);
 
     DeleteUserByLogin.Result deleteUserByLogin(DeleteUserByLogin operation);
+
+    BanUserById.Result banUserById(BanUserById operation);
+
+    UnbanUserById.Result unbanUserById(UnbanUserById operation);
 }

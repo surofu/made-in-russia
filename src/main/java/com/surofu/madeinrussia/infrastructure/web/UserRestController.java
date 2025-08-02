@@ -31,10 +31,12 @@ public class UserRestController {
     private final DeleteUserById.Result.Processor<ResponseEntity<?>> deleteUserByIdProcessor;
     private final DeleteUserByEmail.Result.Processor<ResponseEntity<?>> deleteUserByEmailProcessor;
     private final DeleteUserByLogin.Result.Processor<ResponseEntity<?>> deleteUserByLoginProcessor;
+    private final BanUserById.Result.Processor<ResponseEntity<?>> banUserByIdProcessor;
+    private final UnbanUserById.Result.Processor<ResponseEntity<?>> unbanUserByIdProcessor;
 
     @GetMapping("{identifier}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getUserById(@PathVariable("identifier") String identifier) {
+    public ResponseEntity<?> getUserByIdentifier(@PathVariable("identifier") String identifier) {
         try {
             Long id = Long.parseLong(identifier);
             GetUserById operation = GetUserById.of(id);
@@ -87,5 +89,19 @@ public class UserRestController {
         UserLogin login = UserLogin.of(identifier);
         DeleteUserByLogin operation = DeleteUserByLogin.of(login);
         return service.deleteUserByLogin(operation).process(deleteUserByLoginProcessor);
+    }
+
+    @PostMapping("{id}/ban")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> banUserById(@PathVariable("id") Long id) {
+        BanUserById operation = BanUserById.of(id);
+        return service.banUserById(operation).process(banUserByIdProcessor);
+    }
+
+    @PostMapping("{id}/unban")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> unbanUserById(@PathVariable("id") Long id) {
+        UnbanUserById operation = UnbanUserById.of(id);
+        return service.unbanUserById(operation).process(unbanUserByIdProcessor);
     }
 }
