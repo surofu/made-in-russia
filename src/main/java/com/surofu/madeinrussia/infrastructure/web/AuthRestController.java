@@ -1,8 +1,8 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.auth.*;
-import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
@@ -13,8 +13,8 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
@@ -31,7 +31,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 
@@ -366,16 +369,59 @@ public class AuthRestController {
                     ),
             }
     )
-    public ResponseEntity<?> recoverPassword(@RequestBody RecoverPasswordCommand recoverPassword) {
+    public ResponseEntity<?> recoverPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Recover password request data",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RecoverPasswordCommand.class)
+                    )
+            )
+            @RequestBody RecoverPasswordCommand recoverPassword) {
         RecoverPassword operation = RecoverPassword.of(
                 UserEmail.of(recoverPassword.email()),
-               UserPasswordPassword.of(recoverPassword.newPassword())
+                UserPasswordPassword.of(recoverPassword.newPassword())
         );
         return authService.recoverPassword(operation).process(recoverPasswordProcessor);
     }
 
     @PostMapping("verify-recover-password")
+    @Operation(
+            summary = "Verify recover password code",
+            description = "Verify the recovery code sent to email",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Code verified successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid code or expired",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found"
+                    )
+            }
+    )
     public ResponseEntity<?> verifyRecoverPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Verify recover password request",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = VerifyRecoverPasswordCommand.class)
+                    )
+            )
             @RequestBody VerifyRecoverPasswordCommand verifyRecoverPasswordCommand,
             @Parameter(hidden = true) HttpServletRequest request
     ) {
@@ -390,8 +436,44 @@ public class AuthRestController {
     }
 
     @PostMapping("force-register")
+    @Operation(
+            summary = "Force register new user (Admin only)",
+            description = "Register new user without email verification (Admin only)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User registered successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Validation error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "User with this email/login already exists"
+                    )
+            }
+    )
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> forceRegister(@RequestBody RegisterCommand command) {
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> forceRegister(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "User registration data",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterCommand.class)
+                    )
+            )
+            @RequestBody RegisterCommand command) {
         ForceRegister operation = ForceRegister.of(
                 UserEmail.of(command.email()),
                 UserLogin.of(command.login()),
@@ -403,8 +485,44 @@ public class AuthRestController {
     }
 
     @PostMapping("force-register-vendor")
+    @Operation(
+            summary = "Force register new vendor (Admin only)",
+            description = "Register new vendor without email verification (Admin only)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Vendor registered successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Validation error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ValidationExceptionDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "Vendor with this email/login already exists"
+                    )
+            }
+    )
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> forceRegisterVendor(@RequestBody RegisterVendorCommand command) {
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> forceRegisterVendor(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Vendor registration data",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterVendorCommand.class)
+                    )
+            )
+            @RequestBody RegisterVendorCommand command) {
         ForceRegisterVendor operation = ForceRegisterVendor.of(
                 UserEmail.of(command.email()),
                 UserLogin.of(command.login()),
