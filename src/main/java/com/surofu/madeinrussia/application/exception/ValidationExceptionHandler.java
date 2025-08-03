@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -77,6 +78,19 @@ public class ValidationExceptionHandler {
                 "Validation failed"
         );
 
+        return new ResponseEntity<>(validationExceptionDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ValidationExceptionDto> handlePropertyReferenceException(PropertyReferenceException exception) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", exception.getLocalizedMessage());
+        ValidationExceptionDto validationExceptionDto = new ValidationExceptionDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                errors,
+                "Validation failed"
+        );
         return new ResponseEntity<>(validationExceptionDto, HttpStatus.BAD_REQUEST);
     }
 

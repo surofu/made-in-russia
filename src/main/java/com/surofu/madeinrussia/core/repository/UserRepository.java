@@ -5,10 +5,15 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Optional;
 
 public interface UserRepository {
+    Page<User> getUserPage(Specification<User> specification, Pageable pageable);
+
     Optional<User> getUserById(Long id);
 
     Optional<User> getUserByLogin(UserLogin userLogin);

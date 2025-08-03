@@ -32,14 +32,14 @@ public class UpdateFaqByIdMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processEmptyTranslations(UpdateFaqById.Result.EmptyTranslations result) {
-        String message = localizationManager.localize("translation.translation_error");
+        String message = localizationManager.localize("translation.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public ResponseEntity<?> processTranslationError(UpdateFaqById.Result.TranslationError error) {
-        String message = localizationManager.localize("translation.translation_error");
+        String message = localizationManager.localize("translation.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -39,6 +39,21 @@ public class CreateProductReview {
             return AccountIsTooYoung.INSTANCE;
         }
 
+        static Result saveError(Exception e) {
+            log.error("Error saving product review", e);
+            return SaveError.INSTANCE;
+        }
+
+        static Result tooManyReviews(UserEmail email) {
+            log.warn("Too many reviews when processing create product review, user email '{}'", email);
+            return TooManyReviews.INSTANCE;
+        }
+
+        static Result translationError(Exception e) {
+            log.error("Translation error when processing create product review", e);
+            return TranslationError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -76,6 +91,33 @@ public class CreateProductReview {
             }
         }
 
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return null;
+            }
+        }
+
+        enum TooManyReviews implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return null;
+            }
+        }
+
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -84,6 +126,12 @@ public class CreateProductReview {
             T processVendorProfileNotViewed(VendorProfileNotViewed result);
 
             T processAccountIsTooYoung(AccountIsTooYoung result);
+
+            T processSaveError(SaveError result);
+
+            T processToManyReviews(TooManyReviews result);
+
+            T processTranslationError(TranslationError result);
         }
     }
 }

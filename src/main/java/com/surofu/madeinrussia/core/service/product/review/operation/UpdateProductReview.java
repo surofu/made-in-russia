@@ -44,6 +44,16 @@ public class UpdateProductReview {
             return Unauthorized.INSTANCE;
         }
 
+        static Result saveError(Exception e) {
+            log.error("Error saving product review", e);
+            return SaveError.INSTANCE;
+        }
+
+        static Result translationError(Exception e) {
+            log.error("Translation error when processing create product review", e);
+            return TranslationError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -82,6 +92,24 @@ public class UpdateProductReview {
             }
         }
 
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveError(this);
+            }
+        }
+
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -90,6 +118,10 @@ public class UpdateProductReview {
             T processForbidden(Forbidden result);
 
             T processUnauthorized(Unauthorized result);
+
+            T processSaveError(SaveError result);
+
+            T processTranslationError(TranslationError result);
         }
     }
 }

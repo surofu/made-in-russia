@@ -41,4 +41,11 @@ public class DeleteProductReviewByProductIdAndProductReviewIdMapperResultToRespo
     public ResponseEntity<?> processUnauthorized(DeleteProductReview.Result.Unauthorized result) {
         return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
     }
+
+    @Override
+    public ResponseEntity<?> processDeleteError(DeleteProductReview.Result.DeleteError result) {
+        String message = localizationManager.localize("product_review.delete.error");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

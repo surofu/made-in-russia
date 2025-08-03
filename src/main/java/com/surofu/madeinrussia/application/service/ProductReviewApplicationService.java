@@ -1,21 +1,19 @@
 package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
-import com.surofu.madeinrussia.application.service.async.AsyncProductReviewApplicationService;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
-import com.surofu.madeinrussia.core.repository.ProductRepository;
-import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
-import com.surofu.madeinrussia.core.repository.UserRepository;
-import com.surofu.madeinrussia.core.repository.VendorViewRepository;
+import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.product.review.operation.CreateProductReview;
 import com.surofu.madeinrussia.core.service.product.review.operation.DeleteProductReview;
 import com.surofu.madeinrussia.core.service.product.review.operation.GetProductReviewPageByProductId;
 import com.surofu.madeinrussia.core.service.product.review.ProductReviewService;
 import com.surofu.madeinrussia.core.service.product.review.operation.UpdateProductReview;
+import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -40,8 +39,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final VendorViewRepository vendorViewRepository;
-
-    private final AsyncProductReviewApplicationService asyncProductReviewApplicationService;
+    private final TranslationRepository translationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -81,16 +79,23 @@ public class ProductReviewApplicationService implements ProductReviewService {
     @Override
     @Transactional
     public CreateProductReview.Result createProductReview(CreateProductReview operation) {
+        // Validation
+        Optional<Product> product = productRepository.getProductById(operation.getProductId());
+
+        if (product.isEmpty()) {
+            return CreateProductReview.Result.productNotFound(operation.getProductId());
+        }
+
         User user = operation.getSecurityUser().getUser();
 
         if (user.getRegistrationDate().getValue().isAfter(ZonedDateTime.now().minusWeeks(1))) {
             return CreateProductReview.Result.accountIsTooYoung(user.getEmail());
         }
 
-        Optional<Product> product = productRepository.getProductById(operation.getProductId());
+        Long userCurrentProductReviewsCount = productReviewRepository.getCountByProductIdAndUserId(operation.getProductId(), user.getId());
 
-        if (product.isEmpty()) {
-            return CreateProductReview.Result.productNotFound(operation.getProductId());
+        if (userCurrentProductReviewsCount > 0) {
+            return CreateProductReview.Result.tooManyReviews(user.getEmail());
         }
 
         VendorView vendorView = new VendorView();
@@ -103,13 +108,38 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return CreateProductReview.Result.vendorProfileNotViewed(user.getEmail());
         }
 
+        // Setting
         ProductReview productReview = new ProductReview();
         productReview.setUser(user);
         productReview.setProduct(product.get());
         productReview.setContent(operation.getProductReviewContent());
         productReview.setRating(operation.getProductReviewRating());
 
-        asyncProductReviewApplicationService.saveProductReview(productReview);
+        // Translation
+        TranslationResponse responseEn, responseRu, responseZh;
+
+        try {
+            responseEn = translationRepository.translateToEn(operation.getProductReviewContent().toString());
+            responseRu = translationRepository.translateToRu(operation.getProductReviewContent().toString());
+            responseZh = translationRepository.translateToZh(operation.getProductReviewContent().toString());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProductReview.Result.translationError(e);
+        }
+
+        productReview.getContent().setTranslations(new HstoreTranslationDto(
+                responseEn.getTranslations()[0].getText(),
+                responseRu.getTranslations()[0].getText(),
+                responseZh.getTranslations()[0].getText()
+        ));
+
+        // Save
+        try {
+            productReviewRepository.save(productReview);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProductReview.Result.saveError(e);
+        }
 
         return CreateProductReview.Result.success(productReview);
     }
@@ -117,38 +147,63 @@ public class ProductReviewApplicationService implements ProductReviewService {
     @Override
     @Transactional
     public UpdateProductReview.Result updateProductReview(UpdateProductReview operation) {
-        Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
-
-        if (user.isEmpty()) {
-            return UpdateProductReview.Result.unauthorized();
-        }
-
+        // Validation
         Optional<ProductReview> productReview = productReviewRepository.findById(operation.getProductReviewId());
 
         if (productReview.isEmpty()) {
             return UpdateProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
         }
 
-        if (productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
-            if (operation.getProductReviewContent() != null) {
-                productReview.get().setContent(operation.getProductReviewContent());
-            }
+        Optional<User> user = userRepository.getUserByEmail(operation.getSecurityUser().getUser().getEmail());
 
-            if (operation.getProductReviewRating() != null) {
-                productReview.get().setRating(operation.getProductReviewRating());
-            }
-
-            asyncProductReviewApplicationService.saveProductReview(productReview.get());
-
-            return UpdateProductReview.Result.success(productReview.get());
+        if (user.isEmpty()) {
+            return UpdateProductReview.Result.unauthorized();
         }
 
-        return UpdateProductReview.Result.forbidden(
-                operation.getProductId(),
-                operation.getProductReviewId(),
-                user.get().getLogin(),
-                productReview.get().getUser().getLogin()
-        );
+        if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
+            return UpdateProductReview.Result.forbidden(
+                    operation.getProductId(),
+                    operation.getProductReviewId(),
+                    user.get().getLogin(),
+                    productReview.get().getUser().getLogin()
+            );
+        }
+
+        // Setting
+        if (operation.getProductReviewContent() != null) {
+            productReview.get().setContent(operation.getProductReviewContent());
+
+            // Translation
+            TranslationResponse responseEn, responseRu, responseZh;
+
+            try {
+                responseEn = translationRepository.translateToEn(operation.getProductReviewContent().toString());
+                responseRu = translationRepository.translateToRu(operation.getProductReviewContent().toString());
+                responseZh = translationRepository.translateToZh(operation.getProductReviewContent().toString());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateProductReview.Result.translationError(e);
+            }
+
+            productReview.get().getContent().setTranslations(new HstoreTranslationDto(
+                    responseEn.getTranslations()[0].getText(),
+                    responseRu.getTranslations()[0].getText(),
+                    responseZh.getTranslations()[0].getText()
+            ));
+        }
+
+        if (operation.getProductReviewRating() != null) {
+            productReview.get().setRating(operation.getProductReviewRating());
+        }
+
+        // Save
+        try {
+            productReviewRepository.save(productReview.get());
+            return UpdateProductReview.Result.success(productReview.get());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProductReview.Result.saveError(e);
+        }
     }
 
     @Override
@@ -167,16 +222,20 @@ public class ProductReviewApplicationService implements ProductReviewService {
         }
 
         if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
-            asyncProductReviewApplicationService.deleteProductReviewById(operation.getProductReviewId());
-
-            return DeleteProductReview.Result.success(operation.getProductReviewId());
+            return DeleteProductReview.Result.forbidden(
+                    operation.getProductId(),
+                    operation.getProductReviewId(),
+                    user.get().getLogin(),
+                    productReview.get().getUser().getLogin()
+            );
         }
 
-        return DeleteProductReview.Result.forbidden(
-                operation.getProductId(),
-                operation.getProductReviewId(),
-                user.get().getLogin(),
-                productReview.get().getUser().getLogin()
-        );
+        try {
+            productReviewRepository.delete(productReview.get());
+            return DeleteProductReview.Result.success(operation.getProductReviewId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteProductReview.Result.deleteError(e);
+        }
     }
 }

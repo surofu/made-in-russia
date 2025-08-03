@@ -6,6 +6,9 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -14,6 +17,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaUserRepository implements UserRepository {
     private final SpringDataUserRepository repository;
+
+    @Override
+    public Page<User> getUserPage(Specification<User> specification, Pageable pageable) {
+        return repository.findAll(specification, pageable);
+    }
 
     @Override
     public Optional<User> getUserById(Long id) {

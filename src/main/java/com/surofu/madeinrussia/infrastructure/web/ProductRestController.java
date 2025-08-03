@@ -534,7 +534,7 @@ public class ProductRestController {
                     )
             }
     )
-    public ResponseEntity<?> createProductReviewById(
+    public ResponseEntity<?> updateProductReviewById(
             @Parameter(
                     name = "productId",
                     description = "ID of the product",

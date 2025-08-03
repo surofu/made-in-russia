@@ -50,7 +50,7 @@ import java.util.Locale;
 @RequiredArgsConstructor
 @RequestMapping("api/v1/me")
 @Tag(
-        name = "User Profile",
+        name = "Current User Profile",
         description = "API for accessing current user information and session management"
 )
 public class MeRestController {

@@ -30,6 +30,7 @@ public class UserRestController {
 
     private final UserService service;
 
+    private final GetUserPage.Result.Processor<ResponseEntity<?>> getUserPageProcessor;
     private final GetUserById.Result.Processor<ResponseEntity<?>> getUserByIdProcessor;
     private final GetUserByEmail.Result.Processor<ResponseEntity<?>> getUserByEmailProcessor;
     private final GetUserByLogin.Result.Processor<ResponseEntity<?>> getUserByLoginProcessor;
@@ -41,9 +42,30 @@ public class UserRestController {
     private final UnbanUserById.Result.Processor<ResponseEntity<?>> unbanUserByIdProcessor;
     private final ChangeUserRoleById.Result.Processor<ResponseEntity<?>> changeUserRoleByIdProcessor;
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> getUserPage(
+            @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
+            @RequestParam(name = "role", required = false) String role,
+            @RequestParam(name = "isEnabled", defaultValue = "true", required = false) Boolean isEnabled,
+            @RequestParam(name = "login", required = false) String login,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "phoneNumber", required = false) String phoneNumber,
+            @RequestParam(name = "region", required = false) String region,
+            @RequestParam(name = "sort", defaultValue = "registrationDate", required = false) String sort,
+            @RequestParam(name = "direction", defaultValue = "asc", required = false) String direction
+    ) {
+        GetUserPage operation = GetUserPage.of(page, size, role, isEnabled,
+                login, email, phoneNumber, region, sort, direction);
+        return service.getUserPage(operation).process(getUserPageProcessor);
+    }
+
+
     @GetMapping("{identifier}")
     @Operation(
-            summary = "Get user by identifier",
+            summary = "Get user by identifier (Admin only)",
             description = "Retrieves a user by ID, email or login",
             responses = {
                     @ApiResponse(
@@ -95,7 +117,7 @@ public class UserRestController {
 
     @PutMapping("{id}")
     @Operation(
-            summary = "Update user by ID",
+            summary = "Update user by ID (Admin only)",
             description = "Updates user information by ID",
             responses = {
                     @ApiResponse(
@@ -152,7 +174,7 @@ public class UserRestController {
 
     @DeleteMapping("{identifier}")
     @Operation(
-            summary = "Delete user by identifier",
+            summary = "Delete user by identifier (Admin only)",
             description = "Deletes a user by ID, email or login",
             responses = {
                     @ApiResponse(
@@ -200,7 +222,7 @@ public class UserRestController {
 
     @PatchMapping("{id}/ban")
     @Operation(
-            summary = "Ban user by ID",
+            summary = "Ban user by ID (Admin only)",
             description = "Bans a user by their ID",
             responses = {
                     @ApiResponse(
@@ -234,7 +256,7 @@ public class UserRestController {
 
     @PatchMapping("{id}/unban")
     @Operation(
-            summary = "Unban user by ID",
+            summary = "Unban user by ID (Admin only)",
             description = "Unbans a user by their ID",
             responses = {
                     @ApiResponse(
@@ -268,7 +290,7 @@ public class UserRestController {
 
     @PatchMapping("{id}/role")
     @Operation(
-            summary = "Change user role by ID",
+            summary = "Change user role by ID (Admin only)",
             description = "Changes the role of a user by their ID",
             responses = {
                     @ApiResponse(

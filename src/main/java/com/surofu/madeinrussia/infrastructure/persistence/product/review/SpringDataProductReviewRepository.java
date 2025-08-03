@@ -41,4 +41,6 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
             where pr.id = :productReviewId
             """)
     boolean isUserOwnerOfProductReview(@Param("userId") Long userId, @Param("productReviewId") Long productReviewId);
+
+    Long countByProduct_IdAndUser_Id(Long productId, Long userId);
 }

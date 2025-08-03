@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
@@ -10,11 +11,17 @@ import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
+import com.surofu.madeinrussia.core.repository.specification.UserSpecifications;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -31,6 +38,27 @@ import java.util.Optional;
 public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
     private final UserPasswordRepository userPasswordRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetUserPage.Result getUserPage(GetUserPage operation) {
+        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), operation.getSort().split(","));
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
+        Specification<User> specification = Specification.where(UserSpecifications.byRole(operation.getRole()))
+                .and(UserSpecifications.byIsEnabled(operation.getIsEnabled()))
+                .and(UserSpecifications.byEmail(operation.getEmail()))
+                .and(UserSpecifications.byLogin(operation.getLogin()))
+                .and(UserSpecifications.byPhoneNumber(operation.getPhoneNumber()))
+                .and(UserSpecifications.byRegion(operation.getRegion()));
+        Page<User> userPage = userRepository.getUserPage(specification, pageable);
+        Page<AbstractAccountDto> dtoPage = userPage.map(u -> {
+            if (u.getVendorDetails() != null) {
+                return VendorDto.of(u);
+            }
+            return UserDto.of(u);
+        });
+        return GetUserPage.Result.success(dtoPage);
+    }
 
     @Override
     @Transactional(readOnly = true)

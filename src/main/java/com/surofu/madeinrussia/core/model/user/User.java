@@ -50,10 +50,6 @@ public final class User implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JoinColumn(
-            name = "vendor_details_id",
-            foreignKey = @ForeignKey(name = "fk_users_vendor_details_id")
-    )
     private VendorDetails vendorDetails;
 
     @OneToMany(mappedBy = "user")

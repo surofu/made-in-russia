@@ -4,6 +4,8 @@ import com.surofu.madeinrussia.core.service.user.operation.*;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
+    GetUserPage.Result getUserPage(GetUserPage operation);
+
     GetUserById.Result getUserById(GetUserById operation);
 
     GetUserByLogin.Result getUserByLogin(GetUserByLogin operation);

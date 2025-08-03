@@ -17,9 +17,11 @@ public interface ProductReviewRepository {
 
     Double findAverageRatingByVendorId(Long vendorId);
 
+    Long getCountByProductIdAndUserId(Long productId, Long userId);
+
     void save(ProductReview productReview);
 
-    void deleteById(Long id);
+    void delete(ProductReview productReview);
 
     boolean isUserOwnerOfProductReview(Long userId, Long productReviewId);
 }

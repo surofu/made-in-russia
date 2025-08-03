@@ -41,4 +41,18 @@ implements UpdateProductReview.Result.Processor<ResponseEntity<?>> {
     public ResponseEntity<?> processUnauthorized(UpdateProductReview.Result.Unauthorized result) {
         return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
     }
+
+    @Override
+    public ResponseEntity<?> processSaveError(UpdateProductReview.Result.SaveError result) {
+        String message = localizationManager.localize("product_review.save.error");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> processTranslationError(UpdateProductReview.Result.TranslationError result) {
+        String message = localizationManager.localize("translation.error");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

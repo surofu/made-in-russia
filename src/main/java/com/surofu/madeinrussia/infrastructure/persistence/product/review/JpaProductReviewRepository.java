@@ -15,40 +15,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaProductReviewRepository implements ProductReviewRepository {
 
-    private final SpringDataProductReviewRepository productReviewRepository;
+    private final SpringDataProductReviewRepository repository;
 
     @Override
     public Page<ProductReview> findAll(Specification<ProductReview> spec, Pageable pageable) {
-        return productReviewRepository.findAll(spec, pageable);
+        return repository.findAll(spec, pageable);
     }
 
     @Override
     public List<ProductReview> findByIdInWithMedia(List<Long> ids) {
-        return productReviewRepository.findByIdInWithMedia(ids);
+        return repository.findByIdInWithMedia(ids);
     }
 
     @Override
     public Optional<ProductReview> findById(Long id) {
-        return productReviewRepository.findById(id);
+        return repository.findById(id);
     }
 
     @Override
     public Double findAverageRatingByVendorId(Long vendorId) {
-        return productReviewRepository.findAverageRatingByProductVendorId(vendorId);
+        return repository.findAverageRatingByProductVendorId(vendorId);
+    }
+
+    @Override
+    public Long getCountByProductIdAndUserId(Long productId, Long userId) {
+        return repository.countByProduct_IdAndUser_Id(productId, userId);
     }
 
     @Override
     public void save(ProductReview productReview) {
-        productReviewRepository.save(productReview);
+        repository.save(productReview);
     }
 
     @Override
-    public void deleteById(Long id) {
-        productReviewRepository.deleteById(id);
+    public void delete(ProductReview productReview) {
+        repository.delete(productReview);
     }
 
     @Override
     public boolean isUserOwnerOfProductReview(Long userId, Long productReviewId) {
-        return productReviewRepository.isUserOwnerOfProductReview(userId, productReviewId);
+        return repository.isUserOwnerOfProductReview(userId, productReviewId);
     }
 }

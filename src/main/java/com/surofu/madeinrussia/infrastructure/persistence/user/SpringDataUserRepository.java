@@ -6,12 +6,13 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface SpringDataUserRepository extends JpaRepository<User, Long> {
+public interface SpringDataUserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     @Query("select u from User u where u.id = :id")
     @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})

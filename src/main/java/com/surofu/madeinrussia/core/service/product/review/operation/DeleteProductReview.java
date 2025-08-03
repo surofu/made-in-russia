@@ -39,6 +39,11 @@ public class DeleteProductReview {
             return Unauthorized.INSTANCE;
         }
 
+        static Result deleteError(Exception e) {
+            log.error("Error deleting product review", e);
+            return DeleteError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -77,6 +82,15 @@ public class DeleteProductReview {
             }
         }
 
+        enum DeleteError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -85,6 +99,8 @@ public class DeleteProductReview {
             T processForbidden(Forbidden result);
 
             T processUnauthorized(Unauthorized result);
+
+            T processDeleteError(DeleteError result);
         }
     }
 }
