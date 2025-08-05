@@ -6,10 +6,10 @@ public record HstoreTranslationDto(
         String textZh
 ) {
     public static HstoreTranslationDto of(TranslationDto dto) {
-        if (dto == null) {
-            return null;
-        }
-
         return new HstoreTranslationDto(dto.en(), dto.ru(), dto.zh());
+    }
+
+    public static HstoreTranslationDto ofNullable(TranslationDto dto) {
+        return dto != null ? of(dto) : null;
     }
 }

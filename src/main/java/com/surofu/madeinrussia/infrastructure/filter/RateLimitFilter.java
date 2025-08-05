@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.filter;
 
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -44,14 +45,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Игнорируем лимитирование для white-list IP
         if (isWhitelisted(request.getRemoteAddr())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String clientKey = getClientKey(request); // IP + API Key если есть
-        Bucket bucket = buckets.computeIfAbsent(clientKey, k -> createNewBucket());
+        String key = SessionInfo.of(request).getDeviceId().toString();
+        Bucket bucket = buckets.computeIfAbsent(key, k -> createNewBucket());
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
@@ -66,14 +66,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.builder().capacity(bucketCapacity).refillIntervally(refillTokens, Duration.ofSeconds(refillSeconds)).build();
-
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(bucketCapacity)
+                .refillIntervally(refillTokens, Duration.ofSeconds(refillSeconds))
+                .build();
         return Bucket.builder().addLimit(limit).build();
-    }
-
-    private String getClientKey(HttpServletRequest request) {
-        String apiKey = request.getHeader("API-Key");
-        return (apiKey != null) ? apiKey : request.getRemoteAddr();
     }
 
     private boolean isWhitelisted(String ip) {

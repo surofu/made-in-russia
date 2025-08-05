@@ -309,34 +309,34 @@ public class ProductApplicationService implements ProductService {
         /* ========== Product Characteristics ========== */
         for (int i = 0; i < operation.getCreateProductCharacteristicCommands().size(); i++) {
             CreateProductCharacteristicCommand command = operation.getCreateProductCharacteristicCommands().get(i);
-            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
-            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.of(command.valueTranslations()));
+            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
         }
 
         /* ========== Product Faq ========== */
         for (int i = 0; i < operation.getCreateProductFaqCommands().size(); i++) {
             CreateProductFaqCommand command = operation.getCreateProductFaqCommands().get(i);
-            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.of(command.questionTranslations()));
-            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.of(command.answerTranslations()));
+            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.ofNullable(command.questionTranslations()));
+            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.ofNullable(command.answerTranslations()));
         }
 
         /* ========== Product Delivery Method Details ========== */
         for (int i = 0; i < operation.getCreateProductDeliveryMethodDetailsCommands().size(); i++) {
             CreateProductDeliveryMethodDetailsCommand command = operation.getCreateProductDeliveryMethodDetailsCommands().get(i);
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.of(command.valueTranslations()));
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
         }
 
         /* ========== Product Package Options ========== */
         for (int i = 0; i < operation.getCreateProductPackageOptionCommands().size(); i++) {
             CreateProductPackageOptionCommand command = operation.getCreateProductPackageOptionCommands().get(i);
-            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
+            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
         }
 
         /* ========== Product Media ========== */
         for (int i = 0; i < operation.getCreateProductMediaAltTextCommands().size(); i++) {
             CreateProductMediaAltTextCommand command = operation.getCreateProductMediaAltTextCommands().get(i);
-            translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.of(command.translations()));
+            translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.ofNullable(command.translations()));
         }
 
         /* ========== Product Vendor Details ========== */
@@ -349,14 +349,14 @@ public class ProductApplicationService implements ProductService {
             ));
 
             translationMap.put(TranslationKeys.VENDOR_DETAILS_MAIN_DESCRIPTION.name(),
-                    HstoreTranslationDto.of(operation.getCreateProductVendorDetailsCommand().mainDescriptionTranslations()));
+                    HstoreTranslationDto.ofNullable(operation.getCreateProductVendorDetailsCommand().mainDescriptionTranslations()));
             translationMap.put(TranslationKeys.VENDOR_DETAILS_FURTHER_DESCRIPTION.name(),
-                    HstoreTranslationDto.of(operation.getCreateProductVendorDetailsCommand().furtherDescriptionTranslations()));
+                    HstoreTranslationDto.ofNullable(operation.getCreateProductVendorDetailsCommand().furtherDescriptionTranslations()));
 
             /* ========== Product Vendor Details Media ========== */
             for (int i = 0; i < operation.getCreateProductVendorDetailsMediaAltTextCommands().size(); i++) {
                 CreateProductVendorDetailsMediaAltTextCommand command = operation.getCreateProductVendorDetailsMediaAltTextCommands().get(i);
-                translationMap.put(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.of(command.translations()));
+                translationMap.put(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.ofNullable(command.translations()));
             }
         }
 
@@ -718,28 +718,28 @@ public class ProductApplicationService implements ProductService {
         /* ========== Product Characteristics ========== */
         for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
             UpdateProductCharacteristicCommand command = operation.getUpdateProductCharacteristicCommands().get(i);
-            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
-            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.of(command.valueTranslations()));
+            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
         }
 
         /* ========== Product Faq ========== */
         for (int i = 0; i < operation.getUpdateProductFaqCommands().size(); i++) {
             UpdateProductFaqCommand command = operation.getUpdateProductFaqCommands().get(i);
-            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.of(command.questionTranslations()));
-            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.of(command.answerTranslations()));
+            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.ofNullable(command.questionTranslations()));
+            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.ofNullable(command.answerTranslations()));
         }
 
         /* ========== Product Delivery Method Details ========== */
         for (int i = 0; i < operation.getUpdateProductDeliveryMethodDetailsCommands().size(); i++) {
             UpdateProductDeliveryMethodDetailsCommand command = operation.getUpdateProductDeliveryMethodDetailsCommands().get(i);
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.of(command.valueTranslations()));
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
         }
 
         /* ========== Product Package Options ========== */
         for (int i = 0; i < operation.getUpdateProductPackageOptionCommands().size(); i++) {
             UpdateProductPackageOptionCommand command = operation.getUpdateProductPackageOptionCommands().get(i);
-            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.of(command.nameTranslations()));
+            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
         }
 
         /* ========== Product Media ========== */
@@ -770,7 +770,7 @@ public class ProductApplicationService implements ProductService {
 
                 if (operation.getUpdateProductMediaAltTextCommands() != null && operation.getUpdateProductMediaAltTextCommands().size() > i) {
                     translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i),
-                            HstoreTranslationDto.of(operation.getUpdateProductMediaAltTextCommands().get(j).translations()));
+                            HstoreTranslationDto.ofNullable(operation.getUpdateProductMediaAltTextCommands().get(j).translations()));
                 }
 
                 if (file.getContentType() == null ||
@@ -808,9 +808,9 @@ public class ProductApplicationService implements ProductService {
         ));
 
         translationMap.put(TranslationKeys.VENDOR_DETAILS_MAIN_DESCRIPTION.name(),
-                HstoreTranslationDto.of(operation.getUpdateProductVendorDetailsCommand().mainDescriptionTranslations()));
+                HstoreTranslationDto.ofNullable(operation.getUpdateProductVendorDetailsCommand().mainDescriptionTranslations()));
         translationMap.put(TranslationKeys.VENDOR_DETAILS_FURTHER_DESCRIPTION.name(),
-                HstoreTranslationDto.of(operation.getUpdateProductVendorDetailsCommand().furtherDescriptionTranslations()));
+                HstoreTranslationDto.ofNullable(operation.getUpdateProductVendorDetailsCommand().furtherDescriptionTranslations()));
 
         // Vendor Details Media
         Set<Long> oldProductVendorDetailsMediaIdSet = operation.getOldVendorDetailsMedia().stream().map(UpdateOldMediaDto::id).collect(Collectors.toSet());
@@ -853,7 +853,7 @@ public class ProductApplicationService implements ProductService {
 
                 if (operation.getUpdateProductVendorDetailsMediaAltTextCommands() != null && operation.getUpdateProductVendorDetailsMediaAltTextCommands().size() > i) {
                     translationMap.put(TranslationKeys.VENDOR_DETAILS_MEDIA_ALT_TEXT.with(i),
-                            HstoreTranslationDto.of(operation.getUpdateProductVendorDetailsMediaAltTextCommands().get(i).translations()));
+                            HstoreTranslationDto.ofNullable(operation.getUpdateProductVendorDetailsMediaAltTextCommands().get(i).translations()));
                 }
 
                 if (file.getContentType().startsWith("image")) {

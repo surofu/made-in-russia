@@ -160,7 +160,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return UpdateProductReview.Result.unauthorized();
         }
 
-        if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
+        if (productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
             return UpdateProductReview.Result.forbidden(
                     operation.getProductId(),
                     operation.getProductReviewId(),
@@ -221,7 +221,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return DeleteProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
         }
 
-        if (!productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
+        if (productReviewRepository.isUserOwnerOfProductReview(user.get().getId(), operation.getProductReviewId())) {
             return DeleteProductReview.Result.forbidden(
                     operation.getProductId(),
                     operation.getProductReviewId(),

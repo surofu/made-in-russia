@@ -224,4 +224,7 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
     where c.id = :id
     """, nativeQuery = true)
     Optional<CategoryView> findViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+    @Query("select count(c) > 0 from Category c where c.slug.value = :#{#slug.value}")
+    Boolean existsBySlug(@Param("slug") CategorySlug slug);
 }

@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
+import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorReviewPageDto;
@@ -47,27 +49,29 @@ public class VendorApplicationService implements VendorService {
     @Override
     @Transactional
     public GetVendorById.Result getVendorById(GetVendorById operation) {
-        Optional<User> vendor = userRepository.getVendorById(operation.getVendorId());
+        Optional<User> user = userRepository.getVendorById(operation.getVendorId());
 
-        if (vendor.isPresent()) {
-            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendor.get().getVendorDetails().getId());
-            vendor.get().getVendorDetails().setVendorViewsCount(viewsCount);
-            Optional<VendorDto> vendorDto = vendor.map(VendorDto::of);
+        if (user.isEmpty()) {
+            return GetVendorById.Result.notFound(operation.getVendorId());
+        }
+
+        AbstractAccountDto dto = UserDto.of(user.get());
+
+        if (user.get().getVendorDetails() != null) {
+            dto = VendorDto.of(user.get());
+            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(user.get().getVendorDetails().getId());
+            user.get().getVendorDetails().setVendorViewsCount(viewsCount);
 
             if (operation.getSecurityUser().isPresent() &&
-                    !operation.getSecurityUser().get().getUser().getId().equals(vendor.get().getId())) {
+                    !operation.getSecurityUser().get().getUser().getId().equals(user.get().getId())) {
                 VendorView vendorView = new VendorView();
-                vendorView.setVendorDetails(vendor.get().getVendorDetails());
+                vendorView.setVendorDetails(user.get().getVendorDetails());
                 vendorView.setUser(operation.getSecurityUser().get().getUser());
                 asyncVendorViewApplicationService.saveVendorViewInDatabase(vendorView);
             }
-
-            if (vendorDto.isPresent()) {
-                return GetVendorById.Result.success(vendorDto.get());
-            }
         }
 
-        return GetVendorById.Result.notFound(operation.getVendorId());
+        return GetVendorById.Result.success(dto);
     }
 
     @Override
@@ -181,6 +185,11 @@ public class VendorApplicationService implements VendorService {
         user.get().setEmail(operation.getEmail());
         user.get().setLogin(operation.getLogin());
         user.get().setPhoneNumber(operation.getPhoneNumber());
+
+        VendorDetails vendorDetails = Objects.requireNonNullElse(user.get().getVendorDetails(), new VendorDetails());
+        vendorDetails.setUser(user.get());
+        user.get().setVendorDetails(vendorDetails);
+
         user.get().getVendorDetails().setInn(operation.getInn());
 
         List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());

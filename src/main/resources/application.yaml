@@ -1,12 +1,17 @@
 server:
-  http2:
-    enabled: true
   port: ${PORT}
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript,application/javascript
-    min-response-size: 2KB
+    min-response-size: 1KB
     excluded-user-agents: MSIE 6.0,UCBrowser
+  undertow:
+    threads:
+      io: 4                         # Рекомендуется = число ядер CPU
+      worker: 100                    # 20-25 на ядро (4 ядра * 25 = 100)
+    buffer-size: 32KB               # Увеличим для больших ответов
+    direct-buffers: true
+    no-request-timeout: 30s         # Уменьшим таймаут
 
 #========= Spring =========#
 spring:
@@ -19,7 +24,7 @@ spring:
       enabled: true
   mvc:
 
-#========= Cors =========#
+    #========= Cors =========#
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS}
       allowed-methods: ${CORS_ALLOWED_METHODS}
@@ -27,27 +32,20 @@ spring:
       allow-credentials: ${CORS_ALLOW_CREDENTIALS}
       max-age: ${CORS_MAX_AGE}
 
-#========= Datasource =========#
+  #========= Datasource =========#
   datasource:
     url: ${POSTGRES_URL}
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-#========= Hikari Pool =========#
+    #========= Hikari Pool =========#
     hikari:
-      initialization-fail-timeout: 30000
-      connection-timeout: 30000
-      maximum-pool-size: 50
+      maximum-pool-size: 20
       minimum-idle: 5
-      idle-timeout: 600000
-      max-lifetime: 1200000
-      leak-detection-threshold: 60000
+      connection-timeout: 3000
+      leak-detection-threshold: 5000
       auto-commit: false
-      pool-name: HikariPool
-      transaction-isolation: TRANSACTION_READ_COMMITTED
-      connection-test-query: SELECT 1
-      driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
     properties:
@@ -56,9 +54,8 @@ spring:
         generate_statistics: false # Для мониторинга
         order_inserts: true       # Оптимизация batch-операций
         order_updates: true
-        batch_versioned_data: true
         jdbc:
-          batch_size: 30          # Размер batch-операций
+          batch_size: 20          # Размер batch-операций
           fetch_size: 100         # Размер выборки для ResultSet
         query:
           in_clause_parameter_padding: true # Оптимизация IN-условий
@@ -67,7 +64,7 @@ spring:
     user: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
 
-#========= Mail =========#
+  #========= Mail =========#
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -84,7 +81,7 @@ spring:
             enable: true
             required: true
 
-#========== Localization ==========#
+  #========== Localization ==========#
   messages:
     basename: messages/messages
     encoding: UTF-8
@@ -159,3 +156,14 @@ springdoc:
     url: /api/v3/api-docs
   api-docs:
     path: /api/v3/api-docs
+
+java:
+  opts: >-
+    -Xms2048m -Xmx3584m             # Оставляем 1GB для системы
+    -XX:+UseG1GC
+    -XX:MaxGCPauseMillis=150
+    -XX:ParallelGCThreads=4
+    -XX:ConcGCThreads=2
+    -XX:+AlwaysPreTouch
+    -XX:+UseStringDeduplication
+    -Djava.security.egd=file:/dev/./urandom

@@ -480,7 +480,7 @@ public class ProductRestController {
             @PathVariable Long productId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser,
-            @RequestBody @Valid CreateProductReviewCommand createProductReviewCommand
+            @RequestBody CreateProductReviewCommand createProductReviewCommand
     ) {
         CreateProductReview operation = CreateProductReview.of(
                 productId,

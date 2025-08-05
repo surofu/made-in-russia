@@ -15,5 +15,7 @@ public interface TranslationRepository {
 
     TranslationResponse translateToZh(String ...texts) throws IOException;
 
+    HstoreTranslationDto expand(HstoreTranslationDto dto) throws EmptyTranslationException, ExecutionException, IOException;
+
     Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, ExecutionException;
 }

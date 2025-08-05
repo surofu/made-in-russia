@@ -6,7 +6,8 @@ public enum FileStorageFolders {
     PRODUCT_VIDEOS("product-videos"),
     VENDOR_IMAGES("vendor-images"),
     VENDOR_VIDEOS("vendor-videos"),
-    USERS_AVATARS("users-avatars");
+    USERS_AVATARS("users-avatars"),
+    CATEGORY_IMAGES("category-images");
 
     private final String value;
 

@@ -54,6 +54,6 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
 
     @Override
     public boolean isUserOwnerOfProductReview(Long userId, Long productReviewId) {
-        return repository.isUserOwnerOfProductReview(userId, productReviewId);
+        return !repository.isUserOwnerOfProductReview(userId, productReviewId);
     }
 }

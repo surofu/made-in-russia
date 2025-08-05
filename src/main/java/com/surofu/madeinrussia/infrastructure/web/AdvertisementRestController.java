@@ -115,7 +115,7 @@ public class AdvertisementRestController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
-            summary = "Create new advertisement",
+            summary = "Create new advertisement (Admin only)",
             description = "Creates a new advertisement with title, subtitle and image",
             responses = {
                     @ApiResponse(
@@ -159,11 +159,11 @@ public class AdvertisementRestController {
             @RequestPart("image") MultipartFile image
     ) {
         AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
+        title.setTranslations(HstoreTranslationDto.ofNullable(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
+        subtitle.setTranslations(HstoreTranslationDto.ofNullable(command.subtitleTranslations()));
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
+        thirdText.setTranslations(HstoreTranslationDto.ofNullable(command.thirdTextTranslations()));
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
@@ -175,7 +175,7 @@ public class AdvertisementRestController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
-            summary = "Update advertisement by ID",
+            summary = "Update advertisement by ID (Admin only)",
             description = "Updates an existing advertisement with new data",
             responses = {
                     @ApiResponse(
@@ -229,11 +229,11 @@ public class AdvertisementRestController {
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(HstoreTranslationDto.of(command.titleTranslations()));
+        title.setTranslations(HstoreTranslationDto.ofNullable(command.titleTranslations()));
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(HstoreTranslationDto.of(command.subtitleTranslations()));
+        subtitle.setTranslations(HstoreTranslationDto.ofNullable(command.subtitleTranslations()));
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(HstoreTranslationDto.of(command.thirdTextTranslations()));
+        thirdText.setTranslations(HstoreTranslationDto.ofNullable(command.thirdTextTranslations()));
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
@@ -245,7 +245,7 @@ public class AdvertisementRestController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
-            summary = "Delete advertisement by ID",
+            summary = "Delete advertisement by ID (Admin only)",
             description = "Deletes an advertisement by its unique identifier",
             responses = {
                     @ApiResponse(

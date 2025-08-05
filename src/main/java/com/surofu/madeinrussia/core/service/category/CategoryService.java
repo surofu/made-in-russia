@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.core.service.category;
 
-import com.surofu.madeinrussia.core.service.category.operation.GetAllCategories;
-import com.surofu.madeinrussia.core.service.category.operation.GetCategories;
-import com.surofu.madeinrussia.core.service.category.operation.GetCategoryById;
-import com.surofu.madeinrussia.core.service.category.operation.GetCategoryBySlug;
+import com.surofu.madeinrussia.core.service.category.operation.*;
 
 public interface CategoryService {
     GetAllCategories.Result getAllCategories(GetAllCategories operation);
@@ -13,4 +10,10 @@ public interface CategoryService {
     GetCategoryById.Result getCategoryById(GetCategoryById operation);
 
     GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation);
+
+    CreateCategory.Result createCategory(CreateCategory operation);
+
+    UpdateCategoryById.Result updateCategoryById(UpdateCategoryById operation);
+
+    DeleteCategoryById.Result deleteCategoryById(DeleteCategoryById operation);
 }

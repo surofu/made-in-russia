@@ -12,9 +12,13 @@ public interface CategoryRepository {
 
     List<Long> getCategoriesIdsByIds(List<Long> ids);
 
-    Optional<Category> getCategoryWithOkvedCategoriesBySlug(CategorySlug slug);
-
     List<String> getOkvedCategoryIdsBySlug(CategorySlug slug);
+
+    void save(Category category);
+
+    Boolean existsBySlug(CategorySlug slug);
+
+    void delete(Category category);
 
     // View
 

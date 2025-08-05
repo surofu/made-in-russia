@@ -46,7 +46,7 @@ implements UpdateAdvertisementById.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processEmptyTransaction(UpdateAdvertisementById.Result.EmptyTransaction result) {
-        String message = localizationManager.localize("translation.empty_translations");
+        String message = localizationManager.localize("translation.empty");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }

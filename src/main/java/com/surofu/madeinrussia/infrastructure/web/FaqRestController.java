@@ -208,9 +208,9 @@ public class FaqRestController {
     ) {
         CreateFaq operation = CreateFaq.of(
                 FaqQuestion.of(command.question()),
-                HstoreTranslationDto.of(command.questionTranslations()),
+                HstoreTranslationDto.ofNullable(command.questionTranslations()),
                 FaqAnswer.of(command.answer()),
-                HstoreTranslationDto.of(command.answerTranslations())
+                HstoreTranslationDto.ofNullable(command.answerTranslations())
         );
         return service.createFaq(operation).process(createFaqProcessor);
     }
@@ -302,9 +302,9 @@ public class FaqRestController {
         UpdateFaqById operation = UpdateFaqById.of(
                 faqId,
                 FaqQuestion.of(command.question()),
-                HstoreTranslationDto.of(command.questionTranslations()),
+                HstoreTranslationDto.ofNullable(command.questionTranslations()),
                 FaqAnswer.of(command.answer()),
-                HstoreTranslationDto.of(command.answerTranslations())
+                HstoreTranslationDto.ofNullable(command.answerTranslations())
         );
         return service.updateFaqById(operation).process(updateFaqProcessor);
     }

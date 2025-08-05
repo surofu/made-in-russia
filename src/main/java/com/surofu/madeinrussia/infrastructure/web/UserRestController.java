@@ -3,12 +3,14 @@ package com.surofu.madeinrussia.infrastructure.web;
 import com.surofu.madeinrussia.application.command.user.ChangeUserRoleCommand;
 import com.surofu.madeinrussia.application.command.user.ForceUpdateUserCommand;
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.category.UserPageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,17 +46,108 @@ public class UserRestController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get paginated list of users (Admin only)",
+            description = "Retrieves a paginated and filtered list of users. Requires ADMIN role.",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            description = "Zero-based page index (0..N)",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Number of items per page",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
+                    ),
+                    @Parameter(
+                            name = "role",
+                            description = "Filter by user role",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "ROLE_USER")
+                    ),
+                    @Parameter(
+                            name = "isEnabled",
+                            description = "Filter by account enabled status",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "boolean", example = "true")
+                    ),
+                    @Parameter(
+                            name = "login",
+                            description = "Filter by user login (partial match)",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "john")
+                    ),
+                    @Parameter(
+                            name = "email",
+                            description = "Filter by email (partial match)",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "example.com")
+                    ),
+                    @Parameter(
+                            name = "phoneNumber",
+                            description = "Filter by phone number (partial match)",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "+7900")
+                    ),
+                    @Parameter(
+                            name = "region",
+                            description = "Filter by region",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "Europe")
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Sorting field",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", example = "createdAt")
+                    ),
+                    @Parameter(
+                            name = "direction",
+                            description = "Sort direction (asc/desc)",
+                            in = ParameterIn.QUERY,
+                            schema = @Schema(type = "string", defaultValue = "asc", allowableValues = {"asc", "desc"})
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved user list",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserPageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - insufficient permissions",
+                            content = @Content
+                    )
+            }
+    )
     public ResponseEntity<?> getUserPage(
             @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
             @RequestParam(name = "role", required = false) String role,
-            @RequestParam(name = "isEnabled", defaultValue = "true", required = false) Boolean isEnabled,
+            @RequestParam(name = "isEnabled", required = false) Boolean isEnabled,
             @RequestParam(name = "login", required = false) String login,
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "phoneNumber", required = false) String phoneNumber,
             @RequestParam(name = "region", required = false) String region,
-            @RequestParam(name = "sort", defaultValue = "registrationDate", required = false) String sort,
+            @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "direction", defaultValue = "asc", required = false) String direction
     ) {
         GetUserPage operation = GetUserPage.of(page, size, role, isEnabled,

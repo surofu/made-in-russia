@@ -33,6 +33,10 @@ public final class CategorySlug implements Serializable {
         return new CategorySlug(slug);
     }
 
+    public static CategorySlug of(String slug, int level) {
+        return new CategorySlug("l%d_%s".formatted(level, slug));
+    }
+
     @Override
     public String toString() {
         return value;

@@ -47,6 +47,47 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
+    public HstoreTranslationDto expand(HstoreTranslationDto dto) throws EmptyTranslationException, IOException {
+        if (dto == null) {
+            throw new EmptyTranslationException("Empty translation dto");
+        }
+
+        String en = StringUtils.trimToNull(dto.textEn());
+        String ru = StringUtils.trimToNull(dto.textRu());
+        String zh = StringUtils.trimToNull(dto.textZh());
+
+        if (en == null && ru == null && zh == null) {
+            throw new EmptyTranslationException("Empty translation dto");
+        }
+
+        if (en == null) {
+            if (ru != null) {
+                en = translateToEn(ru).getTranslations()[0].getText();
+            } else {
+                en = translateToEn(zh).getTranslations()[0].getText();
+            }
+        }
+
+        if (ru == null) {
+            if (en != null) {
+                ru = translateToRu(en).getTranslations()[0].getText();
+            } else {
+                ru = translateToRu(zh).getTranslations()[0].getText();
+            }
+        }
+
+        if (zh == null) {
+            if (ru != null) {
+                zh = translateToZh(ru).getTranslations()[0].getText();
+            } else {
+                zh = translateToZh(en).getTranslations()[0].getText();
+            }
+        }
+
+        return new HstoreTranslationDto(en, ru, zh);
+    }
+
+    @Override
     public Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map)
             throws EmptyTranslationException, ExecutionException {
 
@@ -69,8 +110,6 @@ public class YandexTranslationRepository implements TranslationRepository {
             String en = StringUtils.trimToNull(dto.textEn());
             String ru = StringUtils.trimToNull(dto.textRu());
             String zh = StringUtils.trimToNull(dto.textZh());
-
-            System.out.printf("key: %s, en: %s, ru: %s, zh: %s\n", key, en, ru, zh);
 
             if (en == null && ru == null && zh == null) {
                 throw new EmptyTranslationException(key);
