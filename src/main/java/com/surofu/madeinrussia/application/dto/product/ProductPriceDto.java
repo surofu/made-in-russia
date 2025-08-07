@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
+import com.surofu.madeinrussia.core.model.product.price.ProductPrice;
 import com.surofu.madeinrussia.infrastructure.persistence.product.price.ProductPriceView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

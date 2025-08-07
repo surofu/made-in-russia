@@ -44,7 +44,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -100,7 +99,7 @@ public class VendorRestController {
             @PathVariable Long vendorId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
-        GetVendorById operation = GetVendorById.of(Optional.ofNullable(securityUser), vendorId);
+        GetVendorById operation = GetVendorById.of(securityUser, vendorId);
         return vendorService.getVendorById(operation).process(getVendorByIdProcessor);
     }
 

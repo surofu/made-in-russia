@@ -1,9 +1,9 @@
 package com.surofu.madeinrussia.core.service.product.review.operation;
 
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewContent;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewRating;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

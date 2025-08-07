@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.review;
 
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,17 +18,17 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
     private final SpringDataProductReviewRepository repository;
 
     @Override
-    public Page<ProductReview> findAll(Specification<ProductReview> spec, Pageable pageable) {
+    public Page<ProductReview> getPage(Specification<ProductReview> spec, Pageable pageable) {
         return repository.findAll(spec, pageable);
     }
 
     @Override
-    public List<ProductReview> findByIdInWithMedia(List<Long> ids) {
+    public List<ProductReview> getByIdInWithMedia(List<Long> ids) {
         return repository.findByIdInWithMedia(ids);
     }
 
     @Override
-    public Optional<ProductReview> findById(Long id) {
+    public Optional<ProductReview> getById(Long id) {
         return repository.findById(id);
     }
 

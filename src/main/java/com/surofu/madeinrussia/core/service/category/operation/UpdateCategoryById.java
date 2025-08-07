@@ -1,7 +1,6 @@
 package com.surofu.madeinrussia.core.service.category.operation;
 
 import com.surofu.madeinrussia.application.dto.translation.TranslationDto;
-import com.surofu.madeinrussia.core.model.category.CategoryImageUrl;
 import com.surofu.madeinrussia.core.model.category.CategoryName;
 import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import lombok.Value;

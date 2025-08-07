@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.price;
 
-import com.surofu.madeinrussia.core.model.product.productPrice.*;
+import com.surofu.madeinrussia.core.model.product.price.*;
 
 public interface ProductPriceView {
     Long getId();

@@ -1,7 +1,7 @@
 package com.surofu.madeinrussia.application.dto.product;
 
 import com.surofu.madeinrussia.application.dto.UserDto;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Data
 @Builder
@@ -132,5 +133,16 @@ public final class ProductReviewDto implements Serializable {
                 .creationDate(productReview.getCreationDate().getValue())
                 .lastModificationDate(productReview.getLastModificationDate().getValue())
                 .build();
+    }
+
+    public static ProductReviewDto of(ProductReview productReview, Locale locale) {
+        ProductReviewDto productReviewDto = ProductReviewDto.of(productReview);
+        switch (locale.getLanguage()) {
+            case "en" -> productReviewDto.setText(productReview.getContent().getTranslations().textEn());
+            case "ru" -> productReviewDto.setText(productReview.getContent().getTranslations().textRu());
+            case "zh" -> productReviewDto.setText(productReview.getContent().getTranslations().textZh());
+            default -> productReviewDto.setText(productReview.getContent().getTranslations().textEn());
+        }
+        return productReviewDto;
     }
 }

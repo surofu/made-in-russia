@@ -25,4 +25,8 @@ public interface UserService extends UserDetailsService {
     UnbanUserById.Result unbanUserById(UnbanUserById operation);
 
     ChangeUserRoleById.Result changeUserRoleById(ChangeUserRoleById operation);
+
+    SaveUserAvatarById.Result saveUserAvatarById(SaveUserAvatarById operation);
+
+    DeleteUserAvatarById.Result deleteUserAvatarById(DeleteUserAvatarById operation);
 }

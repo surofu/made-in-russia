@@ -60,6 +60,14 @@ public abstract class AbstractAccountDto {
     private String phoneNumber;
 
     @Schema(
+            description = "User's avatar url",
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
+            maxLength = 20_000,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String avatarUrl;
+
+    @Schema(
             description = "Timestamp when user account was created",
             example = "2025-05-04T09:17:20.767615Z",
             type = "string",

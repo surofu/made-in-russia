@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.faq;
 
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
+import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

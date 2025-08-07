@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.review.media;
 
-import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
+import com.surofu.madeinrussia.core.model.product.review.media.ProductReviewMedia;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

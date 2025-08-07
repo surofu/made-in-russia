@@ -1,12 +1,13 @@
 package com.surofu.madeinrussia.core.model.user;
 
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ public final class User implements Serializable {
     @Embedded
     private UserIsEnabled isEnabled;
 
+    @ToString.Exclude
     @OneToOne(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -52,7 +54,8 @@ public final class User implements Serializable {
     )
     private VendorDetails vendorDetails;
 
-    @OneToMany(mappedBy = "user")
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<ProductReview> productReviews = new HashSet<>();
 
     @Embedded
@@ -68,8 +71,18 @@ public final class User implements Serializable {
     private UserRegion region;
 
     @Embedded
+    private UserAvatar avatar;
+
+    @Embedded
     private UserRegistrationDate registrationDate;
 
     @Embedded
     private UserLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        return id != null && id.equals(((User) o).id);
+    }
 }

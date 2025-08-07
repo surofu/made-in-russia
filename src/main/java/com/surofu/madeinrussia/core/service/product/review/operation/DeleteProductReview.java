@@ -44,6 +44,11 @@ public class DeleteProductReview {
             return DeleteError.INSTANCE;
         }
 
+        static Result deleteMediaError(Exception e) {
+            log.error("Error deleting product review", e);
+            return DeleteMediaError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -91,6 +96,15 @@ public class DeleteProductReview {
             }
         }
 
+        enum DeleteMediaError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteMediaError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -101,6 +115,8 @@ public class DeleteProductReview {
             T processUnauthorized(Unauthorized result);
 
             T processDeleteError(DeleteError result);
+
+            T processDeleteMediaError(DeleteMediaError result);
         }
     }
 }

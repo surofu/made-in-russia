@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.media;
 
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
+import com.surofu.madeinrussia.core.model.product.media.ProductMedia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -12,8 +12,6 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.Optional;
 
 public interface UserRepository {
-    Page<User> getUserPage(Specification<User> specification, Pageable pageable);
-
     Optional<User> getUserById(Long id);
 
     Optional<User> getUserByLogin(UserLogin userLogin);
@@ -22,7 +20,7 @@ public interface UserRepository {
 
     Optional<UserEmail> getUserEmailByLogin(UserLogin userLogin);
 
-    User saveUser(User user);
+    User save(User user);
 
     boolean existsUserByEmail(UserEmail userEmail);
 
@@ -37,6 +35,7 @@ public interface UserRepository {
     void delete(User user);
 
     // View
+    Page<UserView> getUserViewPage(Specification<User> specification, Pageable pageable);
 
     Optional<UserView> getViewById(Long id);
 }

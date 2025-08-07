@@ -1,12 +1,15 @@
 package com.surofu.madeinrussia.core.service.product.review.operation;
 
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewContent;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewRating;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Slf4j
 @Value(staticConstructor = "of")
@@ -15,6 +18,7 @@ public class CreateProductReview {
     SecurityUser securityUser;
     ProductReviewContent productReviewContent;
     ProductReviewRating productReviewRating;
+    List<MultipartFile> media;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -52,6 +56,21 @@ public class CreateProductReview {
         static Result translationError(Exception e) {
             log.error("Translation error when processing create product review", e);
             return TranslationError.INSTANCE;
+        }
+
+        static Result uploadError(Exception e) {
+            log.error("Upload error when processing create product review", e);
+            return UploadError.INSTANCE;
+        }
+
+        static Result emptyFile() {
+            log.warn("Empty file when processing create product review");
+            return EmptyFile.INSTANCE;
+        }
+
+        static Result invalidContentType(String contentType) {
+            log.warn("Invalid content type when processing create product review: {}", contentType);
+            return InvalidContentType.of(contentType);
         }
 
         enum Success implements Result {
@@ -96,7 +115,7 @@ public class CreateProductReview {
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return null;
+                return processor.processSaveError(this);
             }
         }
 
@@ -105,7 +124,7 @@ public class CreateProductReview {
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return null;
+                return processor.processToManyReviews(this);
             }
         }
 
@@ -115,6 +134,34 @@ public class CreateProductReview {
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processTranslationError(this);
+            }
+        }
+
+        enum UploadError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processUploadError(this);
+            }
+        }
+
+        enum EmptyFile implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyFile(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class InvalidContentType implements Result {
+            String contentType;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInvalidContentType(this);
             }
         }
 
@@ -132,6 +179,12 @@ public class CreateProductReview {
             T processToManyReviews(TooManyReviews result);
 
             T processTranslationError(TranslationError result);
+
+            T processUploadError(UploadError result);
+
+            T processEmptyFile(EmptyFile result);
+
+            T processInvalidContentType(InvalidContentType result);
         }
     }
 }

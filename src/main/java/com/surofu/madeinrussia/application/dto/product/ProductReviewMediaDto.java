@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productReview.productReviewMedia.ProductReviewMedia;
+import com.surofu.madeinrussia.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.madeinrussia.infrastructure.persistence.product.review.media.ProductReviewMediaView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -41,7 +41,7 @@ public final class ProductReviewMediaDto {
 
     @Schema(
             description = "Absolute URL to access the media content",
-            example = "https://cdn.example.com/products/123/image.jpg"
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif"
     )
     private String url;
 

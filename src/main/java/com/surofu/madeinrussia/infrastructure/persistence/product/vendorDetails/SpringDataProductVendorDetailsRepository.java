@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.vendorDetails;
 
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.ProductVendorDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

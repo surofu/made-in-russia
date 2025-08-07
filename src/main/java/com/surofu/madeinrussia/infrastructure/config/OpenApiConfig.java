@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
         servers = {
                 @Server(
                         description = "Ultrahost Environment",
-                        url = "http://181.215.18.219"
+                        url = "https://exporteru.com"
                 ),
                 @Server(
                         description = "Development Environment",

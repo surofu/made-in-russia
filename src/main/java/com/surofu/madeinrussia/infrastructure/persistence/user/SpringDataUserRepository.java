@@ -4,6 +4,9 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -15,13 +18,13 @@ import java.util.Optional;
 public interface SpringDataUserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     @Query("select u from User u where u.id = :id")
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
+    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findById(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
+    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findByLogin(UserLogin userLogin);
 
-    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
+    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> findByEmail(UserEmail userEmail);
 
     boolean existsByEmail(UserEmail userEmail);
@@ -40,6 +43,7 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
                 select u from User u
                 where u.id = :id and u.role = 'ROLE_VENDOR'
             """)
+    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
     Optional<User> getVendorById(@Param("id") Long id);
 
     @Query("""
@@ -49,6 +53,9 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
     boolean existsVendorById(@Param("vendorId") Long vendorId);
 
     // View
+    @Query("select u from User u")
+    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
+    Page<UserView> findViewPage(Specification<User> specification, Pageable pageable);
 
     Optional<UserView> findViewById(Long id);
 }

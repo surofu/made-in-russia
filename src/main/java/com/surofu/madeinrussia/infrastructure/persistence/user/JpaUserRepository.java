@@ -19,11 +19,6 @@ public class JpaUserRepository implements UserRepository {
     private final SpringDataUserRepository repository;
 
     @Override
-    public Page<User> getUserPage(Specification<User> specification, Pageable pageable) {
-        return repository.findAll(specification, pageable);
-    }
-
-    @Override
     public Optional<User> getUserById(Long id) {
         return repository.findById(id);
     }
@@ -44,7 +39,7 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
-    public User saveUser(User user) {
+    public User save(User user) {
         return repository.save(user);
     }
 
@@ -79,6 +74,10 @@ public class JpaUserRepository implements UserRepository {
     }
 
     // View
+    @Override
+    public Page<UserView> getUserViewPage(Specification<User> specification, Pageable pageable) {
+        return repository.findViewPage(specification, pageable);
+    }
 
     @Override
     public Optional<UserView> getViewById(Long id) {

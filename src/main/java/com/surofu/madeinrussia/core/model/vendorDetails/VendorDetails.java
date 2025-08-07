@@ -81,6 +81,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorFaq> faq = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",

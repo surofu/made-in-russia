@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic.ProductCharacteristicView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

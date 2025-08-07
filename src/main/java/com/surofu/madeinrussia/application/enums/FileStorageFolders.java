@@ -4,6 +4,8 @@ public enum FileStorageFolders {
     ADVERTISEMENT_IMAGES("advertisement-images"),
     PRODUCT_IMAGES("product-images"),
     PRODUCT_VIDEOS("product-videos"),
+    PRODUCT_REVIEW_IMAGES("product-review-images"),
+    PRODUCT_REVIEW_VIDEOS("product-review-videos"),
     VENDOR_IMAGES("vendor-images"),
     VENDOR_VIDEOS("vendor-videos"),
     USERS_AVATARS("users-avatars"),

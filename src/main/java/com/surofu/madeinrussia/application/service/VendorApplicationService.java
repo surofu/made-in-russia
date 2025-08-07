@@ -6,9 +6,10 @@ import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorReviewPageDto;
 import com.surofu.madeinrussia.application.service.async.AsyncVendorViewApplicationService;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
@@ -56,18 +57,22 @@ public class VendorApplicationService implements VendorService {
         }
 
         AbstractAccountDto dto = UserDto.of(user.get());
+        VendorDetails vendorDetails = user.get().getVendorDetails();
 
-        if (user.get().getVendorDetails() != null) {
+        if (vendorDetails != null) {
             dto = VendorDto.of(user.get());
-            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(user.get().getVendorDetails().getId());
+            Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendorDetails.getId());
             user.get().getVendorDetails().setVendorViewsCount(viewsCount);
 
-            if (operation.getSecurityUser().isPresent() &&
-                    !operation.getSecurityUser().get().getUser().getId().equals(user.get().getId())) {
-                VendorView vendorView = new VendorView();
-                vendorView.setVendorDetails(user.get().getVendorDetails());
-                vendorView.setUser(operation.getSecurityUser().get().getUser());
-                asyncVendorViewApplicationService.saveVendorViewInDatabase(vendorView);
+            if (operation.getSecurityUser() != null) {
+                User currentUser = operation.getSecurityUser().getUser();
+
+                if (!currentUser.getId().equals(user.get().getId())) {
+                    VendorView vendorView = new VendorView();
+                    vendorView.setVendorDetails(vendorDetails);
+                    vendorView.setUser(currentUser);
+                    asyncVendorViewApplicationService.saveVendorViewInDatabase(vendorView);
+                }
             }
         }
 
@@ -84,7 +89,7 @@ public class VendorApplicationService implements VendorService {
                     .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
                     .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
 
-            Page<ProductReview> productReviewPage = productReviewRepository.findAll(specification, pageable);
+            Page<ProductReview> productReviewPage = productReviewRepository.getPage(specification, pageable);
 
             if (productReviewPage.getContent().isEmpty()) {
                 VendorReviewPageDto vendorReviewPageDto = VendorReviewPageDto.of(productReviewPage, 0);
@@ -96,7 +101,7 @@ public class VendorApplicationService implements VendorService {
                     .map(ProductReview::getId)
                     .toList();
 
-            List<ProductReview> reviewsWithMedia = productReviewRepository.findByIdInWithMedia(reviewIds);
+            List<ProductReview> reviewsWithMedia = productReviewRepository.getByIdInWithMedia(reviewIds);
 
             Map<Long, ProductReview> reviewMap = reviewsWithMedia.stream()
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
@@ -142,7 +147,7 @@ public class VendorApplicationService implements VendorService {
         newVendorDetails.getFaq().removeIf(faq -> faq.getId().equals(operation.getFaqId()));
         operation.getSecurityUser().getUser().setVendorDetails(newVendorDetails);
 
-        userRepository.saveUser(operation.getSecurityUser().getUser());
+        userRepository.save(operation.getSecurityUser().getUser());
 
         return DeleteVendorFaqById.Result.success(operation.getFaqId());
     }
@@ -165,6 +170,8 @@ public class VendorApplicationService implements VendorService {
             return ForceUpdateVendorById.Result.notFound(operation.getId());
         }
 
+        VendorDetails vendorDetails = Objects.requireNonNullElse(user.get().getVendorDetails(), new VendorDetails());
+
         if (!user.get().getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
             return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
         }
@@ -177,7 +184,8 @@ public class VendorApplicationService implements VendorService {
             return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
         }
 
-        if (!user.get().getVendorDetails().getInn().equals(operation.getInn()) && vendorDetailsRepository.existsByInn(operation.getInn())) {
+        VendorDetailsInn inn = Objects.requireNonNullElse(vendorDetails.getInn(), operation.getInn());
+        if (!inn.equals(operation.getInn()) && vendorDetailsRepository.existsByInn(operation.getInn())) {
             return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
         }
 
@@ -186,7 +194,6 @@ public class VendorApplicationService implements VendorService {
         user.get().setLogin(operation.getLogin());
         user.get().setPhoneNumber(operation.getPhoneNumber());
 
-        VendorDetails vendorDetails = Objects.requireNonNullElse(user.get().getVendorDetails(), new VendorDetails());
         vendorDetails.setUser(user.get());
         user.get().setVendorDetails(vendorDetails);
 
@@ -255,7 +262,7 @@ public class VendorApplicationService implements VendorService {
         user.get().getVendorDetails().getVendorProductCategories().addAll(vendorProductCategoryList);
 
         try {
-            userRepository.saveUser(user.get());
+            userRepository.save(user.get());
             return ForceUpdateVendorById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

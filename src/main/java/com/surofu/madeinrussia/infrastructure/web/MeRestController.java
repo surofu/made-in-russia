@@ -2,20 +2,21 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
-import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.me.GetMeProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.me.GetMeVendorProductReviewPageDto;
 import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
@@ -37,10 +38,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -65,6 +68,8 @@ public class MeRestController {
     private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
     private final GetMeProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getMeProductSummaryViewPageProcessor;
     private final DeleteMeSessionById.Result.Processor<ResponseEntity<?>> getDeleteMeSessionByIdProcessor;
+    private final SaveMeAvatar.Result.Processor<ResponseEntity<?>> getSaveMeAvatarProcessor;
+    private final DeleteMeAvatar.Result.Processor<ResponseEntity<?>> getDeleteMeAvatarProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -713,5 +718,110 @@ public class MeRestController {
                 sessionId
         );
         return meService.deleteMeSessionById(operation).process(getDeleteMeSessionByIdProcessor);
+    }
+
+    @PutMapping(value = "avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Upload or update user avatar",
+            description = "Allows authenticated users to upload or update their profile picture",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Avatar uploaded successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid file format or size",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error during avatar processing",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> saveAvatar(
+            @Parameter(
+                    description = "Image file to upload (JPEG/PNG, max 20MB)",
+                    required = true,
+                    content = @Content(mediaType = "multipart/form-data")
+            )
+            @RequestPart("file") MultipartFile file,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        SaveMeAvatar operation = SaveMeAvatar.of(file, securityUser);
+        return meService.saveMeAvatar(operation).process(getSaveMeAvatarProcessor);
+    }
+
+    @DeleteMapping("avatar")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Remove user avatar",
+            description = "Allows authenticated users to delete their profile picture",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Avatar deleted successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - authentication required",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "No avatar exists to delete",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error during avatar deletion",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<?> deleteAvatar(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        DeleteMeAvatar operation = DeleteMeAvatar.of(securityUser);
+        return meService.deleteMeAvatar(operation).process(getDeleteMeAvatarProcessor);
     }
 }

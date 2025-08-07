@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 
@@ -26,6 +27,7 @@ public final class VendorView implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "vendor_details_id",
@@ -47,4 +49,11 @@ public final class VendorView implements Serializable {
 
     @Embedded
     private VendorViewLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VendorView)) return false;
+        return id != null && id.equals(((VendorView) o).id);
+    }
 }

@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.application.dto.vendor;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Page;

@@ -18,6 +18,8 @@ public interface UserView {
 
     UserRole getRole();
 
+    UserAvatar getAvatar();
+
     UserRegistrationDate getRegistrationDate();
 
     UserLastModificationDate getLastModificationDate();

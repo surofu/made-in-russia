@@ -3,17 +3,21 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
+import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserAvatar;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
+import com.surofu.madeinrussia.core.repository.FileStorageRepository;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.UserSpecifications;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
+import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +42,7 @@ import java.util.Optional;
 public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
     private final UserPasswordRepository userPasswordRepository;
+    private final FileStorageRepository fileStorageRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,8 +55,8 @@ public class UserApplicationService implements UserService {
                 .and(UserSpecifications.byLogin(operation.getLogin()))
                 .and(UserSpecifications.byPhoneNumber(operation.getPhoneNumber()))
                 .and(UserSpecifications.byRegion(operation.getRegion()));
-        Page<User> userPage = userRepository.getUserPage(specification, pageable);
-        Page<AbstractAccountDto> dtoPage = userPage.map(u -> {
+        Page<UserView> viewPage = userRepository.getUserViewPage(specification, pageable);
+        Page<AbstractAccountDto> dtoPage = viewPage.map(u -> {
             if (u.getVendorDetails() != null) {
                 return VendorDto.of(u);
             }
@@ -163,7 +168,7 @@ public class UserApplicationService implements UserService {
         user.get().setRegion(operation.getRegion());
 
         try {
-            userRepository.saveUser(user.get());
+            userRepository.save(user.get());
             return ForceUpdateUserById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -237,7 +242,7 @@ public class UserApplicationService implements UserService {
         user.get().setIsEnabled(UserIsEnabled.of(false));
 
         try {
-            userRepository.saveUser(user.get());
+            userRepository.save(user.get());
             return BanUserById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -257,7 +262,7 @@ public class UserApplicationService implements UserService {
         user.get().setIsEnabled(UserIsEnabled.of(true));
 
         try {
-            userRepository.saveUser(user.get());
+            userRepository.save(user.get());
             return UnbanUserById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -277,11 +282,59 @@ public class UserApplicationService implements UserService {
         user.get().setRole(operation.getRole());
 
         try {
-            userRepository.saveUser(user.get());
+            userRepository.save(user.get());
             return ChangeUserRoleById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return ChangeUserRoleById.Result.saveError(operation.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SaveUserAvatarById.Result saveUserAvatarById(SaveUserAvatarById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return SaveUserAvatarById.Result.notFound(operation.getId());
+        }
+
+        if (operation.getFile() != null && !operation.getFile().isEmpty()) {
+            try {
+                String url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+                user.get().setAvatar(UserAvatar.of(url));
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return SaveUserAvatarById.Result.saveError(e);
+            }
+        }
+
+        try {
+            userRepository.save(user.get());
+            return SaveUserAvatarById.Result.success();
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return SaveUserAvatarById.Result.saveError(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteUserAvatarById.Result deleteUserAvatarById(DeleteUserAvatarById operation) {
+        Optional<User> user = userRepository.getUserById(operation.getId());
+
+        if (user.isEmpty()) {
+            return DeleteUserAvatarById.Result.notFound(operation.getId());
+        }
+
+        user.get().setAvatar(null);
+
+        try {
+            userRepository.save(user.get());
+            return DeleteUserAvatarById.Result.success();
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteUserAvatarById.Result.deleteError(e);
         }
     }
 }

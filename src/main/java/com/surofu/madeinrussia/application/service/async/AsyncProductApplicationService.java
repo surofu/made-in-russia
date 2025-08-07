@@ -1,10 +1,10 @@
 package com.surofu.madeinrussia.application.service.async;
 
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMedia;
-import com.surofu.madeinrussia.core.model.product.productMedia.ProductMediaUrl;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
+import com.surofu.madeinrussia.core.model.product.media.ProductMedia;
+import com.surofu.madeinrussia.core.model.product.media.ProductMediaUrl;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
 import com.surofu.madeinrussia.core.repository.FileStorageRepository;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +54,7 @@ public class AsyncProductApplicationService {
         allLinks.addAll(vendorMediaLinks);
 
         try {
-            fileStorageRepository.deleteAllMediaByLink(allLinks);
+            fileStorageRepository.deleteMediaByLink(allLinks.toArray(new String[0]));
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);

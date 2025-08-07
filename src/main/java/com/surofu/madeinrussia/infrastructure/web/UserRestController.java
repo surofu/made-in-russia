@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.user.ChangeUserRoleCommand;
 import com.surofu.madeinrussia.application.command.user.ForceUpdateUserCommand;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.category.UserPageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
@@ -17,9 +18,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +46,8 @@ public class UserRestController {
     private final BanUserById.Result.Processor<ResponseEntity<?>> banUserByIdProcessor;
     private final UnbanUserById.Result.Processor<ResponseEntity<?>> unbanUserByIdProcessor;
     private final ChangeUserRoleById.Result.Processor<ResponseEntity<?>> changeUserRoleByIdProcessor;
+    private final SaveUserAvatarById.Result.Processor<ResponseEntity<?>> saveUserAvatarByIdProcessor;
+    private final DeleteUserAvatarById.Result.Processor<ResponseEntity<?>> deleteUserAvatarByIdProcessor;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
@@ -218,7 +223,7 @@ public class UserRestController {
                             description = "User successfully updated",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = UserDto.class)
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
                             )
                     ),
                     @ApiResponse(
@@ -231,7 +236,11 @@ public class UserRestController {
                     ),
                     @ApiResponse(
                             responseCode = "404",
-                            description = "User not found"
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
                     )
             }
     )
@@ -272,7 +281,11 @@ public class UserRestController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "User successfully deleted"
+                            description = "User successfully deleted",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "404",
@@ -320,7 +333,11 @@ public class UserRestController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "User successfully banned"
+                            description = "User successfully banned",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "404",
@@ -354,7 +371,11 @@ public class UserRestController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "User successfully unbanned"
+                            description = "User successfully unbanned",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "404",
@@ -388,7 +409,11 @@ public class UserRestController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "User role successfully changed"
+                            description = "User role successfully changed",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -400,7 +425,11 @@ public class UserRestController {
                     ),
                     @ApiResponse(
                             responseCode = "404",
-                            description = "User not found"
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
                     )
             }
     )
@@ -426,5 +455,95 @@ public class UserRestController {
             @RequestBody ChangeUserRoleCommand command) {
         ChangeUserRoleById operation = ChangeUserRoleById.of(id, UserRole.of(command.role()));
         return service.changeUserRoleById(operation).process(changeUserRoleByIdProcessor);
+    }
+
+    @PutMapping(value = "{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Upload user avatar by ID (Admin only)",
+            description = "Uploads or replaces the avatar for a user by their ID",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Avatar successfully uploaded",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid file format or size",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> saveUserAvatarById(
+            @Parameter(
+                    name = "id",
+                    description = "ID of the user whose avatar will be updated",
+                    required = true,
+                    example = "123",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable(name = "id") Long id,
+            @Parameter(
+                    name = "file",
+                    description = "Image file to upload as avatar (JPG, PNG, etc.)",
+                    required = true
+            )
+            @RequestPart("file") MultipartFile file) {
+        SaveUserAvatarById operation = SaveUserAvatarById.of(id, file);
+        return service.saveUserAvatarById(operation).process(saveUserAvatarByIdProcessor);
+    }
+
+    @DeleteMapping("{id}/avatar")
+    @Operation(
+            summary = "Delete user avatar by ID (Admin only)",
+            description = "Deletes the avatar for a user by their ID",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Avatar successfully deleted",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseMessageDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found or has no avatar",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
+                            )
+                    )
+            }
+    )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> deleteUserAvatarById(
+            @Parameter(
+                    name = "id",
+                    description = "ID of the user whose avatar will be deleted",
+                    required = true,
+                    example = "123",
+                    schema = @Schema(type = "integer", format = "int64", minimum = "1")
+            )
+            @PathVariable(name = "id") Long id) {
+        DeleteUserAvatarById operation = DeleteUserAvatarById.of(id);
+        return service.deleteUserAvatarById(operation).process(deleteUserAvatarByIdProcessor);
     }
 }

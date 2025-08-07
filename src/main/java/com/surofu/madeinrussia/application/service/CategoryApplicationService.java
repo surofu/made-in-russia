@@ -10,21 +10,16 @@ import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.model.okved.OkvedCategory;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.FileStorageRepository;
-import com.surofu.madeinrussia.core.repository.OkvedCategoryRepository;
 import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.FlushModeType;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

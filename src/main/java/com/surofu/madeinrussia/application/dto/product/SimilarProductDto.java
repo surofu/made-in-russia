@@ -29,7 +29,7 @@ public final class SimilarProductDto implements Serializable {
     private String title;
 
     @Schema(description = "URL of the product's preview image",
-            example = "https://example.com/images/iphone14pro.jpg",
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String imageUrl;
 

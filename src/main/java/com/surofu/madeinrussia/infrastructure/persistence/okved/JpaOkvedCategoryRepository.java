@@ -5,7 +5,6 @@ import com.surofu.madeinrussia.core.repository.OkvedCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 
 @Repository

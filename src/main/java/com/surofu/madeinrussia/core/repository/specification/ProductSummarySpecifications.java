@@ -66,10 +66,12 @@ public class ProductSummarySpecifications {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("title")),
-                    "%" + title.trim().toLowerCase() + "%"
-            );
+            List<Predicate> predicateList = new ArrayList<>(2);
+
+            predicateList.add(criteriaBuilder.like(criteriaBuilder.upper(root.get("title")), "%" + title.toUpperCase() + "%"));
+            predicateList.add(criteriaBuilder.like(criteriaBuilder.upper(criteriaBuilder.toString(root.get("titleTranslations"))), "%" + title.toUpperCase() + "%"));
+
+            return criteriaBuilder.or(predicateList.toArray(new Predicate[0]));
         };
     }
 

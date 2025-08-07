@@ -80,7 +80,7 @@ public final class CategoryDto implements Serializable {
 
     @Schema(
             description = "Image url of the category",
-            example = "https://images.unsplash.com/photo-1515446134809-993c501ca304?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
             maxLength = 20_000
     )
     private String imageUrl;

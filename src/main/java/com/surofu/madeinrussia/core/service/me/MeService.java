@@ -20,4 +20,8 @@ public interface MeService {
     UpdateMe.Result updateMe(UpdateMe operation);
 
     DeleteMeSessionById.Result deleteMeSessionById(DeleteMeSessionById operation);
+
+    SaveMeAvatar.Result saveMeAvatar(SaveMeAvatar operation);
+
+    DeleteMeAvatar.Result deleteMeAvatar(DeleteMeAvatar operation);
 }

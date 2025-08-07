@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 
@@ -27,6 +28,7 @@ public final class UserPassword implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
@@ -43,4 +45,11 @@ public final class UserPassword implements Serializable {
 
     @Embedded
     private UserPasswordLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserPassword)) return false;
+        return id != null && id.equals(((UserPassword) o).id);
+    }
 }

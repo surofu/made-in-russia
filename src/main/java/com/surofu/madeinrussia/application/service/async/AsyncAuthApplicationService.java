@@ -119,7 +119,7 @@ public class AsyncAuthApplicationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) throws CompletionException {
         try {
-            userRepository.saveUser(user);
+            userRepository.save(user);
             passwordRepository.saveUserPassword(userPassword);
             userVerificationCaffeineCacheManager.clearCache(user.getEmail());
         } catch (Exception ex) {

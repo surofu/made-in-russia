@@ -4,7 +4,6 @@ import com.surofu.madeinrussia.application.command.category.SaveCategoryCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
-import com.surofu.madeinrussia.core.model.category.CategoryImageUrl;
 import com.surofu.madeinrussia.core.model.category.CategoryName;
 import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.service.category.CategoryService;

@@ -43,7 +43,7 @@ public final class ProductMediaWithTranslationsDto {
 
     @Schema(
             description = "Absolute URL to access the media content",
-            example = "https://cdn.example.com/products/123/image.jpg"
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif"
     )
     private String url;
 

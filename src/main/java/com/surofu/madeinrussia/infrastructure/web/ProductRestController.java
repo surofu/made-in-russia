@@ -21,8 +21,8 @@ import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
 import com.surofu.madeinrussia.core.model.product.ProductDescription;
 import com.surofu.madeinrussia.core.model.product.ProductTitle;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewContent;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReviewRating;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewContent;
+import com.surofu.madeinrussia.core.model.product.review.ProductReviewRating;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.core.service.product.review.ProductReviewService;
@@ -56,10 +56,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 @Validated
 @RestController
@@ -422,11 +419,12 @@ public class ProductRestController {
             @RequestParam(required = false)
             Integer maxRating
     ) {
-        GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetProductReviewPageByProductId operation = GetProductReviewPageByProductId.of(productId, page, size, minRating, maxRating, locale);
         return productReviewService.getProductReviewPageByProductId(operation).process(getProductReviewPageByProductIdProcessor);
     }
 
-    @PostMapping("{productId}/reviews")
+    @PostMapping(value = "{productId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
@@ -480,13 +478,15 @@ public class ProductRestController {
             @PathVariable Long productId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser,
-            @RequestBody CreateProductReviewCommand createProductReviewCommand
+            @RequestPart("data") CreateProductReviewCommand command,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media
     ) {
         CreateProductReview operation = CreateProductReview.of(
                 productId,
                 securityUser,
-                ProductReviewContent.of(createProductReviewCommand.text()),
-                ProductReviewRating.of(createProductReviewCommand.rating())
+                ProductReviewContent.of(command.text()),
+                ProductReviewRating.of(command.rating()),
+                Objects.requireNonNullElse(media, Collections.emptyList())
         );
         return productReviewService.createProductReview(operation).process(createProductReviewProcessor);
     }

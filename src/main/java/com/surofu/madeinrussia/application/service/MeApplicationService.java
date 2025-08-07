@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.dto.TokenDto;
+import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.session.SessionDto;
@@ -8,13 +9,15 @@ import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
+import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.core.model.product.productReview.ProductReview;
+import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserAvatar;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
@@ -47,6 +50,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 import java.util.function.Function;
@@ -66,6 +70,7 @@ public class MeApplicationService implements MeService {
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
+    private final FileStorageRepository fileStorageRepository;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
@@ -311,7 +316,7 @@ public class MeApplicationService implements MeService {
             user.setVendorDetails(vendorDetails);
         }
 
-        User newUser = userRepository.saveUser(user);
+        User newUser = userRepository.save(user);
 
         if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
             return UpdateMe.Result.success(VendorDto.of(newUser));
@@ -333,6 +338,58 @@ public class MeApplicationService implements MeService {
         return DeleteMeSessionById.Result.notFound(operation.getSessionId());
     }
 
+    @Override
+    @Transactional
+    public SaveMeAvatar.Result saveMeAvatar(SaveMeAvatar operation) {
+        if (operation.getFile() != null && !operation.getFile().isEmpty()) {
+            String url;
+
+            try {
+                url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return SaveMeAvatar.Result.saveError(e);
+            }
+
+            UserAvatar avatar = UserAvatar.of(url);
+            operation.getSecurityUser().getUser().setAvatar(avatar);
+
+            try {
+                userRepository.save(operation.getSecurityUser().getUser());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return SaveMeAvatar.Result.saveError(e);
+            }
+        }
+
+        return SaveMeAvatar.Result.success();
+    }
+
+    @Override
+    @Transactional
+    public DeleteMeAvatar.Result deleteMeAvatar(DeleteMeAvatar operation) {
+        if (operation.getSecurityUser().getUser().getAvatar() != null) {
+            try {
+                fileStorageRepository.deleteMediaByLink(operation.getSecurityUser().getUser().getAvatar().getUrl());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return DeleteMeAvatar.Result.deleteError(e);
+            }
+
+            try {
+                operation.getSecurityUser().getUser().setAvatar(null);
+                userRepository.save(operation.getSecurityUser().getUser());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return DeleteMeAvatar.Result.deleteError(e);
+            }
+        }
+
+        return DeleteMeAvatar.Result.success();
+    }
+
+    /* ========== PRIVATE ========== */
+
     private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
         Long userId = securityUser.getUser().getId();
         SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
@@ -340,12 +397,12 @@ public class MeApplicationService implements MeService {
     }
 
     private Page<ProductReviewDto> getProductReviewsBy(Specification<ProductReview> specification, Pageable pageable) {
-        Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.findAll(specification, pageable);
+        Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.getPage(specification, pageable);
 
         if (!productReviewPageWithoutMedia.isEmpty()) {
             List<Long> productReviewIds = productReviewPageWithoutMedia.map(ProductReview::getId).toList();
 
-            List<ProductReview> productReviewPageWithMedia = productReviewRepository.findByIdInWithMedia(productReviewIds);
+            List<ProductReview> productReviewPageWithMedia = productReviewRepository.getByIdInWithMedia(productReviewIds);
 
             Map<Long, ProductReview> productReviewMap = productReviewPageWithMedia.stream()
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));

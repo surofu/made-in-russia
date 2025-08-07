@@ -19,26 +19,26 @@ import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.*;
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristic;
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicName;
-import com.surofu.madeinrussia.core.model.product.productCharacteristic.ProductCharacteristicValue;
-import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetails;
-import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsName;
-import com.surofu.madeinrussia.core.model.product.productDeliveryMethodDetails.ProductDeliveryMethodDetailsValue;
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaq;
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaqAnswer;
-import com.surofu.madeinrussia.core.model.product.productFaq.ProductFaqQuestion;
-import com.surofu.madeinrussia.core.model.product.productMedia.*;
-import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
-import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionName;
-import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPrice;
-import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOptionPriceUnit;
-import com.surofu.madeinrussia.core.model.product.productPrice.*;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetails;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.ProductVendorDetailsDescription;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
-import com.surofu.madeinrussia.core.model.product.productVendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaPosition;
+import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
+import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristicName;
+import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristicValue;
+import com.surofu.madeinrussia.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetails;
+import com.surofu.madeinrussia.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsName;
+import com.surofu.madeinrussia.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsValue;
+import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
+import com.surofu.madeinrussia.core.model.product.faq.ProductFaqAnswer;
+import com.surofu.madeinrussia.core.model.product.faq.ProductFaqQuestion;
+import com.surofu.madeinrussia.core.model.product.media.*;
+import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOption;
+import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionName;
+import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPrice;
+import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPriceUnit;
+import com.surofu.madeinrussia.core.model.product.price.*;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.ProductVendorDetails;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.ProductVendorDetailsDescription;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
+import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaPosition;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
@@ -1074,7 +1074,7 @@ public class ProductApplicationService implements ProductService {
                 }
             }
 
-            fileStorageRepository.deleteAllMediaByLink(linksForDelete);
+            fileStorageRepository.deleteMediaByLink(linksForDelete.toArray(new String[0]));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorDeletingFiles(e);

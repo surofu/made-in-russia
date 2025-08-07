@@ -5,6 +5,8 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class GetProductReviewPageByProductId {
@@ -13,18 +15,19 @@ public class GetProductReviewPageByProductId {
     Integer size;
     Integer minRating;
     Integer maxRating;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(Page<ProductReviewDto> productReviewDtoPage) {
-            log.info("Successfully processed get product review dto page with total elements: {}", productReviewDtoPage.getTotalElements());
-            return Success.of(productReviewDtoPage);
+        static Result success(Page<ProductReviewDto> page) {
+            log.info("Successfully processed get product review page by product id: {}", page.getTotalElements());
+            return Success.of(page);
         }
 
         @Value(staticConstructor = "of")
         class Success implements Result {
-            Page<ProductReviewDto> productReviewDtoPage;
+            Page<ProductReviewDto> page;
 
             @Override
             public <T> T process(Processor<T> processor) {

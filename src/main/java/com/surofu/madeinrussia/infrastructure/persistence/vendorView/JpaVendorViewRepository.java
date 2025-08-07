@@ -23,6 +23,6 @@ public class JpaVendorViewRepository implements VendorViewRepository {
 
     @Override
     public boolean notExists(VendorView vendorView) {
-        return repository.notExistsByVendorDetailsIdAndUserId(vendorView.getVendorDetails().getId(), vendorView.getUser().getId());
+        return repository.existsByVendorDetailsAndUser(vendorView.getVendorDetails(), vendorView.getUser());
     }
 }

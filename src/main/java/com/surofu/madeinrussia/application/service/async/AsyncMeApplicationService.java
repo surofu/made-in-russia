@@ -20,7 +20,7 @@ public class AsyncMeApplicationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateUser(User user) {
         try {
-            userRepository.saveUser(user);
+            userRepository.save(user);
         } catch (Exception e) {
             log.error("Error saving updated user: {}", e.getMessage(), e);
         }

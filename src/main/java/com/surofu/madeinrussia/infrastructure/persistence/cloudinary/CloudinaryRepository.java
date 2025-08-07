@@ -58,38 +58,35 @@ public class CloudinaryRepository implements FileStorageRepository {
     }
 
     @Override
-    public void deleteMediaByLink(String link) throws Exception {
-        String[] split = link.split("/");
-
-        if (split.length < 2) {
-            return;
-        }
-
-        String folderName = split[split.length - 2];
-        String mediaId = split[split.length - 1];
-        String publicId = folderName + "/" + mediaId;
-        cloudinary.api().deleteResources(Collections.singleton(publicId), Map.of());
-    }
-
-    @Override
-    public void deleteAllMediaByLink(List<String> links) throws Exception {
-        List<String> publicIdList = new ArrayList<>();
+    public void deleteMediaByLink(String ...links) throws Exception {
+        Set<String> publicIdImageSet = new HashSet<>(links.length);
+        Set<String> publicIdVideoSet = new HashSet<>(links.length);
 
         for (String link : links) {
             String[] split = link.split("/");
 
             if (split.length < 2) {
-                continue;
+                return;
             }
 
             String folderName = split[split.length - 2];
-            String mediaId = split[split.length - 1];
+            String mediaLink = split[split.length - 1];
+            String mediaId = mediaLink.split(".web")[0];
             String publicId = folderName + "/" + mediaId;
-            publicIdList.add(publicId);
+
+            if (mediaLink.contains("webp")) {
+                publicIdImageSet.add(publicId);
+            } else {
+                publicIdVideoSet.add(publicId);
+            }
         }
 
-        if (!publicIdList.isEmpty()) {
-            cloudinary.api().deleteResources(publicIdList, Map.of());
+        if (!publicIdImageSet.isEmpty()) {
+            cloudinary.api().deleteResources(publicIdImageSet, Map.of("resource_type", "image"));
+        }
+
+        if (!publicIdVideoSet.isEmpty()) {
+            cloudinary.api().deleteResources(publicIdVideoSet, Map.of("resource_type", "video"));
         }
     }
 

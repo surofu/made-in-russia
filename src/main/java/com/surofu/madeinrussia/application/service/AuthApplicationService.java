@@ -341,7 +341,7 @@ public class AuthApplicationService implements AuthService {
         userPassword.setPassword(UserPasswordPassword.of(passwordHash));
 
         try {
-            userRepository.saveUser(user);
+            userRepository.save(user);
             return ForceRegister.Result.success(operation.getEmail());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -463,7 +463,7 @@ public class AuthApplicationService implements AuthService {
 
         // Save
         try {
-            userRepository.saveUser(user);
+            userRepository.save(user);
             return ForceRegisterVendor.Result.success(operation.getEmail());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

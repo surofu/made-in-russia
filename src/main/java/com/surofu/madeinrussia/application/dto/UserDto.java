@@ -50,6 +50,7 @@ public final class UserDto extends AbstractAccountDto implements Serializable {
         userDto.setEmail(user.getEmail().getValue());
         userDto.setPhoneNumber(user.getPhoneNumber().getValue());
         userDto.setRegion(user.getRegion().getValue());
+        userDto.setAvatarUrl(user.getAvatar() != null ? user.getAvatar().getUrl() : null);
         userDto.setRegistrationDate(user.getRegistrationDate().getValue());
         userDto.setLastModificationDate(user.getLastModificationDate().getValue());
 
@@ -70,6 +71,7 @@ public final class UserDto extends AbstractAccountDto implements Serializable {
         userDto.setEmail(view.getEmail().getValue());
         userDto.setPhoneNumber(view.getPhoneNumber().getValue());
         userDto.setRegion(view.getRegion().getValue());
+        userDto.setAvatarUrl(view.getAvatar() != null ? view.getAvatar().getUrl() : null);
         userDto.setRegistrationDate(view.getRegistrationDate().getValue());
         userDto.setLastModificationDate(view.getLastModificationDate().getValue());
 

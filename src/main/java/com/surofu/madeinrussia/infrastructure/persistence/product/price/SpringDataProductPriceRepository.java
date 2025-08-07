@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.price;
 
-import com.surofu.madeinrussia.core.model.product.productPrice.ProductPrice;
+import com.surofu.madeinrussia.core.model.product.price.ProductPrice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

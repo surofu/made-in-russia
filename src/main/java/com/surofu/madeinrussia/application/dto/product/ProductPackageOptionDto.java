@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.product;
 
-import com.surofu.madeinrussia.core.model.product.productPackageOption.ProductPackageOption;
+import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOption;
 import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.ProductPackageOptionView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

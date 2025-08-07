@@ -232,7 +232,7 @@ public final class ProductSummaryViewDto implements Serializable {
 
     @Schema(
             description = "URL of the product's preview image",
-            example = "https://example.com/images/headphones-preview.jpg",
+            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
             format = "uri",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
