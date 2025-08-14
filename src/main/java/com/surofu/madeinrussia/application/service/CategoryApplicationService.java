@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.cache.CategoryCacheManager;
+import com.surofu.madeinrussia.application.cache.CategoryListCacheManager;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
@@ -15,39 +17,83 @@ import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class CategoryApplicationService implements CategoryService {
+public class CategoryApplicationService implements CategoryService, ApplicationRunner {
 
     private final CategoryRepository categoryRepository;
     private final TranslationRepository translationRepository;
     private final FileStorageRepository fileStorageRepository;
+    private final CategoryCacheManager categoryCacheManager;
+    private final CategoryListCacheManager categoryListCacheManager;
 
     @Override
     @Transactional(readOnly = true)
     public GetAllCategories.Result getAllCategories(GetAllCategories operation) {
+        // Check cache
+        List<CategoryDto> cachedCategoryDtos = categoryListCacheManager.getAllByLocale("ALL_" + operation.getLocale().getLanguage());
+        if (cachedCategoryDtos != null) {
+            log.info("Found {} cached Categories", cachedCategoryDtos.size());
+            return GetAllCategories.Result.success(cachedCategoryDtos);
+        }
+
+        // Process
         List<CategoryView> categories = categoryRepository.getAllCategoriesViewsByLang(operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+
+        try {
+            categoryListCacheManager.setAllByLocale("ALL_" + operation.getLocale().getLanguage(), categoryDtos);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+        log.info("Found {} non cached Categories", categoryDtos.size());
         return GetAllCategories.Result.success(categoryDtos);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetCategories.Result getCategories(GetCategories operation) {
+        // Check cache
+        List<CategoryDto> cachedCategoryDtos = categoryListCacheManager.getAllByLocale(operation.getLocale().getLanguage());
+        if (cachedCategoryDtos != null) {
+            return GetCategories.Result.success(cachedCategoryDtos);
+        }
+
+        // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewsL1AndL2ByLang(operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+
+        try {
+            categoryListCacheManager.setAllByLocale(operation.getLocale().getLanguage(), categoryDtos);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
         return GetCategories.Result.success(categoryDtos);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
+        // Check cache
+        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategoryId().toString());
+
+        if (cachedCategoryDto != null) {
+            return GetCategoryById.Result.success(cachedCategoryDto);
+        }
+
+        // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewWithChildrenByIdAndLang(operation.getCategoryId(), operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
 
@@ -55,12 +101,29 @@ public class CategoryApplicationService implements CategoryService {
             return GetCategoryById.Result.notFound(operation.getCategoryId());
         }
 
-        return GetCategoryById.Result.success(categoryDtos.stream().findFirst().get());
+        CategoryDto categoryDto = categoryDtos.stream().findFirst().get();
+
+        try {
+            categoryCacheManager.setCategory(operation.getCategoryId().toString(), categoryDto);
+            categoryCacheManager.setCategory(categoryDto.getSlug(), categoryDto);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return GetCategoryById.Result.success(categoryDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation) {
+        // Check cache
+        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategorySlug().toString());
+
+        if (cachedCategoryDto != null) {
+            return GetCategoryBySlug.Result.success(cachedCategoryDto);
+        }
+
+        // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewWithChildrenBySlugAndLang(operation.getCategorySlug().toString(), operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
 
@@ -68,7 +131,16 @@ public class CategoryApplicationService implements CategoryService {
             return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
         }
 
-        return GetCategoryBySlug.Result.success(categoryDtos.stream().findFirst().get());
+        CategoryDto categoryDto = categoryDtos.stream().findFirst().get();
+
+        try {
+            categoryCacheManager.setCategory(operation.getCategorySlug().toString(), categoryDto);
+            categoryCacheManager.setCategory(categoryDto.getId().toString(), categoryDto);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return GetCategoryBySlug.Result.success(categoryDto);
     }
 
     @Override
@@ -137,6 +209,13 @@ public class CategoryApplicationService implements CategoryService {
 
         try {
             categoryRepository.save(category);
+
+            try {
+                categoryListCacheManager.clearAll();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+
             return CreateCategory.Result.success(category.getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -230,6 +309,13 @@ public class CategoryApplicationService implements CategoryService {
 
         try {
             categoryRepository.save(category.get());
+            try {
+                categoryCacheManager.clearByHash(operation.getId().toString());
+                categoryCacheManager.clearByHash(category.get().getSlug().toString());
+                categoryListCacheManager.clearAll();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
             return UpdateCategoryById.Result.success(category.get().getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -257,6 +343,14 @@ public class CategoryApplicationService implements CategoryService {
 
         try {
             categoryRepository.delete(category.get());
+
+            try {
+                categoryCacheManager.clearByHash(operation.getId().toString());
+                categoryCacheManager.clearByHash(category.get().getSlug().toString());
+                categoryListCacheManager.clearAll();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
             return DeleteCategoryById.Result.success(category.get().getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -296,11 +390,29 @@ public class CategoryApplicationService implements CategoryService {
     }
 
     private void updateChildrenCount(CategoryDto dto) {
-        long count = dto.getChildren().size();
         for (CategoryDto child : dto.getChildren()) {
             updateChildrenCount(child);
-            count += child.getChildrenCount(); // если нужно учитывать всех потомков
         }
-        dto.setChildrenCount((long) dto.getChildren().size()); // или просто count для всех потомков
+        dto.setChildrenCount((long) dto.getChildren().size());
+    }
+
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) {
+        categoryCacheManager.clearAll();
+        categoryListCacheManager.clearAll();
+
+        log.info("Initializing categories: all (en)...");
+        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("en")));
+        log.info("Initializing categories: all (ru)...");
+        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("ru")));
+        log.info("Initializing categories: all (zh)...");
+        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("zh")));
+        log.info("Initializing categories: en...");
+        getCategories(GetCategories.of(Locale.forLanguageTag("en")));
+        log.info("Initializing categories: ru...");
+        getCategories(GetCategories.of(Locale.forLanguageTag("ru")));
+        log.info("Initializing categories: zh...");
+        getCategories(GetCategories.of(Locale.forLanguageTag("zh")));
     }
 }

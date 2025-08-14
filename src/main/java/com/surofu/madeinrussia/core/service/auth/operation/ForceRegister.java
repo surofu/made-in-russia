@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
-import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
-import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +13,7 @@ public class ForceRegister {
     UserPasswordPassword password;
     UserRegion region;
     UserPhoneNumber phoneNumber;
+    UserAvatar avatar;
 
     public interface Result {
         <T> T process(Processor<T> processor);

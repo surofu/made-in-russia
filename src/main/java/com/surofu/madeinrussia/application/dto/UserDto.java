@@ -27,7 +27,7 @@ import java.io.Serializable;
                 """
 )
 @EqualsAndHashCode(callSuper = true)
-public final class UserDto extends AbstractAccountDto implements Serializable {
+public class UserDto extends AbstractAccountDto implements Serializable {
     @Schema(
             description = "User's geographical region or location",
             example = "Moscow, Russia",

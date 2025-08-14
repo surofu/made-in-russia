@@ -29,9 +29,10 @@ public final class UserPassword implements Serializable {
     private Long id;
 
     @ToString.Exclude
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
+            unique = true,
             nullable = false,
             foreignKey = @ForeignKey(name = "fk_user_passwords_user_id")
     )

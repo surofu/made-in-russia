@@ -8,10 +8,7 @@ import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.auth.VerificationCode;
-import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
-import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
-import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
@@ -28,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -99,14 +98,17 @@ public class AuthRestController {
                             schema = @Schema(implementation = RegisterCommand.class)
                     )
             )
-            @RequestBody RegisterCommand registerCommand
+            @RequestBody RegisterCommand command
     ) {
+        Locale locale = LocaleContextHolder.getLocale();
         Register operation = Register.of(
-                UserEmail.of(registerCommand.email()),
-                UserLogin.of(registerCommand.login()),
-                UserPasswordPassword.of(registerCommand.password()),
-                UserRegion.of(registerCommand.region()),
-                UserPhoneNumber.of(registerCommand.phoneNumber())
+                UserEmail.of(command.email()),
+                UserLogin.of(command.login()),
+                UserPasswordPassword.of(command.password()),
+                UserRegion.of(command.region()),
+                UserPhoneNumber.of(command.phoneNumber()),
+                UserAvatar.of(command.avatarUrl()),
+                locale
         );
         return authService.register(operation).process(registerProcessor);
     }
@@ -151,16 +153,19 @@ public class AuthRestController {
                             schema = @Schema(implementation = RegisterVendorCommand.class)
                     )
             )
-            @RequestBody @Valid RegisterVendorCommand registerVendorCommand) {
+            @RequestBody @Valid RegisterVendorCommand command) {
+        Locale locale = LocaleContextHolder.getLocale();
         RegisterVendor operation = RegisterVendor.of(
-                UserEmail.of(registerVendorCommand.email()),
-                UserLogin.of(registerVendorCommand.login()),
-                UserPasswordPassword.of(registerVendorCommand.password()),
-                UserRegion.of(registerVendorCommand.countries().get(0)),
-                UserPhoneNumber.of(registerVendorCommand.phoneNumber()),
-                VendorDetailsInn.of(registerVendorCommand.inn()),
-                registerVendorCommand.countries().stream().map(VendorCountryName::of).toList(),
-                registerVendorCommand.productCategories().stream().map(VendorProductCategoryName::of).toList()
+                UserEmail.of(command.email()),
+                UserLogin.of(command.login()),
+                UserPasswordPassword.of(command.password()),
+                UserRegion.of(command.countries().get(0)),
+                UserPhoneNumber.of(command.phoneNumber()),
+                UserAvatar.of(command.avatarUrl()),
+                VendorDetailsInn.of(command.inn()),
+                command.countries().stream().map(VendorCountryName::of).toList(),
+                command.productCategories().stream().map(VendorProductCategoryName::of).toList(),
+                locale
         );
 
         return authService.registerVendor(operation).process(registerVendorProcessor);
@@ -479,7 +484,8 @@ public class AuthRestController {
                 UserLogin.of(command.login()),
                 UserPasswordPassword.of(command.password()),
                 UserRegion.of(command.region()),
-                UserPhoneNumber.of(command.phoneNumber())
+                UserPhoneNumber.of(command.phoneNumber()),
+                UserAvatar.of(command.avatarUrl())
         );
         return authService.forceRegister(operation).process(forceRegisterProcessor);
     }
@@ -530,7 +536,8 @@ public class AuthRestController {
                 UserPhoneNumber.of(command.phoneNumber()),
                 VendorDetailsInn.of(command.inn()),
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
-                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>()
+                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>(),
+                UserAvatar.of(command.avatarUrl())
         );
         return authService.forceRegisterVendor(operation).process(forceRegisterVendorProcessor);
     }

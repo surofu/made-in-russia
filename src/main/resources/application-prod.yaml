@@ -9,3 +9,16 @@ spring:
     enabled: false
     baseline-on-migrate: true
     validate-on-migrate: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: "https://exporteru.com/api/v1/oauth2/callback/google"
+app:
+  frontend:
+    oauth:
+      google:
+        redirect:
+          success: ${FRONT_END_HOST}
+          error: ${FRONT_END_HOST}/register

@@ -96,7 +96,7 @@ public class MeApplicationService implements MeService {
             VendorDto vendorDto = VendorDto.of(userView);
 
             List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
-                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    Objects.requireNonNull(operation.getSecurityUser().getUser().getVendorDetails()).getId(),
                     operation.getLocale().getLanguage()
             );
 
@@ -263,7 +263,7 @@ public class MeApplicationService implements MeService {
             user.setRegion(operation.getUserRegion());
         }
 
-        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+        if (user.getRole().equals(UserRole.ROLE_VENDOR) && user.getVendorDetails() != null) {
             VendorDetails vendorDetails = user.getVendorDetails();
 
             if (operation.getInn() != null) {

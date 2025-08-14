@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.core.model.session;
 
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
+import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -82,5 +85,30 @@ public class Session implements Serializable {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public static Session of(SessionInfo sessionInfo, User user, Session session) {
+        UserAgent userAgent = sessionInfo.getUserAgent();
+        SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
+        SessionIpAddress sessionIpAddress = sessionInfo.getIpAddress();
+        String rawDeviceType = userAgent.getOperatingSystem().getDeviceType().getName();
+        SessionDeviceType sessionDeviceType = SessionDeviceType.of(rawDeviceType);
+        String rawBrowserName = userAgent.getBrowser().getName();
+        SessionBrowser sessionBrowser = SessionBrowser.of(rawBrowserName);
+        String rawOsName = userAgent.getOperatingSystem().getName();
+        SessionOs sessionOs = SessionOs.of(rawOsName);
+        ZonedDateTime dateNow = ZonedDateTime.now();
+        SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
+        SessionCreationDate sessionCreationDate = SessionCreationDate.of(dateNow);
+
+        session.setUser(user);
+        session.setDeviceId(sessionDeviceId);
+        session.setDeviceType(sessionDeviceType);
+        session.setBrowser(sessionBrowser);
+        session.setOs(sessionOs);
+        session.setIpAddress(sessionIpAddress);
+        session.setCreationDate(sessionCreationDate);
+        session.setLastModificationDate(sessionLastModificationDate);
+        return session;
     }
 }

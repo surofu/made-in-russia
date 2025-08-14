@@ -5,12 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class AbstractAccountDto {
+public abstract class AbstractAccountDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the user",

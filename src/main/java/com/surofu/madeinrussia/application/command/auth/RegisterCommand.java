@@ -5,6 +5,7 @@ public record RegisterCommand(
         String login,
         String password,
         String region,
-        String phoneNumber
+        String phoneNumber,
+        String avatarUrl
 ) {
 }

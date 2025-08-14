@@ -45,7 +45,7 @@ public final class VendorDetails implements Serializable {
     private Long id;
 
     @ToString.Exclude
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
             nullable = false,

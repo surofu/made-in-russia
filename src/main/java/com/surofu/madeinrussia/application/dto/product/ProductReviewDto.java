@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -136,13 +138,23 @@ public final class ProductReviewDto implements Serializable {
     }
 
     public static ProductReviewDto of(ProductReview productReview, Locale locale) {
-        ProductReviewDto productReviewDto = ProductReviewDto.of(productReview);
-        switch (locale.getLanguage()) {
-            case "en" -> productReviewDto.setText(productReview.getContent().getTranslations().textEn());
-            case "ru" -> productReviewDto.setText(productReview.getContent().getTranslations().textRu());
-            case "zh" -> productReviewDto.setText(productReview.getContent().getTranslations().textZh());
-            default -> productReviewDto.setText(productReview.getContent().getTranslations().textEn());
-        }
-        return productReviewDto;
+        String content = switch (locale.getLanguage()) {
+            case "en" -> productReview.getContent().getTranslations().textEn();
+            case "ru" -> productReview.getContent().getTranslations().textRu();
+            case "zh" -> productReview.getContent().getTranslations().textZh();
+            default -> productReview.getContent().toString();
+        };
+
+        content = Objects.requireNonNullElse(StringUtils.trimToNull(content), productReview.getContent().toString());
+
+        return ProductReviewDto.builder()
+                .id(productReview.getId())
+                .author(UserDto.of(productReview.getUser()))
+                .text(content)
+                .media(productReview.getMedia().stream().map(ProductReviewMediaDto::of).toList())
+                .rating(productReview.getRating().getValue())
+                .creationDate(productReview.getCreationDate().getValue())
+                .lastModificationDate(productReview.getLastModificationDate().getValue())
+                .build();
     }
 }

@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.core.service.vendor.operation;
 
 import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import jakarta.annotation.Nullable;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

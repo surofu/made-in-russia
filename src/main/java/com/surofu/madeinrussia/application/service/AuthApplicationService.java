@@ -11,8 +11,8 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
-import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
+import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
+import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
@@ -58,8 +58,8 @@ public class AuthApplicationService implements AuthService {
     private final AsyncAuthApplicationService asyncAuthApplicationService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
-    private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
-    private final RecoverPasswordCaffeineCacheManager recoverPasswordCaffeineCacheManager;
+    private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
+    private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -148,7 +148,7 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public VerifyEmail.Result verifyEmail(VerifyEmail operation) {
-        String verificationCodeFromCache = userVerificationCaffeineCacheManager.getVerificationCode(operation.getUserEmail());
+        String verificationCodeFromCache = userVerificationRedisCacheManager.getVerificationCode(operation.getUserEmail());
 
         if (verificationCodeFromCache == null) {
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
@@ -158,7 +158,7 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.invalidVerificationCode(operation.getVerificationCode());
         }
 
-        User user = userVerificationCaffeineCacheManager.getUser(operation.getUserEmail());
+        User user = userVerificationRedisCacheManager.getUser(operation.getUserEmail());
 
         if (user == null) {
             log.error("User with email {} not found in cache", operation.getUserEmail());
@@ -204,12 +204,15 @@ public class AuthApplicationService implements AuthService {
             }
         }
 
-        UserPassword userPassword = userVerificationCaffeineCacheManager.getUserPassword(operation.getUserEmail());
+        UserPassword userPassword = userVerificationRedisCacheManager.getUserPassword(operation.getUserEmail());
 
         if (userPassword == null) {
             log.error("User password with email {} not found in cache", operation.getUserEmail());
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
         }
+
+        user.setPassword(userPassword);
+        userPassword.setUser(user);
 
         SecurityUser securityUser = new SecurityUser(user, userPassword, operation.getSessionInfo());
 
@@ -218,7 +221,7 @@ public class AuthApplicationService implements AuthService {
 
         VerifyEmailSuccessDto verifyEmailSuccessDto = VerifyEmailSuccessDto.of(accessToken, refreshToken);
 
-        asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user, userPassword)
+        asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user)
                 .thenCompose(unused -> asyncSessionApplicationService
                         .saveOrUpdateSessionFromHttpRequest(securityUser)
                         .exceptionally(ex -> {
@@ -273,7 +276,7 @@ public class AuthApplicationService implements AuthService {
     @Override
     @Transactional
     public VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation) {
-        RecoverPasswordDto recoverPasswordDto = recoverPasswordCaffeineCacheManager.getRecoverPasswordDto(operation.getUserEmail());
+        RecoverPasswordDto recoverPasswordDto = recoverPasswordRedisCacheManager.getPassword(operation.getUserEmail());
 
         if (recoverPasswordDto == null) {
             return VerifyRecoverPassword.Result.emailNotFound(operation.getUserEmail());
@@ -332,6 +335,7 @@ public class AuthApplicationService implements AuthService {
         user.setLogin(operation.getLogin());
         user.setPhoneNumber(operation.getPhoneNumber());
         user.setRegion(operation.getRegion());
+        user.setAvatar(operation.getAvatar());
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
@@ -384,6 +388,7 @@ public class AuthApplicationService implements AuthService {
         user.setEmail(operation.getEmail());
         user.setLogin(operation.getLogin());
         user.setPhoneNumber(operation.getPhoneNumber());
+        user.setAvatar(operation.getAvatar());
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);

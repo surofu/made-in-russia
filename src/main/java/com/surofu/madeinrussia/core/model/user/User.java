@@ -1,15 +1,14 @@
 package com.surofu.madeinrussia.core.model.user;
 
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
+import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,23 +39,44 @@ public final class User implements Serializable {
     private UserIsEnabled isEnabled;
 
     @ToString.Exclude
-    @OneToOne(
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+            fetch = FetchType.LAZY,
             mappedBy = "user",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private UserPassword password;
-
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private VendorDetails vendorDetails;
+    private Set<UserPassword> password;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorDetails> vendorDetails;
+
+    @ToString.Exclude
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private Set<ProductReview> productReviews = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<Session> sessions = new HashSet<>();
 
     @Embedded
     private UserEmail email;
@@ -78,6 +98,30 @@ public final class User implements Serializable {
 
     @Embedded
     private UserLastModificationDate lastModificationDate;
+
+    public UserPassword getPassword() {
+        if (password == null) {
+            return null;
+        }
+
+        return password.stream().findFirst().orElse(null);
+    }
+
+    public void setPassword(UserPassword password) {
+        this.password = Collections.singleton(password);
+    }
+
+    public VendorDetails getVendorDetails() {
+        if (vendorDetails == null) {
+            return null;
+        }
+
+        return vendorDetails.stream().findFirst().orElse(null);
+    }
+
+    public void setVendorDetails(VendorDetails vendorDetails) {
+        this.vendorDetails = Collections.singleton(vendorDetails);
+    }
 
     @Override
     public boolean equals(Object o) {

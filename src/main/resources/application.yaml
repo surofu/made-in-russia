@@ -64,6 +64,35 @@ spring:
     user: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
 
+  data:
+  #========= Redis =========#
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      database: 0
+      repositories:
+        enabled: false
+
+  #========= OAuth 2.0 =========#
+  security:
+    oauth2:
+      client:
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-name-attribute: sub
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+             - email
+             - profile
+            client-name: Google
+
   #========= Mail =========#
   mail:
     host: ${MAIL_HOST}
@@ -113,8 +142,6 @@ jwt:
 
 #========== App environments ==========#
 app:
-  mail-verification:
-    duration-in-minutes: ${MAIL_VERIFICATION_DURATION_IN_MINUTES}
   rate:
     limit:
       capacity: ${RATE_LIMIT_CAPACITY}
@@ -124,10 +151,10 @@ app:
         seconds: ${RATE_LIMIT_REFILL_SECONDS}
   session:
     secret: ${INTERNAL_REQUEST_SECRET}
-  cache:
-    expires-after-write-in-minutes: ${CACHE_EXPIRES_AFTER_WRITE_IN_MINUTES}
-    expires-after-access-in-minutes: ${CACHE_EXPIRES_AFTER_ACCESS_IN_MINUTES}
-    maximum-size: ${CACHE_MAXIMUM_SIZE}
+  redis:
+    ttl-duration: ${REDIS_TTL_DURATION}
+    verification-ttl-duration: ${REDIS_VERIFICATION_DURATION}
+    recover-password-ttl-duration: ${REDIS_RECOVER_PASSWORD_DURATION}
   cloudinary:
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
@@ -148,6 +175,11 @@ app:
       secret: ${YANDEX_TRANSLATE_SECRET}
   okved:
     uri: https://agentom.ru/api/okved
+
+telegram:
+  bot:
+    username: ${BOT_USERNAME}
+    token: ${BOT_TOKEN}
 
 springdoc:
   swagger-ui:

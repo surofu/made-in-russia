@@ -9,9 +9,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
+    Page<User> getPage(Specification<User> specification, Pageable pageable);
+
+    List<User> getByIds(List<Long> ids);
+
     Optional<User> getUserById(Long id);
 
     Optional<User> getUserByLogin(UserLogin userLogin);
@@ -35,7 +40,5 @@ public interface UserRepository {
     void delete(User user);
 
     // View
-    Page<UserView> getUserViewPage(Specification<User> specification, Pageable pageable);
-
     Optional<UserView> getViewById(Long id);
 }

@@ -1,20 +1,24 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
+import com.surofu.madeinrussia.application.exception.InvalidRoleException;
 import com.surofu.madeinrussia.core.model.user.User;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 
 public class UserSpecifications {
     public static Specification<User> byRole(@Param("role") String role) {
         return (root, query, criteriaBuilder) -> {
-            if (role == null) {
+            if (role == null || role.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.or(
-                    criteriaBuilder.equal(criteriaBuilder.upper(root.get("role")), role.toUpperCase()),
-                    criteriaBuilder.equal(criteriaBuilder.upper(root.get("role")), "ROLE_" + role.toUpperCase())
-            );
+            try {
+                UserRole userRole = UserRole.of(role);
+                return criteriaBuilder.equal(root.get("role"), userRole);
+            } catch (InvalidRoleException e) {
+                return criteriaBuilder.disjunction();
+            }
         };
     }
 
@@ -30,7 +34,7 @@ public class UserSpecifications {
 
     public static Specification<User> byLogin(@Param("login") String login) {
         return (root, query, criteriaBuilder) -> {
-            if (login == null) {
+            if (login == null || login.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
 
@@ -40,7 +44,7 @@ public class UserSpecifications {
 
     public static Specification<User> byEmail(@Param("email") String email) {
         return (root, query, criteriaBuilder) -> {
-            if (email == null) {
+            if (email == null || email.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
 
@@ -50,7 +54,7 @@ public class UserSpecifications {
 
     public static Specification<User> byPhoneNumber(@Param("phoneNumber") String phoneNumber) {
         return (root, query, criteriaBuilder) -> {
-            if (phoneNumber == null) {
+            if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
 
@@ -60,7 +64,7 @@ public class UserSpecifications {
 
     public static Specification<User> byRegion(@Param("region") String region) {
         return (root, query, criteriaBuilder) -> {
-            if (region == null) {
+            if (region == null || region.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
 

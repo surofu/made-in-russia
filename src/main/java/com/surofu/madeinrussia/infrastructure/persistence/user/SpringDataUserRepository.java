@@ -13,9 +13,14 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataUserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+    Page<Long> findUserIdsBy(Specification<User> specification, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
+    List<User> findByIdIn(List<Long> ids);
 
     @Query("select u from User u where u.id = :id")
     @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
@@ -53,9 +58,5 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
     boolean existsVendorById(@Param("vendorId") Long vendorId);
 
     // View
-    @Query("select u from User u")
-    @EntityGraph(attributePaths = {"password", "vendorDetails", "vendorDetails.vendorCountries", "vendorDetails.vendorProductCategories", "vendorDetails.faq"})
-    Page<UserView> findViewPage(Specification<User> specification, Pageable pageable);
-
     Optional<UserView> findViewById(Long id);
 }

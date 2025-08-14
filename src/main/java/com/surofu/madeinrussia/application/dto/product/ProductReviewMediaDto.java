@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 @Data
@@ -18,7 +19,7 @@ import java.time.ZonedDateTime;
         description = "Represents a product review media content (images, videos)",
         name = "ProductReviewMedia"
 )
-public final class ProductReviewMediaDto {
+public final class ProductReviewMediaDto implements Serializable {
 
     @Schema(
             description = "Unique identifier of the media item",

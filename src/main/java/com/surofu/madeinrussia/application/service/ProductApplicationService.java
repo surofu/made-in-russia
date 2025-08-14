@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.cache.ProductCacheManager;
+import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
 import com.surofu.madeinrussia.application.command.product.create.*;
 import com.surofu.madeinrussia.application.command.product.update.*;
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
@@ -43,6 +45,7 @@ import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
+import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
@@ -74,7 +77,14 @@ import jakarta.persistence.FlushModeType;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,9 +99,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class ProductApplicationService implements ProductService {
+public class ProductApplicationService implements ProductService, ApplicationRunner {
 
     private final ProductRepository productRepository;
+    private final ProductSummaryViewRepository productSummaryViewRepository;
     private final UserRepository userRepository;
     private final VendorCountryRepository vendorCountryRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
@@ -111,15 +122,25 @@ public class ProductApplicationService implements ProductService {
     private final TranslationRepository translationRepository;
     private final AsyncProductApplicationService asyncProductApplicationService;
     private final TaskExecutor appTaskExecutor;
+    private final ProductCacheManager productCacheManager;
 
     @PersistenceContext
     private final EntityManager entityManager;
 
     private final String TEMP_URL = "TEMP_URL";
+    private final ProductSummaryCacheManager productSummaryCacheManager;
 
     @Override
     @Transactional(readOnly = true)
     public GetProductById.Result getProductById(GetProductById operation) {
+        // Check cache
+        ProductDto cachedProduct = productCacheManager.getProduct(operation.getProductId(), operation.getLocale().getLanguage());
+
+        if (cachedProduct != null) {
+            return GetProductById.Result.success(cachedProduct);
+        }
+
+        // Process
         Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(
                 operation.getProductId(), operation.getLocale().getLanguage()
         );
@@ -604,6 +625,7 @@ public class ProductApplicationService implements ProductService {
         /* ========== Save Data ========== */
         try {
             saveProduct(product);
+            productSummaryCacheManager.clearAll();
             return CreateProduct.Result.success();
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -1082,6 +1104,8 @@ public class ProductApplicationService implements ProductService {
 
         try {
             productRepository.save(product);
+            productSummaryCacheManager.clearAll();
+            productCacheManager.clearById(operation.getProductId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct(e);
@@ -1294,6 +1318,8 @@ public class ProductApplicationService implements ProductService {
             return DeleteProductById.Result.deleteError(e);
         }
 
+        productSummaryCacheManager.clearAll();
+        productCacheManager.clearById(operation.getProductId());
         return DeleteProductById.Result.success(operation.getProductId());
     }
 
@@ -1631,5 +1657,56 @@ public class ProductApplicationService implements ProductService {
             MultipartFile file,
             String folderName
     ) {
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        productCacheManager.clearAll();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("creationDate").descending());
+        Page<ProductSummaryView> page = productSummaryViewRepository.getProductSummaryViewPage(Specification.anyOf(), pageable);
+        List<Long> ids = page.getContent().stream().map(ProductSummaryView::getId).toList();
+
+        log.info("Initializing products: first page (en)...");
+        Locale enLocale = Locale.ENGLISH;
+        for (Long id : ids) {
+            Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(id, enLocale.getLanguage());
+
+            if (productView.isEmpty()) {
+                continue;
+            }
+
+            ProductDto productDto = ProductDto.of(productView.get());
+            ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), enLocale);
+            productCacheManager.setProduct(id, enLocale.getLanguage(), fullProductDto);
+        }
+
+        log.info("Initializing products: first page (ru)...");
+        Locale ruLocale = Locale.forLanguageTag("ru");
+        for (Long id : ids) {
+            Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(id, ruLocale.getLanguage());
+
+            if (productView.isEmpty()) {
+                continue;
+            }
+
+            ProductDto productDto = ProductDto.of(productView.get());
+            ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), ruLocale);
+            productCacheManager.setProduct(id, ruLocale.getLanguage(), fullProductDto);
+        }
+
+        log.info("Initializing products: first page (zh)...");
+        Locale zhLocale = Locale.forLanguageTag("zh");
+        for (Long id : ids) {
+            Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(id, zhLocale.getLanguage());
+
+            if (productView.isEmpty()) {
+                continue;
+            }
+
+            ProductDto productDto = ProductDto.of(productView.get());
+            ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), zhLocale);
+            productCacheManager.setProduct(id, zhLocale.getLanguage(), fullProductDto);
+        }
     }
 }

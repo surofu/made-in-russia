@@ -152,7 +152,7 @@ public class UserRestController {
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "phoneNumber", required = false) String phoneNumber,
             @RequestParam(name = "region", required = false) String region,
-            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "sort", required = false, defaultValue = "id") String sort,
             @RequestParam(name = "direction", defaultValue = "asc", required = false) String direction
     ) {
         GetUserPage operation = GetUserPage.of(page, size, role, isEnabled,

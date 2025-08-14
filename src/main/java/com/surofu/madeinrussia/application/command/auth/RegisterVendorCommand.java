@@ -9,6 +9,7 @@ public record RegisterVendorCommand(
         String phoneNumber,
         String inn,
         List<String> countries,
-        List<String> productCategories
+        List<String> productCategories,
+        String avatarUrl
 ) {
 }

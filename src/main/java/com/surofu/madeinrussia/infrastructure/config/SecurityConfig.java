@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.infrastructure.config;
 
+import com.surofu.madeinrussia.application.components.OAuth2Handler;
 import com.surofu.madeinrussia.infrastructure.filter.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final OAuth2Handler oAuth2Handler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,9 +31,23 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth ->
-                        auth.anyRequest().permitAll()
+                        auth
+                                .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(config -> config
+                                .baseUri("/api/v1/oauth2/authorize")
+                        )
+                        .redirectionEndpoint(config -> config
+                                .baseUri("/api/v1/oauth2/callback/google")
+                        )
+                        .successHandler(oAuth2Handler)
+                        .failureHandler(oAuth2Handler)
+                )
+                .exceptionHandling(exceptions ->
+                        exceptions.authenticationEntryPoint((request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                );
 
         return http.build();
     }

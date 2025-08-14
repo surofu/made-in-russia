@@ -1,10 +1,11 @@
 package com.surofu.madeinrussia.application.service.async;
 
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
-import com.surofu.madeinrussia.application.utils.RecoverPasswordCaffeineCacheManager;
-import com.surofu.madeinrussia.application.utils.UserVerificationCaffeineCacheManager;
+import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
+import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
+import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
@@ -21,14 +22,17 @@ import com.surofu.madeinrussia.core.service.auth.operation.RegisterVendor;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -38,23 +42,32 @@ import java.util.concurrent.CompletionException;
 @Service
 @RequiredArgsConstructor
 public class AsyncAuthApplicationService {
+
+    @Value("${app.redis.recover-password-ttl-duration}")
+    private Duration recoverPasswordTtl;
+
+    @Value("${app.redis.verification-ttl-duration}")
+    private Duration verificationTtl;
+
     private final UserRepository userRepository;
     private final UserPasswordRepository passwordRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    private final UserVerificationCaffeineCacheManager userVerificationCaffeineCacheManager;
-    private final RecoverPasswordCaffeineCacheManager recoverPasswordCaffeineCacheManager;
+    private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
+    private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
         User user = new User();
+        user.setIsEnabled(UserIsEnabled.of(true));
         user.setRole(UserRole.ROLE_USER);
         user.setEmail(operation.getUserEmail());
         user.setLogin(operation.getUserLogin());
         user.setPhoneNumber(operation.getUserPhoneNumber());
         user.setRegion(operation.getUserRegion());
+        user.setAvatar(operation.getAvatar());
 
         UserPassword userPassword = new UserPassword();
         userPassword.setUser(user);
@@ -63,7 +76,7 @@ public class AsyncAuthApplicationService {
         UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
         userPassword.setPassword(hashedUserPasswordPassword);
 
-        return saveUserInCacheAndSendMessage(user, userPassword);
+        return saveUserInCacheAndSendMessage(user, userPassword, operation.getLocale());
     }
 
     @Async
@@ -71,10 +84,12 @@ public class AsyncAuthApplicationService {
     public CompletableFuture<Void> saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(RegisterVendor operation) throws CompletionException {
         User user = new User();
         user.setRole(UserRole.ROLE_VENDOR);
+        user.setIsEnabled(UserIsEnabled.of(true));
         user.setEmail(operation.getUserEmail());
         user.setLogin(operation.getUserLogin());
         user.setPhoneNumber(operation.getUserPhoneNumber());
         user.setRegion(operation.getUserRegion());
+        user.setAvatar(operation.getAvatar());
 
         VendorDetails vendorDetails = new VendorDetails();
         vendorDetails.setInn(operation.getVendorDetailsInn());
@@ -112,16 +127,15 @@ public class AsyncAuthApplicationService {
         user.setVendorDetails(vendorDetails);
         vendorDetails.setUser(user);
 
-        return saveUserInCacheAndSendMessage(user, userPassword);
+        return saveUserInCacheAndSendMessage(user, userPassword, operation.getLocale());
     }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user, UserPassword userPassword) throws CompletionException {
+    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user) throws CompletionException {
         try {
             userRepository.save(user);
-            passwordRepository.saveUserPassword(userPassword);
-            userVerificationCaffeineCacheManager.clearCache(user.getEmail());
+            userVerificationRedisCacheManager.clearCache(user.getEmail());
         } catch (Exception ex) {
             log.error("Error saving user or password: {}", ex.getMessage(), ex);
         }
@@ -134,16 +148,13 @@ public class AsyncAuthApplicationService {
     public void saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(RecoverPassword recoverPassword) throws CompletionException {
         try {
             String recoverCode = generateVerificationCode();
-            String expiration = ZonedDateTime.now().toString();
+            LocalDateTime expiration = LocalDateTime.now().plus(recoverPasswordTtl);
 
             RecoverPasswordDto recoverPasswordDto = new RecoverPasswordDto(recoverCode, recoverPassword.getNewUserPassword());
-            recoverPasswordCaffeineCacheManager.setRecoverPasswordDto(recoverPassword.getUserEmail(), recoverPasswordDto);
+            recoverPasswordRedisCacheManager.setPasswordWithTtl(recoverPassword.getUserEmail(), recoverPasswordDto);
 
-            mailService.sendRecoverPasswordVerificationMail(
-                    recoverPassword.getUserEmail().toString(),
-                    recoverCode,
-                    expiration
-            );
+            mailService.sendRecoverPasswordVerificationMail(recoverPassword.getUserEmail().toString(),
+                    recoverCode, expiration);
         } catch (Exception e) {
             log.error("Error saving recover password or sending recover code: {}", e.getMessage(), e);
         }
@@ -154,24 +165,24 @@ public class AsyncAuthApplicationService {
     public void saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(UserPassword userPassword, UserEmail userEmail) {
         try {
             passwordRepository.saveUserPassword(userPassword);
-            recoverPasswordCaffeineCacheManager.clearRecoverPasswordDto(userEmail);
+            recoverPasswordRedisCacheManager.clear(userEmail);
         } catch (Exception e) {
             log.error("Error saving user password: {}", e.getMessage(), e);
         }
     }
 
-    private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword) throws CompletionException {
+    private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword, Locale locale) throws CompletionException {
         try {
             String verificationCode = generateVerificationCode();
 
-            userVerificationCaffeineCacheManager.setUser(user.getEmail(), user);
-            userVerificationCaffeineCacheManager.setUserPassword(user.getEmail(), userPassword);
-            userVerificationCaffeineCacheManager.setVerificationCode(user.getEmail(), verificationCode);
+            userVerificationRedisCacheManager.setUser(user.getEmail(), user);
+            userVerificationRedisCacheManager.setUserPassword(user.getEmail(), userPassword);
+            userVerificationRedisCacheManager.setVerificationCode(user.getEmail(), verificationCode);
 
-            String expiration = ZonedDateTime.now().toString();
+            LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
 
             try {
-                mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration);
+                mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, locale);
             } catch (Exception ex) {
                 log.error("Error sending verification mail: {}", ex.getMessage(), ex);
             }

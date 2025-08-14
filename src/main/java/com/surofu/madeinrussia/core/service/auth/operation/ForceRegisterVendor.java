@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
+import com.surofu.madeinrussia.core.model.user.UserAvatar;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
@@ -22,6 +23,7 @@ public class ForceRegisterVendor {
     VendorDetailsInn inn;
     List<VendorCountryName> countryNames;
     List<VendorProductCategoryName> productCategoryNames;
+    UserAvatar avatar;
 
     public interface Result {
         <T> T process(Processor<T> processor);

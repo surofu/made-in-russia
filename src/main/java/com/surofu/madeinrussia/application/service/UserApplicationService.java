@@ -17,7 +17,6 @@ import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.UserSpecifications;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
-import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,9 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -47,7 +48,8 @@ public class UserApplicationService implements UserService {
     @Override
     @Transactional(readOnly = true)
     public GetUserPage.Result getUserPage(GetUserPage operation) {
-        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), operation.getSort().split(","));
+        String[] sortStrings = operation.getSort().split(",");
+        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
         Specification<User> specification = Specification.where(UserSpecifications.byRole(operation.getRole()))
                 .and(UserSpecifications.byIsEnabled(operation.getIsEnabled()))
@@ -55,12 +57,20 @@ public class UserApplicationService implements UserService {
                 .and(UserSpecifications.byLogin(operation.getLogin()))
                 .and(UserSpecifications.byPhoneNumber(operation.getPhoneNumber()))
                 .and(UserSpecifications.byRegion(operation.getRegion()));
-        Page<UserView> viewPage = userRepository.getUserViewPage(specification, pageable);
-        Page<AbstractAccountDto> dtoPage = viewPage.map(u -> {
-            if (u.getVendorDetails() != null) {
-                return VendorDto.of(u);
+
+        Page<User> page = userRepository.getPage(specification, pageable);
+
+        List<Long> ids = page.getContent().stream().map(User::getId).toList();
+        List<User> fullUserList = userRepository.getByIds(ids);
+
+        AtomicInteger index = new AtomicInteger();
+        Page<AbstractAccountDto> dtoPage = page.map(unused -> {
+            User fullUser = fullUserList.get(index.get());
+            index.getAndIncrement();
+            if (fullUser.getVendorDetails() != null) {
+                return VendorDto.of(fullUser);
             }
-            return UserDto.of(u);
+            return UserDto.of(fullUser);
         });
         return GetUserPage.Result.success(dtoPage);
     }

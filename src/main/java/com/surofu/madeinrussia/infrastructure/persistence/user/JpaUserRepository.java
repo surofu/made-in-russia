@@ -11,12 +11,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class JpaUserRepository implements UserRepository {
     private final SpringDataUserRepository repository;
+
+    @Override
+    public Page<User> getPage(Specification<User> specification, Pageable pageable) {
+        return repository.findAll(specification, pageable);
+    }
+
+    @Override
+    public List<User> getByIds(List<Long> ids) {
+        return repository.findByIdIn(ids);
+    }
 
     @Override
     public Optional<User> getUserById(Long id) {
@@ -74,11 +85,6 @@ public class JpaUserRepository implements UserRepository {
     }
 
     // View
-    @Override
-    public Page<UserView> getUserViewPage(Specification<User> specification, Pageable pageable) {
-        return repository.findViewPage(specification, pageable);
-    }
-
     @Override
     public Optional<UserView> getViewById(Long id) {
         return repository.findViewById(id);

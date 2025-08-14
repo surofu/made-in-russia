@@ -1,9 +1,6 @@
 package com.surofu.madeinrussia.core.service.auth.operation;
 
-import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserLogin;
-import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
-import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
@@ -12,6 +9,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Value(staticConstructor = "of")
@@ -21,11 +19,11 @@ public class RegisterVendor {
     UserPasswordPassword userPasswordPassword;
     UserRegion userRegion;
     UserPhoneNumber userPhoneNumber;
-
+    UserAvatar avatar;
     VendorDetailsInn vendorDetailsInn;
-
     List<VendorCountryName> vendorCountryNames;
     List<VendorProductCategoryName> vendorProductCategoryNames;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);

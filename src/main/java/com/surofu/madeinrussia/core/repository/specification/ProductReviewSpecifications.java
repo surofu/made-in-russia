@@ -41,7 +41,7 @@ public class ProductReviewSpecifications {
 
     public static Specification<ProductReview> byContent(@Param("content") String content) {
         return ((root, query, criteriaBuilder) -> {
-           if (content == null || content.isEmpty()) {
+           if (content == null || content.trim().isEmpty()) {
                return criteriaBuilder.conjunction();
            }
 
