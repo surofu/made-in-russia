@@ -14,21 +14,20 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class UserPhoneNumber implements Serializable {
 
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(name = "phone_number", unique = true)
     private String value;
 
     private UserPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new LocalizedValidationException("validation.phone_number.empty");
-        }
 
-        if (phoneNumber.length() < 7) {
-            throw new LocalizedValidationException("validation.phone_number.min_length");
-        }
+       if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+           if (phoneNumber.length() < 7) {
+               throw new LocalizedValidationException("validation.phone_number.min_length");
+           }
 
-        if (phoneNumber.length() > 255) {
-            throw new LocalizedValidationException("validation.phone_number.max_length");
-        }
+           if (phoneNumber.length() > 255) {
+               throw new LocalizedValidationException("validation.phone_number.max_length");
+           }
+       }
 
         this.value = phoneNumber;
     }

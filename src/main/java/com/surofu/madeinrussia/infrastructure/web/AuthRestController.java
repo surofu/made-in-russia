@@ -11,6 +11,7 @@ import com.surofu.madeinrussia.core.model.auth.VerificationCode;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
+import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
@@ -35,7 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -153,18 +156,24 @@ public class AuthRestController {
                             schema = @Schema(implementation = RegisterVendorCommand.class)
                     )
             )
-            @RequestBody @Valid RegisterVendorCommand command) {
+            @RequestBody RegisterVendorCommand command) {
         Locale locale = LocaleContextHolder.getLocale();
+
+        List<String> vendorCountryList = Objects.requireNonNullElse(command.countries(), new ArrayList<>());
+        String region = vendorCountryList.isEmpty() ? "" : vendorCountryList.get(0);
+
+        List<String> vendorProductCategoryList = Objects.requireNonNullElse(command.productCategories(), new ArrayList<>());
+
         RegisterVendor operation = RegisterVendor.of(
                 UserEmail.of(command.email()),
                 UserLogin.of(command.login()),
                 UserPasswordPassword.of(command.password()),
-                UserRegion.of(command.countries().get(0)),
+                UserRegion.of(region),
                 UserPhoneNumber.of(command.phoneNumber()),
                 UserAvatar.of(command.avatarUrl()),
                 VendorDetailsInn.of(command.inn()),
-                command.countries().stream().map(VendorCountryName::of).toList(),
-                command.productCategories().stream().map(VendorProductCategoryName::of).toList(),
+                vendorCountryList.stream().map(VendorCountryName::of).toList(),
+                vendorProductCategoryList.stream().map(VendorProductCategoryName::of).toList(),
                 locale
         );
 
@@ -491,6 +500,8 @@ public class AuthRestController {
     }
 
     @PostMapping("force-register-vendor")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
             summary = "Force register new vendor (Admin only)",
             description = "Register new vendor without email verification (Admin only)",
@@ -517,8 +528,6 @@ public class AuthRestController {
                     )
             }
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<?> forceRegisterVendor(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Vendor registration data",

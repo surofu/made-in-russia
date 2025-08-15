@@ -1,6 +1,8 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.dto.*;
+import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
+import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
+import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordSuccessDto;
@@ -11,8 +13,6 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
-import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
-import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
@@ -42,7 +42,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -74,7 +77,7 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithLoginAlreadyExists(operation.getUserLogin());
         }
 
-        if (userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
+        if (operation.getUserPhoneNumber() != null && userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
             return Register.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
@@ -98,7 +101,7 @@ public class AuthApplicationService implements AuthService {
             return RegisterVendor.Result.userWithLoginAlreadyExists(operation.getUserLogin());
         }
 
-        if (userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
+        if (operation.getUserPhoneNumber() != null && userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
             return RegisterVendor.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
@@ -121,7 +124,7 @@ public class AuthApplicationService implements AuthService {
             LoginSuccessDto dto = login(operation.getEmail(), operation.getPassword());
             return LoginWithEmail.Result.success(dto);
         } catch (DisabledException e) {
-          return LoginWithEmail.Result.accountBlocked(operation.getEmail());
+            return LoginWithEmail.Result.accountBlocked(operation.getEmail());
         } catch (Exception ex) {
             return LoginWithEmail.Result.invalidCredentials(operation.getEmail(), operation.getPassword());
         }
@@ -181,22 +184,25 @@ public class AuthApplicationService implements AuthService {
                 TranslationResponse ruTranslationResponse = translationRepository.translateToRu(vendorStrings.toArray(new String[0]));
                 TranslationResponse zhTranslationResponse = translationRepository.translateToZh(vendorStrings.toArray(new String[0]));
 
-                for (int i = 0; i < vendorCountryNames.size(); i++) {
-                    VendorCountry vendorCountry = user.getVendorDetails().getVendorCountries()
-                            .toArray(VendorCountry[]::new)[i];
-                    vendorCountry.getName().setTranslations(new HstoreTranslationDto(
-                            enTranslationResponse.getTranslations()[i].getText(),
-                            ruTranslationResponse.getTranslations()[i].getText(),
-                            zhTranslationResponse.getTranslations()[i].getText()
-                    ));
+                for (int i = 0; i < vendorStrings.size(); i++) {
+                    if (i < vendorCountryNames.size()) {
+                        VendorCountry vendorCountry = user.getVendorDetails().getVendorCountries()
+                                .toArray(VendorCountry[]::new)[i];
+                        vendorCountry.getName().setTranslations(new HstoreTranslationDto(
+                                enTranslationResponse.getTranslations()[i].getText(),
+                                ruTranslationResponse.getTranslations()[i].getText(),
+                                zhTranslationResponse.getTranslations()[i].getText()
+                        ));
+                    }
 
-                    VendorProductCategory vendorProductCategory = user.getVendorDetails().getVendorProductCategories()
-                            .toArray(VendorProductCategory[]::new)[i];
-                    vendorProductCategory.getName().setTranslations(new HstoreTranslationDto(
-                       enTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
-                       ruTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
-                       zhTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText()
-                    ));
+                    if (i >= vendorCountryNames.size()) {
+                        VendorProductCategory vendorProductCategory = user.getVendorDetails().getVendorProductCategories().toArray(VendorProductCategory[]::new)[i];
+                        vendorProductCategory.getName().setTranslations(new HstoreTranslationDto(
+                                enTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
+                                ruTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
+                                zhTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText()
+                        ));
+                    }
                 }
             } catch (Exception e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
