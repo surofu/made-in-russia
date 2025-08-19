@@ -2,7 +2,6 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.cache.WebLocalizationCacheManager;
 import com.surofu.madeinrussia.application.dto.WebLocalizationDto;
-import com.surofu.madeinrussia.application.service.async.AsyncWebLocalizationService;
 import com.surofu.madeinrussia.core.model.localization.WebLocalization;
 import com.surofu.madeinrussia.core.repository.WebLocalizationRepository;
 import com.surofu.madeinrussia.core.service.localization.LocalizationService;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 public class WebLocalizationApplicationService implements LocalizationService, ApplicationRunner {
 
     private final WebLocalizationRepository repository;
-    private final AsyncWebLocalizationService asyncService;
     private final WebLocalizationCacheManager cacheManager;
 
     @Override
@@ -72,7 +70,13 @@ public class WebLocalizationApplicationService implements LocalizationService, A
                 .orElse(new WebLocalization());
         localization.setLanguageCode(operation.getLanguageCode());
         localization.setContent(operation.getContent());
-        asyncService.save(localization);
+
+        try {
+            repository.save(localization);
+        } catch (Exception e) {
+            return SaveLocalizationByLanguageCode.Result.saveError(e);
+        }
+
         cacheManager.setWebLocalization(operation.getLanguageCode(), new WebLocalizationDto(operation.getContent()));
         return SaveLocalizationByLanguageCode.Result.success();
     }
@@ -86,8 +90,12 @@ public class WebLocalizationApplicationService implements LocalizationService, A
 
         }
 
-        // TODO: to sync
-        asyncService.delete(localization.get());
+        try {
+            repository.delete(localization.get());
+        } catch (Exception e) {
+            return DeleteLocalizationByLanguageCode.Result.deleteError(e);
+        }
+
         cacheManager.removeWebLocalization(operation.getLanguageCode());
         return DeleteLocalizationByLanguageCode.Result.success();
     }

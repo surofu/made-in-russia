@@ -29,4 +29,11 @@ implements DeleteLocalizationByLanguageCode.Result.Processor<ResponseEntity<?>> 
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
+
+    @Override
+    public ResponseEntity<?> processDeleteError(DeleteLocalizationByLanguageCode.Result.DeleteError result) {
+        String message = localizationManager.localize("localization.delete.error");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

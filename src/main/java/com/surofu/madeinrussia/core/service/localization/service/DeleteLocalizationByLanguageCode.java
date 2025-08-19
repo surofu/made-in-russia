@@ -22,6 +22,11 @@ public class DeleteLocalizationByLanguageCode {
             return NotFound.of(languageCode);
         }
 
+        static Result deleteError(Exception e) {
+            log.error("Error saving localization by language code", e);
+            return DeleteError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -41,9 +46,19 @@ public class DeleteLocalizationByLanguageCode {
             }
         }
 
+        enum DeleteError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processNotFound(NotFound result);
+            T processDeleteError(DeleteError result);
         }
     }
 }
