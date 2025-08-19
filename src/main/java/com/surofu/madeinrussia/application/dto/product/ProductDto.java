@@ -283,8 +283,6 @@ public class ProductDto implements Serializable {
 
     private List<ProductReviewMediaDto> reviewsMedia;
 
-    private ProductVendorDetailsDto aboutVendor;
-
     private List<ProductDeliveryMethodDetailsDto> deliveryMethodsDetails;
 
     private List<ProductPackageOptionDto> packagingOptions;
@@ -351,7 +349,6 @@ public class ProductDto implements Serializable {
                 .reviewsCount(product.getReviewsCount())
                 .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
                 .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .aboutVendor(ProductVendorDetailsDto.of(product.getProductVendorDetails()))
                 .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
                 .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
                 .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().toString())

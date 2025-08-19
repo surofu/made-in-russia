@@ -178,7 +178,7 @@ public class MeApplicationService implements MeService {
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
-                .map(p -> ProductSummaryViewDto.of(operation.getLocale().getLanguage(), p));
+                .map(p -> ProductSummaryViewDto.of(p, operation.getLocale().getLanguage()));
 
         return GetMeProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }

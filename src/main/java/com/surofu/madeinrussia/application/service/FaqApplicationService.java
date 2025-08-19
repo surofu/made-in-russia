@@ -85,9 +85,6 @@ public class FaqApplicationService implements FaqService {
         HstoreTranslationDto translatedQuestion = resultMap.get(TranslationKeys.QUESTION.name());
         HstoreTranslationDto translatedAnswer = resultMap.get(TranslationKeys.ANSWER.name());
 
-        System.out.println(translatedQuestion);
-        System.out.println(translatedAnswer);
-
         faq.getQuestion().setTranslations(translatedQuestion);
         faq.getAnswer().setTranslations(translatedAnswer);
 

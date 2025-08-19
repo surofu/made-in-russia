@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZonedDateTime;
 
 @Data
@@ -139,9 +140,9 @@ public final class ProductPriceDto implements Serializable {
                 .to(productPrice.getQuantityRange().getTo())
                 .currency(productPrice.getCurrency().toString())
                 .unit(productPrice.getUnit().toString())
-                .originalPrice(productPrice.getOriginalPrice().getValue())
+                .originalPrice(productPrice.getOriginalPrice().getValue().setScale(2, RoundingMode.DOWN))
                 .discount(productPrice.getDiscount().getValue())
-                .discountedPrice(productPrice.getDiscountedPrice().getValue())
+                .discountedPrice(productPrice.getDiscountedPrice().getValue().setScale(2, RoundingMode.DOWN))
                 .creationDate(productPrice.getCreationDate().getValue())
                 .lastModificationDate(productPrice.getLastModificationDate().getValue())
                 .build();
@@ -155,9 +156,9 @@ public final class ProductPriceDto implements Serializable {
                 .to(view.getQuantityRange().getTo())
                 .currency(view.getCurrency().toString())
                 .unit(view.getUnit().toString())
-                .originalPrice(view.getOriginalPrice().getValue())
+                .originalPrice(view.getOriginalPrice().getValue().setScale(2, RoundingMode.DOWN))
                 .discount(view.getDiscount().getValue())
-                .discountedPrice(view.getDiscountedPrice().getValue())
+                .discountedPrice(view.getDiscountedPrice().getValue().setScale(2, RoundingMode.DOWN))
                 .creationDate(view.getCreationDate().getValue())
                 .lastModificationDate(view.getLastModificationDate().getValue())
                 .build();

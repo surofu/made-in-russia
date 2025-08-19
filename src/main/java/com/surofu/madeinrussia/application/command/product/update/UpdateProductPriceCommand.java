@@ -16,7 +16,7 @@ public record UpdateProductPriceCommand(
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String quantityTo,
 
-        @Schema(description = "Currency code (ISO 4217)",
+        @Schema(description = "Currency code (RUB, USD, CNY)",
                 example = "USD",
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String currency,

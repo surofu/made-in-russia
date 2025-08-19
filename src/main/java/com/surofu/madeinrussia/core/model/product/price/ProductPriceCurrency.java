@@ -1,7 +1,11 @@
 package com.surofu.madeinrussia.core.model.product.price;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
+import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,19 +17,24 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceCurrency implements Serializable {
 
-    @Column(name = "currency", nullable = false)
-    private String value;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency", nullable = false, columnDefinition = "currency")
+    private CurrencyCode value;
 
-    private ProductPriceCurrency(String currency) {
-        if (currency == null || currency.trim().isEmpty()) {
-            throw new IllegalArgumentException("Валюта цены товара не может быть пустой");
+    private ProductPriceCurrency(String currencyString) {
+        if (currencyString == null || currencyString.trim().isEmpty()) {
+            throw new LocalizedValidationException("validation.product_price.empty");
         }
 
-        if (currency.length() > 255) {
-            throw new IllegalArgumentException("Валюта цены товара не может быть больше 255 символов");
+        CurrencyCode currencyCode;
+
+        try {
+            currencyCode = CurrencyCode.valueOf(currencyString);
+        } catch (IllegalArgumentException e) {
+            throw new LocalizedValidationException("validation.product_price.type", currencyString);
         }
 
-        this.value = currency;
+        this.value = currencyCode;
     }
 
     public static ProductPriceCurrency of(String currency) {
@@ -34,6 +43,6 @@ public final class ProductPriceCurrency implements Serializable {
 
     @Override
     public String toString() {
-        return value;
+        return value.name();
     }
 }

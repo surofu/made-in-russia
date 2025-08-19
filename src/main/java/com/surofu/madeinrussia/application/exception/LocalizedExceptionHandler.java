@@ -22,7 +22,7 @@ public class LocalizedExceptionHandler {
 
     @ExceptionHandler(LocalizedValidationException.class)
     public ResponseEntity<ValidationExceptionDto> handleValidationException(LocalizedValidationException exception) {
-        String message = localizationManager.localize(exception.getMessage());
+        String message = localizationManager.localize(exception.getMessage(), exception.getValues());
         Map<String, String> errors = Collections.singletonMap("message", message);
         ValidationExceptionDto dto = new ValidationExceptionDto(
                 HttpStatus.BAD_REQUEST.value(),

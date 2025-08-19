@@ -248,8 +248,6 @@ public class ProductWithTranslationsDto implements Serializable {
 
     private List<ProductReviewMediaDto> reviewsMedia;
 
-    private ProductVendorDetailsWithTranslationsDto aboutVendor;
-
     private List<ProductDeliveryMethodDetailsWithTranslationsDto> deliveryMethodsDetails;
 
     private List<ProductPackageOptionWithTranslationsDto> packagingOptions;

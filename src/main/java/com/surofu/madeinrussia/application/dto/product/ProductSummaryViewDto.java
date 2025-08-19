@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -256,17 +257,17 @@ public final class ProductSummaryViewDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
-    public static ProductSummaryViewDto of(String lang, ProductSummaryView productSummaryView) {
+    public static ProductSummaryViewDto of(ProductSummaryView productSummaryView, String lang) {
         return ProductSummaryViewDto.builder()
                 .id(productSummaryView.getId())
                 .user(productSummaryView.getUser())
                 .category(productSummaryView.getCategory())
                 .deliveryMethods(productSummaryView.getDeliveryMethods())
                 .title(productSummaryView.getTitleByLang(lang))
-                .originalPrice(productSummaryView.getOriginPrice())
+                .originalPrice(productSummaryView.getOriginPrice().setScale(2, RoundingMode.DOWN))
                 .discount(productSummaryView.getDiscount())
-                .discountedPrice(productSummaryView.getDiscountedPrice())
-                .priceCurrency(productSummaryView.getPriceCurrency())
+                .discountedPrice(productSummaryView.getDiscountedPrice().setScale(2, RoundingMode.DOWN))
+                .priceCurrency(productSummaryView.getPriceCurrencyCode().toString())
                 .rating(productSummaryView.getRating())
                 .previewImageUrl(productSummaryView.getPreviewImageUrl())
                 .creationDate(productSummaryView.getCreationDate())

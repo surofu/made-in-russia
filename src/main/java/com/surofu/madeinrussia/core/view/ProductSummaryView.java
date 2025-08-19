@@ -6,10 +6,8 @@ import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import com.surofu.madeinrussia.application.converter.DeliveryMethodsConverter;
 import com.surofu.madeinrussia.application.dto.UserDto;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,8 +50,9 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "price_discounted_price")
     private BigDecimal discountedPrice;
 
-    @Column(name = "price_currency")
-    private String priceCurrency;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "price_currency", nullable = false, columnDefinition = "currency")
+    private CurrencyCode priceCurrencyCode;
 
     @Column(name = "rating")
     private Double rating;

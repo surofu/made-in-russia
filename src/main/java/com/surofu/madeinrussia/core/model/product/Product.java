@@ -10,7 +10,6 @@ import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOp
 import com.surofu.madeinrussia.core.model.product.price.ProductPrice;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.product.review.media.ProductReviewMedia;
-import com.surofu.madeinrussia.core.model.product.vendorDetails.ProductVendorDetails;
 import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -66,13 +65,6 @@ public final class Product implements Serializable {
             foreignKey = @ForeignKey(name = "fk_products_user_id")
     )
     private User user;
-
-    @OneToOne(
-            mappedBy = "product",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private ProductVendorDetails productVendorDetails;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(

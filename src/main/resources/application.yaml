@@ -153,6 +153,7 @@ app:
     secret: ${INTERNAL_REQUEST_SECRET}
   redis:
     ttl-duration: ${REDIS_TTL_DURATION}
+    currency-ttl-duration: ${REDIS_CURRENCY_TTL_DURATION}
     verification-ttl-duration: ${REDIS_VERIFICATION_DURATION}
     recover-password-ttl-duration: ${REDIS_RECOVER_PASSWORD_DURATION}
   cloudinary:

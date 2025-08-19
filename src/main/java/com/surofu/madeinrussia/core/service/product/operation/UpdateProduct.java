@@ -27,9 +27,7 @@ public class UpdateProduct {
     List<UpdateProductFaqCommand> updateProductFaqCommands;
     List<UpdateProductDeliveryMethodDetailsCommand> updateProductDeliveryMethodDetailsCommands;
     List<UpdateProductPackageOptionCommand> updateProductPackageOptionCommands;
-    UpdateProductVendorDetailsCommand updateProductVendorDetailsCommand;
     List<UpdateProductMediaAltTextCommand> updateProductMediaAltTextCommands;
-    List<UpdateProductVendorDetailsMediaAltTextCommand> updateProductVendorDetailsMediaAltTextCommands;
     Integer minimumOrderQuantity;
     ZonedDateTime discountExpirationDate;
     List<UpdateOldMediaDto> oldProductMedia;

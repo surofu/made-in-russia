@@ -3,8 +3,6 @@ package com.surofu.madeinrussia.application.service.async;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.media.ProductMedia;
 import com.surofu.madeinrussia.core.model.product.media.ProductMediaUrl;
-import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMedia;
-import com.surofu.madeinrussia.core.model.product.vendorDetails.productVendorDetailsMedia.ProductVendorDetailsMediaImage;
 import com.surofu.madeinrussia.core.repository.FileStorageRepository;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,17 +41,8 @@ public class AsyncProductApplicationService {
                 .map(ProductMediaUrl::toString)
                 .toList();
 
-        List<String> vendorMediaLinks = product.getProductVendorDetails().getMedia().stream()
-                .map(ProductVendorDetailsMedia::getImage)
-                .map(ProductVendorDetailsMediaImage::getUrl)
-                .toList();
-
-        List<String> allLinks = new ArrayList<>(mediaLinks.size() + vendorMediaLinks.size());
-        allLinks.addAll(mediaLinks);
-        allLinks.addAll(vendorMediaLinks);
-
         try {
-            fileStorageRepository.deleteMediaByLink(allLinks.toArray(new String[0]));
+            fileStorageRepository.deleteMediaByLink(mediaLinks.toArray(new String[0]));
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);

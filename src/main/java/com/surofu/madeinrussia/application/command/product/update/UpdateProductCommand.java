@@ -52,9 +52,6 @@ public record UpdateProductCommand(
         @Schema(description = "List of product package options", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         List<UpdateProductPackageOptionCommand> packageOptions,
 
-        @Schema(description = "Command for creating product vendor details with descriptions", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        UpdateProductVendorDetailsCommand aboutVendor,
-
         @Schema(description = "Minimum order quantity required",
                 example = "5",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
