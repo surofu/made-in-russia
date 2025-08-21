@@ -24,6 +24,11 @@ public class RecoverPassword {
             return UserNotFound.of(userEmail);
         }
 
+        static Result sendMailError(UserEmail userEmail, Exception e) {
+            log.error("Error while sending recover password mail to '{}'", userEmail.toString(), e);
+            return SendMailError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             UserEmail userEmail;
@@ -44,10 +49,21 @@ public class RecoverPassword {
             }
         }
 
+        enum SendMailError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSendMailError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
             T processUserNotFound(UserNotFound result);
+
+            T processSendMailError(SendMailError result);
         }
     }
 }

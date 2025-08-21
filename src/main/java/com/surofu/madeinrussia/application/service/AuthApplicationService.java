@@ -68,6 +68,9 @@ public class AuthApplicationService implements AuthService {
     @Value("${app.redis.verification-ttl-duration}")
     private Duration verificationTtl;
 
+    @Value("${app.redis.recover-password-ttl-duration}")
+    private Duration recoverPasswordTtl;
+
     @Override
     @Transactional
     public Register.Result register(Register operation) {
@@ -360,23 +363,29 @@ public class AuthApplicationService implements AuthService {
     public RecoverPassword.Result recoverPassword(RecoverPassword operation) {
         boolean isUserExists = userRepository.existsUserByEmail(operation.getUserEmail());
 
-        if (isUserExists) {
-            RecoverPassword operationWithHashedPassword = RecoverPassword.of(
-                    operation.getUserEmail(),
-                    operation.getNewUserPassword()
-            );
-
-            asyncAuthApplicationService.saveRecoverPasswordDataInCacheAndSendRecoverCodeToEmail(operationWithHashedPassword);
-            return RecoverPassword.Result.success(operation.getUserEmail());
+        if (!isUserExists) {
+            return RecoverPassword.Result.userNotFound(operation.getUserEmail());
         }
 
-        return RecoverPassword.Result.userNotFound(operation.getUserEmail());
+        String recoverCode = AuthUtils.generateVerificationCode();
+        LocalDateTime expiration = LocalDateTime.now().plus(recoverPasswordTtl);
+
+        RecoverPasswordDto recoverPasswordDto = new RecoverPasswordDto(recoverCode, operation.getNewUserPassword());
+        recoverPasswordRedisCacheManager.set(operation.getUserEmail(), recoverPasswordDto);
+
+        try {
+            mailService.sendRecoverPasswordVerificationMail(operation.getUserEmail().toString(), recoverCode, expiration);
+        } catch (Exception e) {
+            return RecoverPassword.Result.sendMailError(operation.getUserEmail(), e);
+        }
+
+        return RecoverPassword.Result.success(operation.getUserEmail());
     }
 
     @Override
     @Transactional
     public VerifyRecoverPassword.Result verifyRecoverPassword(VerifyRecoverPassword operation) {
-        RecoverPasswordDto recoverPasswordDto = recoverPasswordRedisCacheManager.getPassword(operation.getUserEmail());
+        RecoverPasswordDto recoverPasswordDto = recoverPasswordRedisCacheManager.get(operation.getUserEmail());
 
         if (recoverPasswordDto == null) {
             return VerifyRecoverPassword.Result.emailNotFound(operation.getUserEmail());

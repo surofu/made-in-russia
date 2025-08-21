@@ -2,14 +2,12 @@ package com.surofu.madeinrussia.application.cache;
 
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public final class RecoverPasswordRedisCacheManager {
@@ -25,14 +23,13 @@ public final class RecoverPasswordRedisCacheManager {
         this.hashOperations = redisTemplate.opsForHash();
     }
 
-    @Nullable
-    public RecoverPasswordDto getPassword(UserEmail userEmail) {
+    public RecoverPasswordDto get(UserEmail userEmail) {
         return hashOperations.get(CACHE_NAME, userEmail.toString());
     }
 
-    public void setPasswordWithTtl(UserEmail userEmail, RecoverPasswordDto recoverPasswordDto) {
-        hashOperations.put(CACHE_NAME, userEmail.toString(), recoverPasswordDto);
-        redisTemplate.expire(CACHE_NAME, ttl.getSeconds(), TimeUnit.SECONDS);
+    public void set(UserEmail userEmail, RecoverPasswordDto dto) {
+        hashOperations.put(CACHE_NAME, userEmail.toString(), dto);
+        redisTemplate.expire(CACHE_NAME, ttl);
     }
 
     public void clear(UserEmail userEmail) {
