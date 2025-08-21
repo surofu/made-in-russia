@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
@@ -34,8 +35,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final UserRepository userRepository;
     private final ProductSummaryCacheManager productSummaryCacheManager;
-    private final CurrencyConverterService currencyConverterService;
-
+    private final LocalizationManager localizationManager;
     private final CategoryRepository categoryRepository;
 
     @Override
@@ -50,8 +50,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         }
 
         // Process
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
-
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>(allChildCategoriesIds);
 
@@ -66,11 +64,13 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
+
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
 
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
                 .map(p -> ProductSummaryViewDto.of(
-                        localizePrice(p, operation.getLocale()),
+                        localizationManager.localizePrice(p, operation.getLocale()),
                         operation.getLocale().getLanguage())
                 );
 
@@ -89,7 +89,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
 
         for (ProductSummaryView view : productSummaryViewList) {
             productSummaryViewDtoList.add(ProductSummaryViewDto.of(
-                    localizePrice(view, operation.getLocale()),
+                    localizationManager.localizePrice(view, operation.getLocale()),
                     operation.getLocale().getLanguage())
             );
         }
@@ -104,7 +104,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Optional<ProductSummaryView> productSummaryView = productSummaryViewRepository.getProductSummaryViewById(productSummaryId);
         Optional<ProductSummaryViewDto> productSummaryViewDto = productSummaryView
                 .map(p -> ProductSummaryViewDto.of(
-                        localizePrice(p, operation.getLocale()),
+                        localizationManager.localizePrice(p, operation.getLocale()),
                         operation.getLocale().getLanguage())
                 );
 
@@ -141,7 +141,7 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
                 .map(p -> ProductSummaryViewDto.of(
-                        localizePrice(p, operation.getLocale()),
+                        localizationManager.localizePrice(p, operation.getLocale()),
                         operation.getLocale().getLanguage())
                 );
 
@@ -168,27 +168,5 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         boolean minPrice = operation.getMinPrice() == null || operation.getMinPrice().compareTo(BigDecimal.valueOf(100)) <= 0;
         boolean maxPrice = operation.getMaxPrice() == null || operation.getMaxPrice().compareTo(BigDecimal.valueOf(1_000_000)) <= 0;
         return page && size && title && category && deliveryMethod && minPrice && maxPrice;
-    }
-
-    private ProductSummaryView localizePrice(ProductSummaryView view, Locale locale) {
-        CurrencyCode from = view.getPriceCurrencyCode();
-        CurrencyCode to = switch (locale.getLanguage()) {
-            case ("en") -> CurrencyCode.USD;
-            case ("ru") -> CurrencyCode.RUB;
-            case ("zh") -> CurrencyCode.CNY;
-            default -> from;
-        };
-
-        try {
-            BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, view.getOriginPrice());
-            BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, view.getDiscountedPrice());
-
-            view.setOriginPrice(localizedOriginalPrice);
-            view.setDiscountedPrice(localizedDiscountedPrice);
-            view.setPriceCurrencyCode(to);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        return view;
     }
 }

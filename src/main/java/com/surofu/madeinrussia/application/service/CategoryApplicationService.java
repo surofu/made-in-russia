@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
+import com.surofu.madeinrussia.application.utils.CategoryUtils;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.category.CategoryImageUrl;
 import com.surofu.madeinrussia.core.model.category.CategorySlug;
@@ -47,7 +48,7 @@ public class CategoryApplicationService implements CategoryService {
 
         // Process
         List<CategoryView> categories = categoryRepository.getAllCategoriesViewsByLang(operation.getLocale().getLanguage());
-        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+        List<CategoryDto> categoryDtos = CategoryUtils.buildTreeFromViews(categories);
 
         try {
             categoryListCacheManager.setAllByLocale("ALL_" + operation.getLocale().getLanguage(), categoryDtos);
@@ -55,7 +56,6 @@ public class CategoryApplicationService implements CategoryService {
             log.error(e.getMessage(), e);
         }
 
-        log.info("Found {} non cached Categories", categoryDtos.size());
         return GetAllCategories.Result.success(categoryDtos);
     }
 
@@ -70,7 +70,7 @@ public class CategoryApplicationService implements CategoryService {
 
         // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewsL1AndL2ByLang(operation.getLocale().getLanguage());
-        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+        List<CategoryDto> categoryDtos = CategoryUtils.buildTreeFromViews(categories);
 
         try {
             categoryListCacheManager.setAllByLocale(operation.getLocale().getLanguage(), categoryDtos);
@@ -93,7 +93,7 @@ public class CategoryApplicationService implements CategoryService {
 
         // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewWithChildrenByIdAndLang(operation.getCategoryId(), operation.getLocale().getLanguage());
-        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+        List<CategoryDto> categoryDtos = CategoryUtils.buildTreeFromViews(categories);
 
         if (categoryDtos.isEmpty()) {
             return GetCategoryById.Result.notFound(operation.getCategoryId());
@@ -123,7 +123,7 @@ public class CategoryApplicationService implements CategoryService {
 
         // Process
         List<CategoryView> categories = categoryRepository.getCategoryViewWithChildrenBySlugAndLang(operation.getCategorySlug().toString(), operation.getLocale().getLanguage());
-        List<CategoryDto> categoryDtos = buildTreeFromViews(categories);
+        List<CategoryDto> categoryDtos = CategoryUtils.buildTreeFromViews(categories);
 
         if (categoryDtos.isEmpty()) {
             return GetCategoryBySlug.Result.notFound(operation.getCategorySlug());
@@ -354,43 +354,5 @@ public class CategoryApplicationService implements CategoryService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteCategoryById.Result.deleteError(e);
         }
-    }
-
-    private List<CategoryDto> buildTreeFromViews(List<CategoryView> categories) {
-        // Создаем Map для быстрого доступа к категориям по ID
-        Map<Long, CategoryDto> dtoMap = new HashMap<>();
-
-        // Сначала создаем все DTO без детей
-        categories.forEach(view ->
-                dtoMap.put(view.getId(), CategoryDto.ofWithoutChildren(view)));
-
-        // Теперь строим дерево
-        List<CategoryDto> roots = new ArrayList<>();
-
-        categories.forEach(view -> {
-            CategoryDto currentDto = dtoMap.get(view.getId());
-            Long parentId = view.getParentCategoryId();
-
-            if (parentId == null || !dtoMap.containsKey(parentId)) {
-                // Это корневой элемент
-                roots.add(currentDto);
-            } else {
-                // Добавляем к родителю
-                CategoryDto parentDto = dtoMap.get(parentId);
-                parentDto.getChildren().add(currentDto);
-            }
-        });
-
-        // Рекурсивно обновляем childrenCount
-        roots.forEach(this::updateChildrenCount);
-
-        return roots;
-    }
-
-    private void updateChildrenCount(CategoryDto dto) {
-        for (CategoryDto child : dto.getChildren()) {
-            updateChildrenCount(child);
-        }
-        dto.setChildrenCount((long) dto.getChildren().size());
     }
 }
