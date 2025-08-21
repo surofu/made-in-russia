@@ -14,7 +14,6 @@ import com.surofu.madeinrussia.core.model.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -22,6 +21,7 @@ import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Data
@@ -51,7 +51,6 @@ import java.util.Set;
                 )
         }
 )
-@EqualsAndHashCode(exclude = {"similarProducts", "user", "category"})
 public final class Product implements Serializable {
 
     @Id
@@ -86,7 +85,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("position")
@@ -95,7 +94,7 @@ public final class Product implements Serializable {
     @Fetch(FetchMode.SUBSELECT)
     @ManyToMany(
             fetch = FetchType.EAGER,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
+            cascade = CascadeType.ALL
     )
     @JoinTable(
             name = "similar_products",
@@ -107,7 +106,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -116,7 +115,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.ALL},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -128,7 +127,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -137,7 +136,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -146,7 +145,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -156,7 +155,7 @@ public final class Product implements Serializable {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE},
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @OrderBy("creationDate")
@@ -191,4 +190,17 @@ public final class Product implements Serializable {
 
     @Embedded
     private ProductLastModificationDate lastModificationDate;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return Objects.equals(id, product.id);
+    }
 }

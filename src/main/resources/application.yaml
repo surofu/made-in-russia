@@ -41,11 +41,12 @@ spring:
 
     #========= Hikari Pool =========#
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 3000
-      leak-detection-threshold: 5000
+      leak-detection-threshold: 20000
       auto-commit: false
+      idle-timeout: 30000
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
     properties:

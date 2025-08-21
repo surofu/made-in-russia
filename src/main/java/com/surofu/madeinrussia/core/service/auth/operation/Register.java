@@ -41,6 +41,16 @@ public class Register {
             return UserWithPhoneNumberAlreadyExists.of(userPhoneNumber);
         }
 
+        static Result saveInCacheError(Exception e) {
+            log.error("Error while save user in cache: {}", e.getMessage(), e);
+            return SaveInCacheError.INSTANCE;
+        }
+
+        static Result sendMailError(Exception e) {
+            log.error("Error while send mail: {}", e.getMessage(), e);
+            return SendMailError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             UserEmail userEmail;
@@ -81,11 +91,31 @@ public class Register {
             }
         }
 
+        enum SaveInCacheError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveInCacheError(this);
+            }
+        }
+
+        enum SendMailError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSendMailError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processUserWithEmailAlreadyExists(UserWithEmailAlreadyExists result);
             T processUserWithLoginAlreadyExists(UserWithLoginAlreadyExists result);
             T processUserWithPhoneNumberAlreadyExists(UserWithPhoneNumberAlreadyExists result);
+            T processSaveInCacheError(SaveInCacheError result);
+            T processSendMailError(SendMailError result);
         }
     }
 }

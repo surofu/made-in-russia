@@ -4,11 +4,13 @@ import com.surofu.madeinrussia.application.dto.error.InternalServerErrorDto;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @Hidden
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -55,6 +57,7 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 exception.getStackTrace()[0].toString()
         );
+        log.error(message, exception);
         return new ResponseEntity<>(dto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

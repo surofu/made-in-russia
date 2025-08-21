@@ -3,10 +3,13 @@ package com.surofu.madeinrussia.core.service.user.operation;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class DeleteUserById {
     Long id;
+    Locale locale;
 
     public interface Result {
 

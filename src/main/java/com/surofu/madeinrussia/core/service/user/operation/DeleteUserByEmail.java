@@ -4,10 +4,13 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 @Value(staticConstructor = "of")
 public class DeleteUserByEmail {
     UserEmail email;
+    Locale locale;
 
     public interface Result {
 

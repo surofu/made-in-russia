@@ -18,11 +18,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -307,22 +310,24 @@ public class UserRestController {
                     example = "123 or 'user@example.com' or 'username'"
             )
             @PathVariable("identifier") String identifier) {
+        Locale locale = LocaleContextHolder.getLocale();
+
         try {
             Long id = Long.parseLong(identifier);
-            DeleteUserById operation = DeleteUserById.of(id);
+            DeleteUserById operation = DeleteUserById.of(id, locale);
             return service.deleteUserById(operation).process(deleteUserByIdProcessor);
         } catch (NumberFormatException ignored) {
         }
 
         try {
             UserEmail email = UserEmail.of(identifier);
-            DeleteUserByEmail operation = DeleteUserByEmail.of(email);
+            DeleteUserByEmail operation = DeleteUserByEmail.of(email, locale);
             return service.deleteUserByEmail(operation).process(deleteUserByEmailProcessor);
         } catch (Exception ignored) {
         }
 
         UserLogin login = UserLogin.of(identifier);
-        DeleteUserByLogin operation = DeleteUserByLogin.of(login);
+        DeleteUserByLogin operation = DeleteUserByLogin.of(login, locale);
         return service.deleteUserByLogin(operation).process(deleteUserByLoginProcessor);
     }
 

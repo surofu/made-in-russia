@@ -108,6 +108,13 @@ public class MailApplicationService implements MailService {
     }
 
     @Override
+    public void sendDeleteAccountMail(String to, Locale locale) throws MailException, MessagingException {
+        String message = MailTemplates.getDeleteAccountMail(locale);
+        String subject = localizationManager.localize("account.mail.deleted");
+        sendEmail(to, subject, message);
+    }
+
+    @Override
     public void sendEmail(String to, String subject, String text) throws MailException, MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
 

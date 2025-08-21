@@ -53,6 +53,21 @@ public class RegisterVendor {
             return VendorWithInnAlreadyExists.of(inn);
         }
 
+        static Result translationError(Exception e) {
+            log.error("Translation error while register vendor", e);
+            return TranslationError.INSTANCE;
+        }
+
+        static Result sendMailError(Exception e) {
+            log.error("Send mail error while register vendor", e);
+            return SendMailError.INSTANCE;
+        }
+
+        static Result saveInCacheError(Exception e) {
+            log.error("Save cache error while register vendor", e);
+            return SaveInCacheError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             UserEmail userEmail;
@@ -103,12 +118,42 @@ public class RegisterVendor {
             }
         }
 
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
+        enum SendMailError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSendMailError(this);
+            }
+        }
+
+        enum SaveInCacheError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveInCacheError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processUserWithEmailAlreadyExists(UserWithEmailAlreadyExists result);
             T processUserWithLoginAlreadyExists(UserWithLoginAlreadyExists result);
             T processUserWithPhoneNumberAlreadyExists(UserWithPhoneNumberAlreadyExists result);
             T processVendorWithInnAlreadyExists(VendorWithInnAlreadyExists result);
+            T processTranslationError(TranslationError result);
+            T processSendMailError(SendMailError result);
+            T processSaveInCacheError(SaveInCacheError result);
         }
     }
 }

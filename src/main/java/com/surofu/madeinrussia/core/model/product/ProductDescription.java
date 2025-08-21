@@ -20,7 +20,7 @@ public final class ProductDescription implements Serializable {
     @Column(name = "main_description", nullable = false, columnDefinition = "text")
     private String mainDescription;
 
-    @Column(name = "further_description", nullable = false, columnDefinition = "text")
+    @Column(name = "further_description", columnDefinition = "text")
     private String furtherDescription;
 
     @Getter(AccessLevel.NONE)
@@ -32,7 +32,7 @@ public final class ProductDescription implements Serializable {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
-    @Column(name = "further_description_translations", nullable = false, columnDefinition = "hstore")
+    @Column(name = "further_description_translations", columnDefinition = "hstore")
     private String furtherDescriptionTranslations;
 
     private ProductDescription(String mainDescription, String furtherDescription) {
@@ -40,15 +40,11 @@ public final class ProductDescription implements Serializable {
             throw new IllegalArgumentException("Главное описание не может быть пустым");
         }
 
-        if (furtherDescription == null || furtherDescription.trim().isEmpty()) {
-            throw new IllegalArgumentException("Второстепенное описание не может быть пустым");
-        }
-
         if (mainDescription.length() >= 50_000) {
             throw new IllegalArgumentException("Главное описание не может быть больше 50,000 символов");
         }
 
-        if (furtherDescription.length() >= 20_000) {
+        if (furtherDescription != null && furtherDescription.length() >= 20_000) {
             throw new IllegalArgumentException("Второстепенное описание не может быть больше 20,000 символов");
         }
 

@@ -779,11 +779,14 @@ public class ProductRestController {
                 createProductCommand.mainDescriptionTranslations().ru(),
                 createProductCommand.mainDescriptionTranslations().zh()
         ));
-        productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
-                createProductCommand.furtherDescriptionTranslations().en(),
-                createProductCommand.furtherDescriptionTranslations().ru(),
-                createProductCommand.furtherDescriptionTranslations().zh()
-        ));
+
+        if (createProductCommand.furtherDescriptionTranslations() != null) {
+            productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                    createProductCommand.furtherDescriptionTranslations().en(),
+                    createProductCommand.furtherDescriptionTranslations().ru(),
+                    createProductCommand.furtherDescriptionTranslations().zh()
+            ));
+        }
 
         CreateProduct operation = CreateProduct.of(
                 securityUser,

@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.utils;
 
+import org.springframework.mail.MailException;
+
 import java.util.Locale;
 
 public final class MailTemplates {
@@ -18,6 +20,22 @@ public final class MailTemplates {
         }
 
         return getEmailVerificationMessageEn(code, expirationDate);
+    }
+
+    public static String getDeleteAccountMail(Locale locale) throws MailException {
+        if (locale.getLanguage().equalsIgnoreCase("ru")) {
+            return getDeleteAccountMailEn();
+        }
+
+        if (locale.getLanguage().equalsIgnoreCase("en")) {
+            return getDeleteAccountMailRu();
+        }
+
+        if (locale.getLanguage().equalsIgnoreCase("zh")) {
+            return getDeleteAccountMailZh();
+        }
+
+        return getDeleteAccountMailEn();
     }
 
     private static String getEmailVerificationMessageRu(String code, String expirationDate) {
@@ -197,5 +215,17 @@ public final class MailTemplates {
                 </body>
                 </html>
                 """.formatted(code, expirationDate);
+    }
+
+    private static String getDeleteAccountMailEn() {
+        return "Your account has been deleted";
+    }
+
+    private static String getDeleteAccountMailRu() {
+        return "Ваш аккаунт был удален";
+    }
+
+    private static String getDeleteAccountMailZh() {
+        return "您的账户已被删除。";
     }
 }

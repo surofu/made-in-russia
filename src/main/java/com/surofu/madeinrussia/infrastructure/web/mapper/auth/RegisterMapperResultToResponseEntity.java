@@ -43,4 +43,18 @@ public class RegisterMapperResultToResponseEntity
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }
+
+    @Override
+    public ResponseEntity<?> processSaveInCacheError(Register.Result.SaveInCacheError result) {
+        String message = localizationManager.localize("internal_server_error.unknown");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> processSendMailError(Register.Result.SendMailError result) {
+        String message = localizationManager.localize("mail.send_error");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

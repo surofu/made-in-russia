@@ -10,20 +10,17 @@ import com.surofu.madeinrussia.core.service.deliveryMethod.operation.GetDelivery
 import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DeliveryMethodApplicationService implements DeliveryMethodService, ApplicationRunner {
+public class DeliveryMethodApplicationService implements DeliveryMethodService {
 
     private final DeliveryMethodRepository repository;
     private final DeliveryMethodsCacheManager deliveryMethodsCacheManager;
@@ -81,19 +78,5 @@ public class DeliveryMethodApplicationService implements DeliveryMethodService, 
             log.error(e.getMessage(), e);
         }
         return GetDeliveryMethodById.Result.success(deliveryMethodDto.get());
-    }
-
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        deliveryMethodsCacheManager.clearAll();
-        deliveryMethodsListCacheManager.clearAll();
-
-        log.info("Initializing delivery methods: all (en)...");
-        getDeliveryMethods(GetDeliveryMethods.of(Locale.forLanguageTag("en")));
-        log.info("Initializing delivery methods: all (ru)...");
-        getDeliveryMethods(GetDeliveryMethods.of(Locale.forLanguageTag("ru")));
-        log.info("Initializing delivery methods: all (zh)...");
-        getDeliveryMethods(GetDeliveryMethods.of(Locale.forLanguageTag("zh")));
     }
 }

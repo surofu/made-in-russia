@@ -17,6 +17,14 @@ public final class ProductPriceDiscountedPrice implements Serializable {
     @Formula("original_price * (1 - discount / 100)")
     private BigDecimal value;
 
+    private ProductPriceDiscountedPrice(BigDecimal value) {
+        this.value = value;
+    }
+
+    public static ProductPriceDiscountedPrice of(BigDecimal price) {
+        return new ProductPriceDiscountedPrice(price);
+    }
+
     @Override
     public String toString() {
         return value.toString();

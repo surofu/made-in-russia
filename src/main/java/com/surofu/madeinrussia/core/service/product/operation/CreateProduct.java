@@ -80,7 +80,7 @@ public class CreateProduct {
         }
 
         static Result translationError(Exception e) {
-            log.warn("Translation error: {}", e.getMessage());
+            log.warn("Translation error", e);
             return TranslationError.INSTANCE;
         }
 
@@ -165,7 +165,7 @@ public class CreateProduct {
 
             @Override
             public <T> T process(Processor<T> processor) {
-                return null;
+                return processor.processEmptyTranslation(this);
             }
         }
 

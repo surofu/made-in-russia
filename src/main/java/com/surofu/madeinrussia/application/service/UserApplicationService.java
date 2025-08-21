@@ -15,8 +15,10 @@ import com.surofu.madeinrussia.core.repository.FileStorageRepository;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.UserSpecifications;
+import com.surofu.madeinrussia.core.service.mail.MailService;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.service.user.operation.*;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,7 @@ public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
     private final UserPasswordRepository userPasswordRepository;
     private final FileStorageRepository fileStorageRepository;
+    private final MailService mailService;
 
     @Override
     @Transactional(readOnly = true)
@@ -197,8 +200,15 @@ public class UserApplicationService implements UserService {
 
         try {
             userRepository.delete(user.get());
-            return DeleteUserById.Result.success(operation.getId());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteUserById.Result.deleteError(operation.getId(), e);
+        }
+
+        try {
+            mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
+            return DeleteUserById.Result.success(operation.getId());
+        } catch (MessagingException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserById.Result.deleteError(operation.getId(), e);
         }
@@ -215,8 +225,15 @@ public class UserApplicationService implements UserService {
 
         try {
             userRepository.delete(user.get());
-            return DeleteUserByEmail.Result.success(operation.getEmail());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
+        }
+
+        try {
+            mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
+            return DeleteUserByEmail.Result.success(operation.getEmail());
+        } catch (MessagingException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
         }
@@ -233,8 +250,15 @@ public class UserApplicationService implements UserService {
 
         try {
             userRepository.delete(user.get());
-            return DeleteUserByLogin.Result.success(operation.getLogin());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
+        }
+
+        try {
+            mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
+            return DeleteUserByLogin.Result.success(operation.getLogin());
+        } catch (MessagingException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
         }

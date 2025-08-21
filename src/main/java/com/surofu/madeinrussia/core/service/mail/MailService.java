@@ -12,4 +12,6 @@ public interface MailService {
     void sendRecoverPasswordVerificationMail(String to, String resetCode, LocalDateTime expirationDate) throws MailException, MessagingException;
 
     void sendEmail(String to, String subject, String text) throws MailException, MessagingException;
+
+    void sendDeleteAccountMail(String to, Locale locale) throws MailException, MessagingException;
 }

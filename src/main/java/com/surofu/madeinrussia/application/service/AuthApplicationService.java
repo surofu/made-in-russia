@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
+import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.*;
@@ -28,9 +29,11 @@ import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.VendorDetailsRepository;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
+import com.surofu.madeinrussia.core.service.mail.MailService;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,10 +45,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -57,18 +59,18 @@ public class AuthApplicationService implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final VendorDetailsRepository vendorDetailsRepository;
     private final JwtUtils jwtUtils;
-
     private final AsyncAuthApplicationService asyncAuthApplicationService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
-
     private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
     private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+    @Value("${app.redis.verification-ttl-duration}")
+    private Duration verificationTtl;
 
     @Override
     @Transactional
     public Register.Result register(Register operation) {
-
         if (userRepository.existsUserByEmail(operation.getUserEmail())) {
             return Register.Result.userWithEmailAlreadyExists(operation.getUserEmail());
         }
@@ -81,11 +83,39 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
 
-        asyncAuthApplicationService.saveRegisterDataInCacheAndSendVerificationCodeToEmail(operation)
-                .exceptionally(ex -> {
-                    log.error("Error while saving register code", ex);
-                    return null;
-                });
+        User user = new User();
+        user.setIsEnabled(UserIsEnabled.of(true));
+        user.setRole(UserRole.ROLE_USER);
+        user.setEmail(operation.getUserEmail());
+        user.setLogin(operation.getUserLogin());
+        user.setPhoneNumber(operation.getUserPhoneNumber());
+        user.setRegion(operation.getUserRegion());
+        user.setAvatar(operation.getAvatar());
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setUser(user);
+
+        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
+        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
+        userPassword.setPassword(hashedUserPasswordPassword);
+
+        String verificationCode = AuthUtils.generateVerificationCode();
+
+        try {
+            userVerificationRedisCacheManager.setUser(user.getEmail(), user);
+            userVerificationRedisCacheManager.setUserPassword(user.getEmail(), userPassword);
+            userVerificationRedisCacheManager.setVerificationCode(user.getEmail(), verificationCode);
+        } catch (Exception e) {
+            return Register.Result.saveInCacheError(e);
+        }
+
+        LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
+
+        try {
+            mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, operation.getLocale());
+        } catch (Exception e) {
+            return Register.Result.sendMailError(e);
+        }
 
         return Register.Result.success(operation.getUserEmail());
     }
@@ -109,11 +139,117 @@ public class AuthApplicationService implements AuthService {
             return RegisterVendor.Result.vendorWithInnAlreadyExists(operation.getVendorDetailsInn());
         }
 
-        asyncAuthApplicationService.saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(operation)
-                .exceptionally(ex -> {
-                    log.error("Error while saving register code", ex);
-                    return null;
-                });
+        User user = new User();
+        user.setRole(UserRole.ROLE_VENDOR);
+        user.setIsEnabled(UserIsEnabled.of(true));
+        user.setEmail(operation.getUserEmail());
+        user.setLogin(operation.getUserLogin());
+        user.setPhoneNumber(operation.getUserPhoneNumber());
+        user.setRegion(operation.getUserRegion());
+        user.setAvatar(operation.getAvatar());
+
+        VendorDetails vendorDetails = new VendorDetails();
+        vendorDetails.setInn(operation.getVendorDetailsInn());
+
+        Map<String, List<String>> translationMap = new HashMap<>();
+
+        List<VendorCountry> vendorCountries = new ArrayList<>();
+        for (VendorCountryName vendorCountryName : operation.getVendorCountryNames()) {
+            VendorCountry vendorCountry = new VendorCountry();
+            vendorCountry.setVendorDetails(vendorDetails);
+            vendorCountry.setName(vendorCountryName);
+            vendorCountries.add(vendorCountry);
+            translationMap.computeIfAbsent("VendorCountryName", k -> new ArrayList<>()).add(vendorCountryName.toString());
+        }
+
+        List<VendorProductCategory> vendorProductCategories = new ArrayList<>();
+        for (VendorProductCategoryName vendorProductCategoryName : operation.getVendorProductCategoryNames()) {
+            VendorProductCategory vendorProductCategory = new VendorProductCategory();
+            vendorProductCategory.setVendorDetails(vendorDetails);
+            vendorProductCategory.setName(vendorProductCategoryName);
+            vendorProductCategories.add(vendorProductCategory);
+            translationMap.computeIfAbsent("VendorProductCategoryName", k -> new ArrayList<>()).add(vendorProductCategoryName.toString());
+        }
+
+        Map<String, List<HstoreTranslationDto>> translationResult = null;
+        try {
+            translationResult = translationRepository.expandStrings(translationMap);
+        } catch (Exception e) {
+            int retries = 3;
+            boolean isSuccess = false;
+
+            while (retries > 0) {
+                try {
+                    translationResult = translationRepository.expandStrings(translationMap);
+                    isSuccess = true;
+                    break;
+                } catch (Exception ignored) {
+                }
+                retries--;
+            }
+
+            if (!isSuccess) {
+                return RegisterVendor.Result.translationError(e);
+            }
+        }
+
+        if (translationResult == null) {
+            return RegisterVendor.Result.translationError(new Exception("Translation result is null"));
+        }
+
+        for (int i = 0; i < vendorCountries.size(); i++) {
+            VendorCountry country = vendorCountries.get(i);
+            country.getName().setTranslations(translationResult.get("VendorCountryName").get(i));
+        }
+
+        for (int i = 0; i < vendorProductCategories.size(); i++) {
+            VendorProductCategory country = vendorProductCategories.get(i);
+            country.getName().setTranslations(translationResult.get("VendorProductCategoryName").get(i));
+        }
+
+        vendorDetails.setVendorCountries(new HashSet<>(vendorCountries));
+        vendorDetails.setVendorProductCategories(new HashSet<>(vendorProductCategories));
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setUser(user);
+
+        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
+        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
+
+        userPassword.setPassword(hashedUserPasswordPassword);
+
+        user.setVendorDetails(vendorDetails);
+        vendorDetails.setUser(user);
+
+        String verificationCode = AuthUtils.generateVerificationCode();
+
+        try {
+            userVerificationRedisCacheManager.setUser(user.getEmail(), user);
+            userVerificationRedisCacheManager.setUserPassword(user.getEmail(), userPassword);
+            userVerificationRedisCacheManager.setVerificationCode(user.getEmail(), verificationCode);
+        } catch (Exception e) {
+            return RegisterVendor.Result.saveInCacheError(e);
+        }
+
+        LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
+
+        try {
+            mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, operation.getLocale());
+        } catch (Exception e) {
+            int retries = 3;
+
+            while (retries > 0) {
+                try {
+                    mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, operation.getLocale());
+                    return RegisterVendor.Result.success(operation.getUserEmail());
+                } catch (Exception ignored) {
+                    retries--;
+                }
+            }
+
+            log.info("Used retries to send verification code mail: {}", 3 - retries);
+            return RegisterVendor.Result.sendMailError(e);
+        }
 
         return RegisterVendor.Result.success(operation.getUserEmail());
     }
@@ -164,56 +300,12 @@ public class AuthApplicationService implements AuthService {
         User user = userVerificationRedisCacheManager.getUser(operation.getUserEmail());
 
         if (user == null) {
-            log.error("User with email {} not found in cache", operation.getUserEmail());
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
-        }
-
-        if (user.getVendorDetails() != null) {
-            List<String> vendorCountryNames = user.getVendorDetails().getVendorCountries().stream()
-                    .map(VendorCountry::getName).map(VendorCountryName::toString).toList();
-            List<String> vendorPcNames = user.getVendorDetails().getVendorProductCategories().stream()
-                    .map(VendorProductCategory::getName).map(VendorProductCategoryName::toString).toList();
-
-            List<String> vendorStrings = new ArrayList<>(vendorCountryNames.size() + vendorPcNames.size());
-
-            vendorStrings.addAll(vendorCountryNames);
-            vendorStrings.addAll(vendorPcNames);
-
-            try {
-                TranslationResponse enTranslationResponse = translationRepository.translateToEn(vendorStrings.toArray(new String[0]));
-                TranslationResponse ruTranslationResponse = translationRepository.translateToRu(vendorStrings.toArray(new String[0]));
-                TranslationResponse zhTranslationResponse = translationRepository.translateToZh(vendorStrings.toArray(new String[0]));
-
-                for (int i = 0; i < vendorStrings.size(); i++) {
-                    if (i < vendorCountryNames.size()) {
-                        VendorCountry vendorCountry = user.getVendorDetails().getVendorCountries()
-                                .toArray(VendorCountry[]::new)[i];
-                        vendorCountry.getName().setTranslations(new HstoreTranslationDto(
-                                enTranslationResponse.getTranslations()[i].getText(),
-                                ruTranslationResponse.getTranslations()[i].getText(),
-                                zhTranslationResponse.getTranslations()[i].getText()
-                        ));
-                    }
-
-                    if (i >= vendorCountryNames.size()) {
-                        VendorProductCategory vendorProductCategory = user.getVendorDetails().getVendorProductCategories().toArray(VendorProductCategory[]::new)[i];
-                        vendorProductCategory.getName().setTranslations(new HstoreTranslationDto(
-                                enTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
-                                ruTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText(),
-                                zhTranslationResponse.getTranslations()[vendorCountryNames.size() + i].getText()
-                        ));
-                    }
-                }
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return VerifyEmail.Result.translationError(e);
-            }
         }
 
         UserPassword userPassword = userVerificationRedisCacheManager.getUserPassword(operation.getUserEmail());
 
         if (userPassword == null) {
-            log.error("User password with email {} not found in cache", operation.getUserEmail());
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
         }
 
@@ -227,15 +319,17 @@ public class AuthApplicationService implements AuthService {
 
         VerifyEmailSuccessDto verifyEmailSuccessDto = VerifyEmailSuccessDto.of(accessToken, refreshToken);
 
-        asyncAuthApplicationService.saveUserInDatabaseAndRemoveFromCache(user)
-                .thenCompose(unused -> asyncSessionApplicationService
-                        .saveOrUpdateSessionFromHttpRequest(securityUser)
-                        .exceptionally(ex -> {
-                            log.error("Error while saving session", ex);
-                            return null;
-                        })
-                ).exceptionally(ex -> {
-                    log.error("Error while saving user", ex);
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            return VerifyEmail.Result.saveError(e);
+        } finally {
+            userVerificationRedisCacheManager.clearCache(user.getEmail());
+        }
+
+        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
+                .exceptionally(ex -> {
+                    log.error("Error while saving session", ex);
                     return null;
                 });
 

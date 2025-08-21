@@ -11,8 +11,6 @@ import com.surofu.madeinrussia.core.service.localization.service.GetLocalization
 import com.surofu.madeinrussia.core.service.localization.service.SaveLocalizationByLanguageCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,7 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WebLocalizationApplicationService implements LocalizationService, ApplicationRunner {
+public class WebLocalizationApplicationService implements LocalizationService {
 
     private final WebLocalizationRepository repository;
     private final WebLocalizationCacheManager cacheManager;
@@ -98,19 +96,5 @@ public class WebLocalizationApplicationService implements LocalizationService, A
 
         cacheManager.removeWebLocalization(operation.getLanguageCode());
         return DeleteLocalizationByLanguageCode.Result.success();
-    }
-
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        cacheManager.clearAll();
-
-        log.info("Initializing all web localization");
-        getAllLocalizations();
-        log.info("Initializing web localization: en");
-        getLocalizationByLanguageCode(GetLocalizationByLanguageCode.of("en"));
-        log.info("Initializing web localization: ru");
-        getLocalizationByLanguageCode(GetLocalizationByLanguageCode.of("ru"));
-        log.info("Initializing web localization: zh");
-        getLocalizationByLanguageCode(GetLocalizationByLanguageCode.of("zh"));
     }
 }

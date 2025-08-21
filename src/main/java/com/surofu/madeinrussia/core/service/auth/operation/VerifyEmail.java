@@ -37,6 +37,11 @@ public class VerifyEmail {
             return TranslationError.INSTANCE;
         }
 
+        static Result saveError(Exception e) {
+            log.warn("Saving error while verify email: {}", e.getMessage());
+            return SaveError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             VerifyEmailSuccessDto verifyEmailSuccessDto;
@@ -75,11 +80,21 @@ public class VerifyEmail {
             }
         }
 
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processAccountNotFound(AccountNotFound result);
             T processInvalidVerificationCode(InvalidVerificationCode result);
             T processTranslationError(TranslationError result);
+            T processSaveError(SaveError result);
         }
     }
 }

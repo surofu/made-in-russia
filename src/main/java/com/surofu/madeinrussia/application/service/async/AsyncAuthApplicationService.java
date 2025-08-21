@@ -3,39 +3,22 @@ package com.surofu.madeinrussia.application.service.async;
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
 import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
-import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
-import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
-import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
-import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
-import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.service.auth.operation.RecoverPassword;
-import com.surofu.madeinrussia.core.service.auth.operation.Register;
-import com.surofu.madeinrussia.core.service.auth.operation.RegisterVendor;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 @Slf4j
@@ -49,99 +32,11 @@ public class AsyncAuthApplicationService {
     @Value("${app.redis.verification-ttl-duration}")
     private Duration verificationTtl;
 
-    private final UserRepository userRepository;
     private final UserPasswordRepository passwordRepository;
-    private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
     private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
     private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
-
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CompletableFuture<Void> saveRegisterDataInCacheAndSendVerificationCodeToEmail(Register operation) throws CompletionException {
-        User user = new User();
-        user.setIsEnabled(UserIsEnabled.of(true));
-        user.setRole(UserRole.ROLE_USER);
-        user.setEmail(operation.getUserEmail());
-        user.setLogin(operation.getUserLogin());
-        user.setPhoneNumber(operation.getUserPhoneNumber());
-        user.setRegion(operation.getUserRegion());
-        user.setAvatar(operation.getAvatar());
-
-        UserPassword userPassword = new UserPassword();
-        userPassword.setUser(user);
-
-        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
-        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
-        userPassword.setPassword(hashedUserPasswordPassword);
-
-        return saveUserInCacheAndSendMessage(user, userPassword, operation.getLocale());
-    }
-
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CompletableFuture<Void> saveRegisterVendorDataInCacheAndSendVerificationCodeToEmail(RegisterVendor operation) throws CompletionException {
-        User user = new User();
-        user.setRole(UserRole.ROLE_VENDOR);
-        user.setIsEnabled(UserIsEnabled.of(true));
-        user.setEmail(operation.getUserEmail());
-        user.setLogin(operation.getUserLogin());
-        user.setPhoneNumber(operation.getUserPhoneNumber());
-        user.setRegion(operation.getUserRegion());
-        user.setAvatar(operation.getAvatar());
-
-        VendorDetails vendorDetails = new VendorDetails();
-        vendorDetails.setInn(operation.getVendorDetailsInn());
-
-        Set<VendorCountry> vendorCountries = new HashSet<>();
-
-        for (VendorCountryName vendorCountryName : operation.getVendorCountryNames()) {
-            VendorCountry vendorCountry = new VendorCountry();
-            vendorCountry.setVendorDetails(vendorDetails);
-            vendorCountry.setName(vendorCountryName);
-            vendorCountries.add(vendorCountry);
-        }
-
-        vendorDetails.setVendorCountries(vendorCountries);
-
-        Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
-
-        for (VendorProductCategoryName vendorProductCategoryName : operation.getVendorProductCategoryNames()) {
-            VendorProductCategory vendorProductCategory = new VendorProductCategory();
-            vendorProductCategory.setVendorDetails(vendorDetails);
-            vendorProductCategory.setName(vendorProductCategoryName);
-            vendorProductCategories.add(vendorProductCategory);
-        }
-
-        vendorDetails.setVendorProductCategories(vendorProductCategories);
-
-        UserPassword userPassword = new UserPassword();
-        userPassword.setUser(user);
-
-        String rawHashedPassword = passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
-        UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
-
-        userPassword.setPassword(hashedUserPasswordPassword);
-
-        user.setVendorDetails(vendorDetails);
-        vendorDetails.setUser(user);
-
-        return saveUserInCacheAndSendMessage(user, userPassword, operation.getLocale());
-    }
-
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CompletableFuture<Void> saveUserInDatabaseAndRemoveFromCache(User user) throws CompletionException {
-        try {
-            userRepository.save(user);
-            userVerificationRedisCacheManager.clearCache(user.getEmail());
-        } catch (Exception ex) {
-            log.error("Error saving user or password: {}", ex.getMessage(), ex);
-        }
-
-        return CompletableFuture.completedFuture(null);
-    }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -168,29 +63,6 @@ public class AsyncAuthApplicationService {
             recoverPasswordRedisCacheManager.clear(userEmail);
         } catch (Exception e) {
             log.error("Error saving user password: {}", e.getMessage(), e);
-        }
-    }
-
-    private CompletableFuture<Void> saveUserInCacheAndSendMessage(User user, UserPassword userPassword, Locale locale) throws CompletionException {
-        try {
-            String verificationCode = generateVerificationCode();
-
-            userVerificationRedisCacheManager.setUser(user.getEmail(), user);
-            userVerificationRedisCacheManager.setUserPassword(user.getEmail(), userPassword);
-            userVerificationRedisCacheManager.setVerificationCode(user.getEmail(), verificationCode);
-
-            LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
-
-            try {
-                mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, locale);
-            } catch (Exception ex) {
-                log.error("Error sending verification mail: {}", ex.getMessage(), ex);
-            }
-
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception ex) {
-            log.error("Error while save user in cache: {}", ex.getMessage(), ex);
-            return CompletableFuture.completedFuture(null);
         }
     }
 

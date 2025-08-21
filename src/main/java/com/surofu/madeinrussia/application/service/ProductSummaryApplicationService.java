@@ -16,8 +16,6 @@ import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryV
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +30,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProductSummaryApplicationService implements ProductSummaryService, ApplicationRunner {
+public class ProductSummaryApplicationService implements ProductSummaryService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final UserRepository userRepository;
     private final ProductSummaryCacheManager productSummaryCacheManager;
@@ -170,21 +168,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService, 
         boolean minPrice = operation.getMinPrice() == null || operation.getMinPrice().compareTo(BigDecimal.valueOf(100)) <= 0;
         boolean maxPrice = operation.getMaxPrice() == null || operation.getMaxPrice().compareTo(BigDecimal.valueOf(1_000_000)) <= 0;
         return page && size && title && category && deliveryMethod && minPrice && maxPrice;
-    }
-
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        productSummaryCacheManager.clearAll();
-
-        for (int i = 1; i <= 10; i++) {
-            log.info("Initializing products summary pages: {} (en)...", i);
-            getProductSummaryPage(GetProductSummaryViewPage.of(Locale.forLanguageTag("en"), i, 10, "", new ArrayList<>(), new ArrayList<>(), BigDecimal.ZERO, BigDecimal.valueOf(100000)));
-            log.info("Initializing products summary pages: {} (ru)...", i);
-            getProductSummaryPage(GetProductSummaryViewPage.of(Locale.forLanguageTag("ru"), i, 10, "", new ArrayList<>(), new ArrayList<>(), BigDecimal.ZERO, BigDecimal.valueOf(100000)));
-            log.info("Initializing products summary pages: {} (zh)...", i);
-            getProductSummaryPage(GetProductSummaryViewPage.of(Locale.forLanguageTag("zh"), i, 10, "", new ArrayList<>(), new ArrayList<>(), BigDecimal.ZERO, BigDecimal.valueOf(100000)));
-        }
     }
 
     private ProductSummaryView localizePrice(ProductSummaryView view, Locale locale) {

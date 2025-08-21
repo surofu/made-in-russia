@@ -4,6 +4,9 @@ import com.surofu.madeinrussia.application.dto.*;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.core.model.product.Product;
+import com.surofu.madeinrussia.core.model.product.ProductDiscountExpirationDate;
+import com.surofu.madeinrussia.core.model.product.price.ProductPrice;
+import com.surofu.madeinrussia.core.model.product.price.ProductPriceDiscountedPrice;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -337,7 +340,7 @@ public class ProductDto implements Serializable {
                 .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
                 .similarProducts(product.getSimilarProducts().stream().map(SimilarProductDto::of).toList())
                 .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
-                .prices(product.getPrices().stream().map(ProductPriceDto::of).toList())
+                .prices(product.getPrices().stream().map(p -> ProductPriceDto.of(normalizePrice(p, product.getDiscountExpirationDate()))).toList())
                 .article(product.getArticleCode().toString())
                 .title(product.getTitle().getValue())
                 .mainDescription(product.getDescription().getMainDescription())
@@ -374,8 +377,25 @@ public class ProductDto implements Serializable {
                 .build();
     }
 
+    private static ProductPrice normalizePrice(ProductPrice price, ProductDiscountExpirationDate discountExpirationDate) {
+        if (discountExpirationDate == null) {
+            return price;
+        }
+
+        if (discountExpirationDate.getValue().isBefore(ZonedDateTime.now()) || discountExpirationDate.getValue().isEqual(ZonedDateTime.now())) {
+            price.setDiscountedPrice(ProductPriceDiscountedPrice.of(price.getOriginalPrice().getValue()));
+            return price;
+        }
+
+        return price;
+    }
+
     private static Long getDaysBeforeDiscountExpires(ZonedDateTime discountExpirationDate) {
         if (discountExpirationDate == null) {
+            return null;
+        }
+
+        if (discountExpirationDate.isBefore(ZonedDateTime.now()) || discountExpirationDate.isEqual(ZonedDateTime.now())) {
             return null;
         }
 

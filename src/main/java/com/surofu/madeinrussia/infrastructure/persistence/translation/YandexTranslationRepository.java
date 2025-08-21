@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor
@@ -88,6 +89,36 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
+    public Map<String, List<HstoreTranslationDto>> expandStrings(Map<String, List<String>> map) throws IOException {
+        if (map == null || map.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<String> stringList = new ArrayList<>(map.values().stream().mapToInt(List::size).sum());
+        map.values().forEach(stringList::addAll);
+
+        TranslationResponse responseEn = translate("en", stringList.toArray(new String[0]));
+        TranslationResponse responseRu = translate("ru", stringList.toArray(new String[0]));
+        TranslationResponse responseZh = translate("zh", stringList.toArray(new String[0]));
+
+        Map<String, List<HstoreTranslationDto>> result = new HashMap<>();
+
+        AtomicInteger index = new AtomicInteger();
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            entry.getValue().forEach(unused -> {
+                String en = responseEn.getTranslations()[index.get()].getText();
+                String ru = responseRu.getTranslations()[index.get()].getText();
+                String zh = responseZh.getTranslations()[index.get()].getText();
+                HstoreTranslationDto dto = new HstoreTranslationDto(en, ru, zh);
+                result.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(dto);
+                index.addAndGet(1);
+            });
+        }
+
+        return result;
+    }
+
+    @Override
     public Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map)
             throws EmptyTranslationException, ExecutionException {
 
@@ -145,16 +176,30 @@ public class YandexTranslationRepository implements TranslationRepository {
         try {
             CompletableFuture.allOf(
                     translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.RU, LanguageCode.EN), result),
-                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.ZH, LanguageCode.EN), result),
+                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.ZH, LanguageCode.EN), result)
+            ).join();
+        } catch (Exception e) {
+            throw new ExecutionException("Failed to execute translations (Part 1)", e.getCause());
+        }
+
+        try {
+            CompletableFuture.allOf(
                     translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.EN, LanguageCode.RU), result),
-                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.ZH, LanguageCode.RU), result),
+                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.ZH, LanguageCode.RU), result)
+            ).join();
+        } catch (Exception e) {
+            throw new ExecutionException("Failed to execute translations (Part 2)", e.getCause());
+        }
+
+        try {
+            CompletableFuture.allOf(
                     translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.EN, LanguageCode.ZH), result),
                     translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.RU, LanguageCode.ZH), result)
             ).join();
 
             return result;
-        } catch (CompletionException e) {
-            throw new ExecutionException("Failed to execute translations", e.getCause());
+        } catch (Exception e) {
+            throw new ExecutionException("Failed to execute translations (Part 3)", e.getCause());
         }
     }
 

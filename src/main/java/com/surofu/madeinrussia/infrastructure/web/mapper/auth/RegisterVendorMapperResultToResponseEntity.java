@@ -50,4 +50,25 @@ public class RegisterVendorMapperResultToResponseEntity
         SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
         return new ResponseEntity<>(responseErrorDto, HttpStatus.CONFLICT);
     }
+
+    @Override
+    public ResponseEntity<?> processTranslationError(RegisterVendor.Result.TranslationError result) {
+        String message = localizationManager.localize("translation.error");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> processSendMailError(RegisterVendor.Result.SendMailError result) {
+        String message = localizationManager.localize("mail.send_error");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> processSaveInCacheError(RegisterVendor.Result.SaveInCacheError result) {
+        String message = localizationManager.localize("internal_server_error.unknown");
+        SimpleResponseErrorDto responseErrorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

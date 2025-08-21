@@ -18,8 +18,6 @@ import com.surofu.madeinrussia.core.service.category.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -29,7 +27,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CategoryApplicationService implements CategoryService, ApplicationRunner {
+public class CategoryApplicationService implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final TranslationRepository translationRepository;
@@ -394,25 +392,5 @@ public class CategoryApplicationService implements CategoryService, ApplicationR
             updateChildrenCount(child);
         }
         dto.setChildrenCount((long) dto.getChildren().size());
-    }
-
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        categoryCacheManager.clearAll();
-        categoryListCacheManager.clearAll();
-
-        log.info("Initializing categories: all (en)...");
-        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("en")));
-        log.info("Initializing categories: all (ru)...");
-        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("ru")));
-        log.info("Initializing categories: all (zh)...");
-        getAllCategories(GetAllCategories.of(Locale.forLanguageTag("zh")));
-        log.info("Initializing categories: en...");
-        getCategories(GetCategories.of(Locale.forLanguageTag("en")));
-        log.info("Initializing categories: ru...");
-        getCategories(GetCategories.of(Locale.forLanguageTag("ru")));
-        log.info("Initializing categories: zh...");
-        getCategories(GetCategories.of(Locale.forLanguageTag("zh")));
     }
 }
