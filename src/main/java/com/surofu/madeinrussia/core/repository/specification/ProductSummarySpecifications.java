@@ -105,12 +105,20 @@ public class ProductSummarySpecifications {
                     )
                     , vendorId));
 
-            predicates.add(criteriaBuilder.equal(
-                    criteriaBuilder.function("jsonb_extract_path_text", String.class,
-                            root.get("user"),
-                            criteriaBuilder.literal("role")
-                    )
-                    , UserRole.ROLE_VENDOR.name()));
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.equal(
+                            criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                                    root.get("user"),
+                                    criteriaBuilder.literal("role")
+                            )
+                            , UserRole.ROLE_VENDOR.name()),
+                    criteriaBuilder.equal(
+                            criteriaBuilder.function("jsonb_extract_path_text", String.class,
+                                    root.get("user"),
+                                    criteriaBuilder.literal("role")
+                            )
+                            , UserRole.ROLE_ADMIN.name())
+            ));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

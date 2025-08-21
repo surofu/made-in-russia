@@ -17,8 +17,8 @@ public class GetProductSummaryViewPageByVendorId {
     int page;
     int size;
     String title;
-    List<Long> deliveryMethodIds;
     List<Long> categoryIds;
+    List<Long> deliveryMethodIds;
     BigDecimal minPrice;
     BigDecimal maxPrice;
 

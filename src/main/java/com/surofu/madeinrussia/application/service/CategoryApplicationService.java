@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.cache.CategoryCacheManager;
 import com.surofu.madeinrussia.application.cache.CategoryListCacheManager;
+import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
@@ -35,6 +36,7 @@ public class CategoryApplicationService implements CategoryService {
     private final FileStorageRepository fileStorageRepository;
     private final CategoryCacheManager categoryCacheManager;
     private final CategoryListCacheManager categoryListCacheManager;
+    private final GeneralCacheService generalCacheService;
 
     @Override
     @Transactional(readOnly = true)
@@ -214,6 +216,8 @@ public class CategoryApplicationService implements CategoryService {
                 log.error(e.getMessage(), e);
             }
 
+            generalCacheService.clear();
+
             return CreateCategory.Result.success(category.getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -314,6 +318,9 @@ public class CategoryApplicationService implements CategoryService {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
+
+            generalCacheService.clear();
+
             return UpdateCategoryById.Result.success(category.get().getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -349,6 +356,9 @@ public class CategoryApplicationService implements CategoryService {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
+
+            generalCacheService.clear();
+
             return DeleteCategoryById.Result.success(category.get().getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

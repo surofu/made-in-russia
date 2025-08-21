@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.utils;
 
+import com.surofu.madeinrussia.application.dto.product.ProductDto;
+import com.surofu.madeinrussia.application.dto.product.ProductPriceDto;
 import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.service.currency.CurrencyConverterService;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
@@ -50,5 +52,29 @@ public class LocalizationManager {
             log.error(e.getMessage(), e);
         }
         return view;
+    }
+
+    public ProductDto localizePrice(ProductDto dto, Locale locale) {
+        for (ProductPriceDto price : dto.getPrices()) {
+            CurrencyCode from = CurrencyCode.valueOf(price.getCurrency());
+            CurrencyCode to = switch (locale.getLanguage()) {
+                case ("en") -> CurrencyCode.USD;
+                case ("ru") -> CurrencyCode.RUB;
+                case ("zh") -> CurrencyCode.CNY;
+                default -> from;
+            };
+
+            try {
+                BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, price.getOriginalPrice());
+                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, price.getDiscountedPrice());
+
+                price.setOriginalPrice(localizedOriginalPrice);
+                price.setDiscountedPrice(localizedDiscountedPrice);
+                price.setCurrency(to.name());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        return dto;
     }
 }

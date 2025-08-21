@@ -3,12 +3,10 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
-import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
-import com.surofu.madeinrussia.core.service.currency.CurrencyConverterService;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
@@ -51,16 +49,14 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
 
         // Process
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
-        List<Long> categoryIdsWithChildren = new ArrayList<>(allChildCategoriesIds);
-
 
         if (operation.getCategoryIds() != null) {
-            categoryIdsWithChildren.addAll(operation.getCategoryIds());
+            allChildCategoriesIds.addAll(operation.getCategoryIds());
         }
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
+                .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
@@ -118,34 +114,34 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     @Override
     @Transactional(readOnly = true)
     public GetProductSummaryViewPageByVendorId.Result getProductSummaryViewPageByVendorId(GetProductSummaryViewPageByVendorId operation) {
-        if (!userRepository.existsVendorById(operation.getVendorId())) {
+        if (!userRepository.existsVendorOrAdminById(operation.getVendorId())) {
             return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());
         }
 
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
-
+        // Process
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
-        List<Long> categoryIdsWithChildren = new ArrayList<>(allChildCategoriesIds);
 
         if (operation.getCategoryIds() != null) {
-            categoryIdsWithChildren.addAll(operation.getCategoryIds());
+            allChildCategoriesIds.addAll(operation.getCategoryIds());
         }
 
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
+                .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
                 .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()));
 
-        Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
+
+        Page<ProductSummaryView> page = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
+        Page<ProductSummaryViewDto> pageDto = page
                 .map(p -> ProductSummaryViewDto.of(
                         localizationManager.localizePrice(p, operation.getLocale()),
                         operation.getLocale().getLanguage())
                 );
 
-        return GetProductSummaryViewPageByVendorId.Result.success(productSummaryViewDtoPage);
+        return GetProductSummaryViewPageByVendorId.Result.success(pageDto);
     }
 
     private String getFirstPageHash(GetProductSummaryViewPage operation) {

@@ -16,4 +16,5 @@ import java.util.List;
 public class GeneralDto implements Serializable {
     Page<ProductSummaryViewDto> products;
     List<CategoryDto> categories;
+    List<CategoryDto> allCategories;
 }

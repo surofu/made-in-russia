@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -51,7 +52,16 @@ public class GeneralApplicationService implements GeneralService {
         List<CategoryView> categories = categoryRepository.getAllCategoriesViewsByLang(operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtoList = CategoryUtils.buildTreeFromViews(categories);
 
-        GeneralDto generalDto = new GeneralDto(pageDto, categoryDtoList);
+        List<CategoryDto> categoryL1L2DtoList = categoryDtoList.stream()
+                .map(c -> {
+                    var copy = c.copy();
+                    if (copy.getChildren() != null && !copy.getChildren().isEmpty()) {
+                        copy.getChildren().forEach(child -> child.setChildren(Collections.emptyList()));
+                    }
+                    return copy;
+                }).toList();
+
+        GeneralDto generalDto = new GeneralDto(pageDto, categoryL1L2DtoList, categoryDtoList);
 
         // Set cache
         generalCacheService.set(generalDto);

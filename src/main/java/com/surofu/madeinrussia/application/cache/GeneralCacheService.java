@@ -33,7 +33,7 @@ public class GeneralCacheService {
         redisTemplate.expire(CACHE_NAME, ttl);
     }
 
-    public void delete() {
+    public void clear() {
         hashOperations.delete(CACHE_NAME, ALL_CACHE_NAME);
     }
 

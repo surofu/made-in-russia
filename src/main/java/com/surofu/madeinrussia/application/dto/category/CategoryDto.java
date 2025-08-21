@@ -182,4 +182,17 @@ public final class CategoryDto implements Serializable {
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
+
+    public CategoryDto copy() {
+        return CategoryDto.builder()
+                .id(this.getId())
+                .slug(this.getSlug())
+                .name(this.getName())
+                .imageUrl(this.getImageUrl() == null ? null : this.getImageUrl())
+                .childrenCount(this.getChildrenCount())
+                .children(this.getChildren().stream().map(CategoryDto::copy).toList())
+                .creationDate(this.getCreationDate())
+                .lastModificationDate(this.getLastModificationDate())
+                .build();
+    }
 }

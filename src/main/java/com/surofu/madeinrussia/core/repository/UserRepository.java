@@ -35,7 +35,7 @@ public interface UserRepository {
 
     Optional<User> getVendorById(Long id);
 
-    boolean existsVendorById(Long id);
+    boolean existsVendorOrAdminById(Long id);
 
     void delete(User user);
 

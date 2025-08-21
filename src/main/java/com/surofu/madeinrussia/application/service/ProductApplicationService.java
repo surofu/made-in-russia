@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.cache.ProductCacheManager;
 import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
 import com.surofu.madeinrussia.application.command.product.create.*;
@@ -17,6 +18,7 @@ import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.application.service.async.AsyncProductApplicationService;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
@@ -88,7 +90,6 @@ import java.util.stream.Collectors;
 public class ProductApplicationService implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductSummaryViewRepository productSummaryViewRepository;
     private final UserRepository userRepository;
     private final VendorCountryRepository vendorCountryRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
@@ -107,12 +108,13 @@ public class ProductApplicationService implements ProductService {
     private final AsyncProductApplicationService asyncProductApplicationService;
     private final TaskExecutor appTaskExecutor;
     private final ProductCacheManager productCacheManager;
-    private final CurrencyConverterService currencyConverterService;
+    private final LocalizationManager localizationManager;
 
     @PersistenceContext
     private final EntityManager entityManager;
 
     private final ProductSummaryCacheManager productSummaryCacheManager;
+    private final GeneralCacheService generalCacheService;
 
     @Override
     @Transactional(readOnly = true)
@@ -530,12 +532,14 @@ public class ProductApplicationService implements ProductService {
         /* ========== Save Data ========== */
         try {
             saveProduct(product);
-            productSummaryCacheManager.clearAll();
-            return CreateProduct.Result.success();
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProduct.Result.errorSavingProduct(e);
         }
+
+        productSummaryCacheManager.clearAll();
+        generalCacheService.clear();
+        return CreateProduct.Result.success();
     }
 
     @Override
@@ -894,6 +898,8 @@ public class ProductApplicationService implements ProductService {
             return UpdateProduct.Result.errorSavingProduct(e);
         }
 
+        generalCacheService.clear();
+
         return UpdateProduct.Result.success();
     }
 
@@ -1063,7 +1069,7 @@ public class ProductApplicationService implements ProductService {
                 .map(ProductPackageOptionDto::of).toList();
         productDto.setPackagingOptions(productPackageOptionDtoList);
 
-        return localizePrice(productDto, locale);
+        return localizationManager.localizePrice(productDto, locale);
     }
 
     @Override
@@ -1086,6 +1092,7 @@ public class ProductApplicationService implements ProductService {
 
         productSummaryCacheManager.clearAll();
         productCacheManager.clearById(operation.getProductId());
+        generalCacheService.clear();
         return DeleteProductById.Result.success(operation.getProductId());
     }
 
@@ -1405,29 +1412,5 @@ public class ProductApplicationService implements ProductService {
             MultipartFile file,
             String folderName
     ) {
-    }
-
-    private ProductDto localizePrice(ProductDto dto, Locale locale) {
-        for (ProductPriceDto price : dto.getPrices()) {
-            CurrencyCode from = CurrencyCode.valueOf(price.getCurrency());
-            CurrencyCode to = switch (locale.getLanguage()) {
-                case ("en") -> CurrencyCode.USD;
-                case ("ru") -> CurrencyCode.RUB;
-                case ("zh") -> CurrencyCode.CNY;
-                default -> from;
-            };
-
-            try {
-                BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, price.getOriginalPrice());
-                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, price.getDiscountedPrice());
-
-                price.setOriginalPrice(localizedOriginalPrice);
-                price.setDiscountedPrice(localizedDiscountedPrice);
-                price.setCurrency(to.name());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-        return dto;
     }
 }
