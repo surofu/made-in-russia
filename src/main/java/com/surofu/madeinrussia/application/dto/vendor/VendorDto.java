@@ -76,7 +76,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setRole(user.getRole().getName());
         vendorDto.setLogin(user.getLogin().getValue());
         vendorDto.setEmail(user.getEmail().getValue());
-        vendorDto.setPhoneNumber(user.getPhoneNumber().getValue());
+        vendorDto.setPhoneNumber(StringUtils.trimToNull(Objects.requireNonNullElse(user.getPhoneNumber(), "").toString()));
         vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails()));
         vendorDto.setRegistrationDate(user.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(user.getLastModificationDate().getValue());
@@ -97,7 +97,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setLogin(view.getLogin().toString());
         vendorDto.setPhoneNumber(StringUtils.trimToNull(Objects.requireNonNullElse(view.getPhoneNumber(), "").toString()));
         vendorDto.setRole(view.getRole().getName());
-        vendorDto.setAvatarUrl(view.getAvatar().toString());
+        vendorDto.setAvatarUrl(view.getAvatar() == null ? null : view.getAvatar().toString());
         vendorDto.setRegistrationDate(view.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(view.getLastModificationDate().getValue());
         vendorDto.setVendorDetails(VendorDetailsDto.of(view.getVendorDetails()));
