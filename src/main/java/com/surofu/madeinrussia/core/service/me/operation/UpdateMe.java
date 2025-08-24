@@ -11,6 +11,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Value(staticConstructor = "of")
@@ -21,6 +22,7 @@ public class UpdateMe {
     VendorDetailsInn inn;
     List<VendorCountryName> countryNames;
     List<VendorProductCategoryName> categoryNames;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);
@@ -28,6 +30,11 @@ public class UpdateMe {
         static Result success(AbstractAccountDto accountDto) {
             log.info("Successfully processed update me: {}", accountDto);
             return Success.of(accountDto);
+        }
+
+        static Result translationError(Exception e) {
+            log.error("Translation error while update me", e);
+            return TranslationError.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -40,8 +47,18 @@ public class UpdateMe {
             }
         }
 
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
+            T processTranslationError(TranslationError result);
         }
     }
 }

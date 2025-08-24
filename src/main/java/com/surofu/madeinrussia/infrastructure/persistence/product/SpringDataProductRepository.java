@@ -68,11 +68,15 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             p.category.name.value as categoryName,
             p.category.imageUrl.value as categoryImage
             from Product p
-            where p.title.value ilike concat('%', :searchTerm, '%') or
-                  p.articleCode.value ilike concat('%', :searchTerm, '%')
+            where (
+                    p.title.value ilike concat('%', :searchTerm, '%') or
+                    p.articleCode.value ilike concat('%', :searchTerm, '%') or
+                    p.user.login.value ilike concat('%', :searchTerm, '%') or
+                    p.user.email.value ilike concat('%', :searchTerm, '%')
+            ) and (coalesce(:vendorId, p.user.id) = p.user.id)
             order by p.category.name.value, p.title.value
             """)
-    List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm);
+    List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm, @Param("vendorId") Long vendorId);
 
     // View
 

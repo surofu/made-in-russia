@@ -4,9 +4,14 @@ import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -90,7 +95,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setIsEnabled(view.getIsEnabled().getValue());
         vendorDto.setEmail(view.getEmail().toString());
         vendorDto.setLogin(view.getLogin().toString());
-        vendorDto.setPhoneNumber(view.getPhoneNumber().toString());
+        vendorDto.setPhoneNumber(StringUtils.trimToNull(Objects.requireNonNullElse(view.getPhoneNumber(), "").toString()));
         vendorDto.setRole(view.getRole().getName());
         vendorDto.setRegistrationDate(view.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(view.getLastModificationDate().getValue());

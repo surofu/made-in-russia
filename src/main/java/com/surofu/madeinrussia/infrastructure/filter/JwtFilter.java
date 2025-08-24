@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.SessionRepository;
@@ -133,22 +134,20 @@ public class JwtFilter extends OncePerRequestFilter {
                     response.setHeader("Authorization", "Bearer " + accessToken);
 
                     log.debug("Start saveOrUpdateSessionFromHttpRequest");
-                    asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
-                            .exceptionally(ex -> {
-                                log.error("Error while saving session", ex);
-                                return null;
-                            });
-                } else {
-                    log.warn("""
-                            Session not found by:
-                            user id: {}
-                            device id: {}
-                            ip address: {}
-                            browser: {}
-                            """, securityUser.getUser().getId(), sessionInfo.getDeviceId().toString(), sessionInfo.getIpAddress(), sessionInfo.getUserAgent().getBrowser().getName());
+
+                    try {
+                        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+                        Session oldSession = sessionRepository
+                                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                                .orElse(new Session());
+                        Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
+                        sessionRepository.save(session);
+                    } catch (Exception ex) {
+                        log.error("Error while saving session: {}", ex.getMessage(), ex);
+                    }
                 }
             } catch (UsernameNotFoundException ex) {
-                log.warn("User with email '{}' not found", userEmail, ex);
+                log.warn("User with email '{}' not found", userEmail);
             }
         }
 

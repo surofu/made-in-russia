@@ -38,6 +38,7 @@ public class FaqApplicationService implements FaqService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetFaqById.Result getFaqById(GetFaqById operation) {
         Optional<FaqView> view = faqRepository.getViewByIdAndLang(
                 operation.getFaqId(), operation.getLocale().getLanguage());
@@ -50,6 +51,7 @@ public class FaqApplicationService implements FaqService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetFaqWithTranslationsById.Result getFaqWithTranslationsById(GetFaqWithTranslationsById operation) {
         Optional<FaqWithTranslationsView> view = faqRepository.getViewWithTranslationsByIdAndLang(
                 operation.getFaqId(), operation.getLocale().getLanguage());

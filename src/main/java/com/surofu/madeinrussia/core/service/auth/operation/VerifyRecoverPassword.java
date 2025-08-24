@@ -37,6 +37,11 @@ public class VerifyRecoverPassword {
             return UserNotFound.of(userEmail);
         }
 
+        static Result saveError(Exception e) {
+            log.error("Error while verify recover password", e);
+            return SaveError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             RecoverPasswordSuccessDto recoverPasswordSuccessDto;
@@ -76,6 +81,15 @@ public class VerifyRecoverPassword {
             }
         }
 
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
@@ -84,6 +98,8 @@ public class VerifyRecoverPassword {
             T processInvalidRecoverCode(InvalidRecoverCode result);
 
             T processUserNotFound(UserNotFound result);
+
+            T processSaveError(SaveError result);
         }
     }
 }

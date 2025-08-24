@@ -328,13 +328,15 @@ public class MeRestController {
 
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
+        Locale locale = LocaleContextHolder.getLocale();
         UpdateMe operation = UpdateMe.of(
                 securityUser,
                 updateMeCommand.phoneNumber() != null ? UserPhoneNumber.of(updateMeCommand.phoneNumber()) : null,
                 updateMeCommand.region() != null ? UserRegion.of(updateMeCommand.region()) : null,
                 updateMeCommand.inn() != null ? VendorDetailsInn.of(updateMeCommand.inn()) : null,
                 updateMeCommand.countries() != null ? updateMeCommand.countries().stream().map(VendorCountryName::of).toList() : null,
-                updateMeCommand.categories() != null ? updateMeCommand.categories().stream().map(VendorProductCategoryName::of).toList() : null
+                updateMeCommand.categories() != null ? updateMeCommand.categories().stream().map(VendorProductCategoryName::of).toList() : null,
+                locale
         );
         return meService.updateMe(operation).process(updateMeProcessor);
     }

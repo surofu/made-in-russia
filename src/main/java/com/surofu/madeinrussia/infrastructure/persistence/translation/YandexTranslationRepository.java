@@ -89,6 +89,14 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
+    public HstoreTranslationDto expand(String text) throws EmptyTranslationException, IOException {
+        TranslationResponse en = translateToEn(text);
+        TranslationResponse ru = translateToRu(text);
+        TranslationResponse zh = translateToZh(text);
+        return new HstoreTranslationDto(en.getTranslations()[0].getText(), ru.getTranslations()[0].getText(), zh.getTranslations()[0].getText());
+    }
+
+    @Override
     public Map<String, List<HstoreTranslationDto>> expandStrings(Map<String, List<String>> map) throws IOException {
         if (map == null || map.isEmpty()) {
             return Collections.emptyMap();
@@ -100,7 +108,6 @@ public class YandexTranslationRepository implements TranslationRepository {
         TranslationResponse responseEn = translate("en", stringList.toArray(new String[0]));
         TranslationResponse responseRu = translate("ru", stringList.toArray(new String[0]));
         TranslationResponse responseZh = translate("zh", stringList.toArray(new String[0]));
-
         Map<String, List<HstoreTranslationDto>> result = new HashMap<>();
 
         AtomicInteger index = new AtomicInteger();

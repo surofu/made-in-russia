@@ -1,12 +1,14 @@
 package com.surofu.madeinrussia.application.exception;
 
 import com.surofu.madeinrussia.application.dto.error.InternalServerErrorDto;
+import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -26,7 +28,6 @@ public class GlobalExceptionHandler {
             org.springframework.transaction.TransactionException.class,
             org.springframework.web.HttpRequestMethodNotSupportedException.class,
             org.springframework.web.bind.MissingServletRequestParameterException.class,
-            org.springframework.http.converter.HttpMessageNotReadableException.class,
             org.springframework.validation.BindException.class,
 
             // JPA/Hibernate
@@ -61,5 +62,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(dto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
+    @ExceptionHandler({
+            org.springframework.http.converter.HttpMessageNotReadableException.class
+    })
+    public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(exception.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
 }

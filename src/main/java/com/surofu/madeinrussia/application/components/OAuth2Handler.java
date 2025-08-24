@@ -1,8 +1,10 @@
 package com.surofu.madeinrussia.application.components;
 
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.session.Session;
+import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
+import com.surofu.madeinrussia.core.repository.SessionRepository;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,8 +31,8 @@ import java.util.Map;
 public class OAuth2Handler implements AuthenticationSuccessHandler, AuthenticationFailureHandler {
 
     private final UserService userService;
-    private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final JwtUtils jwtUtils;
+    private final SessionRepository sessionRepository;
 
     @Value("${app.frontend.oauth.google.redirect.success}")
     private String successRedirectUri;
@@ -77,7 +79,13 @@ public class OAuth2Handler implements AuthenticationSuccessHandler, Authenticati
             response.addCookie(refreshTokenCookie);
 
             try {
-                asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser).join();
+                SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+                Session oldSession = sessionRepository
+                        .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                        .orElse(new Session());
+                Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
+                sessionRepository.save(session);
+
                 response.sendRedirect(successRedirectUri);
             } catch (Exception e) {
                 log.error("An error occurred while saving session", e);

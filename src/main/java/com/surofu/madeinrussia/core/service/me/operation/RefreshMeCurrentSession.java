@@ -36,6 +36,11 @@ public class RefreshMeCurrentSession {
             return SessionNotFound.INSTANCE;
         }
 
+        static Result saveSessionError(UserEmail userEmail, Exception e) {
+            log.warn("Saving error while verify email: {}", userEmail.toString(), e);
+            return SaveSessionError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             TokenDto tokenDto;
@@ -73,11 +78,21 @@ public class RefreshMeCurrentSession {
             }
         }
 
+        enum SaveSessionError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveSessionError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processInvalidRefreshToken(InvalidRefreshToken result);
             T processUserNotFound(UserNotFound result);
             T processSessionNotFound(SessionNotFound result);
+            T processSaveSessionError(SaveSessionError result);
         }
     }
 }

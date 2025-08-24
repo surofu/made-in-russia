@@ -6,6 +6,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
 import java.util.regex.Pattern;
@@ -34,16 +35,20 @@ public final class UserEmail implements Serializable {
             throw new LocalizedValidationException("validation.email.format");
         }
 
-        this.value = email;
+        this.value = email.toLowerCase();
     }
 
     public static UserEmail of(String email) {
         return new UserEmail(email);
     }
 
+    public String getValue() {
+        return value.toLowerCase();
+    }
+
     @Override
     public String toString() {
-        return value;
+        return value.toLowerCase();
     }
 
     @Override

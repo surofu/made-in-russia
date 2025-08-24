@@ -37,9 +37,14 @@ public class VerifyEmail {
             return TranslationError.INSTANCE;
         }
 
-        static Result saveError(Exception e) {
-            log.warn("Saving error while verify email: {}", e.getMessage());
+        static Result saveError(UserEmail userEmail, Exception e) {
+            log.warn("Saving error while verify email: {}", userEmail.toString(), e);
             return SaveError.INSTANCE;
+        }
+
+        static Result saveSessionError(UserEmail userEmail, Exception e) {
+            log.warn("Saving session error while verify email: {}", userEmail.toString(), e);
+            return SaveSessionError.INSTANCE;
         }
 
         @Value(staticConstructor = "of")
@@ -89,12 +94,22 @@ public class VerifyEmail {
             }
         }
 
+        enum SaveSessionError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveSessionError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processAccountNotFound(AccountNotFound result);
             T processInvalidVerificationCode(InvalidVerificationCode result);
             T processTranslationError(TranslationError result);
             T processSaveError(SaveError result);
+            T processSaveSessionError(SaveSessionError result);
         }
     }
 }

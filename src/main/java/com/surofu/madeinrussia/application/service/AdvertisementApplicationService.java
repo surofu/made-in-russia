@@ -41,6 +41,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     private final EntityManager entityManager;
 
     @Override
+    @Transactional(readOnly = true)
     public GetAllAdvertisements.Result getAllAdvertisements(GetAllAdvertisements operation) {
         List<AdvertisementView> viewList = advertisementRepository.getAllViewsByLang(operation.getLocale().getLanguage());
         List<AdvertisementDto> dtoList = viewList.stream().map(AdvertisementDto::of).toList();
@@ -48,6 +49,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetAllAdvertisementsWithTranslations.Result getAllAdvertisementsWithTranslations(GetAllAdvertisementsWithTranslations operation) {
         List<AdvertisementWithTranslationsView> viewList = advertisementRepository.getAllViewsWithTranslationsByLang(operation.getLocale().getLanguage());
         List<AdvertisementWithTranslationsDto> dtoList = viewList.stream().map(AdvertisementWithTranslationsDto::of).toList();
@@ -55,6 +57,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetAdvertisementById.Result getAdvertisementById(GetAdvertisementById operation) {
         Optional<AdvertisementView> view = advertisementRepository.getViewByIdAndLang(
                 operation.getId(), operation.getLocale().getLanguage());
@@ -68,6 +71,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetAdvertisementWithTranslationsById.Result getAdvertisementWithTranslationsById(GetAdvertisementWithTranslationsById operation) {
         Optional<AdvertisementWithTranslationsView> view = advertisementRepository.getViewWithTranslationsByIdAndLang(
                 operation.getId(), operation.getLocale().getLanguage());

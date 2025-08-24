@@ -18,7 +18,6 @@ public final class UserPhoneNumber implements Serializable {
     private String value;
 
     private UserPhoneNumber(String phoneNumber) {
-
        if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
            if (phoneNumber.length() < 7) {
                throw new LocalizedValidationException("validation.phone_number.min_length");

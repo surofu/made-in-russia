@@ -20,7 +20,6 @@ import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
 import com.surofu.madeinrussia.application.service.async.AsyncProductApplicationService;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.category.Category;
-import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.*;
@@ -41,7 +40,6 @@ import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOp
 import com.surofu.madeinrussia.core.model.product.price.*;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.*;
-import com.surofu.madeinrussia.core.service.currency.CurrencyConverterService;
 import com.surofu.madeinrussia.core.service.product.ProductService;
 import com.surofu.madeinrussia.core.service.product.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
@@ -904,8 +902,9 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetSearchHints.Result getSearchHints(GetSearchHints operation) {
-        List<SearchHintView> searchHintViews = productRepository.findHintViews(operation.getSearchTerm());
+        List<SearchHintView> searchHintViews = productRepository.findHintViews(operation.getSearchTerm(), operation.getVendorId());
 
         Map<CategoryHintDto, List<ProductHintDto>> groupedProductHint = searchHintViews.stream()
                 .collect(Collectors.groupingBy(
@@ -935,7 +934,8 @@ public class ProductApplicationService implements ProductService {
         return GetSearchHints.Result.success(groupedSearchHints);
     }
 
-    private ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
+    @Transactional(readOnly = true)
+    protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
         if (userView.isPresent()) {
@@ -1096,8 +1096,8 @@ public class ProductApplicationService implements ProductService {
         return DeleteProductById.Result.success(operation.getProductId());
     }
 
-    /* ========== PRIVATE ========== */
-    private ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
+    @Transactional(readOnly = true)
+    protected ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
         if (userView.isPresent()) {

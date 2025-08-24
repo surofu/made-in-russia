@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -538,14 +539,14 @@ public class AuthRestController {
             )
             @RequestBody RegisterVendorCommand command) {
         ForceRegisterVendor operation = ForceRegisterVendor.of(
-                UserEmail.of(command.email()),
-                UserLogin.of(command.login()),
-                UserPasswordPassword.of(command.password()),
-                UserPhoneNumber.of(command.phoneNumber()),
-                VendorDetailsInn.of(command.inn()),
+                UserEmail.of(StringUtils.trimToNull(command.email())),
+                UserLogin.of(StringUtils.trimToNull(command.login())),
+                UserPasswordPassword.of(StringUtils.trimToNull(command.password())),
+                UserPhoneNumber.of(StringUtils.trimToNull(command.phoneNumber())),
+                VendorDetailsInn.of(StringUtils.trimToNull(command.inn())),
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
                 command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>(),
-                UserAvatar.of(command.avatarUrl())
+                UserAvatar.of(StringUtils.trimToNull(command.avatarUrl()))
         );
         return authService.forceRegisterVendor(operation).process(forceRegisterVendorProcessor);
     }

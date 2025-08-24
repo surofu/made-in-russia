@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class RussianCentralBankCurrencyConverterService implements CurrencyConverterService {
@@ -37,8 +39,8 @@ public class RussianCentralBankCurrencyConverterService implements CurrencyConve
             return amount;
         }
 
-        BigDecimal multiplier = getMultiplier(from, to);
-        return amount.multiply(multiplier);
+        BigDecimal multiplier = Objects.requireNonNullElse(getMultiplier(from, to), BigDecimal.ONE);
+        return amount.multiply(multiplier).setScale(0, RoundingMode.DOWN);
     }
 
     private BigDecimal getMultiplier(CurrencyCode from, CurrencyCode to) throws IOException, InterruptedException {

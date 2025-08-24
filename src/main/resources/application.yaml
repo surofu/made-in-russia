@@ -41,8 +41,8 @@ spring:
 
     #========= Hikari Pool =========#
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: 16
+      minimum-idle: 4
       connection-timeout: 3000
       leak-detection-threshold: 20000
       auto-commit: false

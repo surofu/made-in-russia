@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.session.SessionDto;
+import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
@@ -32,6 +33,7 @@ import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import com.surofu.madeinrussia.infrastructure.persistence.user.UserView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
@@ -71,6 +73,7 @@ public class MeApplicationService implements MeService {
     private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
     private final FileStorageRepository fileStorageRepository;
+    private final TranslationRepository translationRepository;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
 
@@ -92,7 +95,7 @@ public class MeApplicationService implements MeService {
 
         UserView userView = userRepository.getViewById(operation.getSecurityUser().getUser().getId()).orElseThrow();
 
-        if (userView.getRole().equals(UserRole.ROLE_VENDOR)) {
+        if (userView.getVendorDetails() != null) {
             VendorDto vendorDto = VendorDto.of(userView);
 
             List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
@@ -212,6 +215,7 @@ public class MeApplicationService implements MeService {
     }
 
     @Override
+    @Transactional
     public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
         UserEmail userEmail;
 
@@ -240,18 +244,23 @@ public class MeApplicationService implements MeService {
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         TokenDto tokenDto = TokenDto.of(accessToken);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+        Session oldSession = sessionRepository
+                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                .orElse(new Session());
+        Session newSession = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
+
+        try {
+            sessionRepository.save(newSession);
+        } catch (Exception e) {
+            return RefreshMeCurrentSession.Result.saveSessionError(userEmail, e);
+        }
 
         return RefreshMeCurrentSession.Result.success(tokenDto);
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "userById", key = "#operation.securityUser.user.id"),
-            @CacheEvict(value = "userByLogin", key = "#operation.securityUser.user.login.value"),
-            @CacheEvict(value = "userByEmail", key = "#operation.securityUser.user.email.value"),
-            @CacheEvict(value = "userByUsername", key = "#operation.securityUser.user.email.value")
-    })
+    @Transactional
     public UpdateMe.Result updateMe(UpdateMe operation) {
         User user = operation.getSecurityUser().getUser();
 
@@ -263,7 +272,7 @@ public class MeApplicationService implements MeService {
             user.setRegion(operation.getUserRegion());
         }
 
-        if (user.getRole().equals(UserRole.ROLE_VENDOR) && user.getVendorDetails() != null) {
+        if (user.getVendorDetails() != null) {
             VendorDetails vendorDetails = user.getVendorDetails();
 
             if (operation.getInn() != null) {
@@ -274,18 +283,27 @@ public class MeApplicationService implements MeService {
                 Set<VendorCountry> vendorCountries = new HashSet<>();
 
                 for (VendorCountryName countryName : operation.getCountryNames()) {
-                    List<VendorCountry> existingCountries = vendorDetails.getVendorCountries().stream()
+                    Optional<VendorCountry> existingCountry = vendorDetails.getVendorCountries().stream()
                             .filter(c -> c.getName().toString().equals(countryName.toString()))
-                            .toList();
+                            .findFirst();
 
-                    if (existingCountries.isEmpty()
-                    ) {
+                    if (existingCountry.isEmpty()) {
                         VendorCountry vendorCountry = new VendorCountry();
                         vendorCountry.setVendorDetails(vendorDetails);
+
+                        HstoreTranslationDto translationDto;
+
+                        try {
+                            translationDto = translationRepository.expand(countryName.toString());
+                        } catch (Exception e) {
+                            return UpdateMe.Result.translationError(e);
+                        }
+
+                        countryName.setTranslations(translationDto);
                         vendorCountry.setName(countryName);
                         vendorCountries.add(vendorCountry);
                     } else {
-                        vendorCountries.addAll(existingCountries);
+                        vendorCountries.add(existingCountry.get());
                     }
                 }
 
@@ -318,7 +336,33 @@ public class MeApplicationService implements MeService {
 
         User newUser = userRepository.save(user);
 
-        if (user.getRole().equals(UserRole.ROLE_VENDOR)) {
+        if (newUser.getVendorDetails() != null) {
+            for (VendorCountry country : newUser.getVendorDetails().getVendorCountries()) {
+                switch (operation.getLocale().getLanguage()) {
+                    case "en": {
+                        var name = VendorCountryName.of(country.getName().getTranslations().textEn());
+                        name.setTranslations(country.getName().getTranslations());
+                        country.setName(name);
+                        break;
+                    }
+                    case "ru": {
+                        var name = VendorCountryName.of(country.getName().getTranslations().textRu());
+                        name.setTranslations(country.getName().getTranslations());
+                        country.setName(name);
+                        break;
+                    }
+                    case "zh": {
+                        var name = VendorCountryName.of(country.getName().getTranslations().textZh());
+                        name.setTranslations(country.getName().getTranslations());
+                        country.setName(name);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+
             return UpdateMe.Result.success(VendorDto.of(newUser));
         }
 
@@ -390,13 +434,15 @@ public class MeApplicationService implements MeService {
 
     /* ========== PRIVATE ========== */
 
-    private Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
+    @Transactional(readOnly = true)
+    protected Optional<Session> getSessionBySecurityUser(SecurityUser securityUser) {
         Long userId = securityUser.getUser().getId();
         SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
         return sessionRepository.getSessionByUserIdAndDeviceId(userId, sessionDeviceId);
     }
 
-    private Page<ProductReviewDto> getProductReviewsBy(Specification<ProductReview> specification, Pageable pageable) {
+    @Transactional(readOnly = true)
+    protected Page<ProductReviewDto> getProductReviewsBy(Specification<ProductReview> specification, Pageable pageable) {
         Page<ProductReview> productReviewPageWithoutMedia = productReviewRepository.getPage(specification, pageable);
 
         if (!productReviewPageWithoutMedia.isEmpty()) {

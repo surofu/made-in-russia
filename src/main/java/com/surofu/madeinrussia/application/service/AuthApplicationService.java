@@ -10,10 +10,10 @@ import com.surofu.madeinrussia.application.dto.auth.VerifyEmailSuccessDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
-import com.surofu.madeinrussia.application.service.async.AsyncAuthApplicationService;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
@@ -23,16 +23,14 @@ import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCoun
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
-import com.surofu.madeinrussia.core.repository.TranslationRepository;
-import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
-import com.surofu.madeinrussia.core.repository.UserRepository;
-import com.surofu.madeinrussia.core.repository.VendorDetailsRepository;
+import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.auth.AuthService;
 import com.surofu.madeinrussia.core.service.auth.operation.*;
 import com.surofu.madeinrussia.core.service.mail.MailService;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
@@ -59,12 +57,13 @@ public class AuthApplicationService implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final VendorDetailsRepository vendorDetailsRepository;
     private final JwtUtils jwtUtils;
-    private final AsyncAuthApplicationService asyncAuthApplicationService;
     private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
     private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final SessionRepository sessionRepository;
+
     @Value("${app.redis.verification-ttl-duration}")
     private Duration verificationTtl;
 
@@ -91,7 +90,7 @@ public class AuthApplicationService implements AuthService {
         user.setRole(UserRole.ROLE_USER);
         user.setEmail(operation.getUserEmail());
         user.setLogin(operation.getUserLogin());
-        user.setPhoneNumber(operation.getUserPhoneNumber());
+        user.setPhoneNumber(UserPhoneNumber.of(StringUtils.trimToNull(Objects.requireNonNullElse(operation.getUserPhoneNumber(), "").toString())));
         user.setRegion(operation.getUserRegion());
         user.setAvatar(operation.getAvatar());
 
@@ -202,12 +201,20 @@ public class AuthApplicationService implements AuthService {
 
         for (int i = 0; i < vendorCountries.size(); i++) {
             VendorCountry country = vendorCountries.get(i);
-            country.getName().setTranslations(translationResult.get("VendorCountryName").get(i));
+            try {
+                country.getName().setTranslations(Objects.requireNonNull(translationResult.get("VendorCountryName").get(i)));
+            } catch (Exception e) {
+                return RegisterVendor.Result.translationError(e);
+            }
         }
 
         for (int i = 0; i < vendorProductCategories.size(); i++) {
             VendorProductCategory country = vendorProductCategories.get(i);
-            country.getName().setTranslations(translationResult.get("VendorProductCategoryName").get(i));
+            try {
+                country.getName().setTranslations(Objects.requireNonNull(translationResult.get("VendorProductCategoryName").get(i)));
+            } catch (Exception e) {
+                return RegisterVendor.Result.translationError(e);
+            }
         }
 
         vendorDetails.setVendorCountries(new HashSet<>(vendorCountries));
@@ -258,6 +265,7 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginWithEmail.Result loginWithEmail(LoginWithEmail operation) {
         try {
             LoginSuccessDto dto = login(operation.getEmail(), operation.getPassword());
@@ -270,6 +278,7 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
         Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(operation.getLogin());
 
@@ -306,6 +315,8 @@ public class AuthApplicationService implements AuthService {
             return VerifyEmail.Result.accountNotFound(operation.getUserEmail());
         }
 
+        user.setPhoneNumber(user.getPhoneNumber() == null ? null : UserPhoneNumber.of(StringUtils.trimToNull(user.getPhoneNumber().toString())));
+
         UserPassword userPassword = userVerificationRedisCacheManager.getUserPassword(operation.getUserEmail());
 
         if (userPassword == null) {
@@ -325,17 +336,22 @@ public class AuthApplicationService implements AuthService {
         try {
             userRepository.save(user);
         } catch (Exception e) {
-            return VerifyEmail.Result.saveError(e);
-        } finally {
-            userVerificationRedisCacheManager.clearCache(user.getEmail());
+            return VerifyEmail.Result.saveError(user.getEmail(), e);
         }
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
-                .exceptionally(ex -> {
-                    log.error("Error while saving session", ex);
-                    return null;
-                });
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+        Session oldSession = sessionRepository
+                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                .orElse(new Session());
+        Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
 
+        try {
+            sessionRepository.save(session);
+        } catch (Exception e) {
+            return VerifyEmail.Result.saveSessionError(user.getEmail(), e);
+        }
+
+        userVerificationRedisCacheManager.clearCache(user.getEmail());
         return VerifyEmail.Result.success(verifyEmailSuccessDto);
     }
 
@@ -416,8 +432,26 @@ public class AuthApplicationService implements AuthService {
 
         RecoverPasswordSuccessDto recoverPasswordSuccessDto = RecoverPasswordSuccessDto.of(accessToken, refreshToken);
 
-        asyncAuthApplicationService.saveUserPasswordInDatabaseAndClearRecoverPasswordCacheByUserEmail(userPassword.get(), operation.getUserEmail());
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser);
+        try {
+            userPasswordRepository.saveUserPassword(userPassword.get());
+            recoverPasswordRedisCacheManager.clear(userPassword.get().getUser().getEmail());
+        } catch (Exception e) {
+            log.error("Error saving user password: {}", e.getMessage(), e);
+            return VerifyRecoverPassword.Result.saveError(e);
+        }
+
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+        Session oldSession = sessionRepository
+                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                .orElse(new Session());
+        Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
+
+        try {
+            sessionRepository.save(session);
+        } catch (Exception e) {
+            log.error("Save session error: {}", e.getMessage());
+            throw e;
+        }
 
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }
@@ -585,6 +619,7 @@ public class AuthApplicationService implements AuthService {
         }
     }
 
+    @Transactional
     protected LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
         Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(userEmail.toString(), userPasswordPassword.toString());
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
@@ -595,12 +630,18 @@ public class AuthApplicationService implements AuthService {
         String accessToken = jwtUtils.generateAccessToken(securityUser);
         String refreshToken = jwtUtils.generateRefreshToken(securityUser);
 
-        asyncSessionApplicationService.saveOrUpdateSessionFromHttpRequest(securityUser)
-                .exceptionally(ex -> {
-                    log.error("Error saving session", ex);
-                    return null;
-                });
+        SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
+        Session oldSession = sessionRepository
+                .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
+                .orElse(new Session());
+        Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
 
+        try {
+            sessionRepository.save(session);
+        } catch (Exception e) {
+            log.error("Save session error: {}", e.getMessage());
+            throw e;
+        }
         return LoginSuccessDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

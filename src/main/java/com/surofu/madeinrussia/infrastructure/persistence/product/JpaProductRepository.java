@@ -79,8 +79,8 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public List<SearchHintView> findHintViews(String searchTerm) {
-        return repository.findHintViews(searchTerm);
+    public List<SearchHintView> findHintViews(String searchTerm, Long vendorId) {
+        return repository.findHintViews(searchTerm, vendorId);
     }
 
     @Override

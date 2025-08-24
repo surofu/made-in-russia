@@ -10,6 +10,7 @@ import java.util.List;
 @Value(staticConstructor = "of")
 public class GetSearchHints {
     String searchTerm;
+    Long vendorId;
 
     public interface Result {
 

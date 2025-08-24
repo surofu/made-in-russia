@@ -781,11 +781,17 @@ public class ProductRestController {
         ));
 
         if (createProductCommand.furtherDescriptionTranslations() != null) {
-            productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
-                    createProductCommand.furtherDescriptionTranslations().en(),
-                    createProductCommand.furtherDescriptionTranslations().ru(),
-                    createProductCommand.furtherDescriptionTranslations().zh()
-            ));
+            if (
+                    createProductCommand.furtherDescriptionTranslations().en() != null ||
+                            createProductCommand.furtherDescriptionTranslations().ru() != null ||
+                            createProductCommand.furtherDescriptionTranslations().zh() != null
+            ) {
+                productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
+                        createProductCommand.furtherDescriptionTranslations().en(),
+                        createProductCommand.furtherDescriptionTranslations().ru(),
+                        createProductCommand.furtherDescriptionTranslations().zh()
+                ));
+            }
         }
 
         CreateProduct operation = CreateProduct.of(
@@ -1055,9 +1061,10 @@ public class ProductRestController {
             tags = {"Products", "Search"}
     )
     public ResponseEntity<?> getSearchHints(
-            @RequestParam(required = false, defaultValue = "$$$") String text
+            @RequestParam(required = false, defaultValue = "$$$") String text,
+            @RequestParam(required = false) Long vendorId
     ) {
-        GetSearchHints operation = GetSearchHints.of(text);
+        GetSearchHints operation = GetSearchHints.of(text, vendorId);
         return productService.getSearchHints(operation).process(getSearchHintsProcessor);
     }
 

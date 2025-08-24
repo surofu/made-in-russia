@@ -12,6 +12,7 @@ import com.surofu.madeinrussia.core.service.localization.service.SaveLocalizatio
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ public class WebLocalizationApplicationService implements LocalizationService {
     private final WebLocalizationCacheManager cacheManager;
 
     @Override
+    @Transactional(readOnly = true)
     public GetAllLocalizations.Result getAllLocalizations() {
         Map<String, WebLocalizationDto> cachedAll = cacheManager.getAll();
 
@@ -45,6 +47,7 @@ public class WebLocalizationApplicationService implements LocalizationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetLocalizationByLanguageCode.Result getLocalizationByLanguageCode(GetLocalizationByLanguageCode operation) {
         WebLocalizationDto cached = cacheManager.getWebLocalization(operation.getLanguageCode());
 
@@ -63,6 +66,7 @@ public class WebLocalizationApplicationService implements LocalizationService {
     }
 
     @Override
+    @Transactional
     public SaveLocalizationByLanguageCode.Result saveLocalization(SaveLocalizationByLanguageCode operation) {
         WebLocalization localization = repository.getByLanguageCode(operation.getLanguageCode())
                 .orElse(new WebLocalization());
@@ -80,6 +84,7 @@ public class WebLocalizationApplicationService implements LocalizationService {
     }
 
     @Override
+    @Transactional
     public DeleteLocalizationByLanguageCode.Result deleteLocalization(DeleteLocalizationByLanguageCode operation) {
         Optional<WebLocalization> localization = repository.getByLanguageCode(operation.getLanguageCode());
 

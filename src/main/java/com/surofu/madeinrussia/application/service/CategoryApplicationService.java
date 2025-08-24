@@ -87,7 +87,7 @@ public class CategoryApplicationService implements CategoryService {
     @Transactional(readOnly = true)
     public GetCategoryById.Result getCategoryById(GetCategoryById operation) {
         // Check cache
-        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategoryId().toString());
+        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategoryId(), operation.getLocale());
 
         if (cachedCategoryDto != null) {
             return GetCategoryById.Result.success(cachedCategoryDto);
@@ -104,8 +104,8 @@ public class CategoryApplicationService implements CategoryService {
         CategoryDto categoryDto = categoryDtos.stream().findFirst().get();
 
         try {
-            categoryCacheManager.setCategory(operation.getCategoryId().toString(), categoryDto);
-            categoryCacheManager.setCategory(categoryDto.getSlug(), categoryDto);
+            categoryCacheManager.setCategory(operation.getCategoryId(), operation.getLocale(), categoryDto);
+            categoryCacheManager.setCategory(categoryDto.getSlug(), operation.getLocale(), categoryDto);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -117,7 +117,7 @@ public class CategoryApplicationService implements CategoryService {
     @Transactional(readOnly = true)
     public GetCategoryBySlug.Result getCategoryBySlug(GetCategoryBySlug operation) {
         // Check cache
-        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategorySlug().toString());
+        CategoryDto cachedCategoryDto = categoryCacheManager.getCategory(operation.getCategorySlug().toString(), operation.getLocale());
 
         if (cachedCategoryDto != null) {
             return GetCategoryBySlug.Result.success(cachedCategoryDto);
@@ -134,8 +134,8 @@ public class CategoryApplicationService implements CategoryService {
         CategoryDto categoryDto = categoryDtos.stream().findFirst().get();
 
         try {
-            categoryCacheManager.setCategory(operation.getCategorySlug().toString(), categoryDto);
-            categoryCacheManager.setCategory(categoryDto.getId().toString(), categoryDto);
+            categoryCacheManager.setCategory(operation.getCategorySlug().toString(), operation.getLocale(), categoryDto);
+            categoryCacheManager.setCategory(categoryDto.getId().toString(), operation.getLocale(), categoryDto);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -312,8 +312,7 @@ public class CategoryApplicationService implements CategoryService {
         try {
             categoryRepository.save(category.get());
             try {
-                categoryCacheManager.clearByHash(operation.getId().toString());
-                categoryCacheManager.clearByHash(category.get().getSlug().toString());
+                categoryCacheManager.clear();
                 categoryListCacheManager.clearAll();
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -350,8 +349,7 @@ public class CategoryApplicationService implements CategoryService {
             categoryRepository.delete(category.get());
 
             try {
-                categoryCacheManager.clearByHash(operation.getId().toString());
-                categoryCacheManager.clearByHash(category.get().getSlug().toString());
+                categoryCacheManager.clear();
                 categoryListCacheManager.clearAll();
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
