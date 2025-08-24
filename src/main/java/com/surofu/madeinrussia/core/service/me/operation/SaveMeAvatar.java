@@ -25,6 +25,11 @@ public class SaveMeAvatar {
             return SaveError.INSTANCE;
         }
 
+        static Result emptyFile() {
+            log.warn("Empty file while save user avatar");
+            return SaveError.INSTANCE;
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -43,9 +48,19 @@ public class SaveMeAvatar {
             }
         }
 
+        enum EmptyFile implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyFile(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processSaveError(SaveError result);
+            T processEmptyFile(EmptyFile result);
         }
     }
 }

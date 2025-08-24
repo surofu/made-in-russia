@@ -385,28 +385,29 @@ public class MeApplicationService implements MeService {
     @Override
     @Transactional
     public SaveMeAvatar.Result saveMeAvatar(SaveMeAvatar operation) {
-        if (operation.getFile() != null && !operation.getFile().isEmpty()) {
-            String url;
-
-            try {
-                url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return SaveMeAvatar.Result.saveError(e);
-            }
-
-            UserAvatar avatar = UserAvatar.of(url);
-            operation.getSecurityUser().getUser().setAvatar(avatar);
-
-            try {
-                userRepository.save(operation.getSecurityUser().getUser());
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return SaveMeAvatar.Result.saveError(e);
-            }
+        if (operation.getFile() == null || operation.getFile().isEmpty()) {
+            return SaveMeAvatar.Result.emptyFile();
         }
 
-        return SaveMeAvatar.Result.success();
+        String url;
+
+        try {
+            url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return SaveMeAvatar.Result.saveError(e);
+        }
+
+        UserAvatar avatar = UserAvatar.of(url);
+        operation.getSecurityUser().getUser().setAvatar(avatar);
+
+        try {
+            userRepository.save(operation.getSecurityUser().getUser());
+            return SaveMeAvatar.Result.success();
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return SaveMeAvatar.Result.saveError(e);
+        }
     }
 
     @Override
@@ -420,8 +421,9 @@ public class MeApplicationService implements MeService {
                 return DeleteMeAvatar.Result.deleteError(e);
             }
 
+            operation.getSecurityUser().getUser().setAvatar(null);
+
             try {
-                operation.getSecurityUser().getUser().setAvatar(null);
                 userRepository.save(operation.getSecurityUser().getUser());
             } catch (Exception e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
