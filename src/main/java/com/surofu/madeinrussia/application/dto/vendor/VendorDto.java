@@ -97,6 +97,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setLogin(view.getLogin().toString());
         vendorDto.setPhoneNumber(StringUtils.trimToNull(Objects.requireNonNullElse(view.getPhoneNumber(), "").toString()));
         vendorDto.setRole(view.getRole().getName());
+        vendorDto.setAvatarUrl(view.getAvatar().toString());
         vendorDto.setRegistrationDate(view.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(view.getLastModificationDate().getValue());
         vendorDto.setVendorDetails(VendorDetailsDto.of(view.getVendorDetails()));
