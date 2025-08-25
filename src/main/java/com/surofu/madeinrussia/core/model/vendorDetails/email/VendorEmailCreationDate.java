@@ -1,11 +1,8 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorView;
+package com.surofu.madeinrussia.core.model.vendorDetails.email;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Getter;
+import lombok.Generated;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -13,22 +10,22 @@ import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
-@Getter
+@Generated
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorViewCreationDate implements Serializable {
+public final class VendorEmailCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorViewCreationDate(ZonedDateTime date) {
+    private VendorEmailCreationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static VendorViewCreationDate of(ZonedDateTime date) {
-        return new VendorViewCreationDate(date);
+    public static VendorEmailCreationDate of(ZonedDateTime date) {
+        return new VendorEmailCreationDate(date);
     }
 
     @Override

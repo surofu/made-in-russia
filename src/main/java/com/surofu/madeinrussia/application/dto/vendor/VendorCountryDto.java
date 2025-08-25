@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.vendor;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

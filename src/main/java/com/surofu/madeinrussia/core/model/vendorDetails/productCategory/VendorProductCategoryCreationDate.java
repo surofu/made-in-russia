@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq;
+package com.surofu.madeinrussia.core.model.vendorDetails.productCategory;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -16,19 +16,19 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorFaqCreationDate implements Serializable {
+public final class VendorProductCategoryCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorFaqCreationDate(ZonedDateTime date) {
+    private VendorProductCategoryCreationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static VendorFaqCreationDate of(ZonedDateTime date) {
-        return new VendorFaqCreationDate(date);
+    public static VendorProductCategoryCreationDate of(ZonedDateTime date) {
+        return new VendorProductCategoryCreationDate(date);
     }
 
     @Override

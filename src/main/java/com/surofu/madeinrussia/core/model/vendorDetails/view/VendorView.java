@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorView;
+package com.surofu.madeinrussia.core.model.vendorDetails.view;
 
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;

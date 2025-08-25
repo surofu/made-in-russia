@@ -24,4 +24,8 @@ public interface MeService {
     SaveMeAvatar.Result saveMeAvatar(SaveMeAvatar operation);
 
     DeleteMeAvatar.Result deleteMeAvatar(DeleteMeAvatar operation);
+
+    DeleteMe.Result deleteMe(DeleteMe operation);
+
+    VerifyDeleteMe.Result verifyDeleteMe(VerifyDeleteMe operation);
 }

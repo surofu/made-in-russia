@@ -83,7 +83,6 @@ public class UserApplicationService implements UserService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.getUserByEmail(UserEmail.of(username))
                 .orElseThrow(() -> new UsernameNotFoundException(username));
-
         UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
                 .orElseThrow(() -> new UsernameNotFoundException(username));
 

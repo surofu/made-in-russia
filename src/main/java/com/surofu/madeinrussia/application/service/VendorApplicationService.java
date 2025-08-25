@@ -10,12 +10,16 @@ import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaq;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
@@ -164,23 +168,24 @@ public class VendorApplicationService implements VendorService {
             return ForceUpdateVendorById.Result.emptyVendorProductCategories();
         }
 
-        Optional<User> user = userRepository.getUserById(operation.getId());
+        Optional<User> userOptional = userRepository.getUserById(operation.getId());
 
-        if (user.isEmpty()) {
+        if (userOptional.isEmpty()) {
             return ForceUpdateVendorById.Result.notFound(operation.getId());
         }
 
-        VendorDetails vendorDetails = Objects.requireNonNullElse(user.get().getVendorDetails(), new VendorDetails());
+        User user = userOptional.get();
+        VendorDetails vendorDetails = Objects.requireNonNullElse(user.getVendorDetails(), new VendorDetails());
 
-        if (!user.get().getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
+        if (!user.getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
             return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
         }
 
-        if (!user.get().getLogin().equals(operation.getLogin()) && userRepository.existsUserByLogin(operation.getLogin())) {
+        if (!user.getLogin().equals(operation.getLogin()) && userRepository.existsUserByLogin(operation.getLogin())) {
             return ForceUpdateVendorById.Result.loginAlreadyExists(operation.getLogin());
         }
 
-        if (!user.get().getPhoneNumber().equals(operation.getPhoneNumber()) && userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+        if (!user.getPhoneNumber().equals(operation.getPhoneNumber()) && userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
             return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
         }
 
@@ -190,20 +195,46 @@ public class VendorApplicationService implements VendorService {
         }
 
         // Setting
-        user.get().setEmail(operation.getEmail());
-        user.get().setLogin(operation.getLogin());
-        user.get().setPhoneNumber(operation.getPhoneNumber());
+        user.setEmail(operation.getEmail());
+        user.setLogin(operation.getLogin());
+        user.setPhoneNumber(operation.getPhoneNumber());
 
-        vendorDetails.setUser(user.get());
-        user.get().setVendorDetails(vendorDetails);
+        vendorDetails.setUser(user);
+        user.setVendorDetails(vendorDetails);
 
-        user.get().getVendorDetails().setInn(operation.getInn());
+        vendorDetails.setInn(operation.getInn());
+        vendorDetails.setDescription(operation.getDescription());
+        vendorDetails.setSite(operation.getSite());
+
+        Set<VendorPhoneNumber> vendorPhoneNumberSet = new HashSet<>();
+
+        for (VendorPhoneNumberPhoneNumber number : operation.getPhoneNumbers()) {
+            VendorPhoneNumber phoneNumber = new VendorPhoneNumber();
+            phoneNumber.setVendorDetails(vendorDetails);
+            phoneNumber.setPhoneNumber(number);
+            vendorPhoneNumberSet.add(phoneNumber);
+        }
+
+        vendorDetails.getPhoneNumbers().clear();
+        vendorDetails.getPhoneNumbers().addAll(vendorPhoneNumberSet);
+
+        Set<VendorEmail> vendorEmailSet = new HashSet<>();
+
+        for (VendorEmailEmail email : operation.getEmails()) {
+            VendorEmail vendorEmail = new VendorEmail();
+            vendorEmail.setVendorDetails(vendorDetails);
+            vendorEmail.setEmail(email);
+            vendorEmailSet.add(vendorEmail);
+        }
+
+        vendorDetails.getEmails().clear();
+        vendorDetails.getEmails().addAll(vendorEmailSet);
 
         List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
 
         for (VendorCountryName name : operation.getVendorCountries()) {
             VendorCountry vendorCountry = new VendorCountry();
-            vendorCountry.setVendorDetails(user.get().getVendorDetails());
+            vendorCountry.setVendorDetails(user.getVendorDetails());
             vendorCountry.setName(name);
             vendorCountryList.add(vendorCountry);
         }
@@ -212,7 +243,7 @@ public class VendorApplicationService implements VendorService {
 
         for (VendorProductCategoryName name : operation.getVendorProductCategories()) {
             VendorProductCategory vendorProductCategory = new VendorProductCategory();
-            vendorProductCategory.setVendorDetails(user.get().getVendorDetails());
+            vendorProductCategory.setVendorDetails(user.getVendorDetails());
             vendorProductCategory.setName(name);
             vendorProductCategoryList.add(vendorProductCategory);
         }
@@ -255,14 +286,13 @@ public class VendorApplicationService implements VendorService {
             }
         }
 
-        user.get().getVendorDetails().getVendorCountries().clear();
-        user.get().getVendorDetails().getVendorCountries().addAll(vendorCountryList);
-
-        user.get().getVendorDetails().getVendorProductCategories().clear();
-        user.get().getVendorDetails().getVendorProductCategories().addAll(vendorProductCategoryList);
+        vendorDetails.getVendorCountries().clear();
+        vendorDetails.getVendorCountries().addAll(vendorCountryList);
+        vendorDetails.getVendorProductCategories().clear();
+        vendorDetails.getVendorProductCategories().addAll(vendorProductCategoryList);
 
         try {
-            userRepository.save(user.get());
+            userRepository.save(user);
             return ForceUpdateVendorById.Result.success(operation.getId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

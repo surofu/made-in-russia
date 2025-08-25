@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.country;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

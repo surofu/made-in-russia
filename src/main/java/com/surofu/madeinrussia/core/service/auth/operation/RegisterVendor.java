@@ -2,9 +2,9 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

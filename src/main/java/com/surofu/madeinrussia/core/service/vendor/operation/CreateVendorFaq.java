@@ -1,8 +1,8 @@
 package com.surofu.madeinrussia.core.service.vendor.operation;
 
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqAnswer;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaqQuestion;
+import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaqAnswer;
+import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaqQuestion;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

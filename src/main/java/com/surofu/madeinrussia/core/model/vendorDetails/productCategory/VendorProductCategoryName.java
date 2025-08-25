@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory;
+package com.surofu.madeinrussia.core.model.vendorDetails.productCategory;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.exception.LocalizedValidationException;

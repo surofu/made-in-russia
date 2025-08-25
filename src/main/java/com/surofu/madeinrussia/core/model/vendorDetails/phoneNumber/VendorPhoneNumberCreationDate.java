@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry;
+package com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -16,23 +16,23 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorCountryCreationDate implements Serializable {
+public final class VendorPhoneNumberCreationDate implements Serializable {
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private VendorCountryCreationDate(ZonedDateTime date) {
+    private VendorPhoneNumberCreationDate(ZonedDateTime date) {
         this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
     }
 
-    public static VendorCountryCreationDate of(ZonedDateTime date) {
-        return new VendorCountryCreationDate(date);
+    public static VendorPhoneNumberCreationDate of(ZonedDateTime date) {
+        return new VendorPhoneNumberCreationDate(date);
     }
 
     @Override
     public String toString() {
-        return value.toString();
+        return this.value.toString();
     }
 }

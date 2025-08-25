@@ -4,41 +4,17 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.User;
 import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "sessions",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_sessions_user_id_device_id",
-                        columnNames = {"user_id", "device_id"}
-                ),
-                @UniqueConstraint(
-                        name = "uk_sessions_device_id_user_id",
-                        columnNames = {"device_id", "user_id"}
-                )
-        },
-        indexes = {
-                @Index(
-                        name = "idx_sessions_user_id_device_id",
-                        columnList = "user_id,device_id"
-                ),
-                @Index(
-                        name = "idx_sessions_device_id_user_id",
-                        columnList = "device_id,user_id"
-                )
-        }
-)
+@Table(name = "sessions")
 public class Session implements Serializable {
 
     @Id
@@ -47,11 +23,7 @@ public class Session implements Serializable {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_sessions_user_id")
-    )
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Embedded
@@ -78,13 +50,14 @@ public class Session implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Session)) return false;
-        return id != null && id.equals(((Session) o).id);
+        if (o == null || getClass() != o.getClass()) return false;
+        Session session = (Session) o;
+        return id != null && id.equals(session.id);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return id != null ? id.hashCode() : 0;
     }
 
     public static Session of(SessionInfo sessionInfo, User user, Session session) {

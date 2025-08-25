@@ -3,9 +3,13 @@ package com.surofu.madeinrussia.core.service.vendor.operation;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsSite;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,8 +23,12 @@ public class ForceUpdateVendorById {
     UserLogin login;
     UserPhoneNumber phoneNumber;
     VendorDetailsInn inn;
+    VendorDetailsDescription description;
+    VendorDetailsSite site;
     List<VendorCountryName> vendorCountries;
     List<VendorProductCategoryName> vendorProductCategories;
+    List<VendorPhoneNumberPhoneNumber> phoneNumbers;
+    List<VendorEmailEmail> emails;
 
     public interface Result {
 

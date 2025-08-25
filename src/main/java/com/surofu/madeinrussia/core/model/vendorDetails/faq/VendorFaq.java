@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq;
+package com.surofu.madeinrussia.core.model.vendorDetails.faq;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import jakarta.persistence.*;

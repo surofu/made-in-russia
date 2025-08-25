@@ -1,6 +1,10 @@
 package com.surofu.madeinrussia.application.dto.vendor;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.VendorDetailsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -19,42 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 @Schema(
         name = "VendorDetails",
-        description = "Contains comprehensive business information about a vendor including registration details, operational countries, product categories, and FAQs",
-        example = """
-                {
-                  "id": 789,
-                  "inn": "7707083893",
-                  "paymentDetails": "ЕРИП 12345АБВГ67890",
-                  "countries": [
-                    {
-                      "id": 1,
-                      "name": "Russia",
-                      "creationDate": "2025-05-15T14:30:00Z",
-                      "lastModificationDate": "2025-06-01T10:15:30Z"
-                    }
-                  ],
-                  "productCategories": [
-                    {
-                      "id": 5,
-                      "name": "Electronics",
-                      "creationDate": "2025-05-15T14:30:00Z",
-                      "lastModificationDate": "2025-06-01T10:15:30Z"
-                    }
-                  ],
-                  "faq": [
-                    {
-                      "id": 101,
-                      "question": "What payment methods do you accept?",
-                      "answer": "We accept all major credit cards and bank transfers",
-                      "creationDate": "2025-05-15T14:30:00Z",
-                      "lastModificationDate": "2025-06-01T10:15:30Z"
-                    }
-                  ],
-                  "creationDate": "2025-05-15T14:30:00Z",
-                  "lastModificationDate": "2025-06-01T10:15:30Z",
-                  "viewsCount": 123
-                }
-                """
+        description = "Contains comprehensive business information about a vendor including registration details, operational countries, product categories, and FAQs"
 )
 public final class VendorDetailsDto implements Serializable {
 
@@ -75,17 +44,25 @@ public final class VendorDetailsDto implements Serializable {
     )
     private String inn;
 
+    private String description;
+
+    private String site;
+
+    private List<String> phoneNumbers = new ArrayList<>();
+
+    private List<String> emails = new ArrayList<>();
+
     @Schema(
             description = "List of countries where the vendor has business operations",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private List<VendorCountryDto> countries;
+    private List<VendorCountryDto> countries = new ArrayList<>();
 
     @Schema(
             description = "Product categories the vendor is authorized to sell in",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private List<VendorProductCategoryDto> productCategories;
+    private List<VendorProductCategoryDto> productCategories = new ArrayList<>();
 
     @Schema(
             description = "Frequently Asked Questions specific to this vendor's operations",
@@ -128,7 +105,10 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(vendorDetails.getId())
                 .inn(vendorDetails.getInn().getValue())
-//                .paymentDetails(vendorDetails.getPaymentDetails().getValue())
+                .description(vendorDetails.getDescription() == null ? null : vendorDetails.getDescription().toString())
+                .site(vendorDetails.getSite() == null ? null : vendorDetails.getSite().toString())
+                .phoneNumbers(vendorDetails.getPhoneNumbers().stream().map(VendorPhoneNumber::getPhoneNumber).map(VendorPhoneNumberPhoneNumber::toString).toList())
+                .emails(vendorDetails.getEmails().stream().map(VendorEmail::getEmail).map(VendorEmailEmail::toString).toList())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
                 .faq(vendorDetails.getFaq().stream().map(VendorFaqDto::of).toList())
@@ -147,6 +127,8 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(view.getId())
                 .inn(view.getInn().toString())
+                .description(view.getDescription() == null ? null : view.getDescription().toString())
+                .site(view.getSite() == null ? null : view.getSite().toString())
                 .viewsCount(view.getViewsCount())
                 .creationDate(view.getCreationDate().getValue())
                 .lastModificationDate(view.getLastModificationDate().getValue())

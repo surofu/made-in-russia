@@ -12,7 +12,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -73,7 +74,7 @@ public final class User implements Serializable {
     @OneToMany(
             mappedBy = "user",
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
             orphanRemoval = true
     )
     private Set<Session> sessions = new HashSet<>();
@@ -128,5 +129,10 @@ public final class User implements Serializable {
         if (this == o) return true;
         if (!(o instanceof User)) return false;
         return id != null && id.equals(((User) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

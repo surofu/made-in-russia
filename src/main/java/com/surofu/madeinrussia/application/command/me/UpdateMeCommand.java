@@ -6,7 +6,11 @@ public record UpdateMeCommand(
         String phoneNumber,
         String region,
         String inn,
+        String description,
+        String site,
         List<String> countries,
-        List<String> categories
+        List<String> categories,
+        List<String> phoneNumbers,
+        List<String> emails
 ) {
 }

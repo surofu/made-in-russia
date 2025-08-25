@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.application.dto.vendor;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
+import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaq;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

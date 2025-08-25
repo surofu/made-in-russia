@@ -9,7 +9,7 @@ import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.product.review.media.*;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserRole;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
+import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.service.product.review.operation.*;

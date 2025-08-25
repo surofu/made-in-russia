@@ -1,10 +1,12 @@
 package com.surofu.madeinrussia.core.model.vendorDetails;
 
 import com.surofu.madeinrussia.core.model.user.User;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorFaq.VendorFaq;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaq;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,25 +21,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "vendor_details",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "unique_vendor_details_inn",
-                        columnNames = "inn"
-                ),
-                @UniqueConstraint(
-                        name = "unique_vendor_details_company_name",
-                        columnNames = "company_name"
-                )
-        },
-        indexes = {
-                @Index(
-                        name = "idx_vendor_details_user_id",
-                        columnList = "user_id"
-                )
-        }
-)
+@Table(name = "vendor_details")
 public final class VendorDetails implements Serializable {
 
     @Id
@@ -53,6 +37,22 @@ public final class VendorDetails implements Serializable {
             foreignKey = @ForeignKey(name = "fk_vendor_details_user_id")
     )
     private User user;
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorPhoneNumber> phoneNumbers = new HashSet<>();
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorEmail> emails = new HashSet<>();
 
     @Embedded
     private VendorDetailsInn inn;
@@ -89,6 +89,12 @@ public final class VendorDetails implements Serializable {
             orphanRemoval = true
     )
     private Set<VendorView> vendorViews = new HashSet<>();
+
+    @Embedded
+    private VendorDetailsDescription description;
+
+    @Embedded
+    private VendorDetailsSite site;
 
     @Transient
     private Long vendorViewsCount = 0L;

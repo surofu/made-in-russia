@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.me.RefreshMeCurrentSessionCommand;
 import com.surofu.madeinrussia.application.command.me.UpdateMeCommand;
+import com.surofu.madeinrussia.application.command.me.VerifyDeleteMeCommand;
 import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
@@ -15,9 +16,13 @@ import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsSite;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,9 +72,11 @@ public class MeRestController {
     private final GetMeReviewPage.Result.Processor<ResponseEntity<?>> getMeReviewsProcessor;
     private final GetMeVendorProductReviewPage.Result.Processor<ResponseEntity<?>> getMeVendorProductReviewPageProcessor;
     private final GetMeProductSummaryViewPage.Result.Processor<ResponseEntity<?>> getMeProductSummaryViewPageProcessor;
-    private final DeleteMeSessionById.Result.Processor<ResponseEntity<?>> getDeleteMeSessionByIdProcessor;
-    private final SaveMeAvatar.Result.Processor<ResponseEntity<?>> getSaveMeAvatarProcessor;
-    private final DeleteMeAvatar.Result.Processor<ResponseEntity<?>> getDeleteMeAvatarProcessor;
+    private final DeleteMeSessionById.Result.Processor<ResponseEntity<?>> deleteMeSessionByIdProcessor;
+    private final SaveMeAvatar.Result.Processor<ResponseEntity<?>> saveMeAvatarProcessor;
+    private final DeleteMeAvatar.Result.Processor<ResponseEntity<?>> deleteMeAvatarProcessor;
+    private final DeleteMe.Result.Processor<ResponseEntity<?>> deleteMeProcessor;
+    private final VerifyDeleteMe.Result.Processor<ResponseEntity<?>> verifyDeleteMeProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -324,18 +331,22 @@ public class MeRestController {
                             }
                     )
             )
-            @Valid @RequestBody UpdateMeCommand updateMeCommand,
+            @Valid @RequestBody UpdateMeCommand command,
 
             @Parameter(hidden = true)
             @AuthenticationPrincipal SecurityUser securityUser) {
         Locale locale = LocaleContextHolder.getLocale();
         UpdateMe operation = UpdateMe.of(
                 securityUser,
-                updateMeCommand.phoneNumber() != null ? UserPhoneNumber.of(updateMeCommand.phoneNumber()) : null,
-                updateMeCommand.region() != null ? UserRegion.of(updateMeCommand.region()) : null,
-                updateMeCommand.inn() != null ? VendorDetailsInn.of(updateMeCommand.inn()) : null,
-                updateMeCommand.countries() != null ? updateMeCommand.countries().stream().map(VendorCountryName::of).toList() : null,
-                updateMeCommand.categories() != null ? updateMeCommand.categories().stream().map(VendorProductCategoryName::of).toList() : null,
+                command.phoneNumber() != null ? UserPhoneNumber.of(command.phoneNumber()) : null,
+                command.region() != null ? UserRegion.of(command.region()) : null,
+                command.inn() != null ? VendorDetailsInn.of(command.inn()) : null,
+                command.description() != null ? VendorDetailsDescription.of(command.description()) : null,
+                command.site() != null ? VendorDetailsSite.of(command.site()) : null,
+                command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : null,
+                command.categories() != null ? command.categories().stream().map(VendorProductCategoryName::of).toList() : null,
+                command.phoneNumbers() != null ? command.phoneNumbers().stream().map(VendorPhoneNumberPhoneNumber::of).toList() : null,
+                command.emails() != null ? command.emails().stream().map(VendorEmailEmail::of).toList() : null,
                 locale
         );
         return meService.updateMe(operation).process(updateMeProcessor);
@@ -719,7 +730,7 @@ public class MeRestController {
                 securityUser,
                 sessionId
         );
-        return meService.deleteMeSessionById(operation).process(getDeleteMeSessionByIdProcessor);
+        return meService.deleteMeSessionById(operation).process(deleteMeSessionByIdProcessor);
     }
 
     @PutMapping(value = "avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -775,7 +786,7 @@ public class MeRestController {
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         SaveMeAvatar operation = SaveMeAvatar.of(file, securityUser);
-        return meService.saveMeAvatar(operation).process(getSaveMeAvatarProcessor);
+        return meService.saveMeAvatar(operation).process(saveMeAvatarProcessor);
     }
 
     @DeleteMapping("avatar")
@@ -824,6 +835,23 @@ public class MeRestController {
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         DeleteMeAvatar operation = DeleteMeAvatar.of(securityUser);
-        return meService.deleteMeAvatar(operation).process(getDeleteMeAvatarProcessor);
+        return meService.deleteMeAvatar(operation).process(deleteMeAvatarProcessor);
+    }
+
+    @DeleteMapping("delete-account")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteMe(@AuthenticationPrincipal SecurityUser securityUser) {
+        Locale locale = LocaleContextHolder.getLocale();
+        DeleteMe operation = DeleteMe.of(securityUser, locale);
+        return meService.deleteMe(operation).process(deleteMeProcessor);
+    }
+
+    @DeleteMapping("verify-delete-account")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> verifyMe(@AuthenticationPrincipal SecurityUser securityUser,
+                                      @RequestBody VerifyDeleteMeCommand command) {
+        Locale locale = LocaleContextHolder.getLocale();
+        VerifyDeleteMe operation = VerifyDeleteMe.of(securityUser, command.code(), locale);
+        return meService.verifyDeleteMe(operation).process(verifyDeleteMeProcessor);
     }
 }

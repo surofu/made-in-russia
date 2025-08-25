@@ -14,4 +14,6 @@ public interface MailService {
     void sendEmail(String to, String subject, String text) throws MailException, MessagingException;
 
     void sendDeleteAccountMail(String to, Locale locale) throws MailException, MessagingException;
+
+    void sendConfirmDeleteAccountMail(String to, String code, LocalDateTime expirationDate,  Locale locale) throws MailException, MessagingException;
 }

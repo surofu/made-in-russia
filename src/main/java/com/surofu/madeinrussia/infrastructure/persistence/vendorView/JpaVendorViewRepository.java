@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendorView;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorView.VendorView;
+import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import com.surofu.madeinrussia.core.repository.VendorViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

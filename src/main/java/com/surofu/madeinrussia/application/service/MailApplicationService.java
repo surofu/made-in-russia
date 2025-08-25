@@ -110,7 +110,14 @@ public class MailApplicationService implements MailService {
     @Override
     public void sendDeleteAccountMail(String to, Locale locale) throws MailException, MessagingException {
         String message = MailTemplates.getDeleteAccountMail(locale);
-        String subject = localizationManager.localize("account.mail.deleted");
+        String subject = localizationManager.localize("account.mail.account_deleted_mail_subject");
+        sendEmail(to, subject, message);
+    }
+
+    @Override
+    public void sendConfirmDeleteAccountMail(String to, String code, LocalDateTime expirationDate, Locale locale) throws MailException, MessagingException {
+        String message = MailTemplates.getConfirmDeleteAccountMail(code, formatDate(expirationDate), locale);
+        String subject = localizationManager.localize("account.mail.confirm_delete_account_mail_subject");
         sendEmail(to, subject, message);
     }
 

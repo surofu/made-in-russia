@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails.vendorView;
+package com.surofu.madeinrussia.core.model.vendorDetails.view;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

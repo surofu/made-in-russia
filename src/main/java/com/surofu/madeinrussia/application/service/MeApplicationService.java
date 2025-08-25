@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.cache.DeleteAccountCache;
 import com.surofu.madeinrussia.application.dto.TokenDto;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
@@ -13,6 +14,7 @@ import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
+import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
@@ -22,13 +24,18 @@ import com.surofu.madeinrussia.core.model.user.UserAvatar;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorCountry.VendorCountryName;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategory;
-import com.surofu.madeinrussia.core.model.vendorDetails.vendorProductCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
+import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
+import com.surofu.madeinrussia.core.service.mail.MailService;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import com.surofu.madeinrussia.core.service.user.UserService;
@@ -40,6 +47,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +59,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,6 +74,8 @@ public class MeApplicationService implements MeService {
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
     private final VendorCountryRepository vendorCountryRepository;
+    private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
+    private final VendorEmailRepository vendorEmailRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
     private final VendorFaqRepository vendorFaqRepository;
     private final UserService userService;
@@ -73,9 +85,14 @@ public class MeApplicationService implements MeService {
     private final TranslationRepository translationRepository;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
+    private final MailService mailService;
+    private final DeleteAccountCache deleteAccountCache;
 
     @Value("${app.session.secret}")
     private String sessionSecret;
+
+    @Value("${app.redis.verification-ttl-duration}")
+    private Duration verificationTtlDuration;
 
     @Override
     @Transactional(readOnly = true)
@@ -90,32 +107,43 @@ public class MeApplicationService implements MeService {
             );
         }
 
-        UserView userView = userRepository.getViewById(operation.getSecurityUser().getUser().getId()).orElseThrow();
+        UserView userView = userRepository.getViewById(securityUser.getUser().getId()).orElseThrow();
 
         if (userView.getVendorDetails() != null) {
             VendorDto vendorDto = VendorDto.of(userView);
 
             List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
-                    Objects.requireNonNull(operation.getSecurityUser().getUser().getVendorDetails()).getId(),
+                    userView.getVendorDetails().getId(),
                     operation.getLocale().getLanguage()
             );
-
             List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
-                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    userView.getVendorDetails().getId(),
                     operation.getLocale().getLanguage()
             );
             List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
-                    operation.getSecurityUser().getUser().getVendorDetails().getId(),
+                    userView.getVendorDetails().getId(),
                     operation.getLocale().getLanguage()
             );
+            List<VendorPhoneNumber> vendorPhoneNumberList = vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+            List<VendorEmail> vendorEmailList = vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
 
             List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
             List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
             List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
+            List<String> phoneNumbers = vendorPhoneNumberList.stream()
+                    .map(VendorPhoneNumber::getPhoneNumber)
+                    .map(VendorPhoneNumberPhoneNumber::toString)
+                    .toList();
+            List<String> emails = vendorEmailList.stream()
+                    .map(VendorEmail::getEmail)
+                    .map(VendorEmailEmail::toString)
+                    .toList();
 
             vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
             vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
             vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
+            vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
+            vendorDto.getVendorDetails().setEmails(emails);
 
             return GetMe.Result.success(vendorDto);
         }
@@ -276,6 +304,14 @@ public class MeApplicationService implements MeService {
                 vendorDetails.setInn(operation.getInn());
             }
 
+            if (operation.getDescription() != null) {
+                vendorDetails.setDescription(operation.getDescription());
+            }
+
+            if (operation.getSite() != null) {
+                vendorDetails.setSite(operation.getSite());
+            }
+
             if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
                 Set<VendorCountry> vendorCountries = new HashSet<>();
 
@@ -326,6 +362,32 @@ public class MeApplicationService implements MeService {
                 }
 
                 vendorDetails.setVendorProductCategories(vendorProductCategories);
+            }
+
+            if (operation.getPhoneNumbers() != null) {
+                Set<VendorPhoneNumber> phoneNumberSet = new HashSet<>();
+
+                for (VendorPhoneNumberPhoneNumber number : operation.getPhoneNumbers()) {
+                    VendorPhoneNumber phoneNumber = new VendorPhoneNumber();
+                    phoneNumber.setVendorDetails(vendorDetails);
+                    phoneNumber.setPhoneNumber(number);
+                    phoneNumberSet.add(phoneNumber);
+                }
+
+                vendorDetails.setPhoneNumbers(phoneNumberSet);
+            }
+
+            if (operation.getEmails() != null) {
+                Set<VendorEmail> emailSet = new HashSet<>();
+
+                for (VendorEmailEmail email : operation.getEmails()) {
+                    VendorEmail vendorEmail = new VendorEmail();
+                    vendorEmail.setVendorDetails(vendorDetails);
+                    vendorEmail.setEmail(email);
+                    emailSet.add(vendorEmail);
+                }
+
+                vendorDetails.setEmails(emailSet);
             }
 
             user.setVendorDetails(vendorDetails);
@@ -429,6 +491,57 @@ public class MeApplicationService implements MeService {
         }
 
         return DeleteMeAvatar.Result.success();
+    }
+
+    @Override
+    public DeleteMe.Result deleteMe(DeleteMe operation) {
+        UserEmail email = operation.getSecurityUser().getUser().getEmail();
+        String code = AuthUtils.generateVerificationCode();
+        deleteAccountCache.put(email.toString(), code);
+        LocalDateTime expirationDate = LocalDateTime.now().plus(verificationTtlDuration);
+
+        try {
+            mailService.sendConfirmDeleteAccountMail(email.toString(), code, expirationDate, operation.getLocale());
+            return DeleteMe.Result.success(email);
+        } catch (Exception e) {
+            return DeleteMe.Result.sendMailError(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public VerifyDeleteMe.Result verifyDeleteMe(VerifyDeleteMe operation) {
+        UserEmail email = operation.getSecurityUser().getUser().getEmail();
+        String code = deleteAccountCache.get(email.toString());
+
+        if (operation.getCode() == null || StringUtils.trimToNull(operation.getCode()) == null) {
+            return VerifyDeleteMe.Result.invalidConfirmationCode(email);
+        }
+
+        if (code == null) {
+            return VerifyDeleteMe.Result.confirmationNotFound(email);
+        }
+
+        if (!code.equals(operation.getCode())) {
+            return VerifyDeleteMe.Result.invalidConfirmationCode(email);
+        }
+
+        try {
+            userRepository.delete(operation.getSecurityUser().getUser());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return VerifyDeleteMe.Result.deleteError(email, e);
+        }
+
+        deleteAccountCache.remove(email.toString());
+
+        try {
+            mailService.sendDeleteAccountMail(email.toString(), operation.getLocale());
+        } catch (Exception e) {
+            log.warn("Error while sending delete account mail", e);
+        }
+
+        return VerifyDeleteMe.Result.success(email);
     }
 
     /* ========== PRIVATE ========== */
