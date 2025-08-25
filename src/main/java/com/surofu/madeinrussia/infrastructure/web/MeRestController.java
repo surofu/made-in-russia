@@ -18,11 +18,11 @@ import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsSite;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.madeinrussia.core.service.me.MeService;
 import com.surofu.madeinrussia.core.service.me.operation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -342,11 +342,11 @@ public class MeRestController {
                 command.region() != null ? UserRegion.of(command.region()) : null,
                 command.inn() != null ? VendorDetailsInn.of(command.inn()) : null,
                 command.description() != null ? VendorDetailsDescription.of(command.description()) : null,
-                command.site() != null ? VendorDetailsSite.of(command.site()) : null,
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : null,
                 command.categories() != null ? command.categories().stream().map(VendorProductCategoryName::of).toList() : null,
                 command.phoneNumbers() != null ? command.phoneNumbers().stream().map(VendorPhoneNumberPhoneNumber::of).toList() : null,
                 command.emails() != null ? command.emails().stream().map(VendorEmailEmail::of).toList() : null,
+                command.sites() != null ? command.sites().stream().map(VendorSiteUrl::of).toList() : null,
                 locale
         );
         return meService.updateMe(operation).process(updateMeProcessor);
@@ -840,6 +840,7 @@ public class MeRestController {
 
     @DeleteMapping("delete-account")
     @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<?> deleteMe(@AuthenticationPrincipal SecurityUser securityUser) {
         Locale locale = LocaleContextHolder.getLocale();
         DeleteMe operation = DeleteMe.of(securityUser, locale);
@@ -848,6 +849,7 @@ public class MeRestController {
 
     @DeleteMapping("verify-delete-account")
     @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<?> verifyMe(@AuthenticationPrincipal SecurityUser securityUser,
                                       @RequestBody VerifyDeleteMeCommand command) {
         Locale locale = LocaleContextHolder.getLocale();

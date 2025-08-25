@@ -10,8 +10,6 @@ public interface VendorDetailsView {
 
     VendorDetailsDescription getDescription();
 
-    VendorDetailsSite getSite();
-
     @Value("#{@jpaVendorDetailsRepository.getViewsCountById(target.id)}")
     Long getViewsCount();
 

@@ -5,11 +5,11 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsSite;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,11 +24,11 @@ public class ForceUpdateVendorById {
     UserPhoneNumber phoneNumber;
     VendorDetailsInn inn;
     VendorDetailsDescription description;
-    VendorDetailsSite site;
     List<VendorCountryName> vendorCountries;
     List<VendorProductCategoryName> vendorProductCategories;
     List<VendorPhoneNumberPhoneNumber> phoneNumbers;
     List<VendorEmailEmail> emails;
+    List<VendorSiteUrl> sites;
 
     public interface Result {
 

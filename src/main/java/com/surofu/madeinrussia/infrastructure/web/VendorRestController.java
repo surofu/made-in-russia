@@ -13,13 +13,13 @@ import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
-import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsSite;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaqAnswer;
 import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaqQuestion;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.madeinrussia.core.service.vendor.VendorService;
@@ -419,11 +419,11 @@ public class VendorRestController {
                 UserPhoneNumber.of(command.phoneNumber()),
                 VendorDetailsInn.of(command.inn()),
                 VendorDetailsDescription.of(command.description()),
-                VendorDetailsSite.of(command.site()),
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
                 command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>(),
                 command.phoneNumbers() != null ? command.phoneNumbers().stream().map(VendorPhoneNumberPhoneNumber::of).toList() : new ArrayList<>(),
-                command.emails() != null ? command.emails().stream().map(VendorEmailEmail::of).toList() : new ArrayList<>()
+                command.emails() != null ? command.emails().stream().map(VendorEmailEmail::of).toList() : new ArrayList<>(),
+                command.sites() != null ? command.sites().stream().map(VendorSiteUrl::of).toList() : new ArrayList<>()
         );
         return vendorService.forceUpdateVendorById(operation).process(forceUpdateVendorByIdProcessor);
     }

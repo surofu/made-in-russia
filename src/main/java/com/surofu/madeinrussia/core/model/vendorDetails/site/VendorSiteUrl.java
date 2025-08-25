@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.core.model.vendorDetails;
+package com.surofu.madeinrussia.core.model.vendorDetails.site;
 
 import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
@@ -6,6 +6,7 @@ import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -13,21 +14,21 @@ import java.util.Objects;
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class VendorDetailsSite implements Serializable {
+public final class VendorSiteUrl implements Serializable {
 
-    @Column(name = "site", nullable = false)
+    @Column(name = "url", nullable = false)
     private String value;
 
-    private VendorDetailsSite(String url) {
-        if (url != null && url.length() > 255) {
+    private VendorSiteUrl(String url) {
+        if (url != null && StringUtils.trimToNull(url) != null && url.length() > 255) {
             throw new LocalizedValidationException("validation.vendor.site.max_length");
         }
 
         this.value = Objects.requireNonNullElse(url, "");
     }
 
-    public static VendorDetailsSite of(String url) {
-        return new VendorDetailsSite(url);
+    public static VendorSiteUrl of(String url) {
+        return new VendorSiteUrl(url);
     }
 
     @Override

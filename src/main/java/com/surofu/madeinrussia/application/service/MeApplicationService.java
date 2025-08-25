@@ -32,6 +32,8 @@ import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneN
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.madeinrussia.core.repository.specification.ProductSummarySpecifications;
@@ -76,6 +78,7 @@ public class MeApplicationService implements MeService {
     private final VendorCountryRepository vendorCountryRepository;
     private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
     private final VendorEmailRepository vendorEmailRepository;
+    private final VendorSiteRepository vendorSiteRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
     private final VendorFaqRepository vendorFaqRepository;
     private final UserService userService;
@@ -126,6 +129,7 @@ public class MeApplicationService implements MeService {
             );
             List<VendorPhoneNumber> vendorPhoneNumberList = vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
             List<VendorEmail> vendorEmailList = vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+            List<VendorSite> vendorSiteList = vendorSiteRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
 
             List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
             List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
@@ -138,12 +142,17 @@ public class MeApplicationService implements MeService {
                     .map(VendorEmail::getEmail)
                     .map(VendorEmailEmail::toString)
                     .toList();
+            List<String> sites = vendorSiteList.stream()
+                    .map(VendorSite::getUrl)
+                    .map(VendorSiteUrl::toString)
+                    .toList();
 
             vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
             vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
             vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
             vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
             vendorDto.getVendorDetails().setEmails(emails);
+            vendorDto.getVendorDetails().setSites(sites);
 
             return GetMe.Result.success(vendorDto);
         }
@@ -308,10 +317,6 @@ public class MeApplicationService implements MeService {
                 vendorDetails.setDescription(operation.getDescription());
             }
 
-            if (operation.getSite() != null) {
-                vendorDetails.setSite(operation.getSite());
-            }
-
             if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
                 Set<VendorCountry> vendorCountries = new HashSet<>();
 
@@ -388,6 +393,19 @@ public class MeApplicationService implements MeService {
                 }
 
                 vendorDetails.setEmails(emailSet);
+            }
+
+            if (operation.getSites() != null) {
+                Set<VendorSite> siteSet = new HashSet<>();
+
+                for (VendorSiteUrl url : operation.getSites()) {
+                    VendorSite site = new VendorSite();
+                    site.setVendorDetails(vendorDetails);
+                    site.setUrl(url);
+                    siteSet.add(site);
+                }
+
+                vendorDetails.setSites(siteSet);
             }
 
             user.setVendorDetails(vendorDetails);

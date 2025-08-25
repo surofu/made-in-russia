@@ -8,10 +8,10 @@ public record ForceUpdateVendorCommand(
         String phoneNumber,
         String inn,
         String description,
-        String site,
         List<String> countries,
         List<String> productCategories,
         List<String> phoneNumbers,
-        List<String> emails
+        List<String> emails,
+        List<String> sites
 ) {
 }

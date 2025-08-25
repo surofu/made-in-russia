@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaq;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
 import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -54,8 +55,13 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorEmail> emails = new HashSet<>();
 
-    @Embedded
-    private VendorDetailsInn inn;
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "vendorDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<VendorSite> sites = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
@@ -91,10 +97,10 @@ public final class VendorDetails implements Serializable {
     private Set<VendorView> vendorViews = new HashSet<>();
 
     @Embedded
-    private VendorDetailsDescription description;
+    private VendorDetailsInn inn;
 
     @Embedded
-    private VendorDetailsSite site;
+    private VendorDetailsDescription description;
 
     @Transient
     private Long vendorViewsCount = 0L;

@@ -5,6 +5,8 @@ import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.VendorDetailsView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -46,11 +48,11 @@ public final class VendorDetailsDto implements Serializable {
 
     private String description;
 
-    private String site;
-
     private List<String> phoneNumbers = new ArrayList<>();
 
     private List<String> emails = new ArrayList<>();
+
+    private List<String> sites = new ArrayList<>();
 
     @Schema(
             description = "List of countries where the vendor has business operations",
@@ -106,9 +108,9 @@ public final class VendorDetailsDto implements Serializable {
                 .id(vendorDetails.getId())
                 .inn(vendorDetails.getInn().getValue())
                 .description(vendorDetails.getDescription() == null ? null : vendorDetails.getDescription().toString())
-                .site(vendorDetails.getSite() == null ? null : vendorDetails.getSite().toString())
                 .phoneNumbers(vendorDetails.getPhoneNumbers().stream().map(VendorPhoneNumber::getPhoneNumber).map(VendorPhoneNumberPhoneNumber::toString).toList())
                 .emails(vendorDetails.getEmails().stream().map(VendorEmail::getEmail).map(VendorEmailEmail::toString).toList())
+                .sites(vendorDetails.getSites().stream().map(VendorSite::getUrl).map(VendorSiteUrl::toString).toList())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
                 .faq(vendorDetails.getFaq().stream().map(VendorFaqDto::of).toList())
@@ -128,7 +130,6 @@ public final class VendorDetailsDto implements Serializable {
                 .id(view.getId())
                 .inn(view.getInn().toString())
                 .description(view.getDescription() == null ? null : view.getDescription().toString())
-                .site(view.getSite() == null ? null : view.getSite().toString())
                 .viewsCount(view.getViewsCount())
                 .creationDate(view.getCreationDate().getValue())
                 .lastModificationDate(view.getLastModificationDate().getValue())

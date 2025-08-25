@@ -19,6 +19,8 @@ import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneN
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
+import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
@@ -204,7 +206,6 @@ public class VendorApplicationService implements VendorService {
 
         vendorDetails.setInn(operation.getInn());
         vendorDetails.setDescription(operation.getDescription());
-        vendorDetails.setSite(operation.getSite());
 
         Set<VendorPhoneNumber> vendorPhoneNumberSet = new HashSet<>();
 
@@ -229,6 +230,18 @@ public class VendorApplicationService implements VendorService {
 
         vendorDetails.getEmails().clear();
         vendorDetails.getEmails().addAll(vendorEmailSet);
+
+        Set<VendorSite> vendorSiteSet = new HashSet<>();
+
+        for (VendorSiteUrl url : operation.getSites()) {
+            VendorSite vendorSite = new VendorSite();
+            vendorSite.setVendorDetails(vendorDetails);
+            vendorSite.setUrl(url);
+            vendorSiteSet.add(vendorSite);
+        }
+
+        vendorDetails.getSites().clear();
+        vendorDetails.getSites().addAll(vendorSiteSet);
 
         List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
 
