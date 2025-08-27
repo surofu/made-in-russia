@@ -315,6 +315,16 @@ public class MeApplicationService implements MeService {
 
             if (operation.getDescription() != null) {
                 vendorDetails.setDescription(operation.getDescription());
+
+                HstoreTranslationDto translationDto;
+
+                try {
+                    translationDto = translationRepository.expand(operation.getDescription().toString());
+                } catch (Exception e) {
+                    return UpdateMe.Result.translationError(e);
+                }
+
+                vendorDetails.getDescription().setTranslations(translationDto);
             }
 
             if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
@@ -360,6 +370,16 @@ public class MeApplicationService implements MeService {
                         VendorProductCategory vendorProductCategory = new VendorProductCategory();
                         vendorProductCategory.setVendorDetails(vendorDetails);
                         vendorProductCategory.setName(categoryName);
+
+                        HstoreTranslationDto translationDto;
+
+                        try {
+                            translationDto = translationRepository.expand(categoryName.toString());
+                        } catch (Exception e) {
+                            return UpdateMe.Result.translationError(e);
+                        }
+
+                        vendorProductCategory.getName().setTranslations(translationDto);
                         vendorProductCategories.add(vendorProductCategory);
                     } else {
                         vendorProductCategories.addAll(existingCategories);

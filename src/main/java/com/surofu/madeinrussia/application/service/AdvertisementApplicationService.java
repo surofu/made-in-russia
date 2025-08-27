@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementWithTranslationsDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
@@ -36,6 +37,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     private final AdvertisementRepository advertisementRepository;
     private final TranslationRepository translationRepository;
     private final FileStorageRepository fileStorageRepository;
+    private final GeneralCacheService generalCacheService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -137,11 +139,13 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         try {
             advertisementRepository.save(advertisement);
-            return CreateAdvertisement.Result.success();
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateAdvertisement.Result.savingAdvertisementError(e);
         }
+
+        generalCacheService.clear();
+        return CreateAdvertisement.Result.success();
     }
 
     @Override
@@ -209,11 +213,13 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         try {
             advertisementRepository.save(advertisement);
-            return UpdateAdvertisementById.Result.success(operation.getAdvertisementId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateAdvertisementById.Result.savingAdvertisementError(e);
         }
+
+        generalCacheService.clear();
+        return UpdateAdvertisementById.Result.success(operation.getAdvertisementId());
     }
 
     @Override
@@ -236,11 +242,13 @@ public class AdvertisementApplicationService implements AdvertisementService {
 
         try {
             advertisementRepository.delete(advertisement.get());
-            return DeleteAdvertisementById.Result.success(operation.getAdvertisementId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteAdvertisementById.Result.deletingAdvertisementError(e);
         }
+
+        generalCacheService.clear();
+        return DeleteAdvertisementById.Result.success(operation.getAdvertisementId());
     }
 
     private enum TranslationKeys {

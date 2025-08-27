@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
@@ -59,24 +60,35 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             """, nativeQuery = true)
     Optional<Double> getProductRatingById(@Param("productId") Long productId);
 
-    @Query("""
-            select
-            p.id as productId,
-            p.title.value as productTitle,
-            p.previewImageUrl.value as productImage,
-            p.category.id as categoryId,
-            p.category.name.value as categoryName,
-            p.category.imageUrl.value as categoryImage
-            from Product p
-            where (
-                    p.title.value ilike concat('%', :searchTerm, '%') or
-                    p.articleCode.value ilike concat('%', :searchTerm, '%') or
-                    p.user.login.value ilike concat('%', :searchTerm, '%') or
-                    p.user.email.value ilike concat('%', :searchTerm, '%')
-            ) and (coalesce(:vendorId, p.user.id) = p.user.id)
-            order by p.category.name.value, p.title.value
-            """)
-    List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm, @Param("vendorId") Long vendorId);
+    @Query(value = """
+    select
+    p.id as productId,
+    coalesce(
+        p.title_translations -> :lang,
+        p.title
+    )  as productTitle,
+    p.preview_image_url as productImage,
+    c.id as categoryId,
+    coalesce(
+        c.name_translations -> :lang,
+        c.name
+    ) as categoryName,
+    c.image_url as categoryImage
+    from products p
+    join users u on u.id = p.user_id
+    join categories c on c.id = p.category_id
+    where (
+            p.title ilike concat('%', :searchTerm, '%') or
+            (p.title_translations::hstore -> 'en') ilike concat('%', :searchTerm, '%') or
+            (p.title_translations::hstore -> 'ru') ilike concat('%', :searchTerm, '%') or
+            (p.title_translations::hstore -> 'zh') ilike concat('%', :searchTerm, '%') or
+            p.article_code ilike concat('%', :searchTerm, '%') or
+            u.login ilike concat('%', :searchTerm, '%') or
+            u.email ilike concat('%', :searchTerm, '%')
+    ) and (:vendorId is null or u.id = :vendorId)
+    order by c.name, p.title
+    """, nativeQuery = true)
+    List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm, @Param("vendorId") Long vendorId, @Param("lang") String lang);
 
     // View
 

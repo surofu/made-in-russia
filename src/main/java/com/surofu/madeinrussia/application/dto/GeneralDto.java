@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.dto;
 
+import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import lombok.AllArgsConstructor;
@@ -17,4 +18,5 @@ public class GeneralDto implements Serializable {
     Page<ProductSummaryViewDto> products;
     List<CategoryDto> categories;
     List<CategoryDto> allCategories;
+    List<AdvertisementDto> advertisements;
 }

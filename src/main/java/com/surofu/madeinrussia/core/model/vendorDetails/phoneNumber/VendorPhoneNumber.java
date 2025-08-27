@@ -38,7 +38,7 @@ public final class VendorPhoneNumber implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        return id.equals(((VendorPhoneNumber) o).id);
+        return id != null && id.equals(((VendorPhoneNumber) o).id);
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.SearchHintView
 import com.surofu.madeinrussia.infrastructure.persistence.product.SimilarProductView;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public interface ProductRepository {
@@ -38,7 +39,7 @@ public interface ProductRepository {
 
     boolean existsById(Long productId);
 
-    List<SearchHintView> findHintViews(String searchTerm, Long vendorId);
+    List<SearchHintView> findHintViews(String searchTerm, Long vendorId, Locale locale);
 
     void delete(Product product);
 

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Repository
@@ -79,8 +80,8 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public List<SearchHintView> findHintViews(String searchTerm, Long vendorId) {
-        return repository.findHintViews(searchTerm, vendorId);
+    public List<SearchHintView> findHintViews(String searchTerm, Long vendorId, Locale locale) {
+        return repository.findHintViews(searchTerm, vendorId, locale.getLanguage());
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Locale;
 
 @Component
 public class GeneralCacheService {
@@ -24,12 +25,12 @@ public class GeneralCacheService {
         this.hashOperations = this.redisTemplate.opsForHash();
     }
 
-    public GeneralDto get() {
-        return hashOperations.get(CACHE_NAME, ALL_CACHE_NAME);
+    public GeneralDto get(Locale locale) {
+        return hashOperations.get(CACHE_NAME, createHash(locale));
     }
 
-    public void set(GeneralDto generalDto) {
-        hashOperations.put(CACHE_NAME, ALL_CACHE_NAME, generalDto);
+    public void set(Locale locale, GeneralDto generalDto) {
+        hashOperations.put(CACHE_NAME, createHash(locale), generalDto);
         redisTemplate.expire(CACHE_NAME, ttl);
     }
 
@@ -37,7 +38,11 @@ public class GeneralCacheService {
         hashOperations.delete(CACHE_NAME, ALL_CACHE_NAME);
     }
 
-    public boolean exists() {
-        return hashOperations.hasKey(CACHE_NAME, ALL_CACHE_NAME);
+    public boolean exists(Locale locale) {
+        return hashOperations.hasKey(CACHE_NAME, createHash(locale));
+    }
+
+    private String createHash(Locale locale) {
+        return ALL_CACHE_NAME + "_" + locale.getLanguage();
     }
 }

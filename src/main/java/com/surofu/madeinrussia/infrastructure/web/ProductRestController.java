@@ -1064,7 +1064,8 @@ public class ProductRestController {
             @RequestParam(required = false, defaultValue = "$$$") String text,
             @RequestParam(required = false) Long vendorId
     ) {
-        GetSearchHints operation = GetSearchHints.of(text, vendorId);
+        Locale locale = LocaleContextHolder.getLocale();
+        GetSearchHints operation = GetSearchHints.of(text, vendorId, locale);
         return productService.getSearchHints(operation).process(getSearchHintsProcessor);
     }
 

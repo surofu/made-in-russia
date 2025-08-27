@@ -2,15 +2,19 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.dto.GeneralDto;
+import com.surofu.madeinrussia.application.dto.advertisement.AdvertisementDto;
 import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.utils.CategoryUtils;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
+import com.surofu.madeinrussia.core.model.advertisement.Advertisement;
+import com.surofu.madeinrussia.core.repository.AdvertisementRepository;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.service.general.GeneralService;
 import com.surofu.madeinrussia.core.service.general.operation.GetAllGeneral;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
+import com.surofu.madeinrussia.infrastructure.persistence.advertisement.AdvertisementView;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +34,7 @@ public class GeneralApplicationService implements GeneralService {
 
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final CategoryRepository categoryRepository;
+    private final AdvertisementRepository advertisementRepository;
     private final LocalizationManager localizationManager;
     private final GeneralCacheService generalCacheService;
 
@@ -37,8 +42,8 @@ public class GeneralApplicationService implements GeneralService {
     @Transactional(readOnly = true)
     public GetAllGeneral.Result getAll(GetAllGeneral operation) {
         // Check cache
-        if (generalCacheService.exists()) {
-            return GetAllGeneral.Result.success(generalCacheService.get());
+        if (generalCacheService.exists(operation.getLocale())) {
+            return GetAllGeneral.Result.success(generalCacheService.get(operation.getLocale()));
         }
 
         // Products
@@ -63,10 +68,14 @@ public class GeneralApplicationService implements GeneralService {
                     return copy;
                 }).toList();
 
-        GeneralDto generalDto = new GeneralDto(pageDto, categoryL1L2DtoList, categoryDtoList);
+        // Advertisements
+        List<AdvertisementView> advertisementViewList = advertisementRepository.getAllViewsByLang(operation.getLocale().getLanguage());
+        List<AdvertisementDto> advertisementDtoList = advertisementViewList.stream().map(AdvertisementDto::of).toList();
+
+        GeneralDto generalDto = new GeneralDto(pageDto, categoryL1L2DtoList, categoryDtoList, advertisementDtoList);
 
         // Set cache
-        generalCacheService.set(generalDto);
+        generalCacheService.set(operation.getLocale(), generalDto);
         return GetAllGeneral.Result.success(generalDto);
     }
 }

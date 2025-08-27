@@ -904,7 +904,8 @@ public class ProductApplicationService implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public GetSearchHints.Result getSearchHints(GetSearchHints operation) {
-        List<SearchHintView> searchHintViews = productRepository.findHintViews(operation.getSearchTerm(), operation.getVendorId());
+        List<SearchHintView> searchHintViews = productRepository.findHintViews(
+                operation.getSearchTerm(), operation.getVendorId(), operation.getLocale());
 
         Map<CategoryHintDto, List<ProductHintDto>> groupedProductHint = searchHintViews.stream()
                 .collect(Collectors.groupingBy(
