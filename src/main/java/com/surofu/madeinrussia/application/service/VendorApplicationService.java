@@ -28,6 +28,7 @@ import com.surofu.madeinrussia.core.service.vendor.VendorService;
 import com.surofu.madeinrussia.core.service.vendor.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -145,15 +146,23 @@ public class VendorApplicationService implements VendorService {
     @Override
     @Transactional
     public DeleteVendorFaqById.Result deleteVendorFaqById(DeleteVendorFaqById operation) {
-        if (!vendorFaqRepository.existsByIdAndVendorId(operation.getFaqId(), operation.getSecurityUser().getUser().getId())) {
+        User user = operation.getSecurityUser().getUser();
+
+        if (!vendorFaqRepository.existsByIdAndVendorId(operation.getFaqId(), user.getId())) {
             return DeleteVendorFaqById.Result.notFound(operation.getFaqId());
         }
 
-        VendorDetails newVendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
-        newVendorDetails.getFaq().removeIf(faq -> faq.getId().equals(operation.getFaqId()));
-        operation.getSecurityUser().getUser().setVendorDetails(newVendorDetails);
+        VendorDetails vendorDetails = user.getVendorDetails();
 
-        userRepository.save(operation.getSecurityUser().getUser());
+        if (vendorDetails != null) {
+            vendorDetails.getFaq().removeIf(faq -> faq.getId().equals(operation.getFaqId()));
+
+            try {
+                userRepository.save(user);
+            } catch (Exception e) {
+                return DeleteVendorFaqById.Result.saveError(e);
+            }
+        }
 
         return DeleteVendorFaqById.Result.success(operation.getFaqId());
     }
@@ -207,6 +216,18 @@ public class VendorApplicationService implements VendorService {
         vendorDetails.setInn(operation.getInn());
         vendorDetails.setDescription(operation.getDescription());
 
+        if (StringUtils.trimToNull(operation.getDescription().toString()) != null) {
+            HstoreTranslationDto descriptionTranslation;
+
+            try {
+                descriptionTranslation = translationRepository.expand(operation.getDescription().toString());
+            } catch (Exception e) {
+                return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
+            }
+
+            vendorDetails.getDescription().setTranslations(descriptionTranslation);
+        }
+
         Set<VendorPhoneNumber> vendorPhoneNumberSet = new HashSet<>();
 
         for (VendorPhoneNumberPhoneNumber number : operation.getPhoneNumbers()) {
@@ -216,8 +237,7 @@ public class VendorApplicationService implements VendorService {
             vendorPhoneNumberSet.add(phoneNumber);
         }
 
-        vendorDetails.getPhoneNumbers().clear();
-        vendorDetails.getPhoneNumbers().addAll(vendorPhoneNumberSet);
+        vendorDetails.setPhoneNumbers(vendorPhoneNumberSet);
 
         Set<VendorEmail> vendorEmailSet = new HashSet<>();
 
@@ -228,8 +248,7 @@ public class VendorApplicationService implements VendorService {
             vendorEmailSet.add(vendorEmail);
         }
 
-        vendorDetails.getEmails().clear();
-        vendorDetails.getEmails().addAll(vendorEmailSet);
+        vendorDetails.setEmails(vendorEmailSet);
 
         Set<VendorSite> vendorSiteSet = new HashSet<>();
 
@@ -240,14 +259,13 @@ public class VendorApplicationService implements VendorService {
             vendorSiteSet.add(vendorSite);
         }
 
-        vendorDetails.getSites().clear();
-        vendorDetails.getSites().addAll(vendorSiteSet);
+        vendorDetails.setSites(vendorSiteSet);
 
         List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
 
         for (VendorCountryName name : operation.getVendorCountries()) {
             VendorCountry vendorCountry = new VendorCountry();
-            vendorCountry.setVendorDetails(user.getVendorDetails());
+            vendorCountry.setVendorDetails(vendorDetails);
             vendorCountry.setName(name);
             vendorCountryList.add(vendorCountry);
         }
@@ -256,7 +274,7 @@ public class VendorApplicationService implements VendorService {
 
         for (VendorProductCategoryName name : operation.getVendorProductCategories()) {
             VendorProductCategory vendorProductCategory = new VendorProductCategory();
-            vendorProductCategory.setVendorDetails(user.getVendorDetails());
+            vendorProductCategory.setVendorDetails(vendorDetails);
             vendorProductCategory.setName(name);
             vendorProductCategoryList.add(vendorProductCategory);
         }
@@ -299,10 +317,10 @@ public class VendorApplicationService implements VendorService {
             }
         }
 
-        vendorDetails.getVendorCountries().clear();
-        vendorDetails.getVendorCountries().addAll(vendorCountryList);
-        vendorDetails.getVendorProductCategories().clear();
-        vendorDetails.getVendorProductCategories().addAll(vendorProductCategoryList);
+        vendorDetails.setVendorCountries(new HashSet<>(vendorCountryList));
+        vendorDetails.setVendorProductCategories(new HashSet<>(vendorProductCategoryList));
+
+        user.setVendorDetails(vendorDetails);
 
         try {
             userRepository.save(user);

@@ -20,6 +20,8 @@ public interface TranslationRepository {
 
     HstoreTranslationDto expand(String text) throws EmptyTranslationException, IOException;
 
+    List<HstoreTranslationDto> expand(String ...texts) throws EmptyTranslationException, IOException;
+
     Map<String, List<HstoreTranslationDto>> expandStrings(Map<String, List<String>> map) throws IOException;
 
     Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, ExecutionException;

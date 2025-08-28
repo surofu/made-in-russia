@@ -8,7 +8,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,7 +58,7 @@ public final class User implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private Set<VendorDetails> vendorDetails;
+    private Set<VendorDetails> vendorDetails = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
@@ -109,7 +108,10 @@ public final class User implements Serializable {
     }
 
     public void setPassword(UserPassword password) {
-        this.password = Collections.singleton(password);
+        this.password.clear();
+        if (password != null) {
+            this.password.add(password);
+        }
     }
 
     public VendorDetails getVendorDetails() {
@@ -121,7 +123,10 @@ public final class User implements Serializable {
     }
 
     public void setVendorDetails(VendorDetails vendorDetails) {
-        this.vendorDetails = Collections.singleton(vendorDetails);
+        this.vendorDetails.clear();
+        if (vendorDetails != null) {
+            this.vendorDetails.add(vendorDetails);
+        }
     }
 
     @Override

@@ -15,19 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Schema(
         name = "User",
-        description = "Represents user information with authentication details and metadata",
-        example = """
-                {
-                  "id": 12345,
-                  "role": "User",
-                  "email": "user@example.com",
-                  "login": "john_doe",
-                  "phoneNumber": "+79123456789",
-                  "region": "Moscow, Russia",
-                  "registrationDate": "2025-05-04T09:17:20.767615Z",
-                  "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                }
-                """
+        description = "Represents user information with authentication details and metadata"
 )
 @EqualsAndHashCode(callSuper = true)
 public class UserDto extends AbstractAccountDto implements Serializable {

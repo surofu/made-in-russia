@@ -97,6 +97,25 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     @Override
+    public List<HstoreTranslationDto> expand(String... texts) throws EmptyTranslationException, IOException {
+        TranslationResponse en = translateToEn(texts);
+        TranslationResponse ru = translateToRu(texts);
+        TranslationResponse zh = translateToZh(texts);
+
+        List<HstoreTranslationDto> dtoList = new ArrayList<>();
+
+        for (int i = 0; i < texts.length; i++) {
+            dtoList.add(new HstoreTranslationDto(
+                    en.getTranslations()[i].getText(),
+                    ru.getTranslations()[i].getText(),
+                    zh.getTranslations()[i].getText()
+            ));
+        }
+
+        return dtoList;
+    }
+
+    @Override
     public Map<String, List<HstoreTranslationDto>> expandStrings(Map<String, List<String>> map) throws IOException {
         if (map == null || map.isEmpty()) {
             return Collections.emptyMap();

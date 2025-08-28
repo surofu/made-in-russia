@@ -76,6 +76,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -304,14 +305,29 @@ public class ProductApplicationService implements ProductService {
         product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
 
         /* ========== Product Prices ========== */
-        Set<ProductPrice> productPriceSet = new HashSet<>();
+        List<ProductPrice> productPriceList = new ArrayList<>();
+        List<String> unitList = new ArrayList<>();
 
-        for (CreateProductPriceCommand command : operation.getCreateProductPriceCommands()) {
+        for (int i = 0; i < operation.getCreateProductPriceCommands().size(); i++) {
+            CreateProductPriceCommand command = operation.getCreateProductPriceCommands().get(i);
             ProductPrice productPrice = createProductPrice(command, product);
-            productPriceSet.add(productPrice);
+            productPriceList.add(productPrice);
+            unitList.add(command.unit());
         }
 
-        product.setPrices(productPriceSet);
+        List<HstoreTranslationDto> unitTranslationList;
+
+        try {
+            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
+        }
+
+        for (int i = 0; i < unitTranslationList.size(); i++) {
+            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
+        }
+
+        product.setPrices(new HashSet<>(productPriceList));
 
         /* ========== Similar Products ========== */
         Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
@@ -634,15 +650,29 @@ public class ProductApplicationService implements ProductService {
         }
 
         /* ========== Product Prices ========== */
-        Set<ProductPrice> productPriceSet = new HashSet<>();
+        List<ProductPrice> productPriceList = new ArrayList<>();
+        List<String> unitList = new ArrayList<>();
 
         for (UpdateProductPriceCommand command : operation.getUpdateProductPriceCommands()) {
             ProductPrice productPrice = createProductPrice(command, product);
-            productPriceSet.add(productPrice);
+            productPriceList.add(productPrice);
+            unitList.add(command.unit());
+        }
+
+        List<HstoreTranslationDto> unitTranslationList = new ArrayList<>();
+
+        try {
+            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
+        } catch (Exception e) {
+            return UpdateProduct.Result.translationError(e);
+        }
+
+        for (int i = 0; i < unitTranslationList.size(); i++) {
+            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
         }
 
         product.getPrices().clear();
-        product.getPrices().addAll(productPriceSet);
+        product.getPrices().addAll(productPriceList);
 
         /* ========== Product Characteristics ========== */
         for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
@@ -1036,7 +1066,7 @@ public class ProductApplicationService implements ProductService {
 
         // Prices
         List<ProductPriceView> productPriceList = productPriceRepository.findAllViewsByProductId(
-                productDto.getId()
+                productDto.getId(), locale
         );
         List<ProductPriceDto> productPriceDtoList = productPriceList.stream()
                 .map(ProductPriceDto::of)
@@ -1192,7 +1222,7 @@ public class ProductApplicationService implements ProductService {
 
         // Prices
         List<ProductPriceView> productPriceList = productPriceRepository.findAllViewsByProductId(
-                productDto.getId()
+                productDto.getId(), locale
         );
         List<ProductPriceDto> productPriceDtoList = productPriceList.stream()
                 .map(ProductPriceDto::of)
@@ -1401,7 +1431,8 @@ public class ProductApplicationService implements ProductService {
         DELIVERY_METHOD_DETAILS_VALUE,
         PACKAGE_OPTIONS_NAME,
         MEDIA_ALT_TEXT,
-        VENDOR_DETAILS_MEDIA_ALT_TEXT;
+        VENDOR_DETAILS_MEDIA_ALT_TEXT,
+        PRICE_UNIT;
 
         public String with(int index) {
             return this.name() + "_" + index;

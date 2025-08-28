@@ -6,6 +6,7 @@ import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -28,7 +29,7 @@ public final class UserPhoneNumber implements Serializable {
            }
        }
 
-        this.value = phoneNumber;
+        this.value = StringUtils.trimToNull(phoneNumber);
     }
 
     public static UserPhoneNumber of(String phoneNumber) {

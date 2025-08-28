@@ -75,6 +75,7 @@ public class LocalizationManager {
                 log.error(e.getMessage(), e);
             }
         }
+
         return dto;
     }
 }

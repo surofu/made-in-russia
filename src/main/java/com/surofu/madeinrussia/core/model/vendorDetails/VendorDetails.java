@@ -15,7 +15,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -110,6 +112,41 @@ public final class VendorDetails implements Serializable {
 
     @Embedded
     private VendorDetailsLastModificationDate lastModificationDate;
+
+    public void setPhoneNumbers(Collection<VendorPhoneNumber> phoneNumbers) {
+        this.phoneNumbers.clear();
+        if (phoneNumbers != null) {
+            this.phoneNumbers.addAll(phoneNumbers);
+        }
+    }
+
+    public void setEmails(Collection<VendorEmail> emails) {
+        this.emails.clear();
+        if (emails != null) {
+            this.emails.addAll(emails);
+        }
+    }
+
+    public void setSites(Collection<VendorSite> sites) {
+        this.sites.clear();
+        if (sites != null) {
+            this.sites.addAll(sites);
+        }
+    }
+
+    public void setVendorCountries(Collection<VendorCountry> vendorCountries) {
+        this.vendorCountries.clear();
+        if (vendorCountries != null) {
+            this.vendorCountries.addAll(vendorCountries);
+        }
+    }
+
+    public void setVendorProductCategories(Collection<VendorProductCategory> vendorProductCategories) {
+        this.vendorProductCategories.clear();
+        if (vendorProductCategories != null) {
+            this.vendorProductCategories.addAll(vendorProductCategories);
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

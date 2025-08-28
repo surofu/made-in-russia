@@ -24,6 +24,11 @@ public class DeleteVendorFaqById {
             return NotFound.of(faqId);
         }
 
+        static Result saveError(Exception e) {
+            log.error("Error while delete vendor faq: ", e);
+            return SaveError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             Long faqId;
@@ -44,10 +49,21 @@ public class DeleteVendorFaqById {
             }
         }
 
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
             T processNotFound(NotFound result);
+
+            T processSaveError(SaveError result);
         }
     }
 }

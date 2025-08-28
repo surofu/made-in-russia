@@ -1,23 +1,28 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.price;
 
-import com.surofu.madeinrussia.core.model.product.price.*;
+import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 
 public interface ProductPriceView {
     Long getId();
 
-    ProductPriceQuantityRange getQuantityRange();
+    Integer getQuantityFrom();
 
-    ProductPriceCurrency getCurrency();
+    Integer getQuantityTo();
 
-    ProductPriceUnit getUnit();
+    CurrencyCode getCurrency();
 
-    ProductPriceOriginalPrice getOriginalPrice();
+    String getUnit();
 
-    ProductPriceDiscount getDiscount();
+    BigDecimal getOriginalPrice();
 
-    ProductPriceDiscountedPrice getDiscountedPrice();
+    BigDecimal getDiscount();
 
-    ProductPriceCreationDate getCreationDate();
+    BigDecimal getDiscountedPrice();
 
-    ProductPriceLastModificationDate getLastModificationDate();
+    Instant getCreationDate();
+
+    Instant getLastModificationDate();
 }

@@ -18,42 +18,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Schema(
         name = "Vendor",
-        description = "Represents a vendor account with business details and authentication information",
-        example = """
-                {
-                  "id": 12345,
-                  "role": "ROLE_VENDOR",
-                  "email": "vendor@example.com",
-                  "login": "best_vendor_2025",
-                  "phoneNumber": "+79123456789",
-                  "vendorDetails": {
-                    "id": 789,
-                    "inn": "7707083893",
-                    "paymentDetails": "ЕРИП 12345АБВГ67890",
-                    "countries": [
-                      {
-                        "id": 1,
-                        "name": "Russia",
-                        "creationDate": "2025-05-15T14:30:00Z",
-                        "lastModificationDate": "2025-06-01T10:15:30Z"
-                      }
-                    ],
-                    "productCategories": [
-                      {
-                        "id": 5,
-                        "name": "Electronics",
-                        "creationDate": "2025-05-15T14:30:00Z",
-                        "lastModificationDate": "2025-06-01T10:15:30Z"
-                      }
-                    ],
-                    "creationDate": "2025-05-15T14:30:00Z",
-                    "lastModificationDate": "2025-06-01T10:15:30Z",
-                    "viewsCount": "123"
-                  },
-                  "registrationDate": "2025-05-04T09:17:20.767615Z",
-                  "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                }
-                """
+        description = "Represents a vendor account with business details and authentication information"
 )
 @EqualsAndHashCode(callSuper = true)
 public final class VendorDto extends AbstractAccountDto implements Serializable {
@@ -78,6 +43,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         vendorDto.setEmail(user.getEmail().getValue());
         vendorDto.setPhoneNumber(StringUtils.trimToNull(Objects.requireNonNullElse(user.getPhoneNumber(), "").toString()));
         vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails()));
+        vendorDto.setAvatarUrl(user.getAvatar() == null ? null : user.getAvatar().getUrl());
         vendorDto.setRegistrationDate(user.getRegistrationDate().getValue());
         vendorDto.setLastModificationDate(user.getLastModificationDate().getValue());
 

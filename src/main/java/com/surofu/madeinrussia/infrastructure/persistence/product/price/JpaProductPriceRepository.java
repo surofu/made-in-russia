@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Locale;
 
 @Repository
 @RequiredArgsConstructor
@@ -13,7 +14,7 @@ public class JpaProductPriceRepository implements ProductPriceRepository {
     private final SpringDataProductPriceRepository repository;
 
     @Override
-    public List<ProductPriceView> findAllViewsByProductId(Long productId) {
-        return repository.findAllByProduct_Id(productId);
+    public List<ProductPriceView> findAllViewsByProductId(Long productId, Locale locale) {
+        return repository.findAllByProductIdAndLang(productId, locale.getLanguage());
     }
 }

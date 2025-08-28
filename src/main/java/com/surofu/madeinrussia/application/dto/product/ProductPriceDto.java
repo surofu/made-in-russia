@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -19,23 +20,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Schema(
         name = "ProductPrice",
-        description = "Represents pricing information for a product including discounts and quantity ranges",
-        example = """
-                {
-                  "id": 123,
-                  "from": 1.0,
-                  "to": 10.0,
-                  "currency": "USD",
-                  "unit": "kg",
-                  "originalPrice": 99.99,
-                  "discount": 15.00,
-                  "discountedPrice": 84.99,
-                  "minimumOrderQuantity": 5,
-                  "discountExpirationDate": "2025-12-31T23:59:59Z",
-                  "creationDate": "2025-05-01T10:00:00Z",
-                  "lastModificationDate": "2025-05-15T14:30:00Z"
-                }
-                """
+        description = "Represents pricing information for a product including discounts and quantity ranges"
 )
 public final class ProductPriceDto implements Serializable {
 
@@ -152,15 +137,15 @@ public final class ProductPriceDto implements Serializable {
     public static ProductPriceDto of(ProductPriceView view) {
         return ProductPriceDto.builder()
                 .id(view.getId())
-                .from(view.getQuantityRange().getFrom())
-                .to(view.getQuantityRange().getTo())
+                .from(view.getQuantityFrom())
+                .to(view.getQuantityTo())
                 .currency(view.getCurrency().toString())
                 .unit(view.getUnit().toString())
-                .originalPrice(view.getOriginalPrice().getValue().setScale(0, RoundingMode.DOWN))
-                .discount(view.getDiscount().getValue().setScale(0, RoundingMode.DOWN))
-                .discountedPrice(view.getDiscountedPrice().getValue().setScale(0, RoundingMode.DOWN))
-                .creationDate(view.getCreationDate().getValue())
-                .lastModificationDate(view.getLastModificationDate().getValue())
+                .originalPrice(view.getOriginalPrice().setScale(0, RoundingMode.DOWN))
+                .discount(view.getDiscount().setScale(0, RoundingMode.DOWN))
+                .discountedPrice(view.getDiscountedPrice().setScale(0, RoundingMode.DOWN))
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();
     }
 }
