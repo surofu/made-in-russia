@@ -26,7 +26,7 @@ public final class VendorDetailsDescription implements Serializable {
 
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "description_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private VendorDetailsDescription(String text) {
         if (text != null && text.length() > 20_000) {

@@ -20,7 +20,7 @@ public interface SpringDataProductPriceRepository extends JpaRepository<ProductP
                 p.quantity_unit
             ) as unit,
             p.original_price as originalPrice,
-            p.discount_price as discount,
+            p.discount as discount,
             (p.original_price * p.discount / 100) as discountedPrice,
             p.creation_date as creationDate,
             p.last_modification_date as lastModificationDate

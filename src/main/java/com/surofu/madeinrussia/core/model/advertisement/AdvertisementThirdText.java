@@ -25,7 +25,7 @@ public final class AdvertisementThirdText implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "third_text_translations", columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private AdvertisementThirdText(String text) {
         if (text != null && text.length() > 255) {

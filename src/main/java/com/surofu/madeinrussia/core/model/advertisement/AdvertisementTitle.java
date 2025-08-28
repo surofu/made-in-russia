@@ -25,7 +25,7 @@ public final class AdvertisementTitle implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "title_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private AdvertisementTitle(String title) {
         if (title == null || title.trim().isEmpty()) {

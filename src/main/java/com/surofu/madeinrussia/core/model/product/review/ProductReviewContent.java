@@ -24,7 +24,7 @@ public final class ProductReviewContent implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "content_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private ProductReviewContent(String content) {
         if (content == null || content.trim().isEmpty()) {

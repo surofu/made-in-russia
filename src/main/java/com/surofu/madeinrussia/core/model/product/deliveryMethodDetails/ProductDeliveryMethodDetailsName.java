@@ -21,7 +21,7 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
 
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private ProductDeliveryMethodDetailsName(String name) {
         this.value = name;

@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.utils;
 
 import com.surofu.madeinrussia.application.dto.product.ProductDto;
+import com.surofu.madeinrussia.application.dto.product.ProductPackageOptionDto;
 import com.surofu.madeinrussia.application.dto.product.ProductPriceDto;
 import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
 import com.surofu.madeinrussia.core.service.currency.CurrencyConverterService;
@@ -51,6 +52,7 @@ public class LocalizationManager {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+
         return view;
     }
 
@@ -71,6 +73,27 @@ public class LocalizationManager {
                 price.setOriginalPrice(localizedOriginalPrice);
                 price.setDiscountedPrice(localizedDiscountedPrice);
                 price.setCurrency(to.name());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        CurrencyCode from = CurrencyCode.USD;
+        CurrencyCode to = switch (locale.getLanguage()) {
+            case ("en") -> CurrencyCode.USD;
+            case ("ru") -> CurrencyCode.RUB;
+            case ("zh") -> CurrencyCode.CNY;
+            default -> from;
+        };
+
+        if (!dto.getPrices().isEmpty()) {
+            from = CurrencyCode.valueOf(dto.getPrices().get(0).getCurrency());
+        }
+
+        for (ProductPackageOptionDto packagingOption : dto.getPackagingOptions()) {
+            try {
+                BigDecimal convertedPrice = currencyConverterService.convert(from, to,  packagingOption.getPrice());
+                packagingOption.setPrice(convertedPrice);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

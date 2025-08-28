@@ -19,7 +19,7 @@ public final class VendorCountryName implements Serializable {
 
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private VendorCountryName(String name) {
         if (name == null || name.trim().isEmpty()) {

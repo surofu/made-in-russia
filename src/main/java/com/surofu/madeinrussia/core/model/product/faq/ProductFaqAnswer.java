@@ -21,7 +21,7 @@ public final class ProductFaqAnswer implements Serializable {
 
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "answer_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private ProductFaqAnswer(String answer) {
         if (answer == null || answer.trim().isEmpty()) {

@@ -25,7 +25,7 @@ public final class CategoryName implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private CategoryName(String name) {
         if (name == null || name.trim().isEmpty()) {

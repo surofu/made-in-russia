@@ -5,6 +5,10 @@ public record HstoreTranslationDto(
         String textRu,
         String textZh
 ) {
+    public static HstoreTranslationDto empty() {
+        return new HstoreTranslationDto("", "", "");
+    }
+
     public static HstoreTranslationDto of(TranslationDto dto) {
         return new HstoreTranslationDto(dto.en(), dto.ru(), dto.zh());
     }

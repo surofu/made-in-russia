@@ -25,7 +25,7 @@ public final class AdvertisementSubtitle implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "subtitle_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private AdvertisementSubtitle(String subtitle) {
         if (subtitle == null || subtitle.trim().isEmpty()) {

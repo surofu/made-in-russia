@@ -24,7 +24,7 @@ public final class ProductMediaAltText implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "alt_text_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private ProductMediaAltText(String altText) {
         if (altText == null || altText.trim().isEmpty()) {

@@ -24,7 +24,7 @@ public final class ProductTitle implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "title_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private ProductTitle(String title) {
         if (title == null || title.trim().isEmpty()) {

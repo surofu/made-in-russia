@@ -25,7 +25,7 @@ public final class FaqQuestion implements Serializable {
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "question_translations", nullable = false, columnDefinition = "hstore")
-    private String translations;
+    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
     private FaqQuestion(String question) {
         if (question == null || question.trim().isEmpty()) {
