@@ -22,4 +22,6 @@ public interface SpringDataVendorProductCountryRepository extends JpaRepository<
             where vendor_details_id = :id
             """, nativeQuery = true)
     List<VendorProductCategoryView> findAllViewsByVendorDetailsIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+    List<VendorProductCategory> findAllByVendorDetailsId(Long id);
 }

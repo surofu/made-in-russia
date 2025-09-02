@@ -46,4 +46,6 @@ public interface SpringDataProductFaqRepository extends JpaRepository<ProductFaq
             where f.product_id = :productId
             """, nativeQuery = true)
     List<ProductFaqWithTranslationsView> findAllViewsWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
+
+    List<ProductFaq> findAllByProductId(Long id);
 }

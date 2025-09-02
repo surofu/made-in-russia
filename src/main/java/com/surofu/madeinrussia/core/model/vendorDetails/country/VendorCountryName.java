@@ -17,6 +17,8 @@ public final class VendorCountryName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());

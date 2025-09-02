@@ -24,7 +24,7 @@ public class MadeInRussiaApplication implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(bot);
+//        TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
+//        api.registerBot(bot);
     }
 }

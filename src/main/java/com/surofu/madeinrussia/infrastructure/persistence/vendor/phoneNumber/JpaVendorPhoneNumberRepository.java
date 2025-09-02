@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.repository.VendorPhoneNumberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -17,5 +18,20 @@ public class JpaVendorPhoneNumberRepository
     @Override
     public List<VendorPhoneNumber> getAllByVendorDetailsId(Long vendorDetailsId) {
         return repository.findAllByVendorDetails_Id(vendorDetailsId);
+    }
+
+    @Override
+    public void saveAll(Collection<VendorPhoneNumber> vendorPhoneNumbers) {
+        repository.saveAll(vendorPhoneNumbers);
+    }
+
+    @Override
+    public void deleteAll(Collection<VendorPhoneNumber> vendorPhoneNumbers) {
+        repository.deleteAll(vendorPhoneNumbers);
+    }
+
+    @Override
+    public void flush() {
+        repository.flush();
     }
 }

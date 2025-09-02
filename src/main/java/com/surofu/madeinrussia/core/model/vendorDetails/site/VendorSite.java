@@ -43,6 +43,6 @@ public final class VendorSite implements Serializable {
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return getClass().hashCode();
     }
 }

@@ -50,6 +50,11 @@ public class VendorApplicationService implements VendorService {
     private final VendorViewRepository vendorViewRepository;
     private final ProductReviewRepository productReviewRepository;
     private final VendorFaqRepository vendorFaqRepository;
+    private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
+    private final VendorEmailRepository vendorEmailRepository;
+    private final VendorSiteRepository vendorSiteRepository;
+    private final VendorCountryRepository vendorCountryRepository;
+    private final VendorProductCategoryRepository vendorProductCategoryRepository;
     private final TranslationRepository translationRepository;
 
     private final AsyncVendorViewApplicationService asyncVendorViewApplicationService;
@@ -186,7 +191,15 @@ public class VendorApplicationService implements VendorService {
         }
 
         User user = userOptional.get();
-        VendorDetails vendorDetails = Objects.requireNonNullElse(user.getVendorDetails(), new VendorDetails());
+        VendorDetails vendorDetails = user.getVendorDetails();
+
+        if (vendorDetails == null) {
+            VendorDetails newVendorDetails = new VendorDetails();
+            newVendorDetails.setUser(user);
+            user.setVendorDetails(newVendorDetails);
+
+            vendorDetails = vendorDetailsRepository.save(newVendorDetails);
+        }
 
         if (!user.getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
             return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
@@ -201,8 +214,10 @@ public class VendorApplicationService implements VendorService {
         }
 
         VendorDetailsInn inn = Objects.requireNonNullElse(vendorDetails.getInn(), operation.getInn());
-        if (!inn.equals(operation.getInn()) && vendorDetailsRepository.existsByInn(operation.getInn())) {
-            return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
+        if (!inn.equals(operation.getInn())) {
+            if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(operation.getInn(), vendorDetails.getId())) {
+                return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
+            }
         }
 
         // Setting
@@ -237,7 +252,15 @@ public class VendorApplicationService implements VendorService {
             vendorPhoneNumberSet.add(phoneNumber);
         }
 
-        vendorDetails.setPhoneNumbers(vendorPhoneNumberSet);
+        List<VendorPhoneNumber> oldPhoneNumbers = vendorPhoneNumberRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+        try {
+            vendorPhoneNumberRepository.deleteAll(oldPhoneNumbers);
+            vendorPhoneNumberRepository.saveAll(vendorPhoneNumberSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
+        }
 
         Set<VendorEmail> vendorEmailSet = new HashSet<>();
 
@@ -248,7 +271,15 @@ public class VendorApplicationService implements VendorService {
             vendorEmailSet.add(vendorEmail);
         }
 
-        vendorDetails.setEmails(vendorEmailSet);
+        List<VendorEmail> oldVendorEmails = vendorEmailRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+        try {
+            vendorEmailRepository.deleteAll(oldVendorEmails);
+            vendorEmailRepository.saveAll(vendorEmailSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
+        }
 
         Set<VendorSite> vendorSiteSet = new HashSet<>();
 
@@ -259,7 +290,15 @@ public class VendorApplicationService implements VendorService {
             vendorSiteSet.add(vendorSite);
         }
 
-        vendorDetails.setSites(vendorSiteSet);
+        List<VendorSite> oldVendorSites = vendorSiteRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+        try {
+            vendorSiteRepository.deleteAll(oldVendorSites);
+            vendorSiteRepository.saveAll(vendorSiteSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
+        }
 
         List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
 
@@ -317,10 +356,24 @@ public class VendorApplicationService implements VendorService {
             }
         }
 
-        vendorDetails.setVendorCountries(new HashSet<>(vendorCountryList));
-        vendorDetails.setVendorProductCategories(new HashSet<>(vendorProductCategoryList));
+        List<VendorCountry> oldVendorCountries = vendorCountryRepository.getAllByVendorDetailsId(vendorDetails.getId());
+        List<VendorProductCategory> oldVendorProductCategoryList = vendorProductCategoryRepository.getAllByVendorDetailsId(vendorDetails.getId());
 
-        user.setVendorDetails(vendorDetails);
+        try {
+            vendorCountryRepository.deleteAll(oldVendorCountries);
+            vendorProductCategoryRepository.deleteAll(oldVendorProductCategoryList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
+        }
+
+        try {
+            vendorCountryRepository.saveAll(vendorCountryList);
+            vendorProductCategoryRepository.saveAll(vendorProductCategoryList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
+        }
 
         try {
             userRepository.save(user);

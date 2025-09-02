@@ -15,7 +15,7 @@ public class GetMeCurrentSession {
         <T> T process(Processor<T> processor);
 
         static Result success(SessionDto sessionDto) {
-            log.info("Successfully processed get me current session: {}", sessionDto);
+            log.info("Successfully processed get me current session");
             return Success.of(sessionDto);
         }
 

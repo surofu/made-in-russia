@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.faq.VendorFaq;
+import com.surofu.madeinrussia.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
@@ -13,11 +14,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -43,58 +45,51 @@ public final class VendorDetails implements Serializable {
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorPhoneNumber> phoneNumbers = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorEmail> emails = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorSite> sites = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
+    )
+    @OrderBy("position.value")
+    private Set<VendorMedia> media = new HashSet<>();
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "vendorDetails"
     )
     private Set<VendorCountry> vendorCountries = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorFaq> faq = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "vendorDetails"
     )
     private Set<VendorView> vendorViews = new HashSet<>();
 
@@ -112,41 +107,6 @@ public final class VendorDetails implements Serializable {
 
     @Embedded
     private VendorDetailsLastModificationDate lastModificationDate;
-
-    public void setPhoneNumbers(Collection<VendorPhoneNumber> phoneNumbers) {
-        this.phoneNumbers.clear();
-        if (phoneNumbers != null) {
-            this.phoneNumbers.addAll(phoneNumbers);
-        }
-    }
-
-    public void setEmails(Collection<VendorEmail> emails) {
-        this.emails.clear();
-        if (emails != null) {
-            this.emails.addAll(emails);
-        }
-    }
-
-    public void setSites(Collection<VendorSite> sites) {
-        this.sites.clear();
-        if (sites != null) {
-            this.sites.addAll(sites);
-        }
-    }
-
-    public void setVendorCountries(Collection<VendorCountry> vendorCountries) {
-        this.vendorCountries.clear();
-        if (vendorCountries != null) {
-            this.vendorCountries.addAll(vendorCountries);
-        }
-    }
-
-    public void setVendorProductCategories(Collection<VendorProductCategory> vendorProductCategories) {
-        this.vendorProductCategories.clear();
-        if (vendorProductCategories != null) {
-            this.vendorProductCategories.addAll(vendorProductCategories);
-        }
-    }
 
     @Override
     public boolean equals(Object o) {

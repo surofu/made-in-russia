@@ -25,4 +25,25 @@ public class UpdateMeMapperResultToResponseEntity
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<?> processPhoneNumberAlreadyExists(UpdateMe.Result.PhoneNumberAlreadyExists result) {
+        String message = localizationManager.localize("auth.register.user_with_phone_already_exists", result.getPhoneNumber());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(errorDto, HttpStatus.CONFLICT);
+    }
+
+    @Override
+    public ResponseEntity<?> processInnAlreadyExists(UpdateMe.Result.InnAlreadyExists result) {
+        String message = localizationManager.localize("auth.register.vendor_with_inn_already_exists", result.getInn());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(errorDto, HttpStatus.CONFLICT);
+    }
+
+    @Override
+    public ResponseEntity<?> processSaveError(UpdateMe.Result.SaveError result) {
+        String message = localizationManager.localize("user.save.error");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

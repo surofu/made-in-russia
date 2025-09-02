@@ -44,7 +44,6 @@ public class CategoryApplicationService implements CategoryService {
         // Check cache
         List<CategoryDto> cachedCategoryDtos = categoryListCacheManager.getAllByLocale("ALL_" + operation.getLocale().getLanguage());
         if (cachedCategoryDtos != null) {
-            log.info("Found {} cached Categories", cachedCategoryDtos.size());
             return GetAllCategories.Result.success(cachedCategoryDtos);
         }
 
@@ -356,7 +355,6 @@ public class CategoryApplicationService implements CategoryService {
             }
 
             generalCacheService.clear();
-
             return DeleteCategoryById.Result.success(category.get().getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

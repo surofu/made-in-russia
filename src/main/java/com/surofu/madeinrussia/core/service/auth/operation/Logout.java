@@ -13,9 +13,9 @@ public class Logout {
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(SimpleResponseMessageDto simpleResponseMessageDto) {
-            log.info("Successfully processed logout with message: {}", simpleResponseMessageDto);
-            return Success.of(simpleResponseMessageDto);
+        static Result success(SimpleResponseMessageDto dto) {
+            log.info("Successfully processed logout");
+            return Success.of(dto);
         }
 
         @Value(staticConstructor = "of")

@@ -191,13 +191,10 @@ springdoc:
   api-docs:
     path: /api/v3/api-docs
 
-java:
-  opts: >-
-    -Xms2048m -Xmx3584m             # Оставляем 1GB для системы
-    -XX:+UseG1GC
-    -XX:MaxGCPauseMillis=150
-    -XX:ParallelGCThreads=4
-    -XX:ConcGCThreads=2
-    -XX:+AlwaysPreTouch
-    -XX:+UseStringDeduplication
-    -Djava.security.egd=file:/dev/./urandom
+s3:
+  accessKey: ${S3_ACCESS_KEY}
+  secretKey: ${S3_SECRET_KEY}
+  endpoint: ${S3_ENDPOINT}
+  region: ${S3_REGION}
+  bucket: ${S3_BUCKET}
+  domain: ${S3_DOMAIN}

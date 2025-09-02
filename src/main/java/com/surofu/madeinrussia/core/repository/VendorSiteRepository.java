@@ -1,9 +1,17 @@
 package com.surofu.madeinrussia.core.repository;
 
+import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface VendorSiteRepository {
     List<VendorSite> getAllByVendorDetailsId(Long id);
+
+    void saveAll(Collection<VendorSite> vendorSites);
+
+    void deleteAll(Collection<VendorSite> vendorSites);
+
+    void flush();
 }

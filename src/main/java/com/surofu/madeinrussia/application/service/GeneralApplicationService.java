@@ -7,7 +7,6 @@ import com.surofu.madeinrussia.application.dto.category.CategoryDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.utils.CategoryUtils;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
-import com.surofu.madeinrussia.core.model.advertisement.Advertisement;
 import com.surofu.madeinrussia.core.repository.AdvertisementRepository;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;

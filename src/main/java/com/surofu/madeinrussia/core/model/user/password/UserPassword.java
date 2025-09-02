@@ -50,7 +50,12 @@ public final class UserPassword implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UserPassword)) return false;
-        return id != null && id.equals(((UserPassword) o).id);
+        if (!(o instanceof UserPassword userPassword)) return false;
+        return id != null && id.equals(userPassword.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

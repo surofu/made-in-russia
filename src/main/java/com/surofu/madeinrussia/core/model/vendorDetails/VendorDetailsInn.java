@@ -36,11 +36,4 @@ public final class VendorDetailsInn implements Serializable {
     public String toString() {
         return value;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (o.getClass() != this.getClass()) return false;
-        return this.value != null && this.value.equals(((VendorDetailsInn) o).value);
-    }
 }

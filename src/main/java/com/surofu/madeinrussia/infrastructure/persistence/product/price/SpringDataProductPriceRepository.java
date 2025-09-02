@@ -25,6 +25,9 @@ public interface SpringDataProductPriceRepository extends JpaRepository<ProductP
             p.creation_date as creationDate,
             p.last_modification_date as lastModificationDate
             from product_prices p
+            where p.product_id = :productId
             """, nativeQuery = true)
     List<ProductPriceView> findAllByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
+
+    List<ProductPrice> findAllByProductId(Long id);
 }

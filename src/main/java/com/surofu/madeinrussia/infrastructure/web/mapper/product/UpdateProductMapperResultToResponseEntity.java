@@ -94,20 +94,6 @@ public class UpdateProductMapperResultToResponseEntity
     }
 
     @Override
-    public ResponseEntity<?> processOldProductMediaNotFound(UpdateProduct.Result.OldProductMediaNotFound result) {
-        String message = localizationManager.localize("product_media.not_found_by_id", result.getProductMediaId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
-    }
-
-    @Override
-    public ResponseEntity<?> processOldVendorDetailsMediaNotFound(UpdateProduct.Result.OldVendorDetailsMediaNotFound result) {
-        String message = localizationManager.localize("vendor_media.not_found_by_id", result.getVendorDetailsMediaId());
-        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
-    }
-
-    @Override
     public ResponseEntity<?> processEmptyTranslations(UpdateProduct.Result.EmptyTranslations result) {
         String message = localizationManager.localize("translation.empty");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);

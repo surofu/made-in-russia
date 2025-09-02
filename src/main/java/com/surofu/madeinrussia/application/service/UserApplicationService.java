@@ -83,8 +83,6 @@ public class UserApplicationService implements UserService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.getUserByEmail(UserEmail.of(username))
                 .orElseThrow(() -> new UsernameNotFoundException(username));
-        UserPassword userPassword = userPasswordRepository.getUserPasswordByUserId(user.getId())
-                .orElseThrow(() -> new UsernameNotFoundException(username));
 
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
@@ -96,7 +94,7 @@ public class UserApplicationService implements UserService {
         HttpServletRequest request = servletRequestAttributes.getRequest();
         SessionInfo sessionInfo = SessionInfo.of(request);
 
-        return new SecurityUser(user, userPassword, sessionInfo);
+        return new SecurityUser(user, user.getPassword(), sessionInfo);
     }
 
     @Override

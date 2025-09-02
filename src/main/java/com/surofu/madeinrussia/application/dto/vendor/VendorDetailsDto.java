@@ -54,6 +54,8 @@ public final class VendorDetailsDto implements Serializable {
 
     private List<String> sites = new ArrayList<>();
 
+    private List<VendorMediaDto> media = new ArrayList<>();
+
     @Schema(
             description = "List of countries where the vendor has business operations",
             requiredMode = Schema.RequiredMode.REQUIRED
@@ -111,6 +113,7 @@ public final class VendorDetailsDto implements Serializable {
                 .phoneNumbers(vendorDetails.getPhoneNumbers().stream().map(VendorPhoneNumber::getPhoneNumber).map(VendorPhoneNumberPhoneNumber::toString).toList())
                 .emails(vendorDetails.getEmails().stream().map(VendorEmail::getEmail).map(VendorEmailEmail::toString).toList())
                 .sites(vendorDetails.getSites().stream().map(VendorSite::getUrl).map(VendorSiteUrl::toString).toList())
+                .media(vendorDetails.getMedia().stream().map(VendorMediaDto::of).toList())
                 .countries(vendorDetails.getVendorCountries().stream().map(VendorCountryDto::of).toList())
                 .productCategories(vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of).toList())
                 .faq(vendorDetails.getFaq().stream().map(VendorFaqDto::of).toList())

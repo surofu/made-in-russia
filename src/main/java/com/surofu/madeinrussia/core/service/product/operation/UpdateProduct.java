@@ -93,16 +93,6 @@ public class UpdateProduct {
             return SimilarProductNotFound.of(similarProductId);
         }
 
-        static Result oldProductMediaNotFound(Long oldProductMediaId) {
-            log.warn("Old product media with ID '{}' not found", oldProductMediaId);
-            return OldProductMediaNotFound.of(oldProductMediaId);
-        }
-
-        static Result oldVendorDetailsMediaNotFound(Long oldVendorDetailsMediaId) {
-            log.warn("Old vendor product media with ID '{}' not found", oldVendorDetailsMediaId);
-            return OldVendorDetailsMediaNotFound.of(oldVendorDetailsMediaId);
-        }
-
         static Result emptyTranslations(String moduleName) {
             log.warn("Empty translations in module: {}", moduleName);
             return EmptyTranslations.INSTANCE;
@@ -219,26 +209,6 @@ public class UpdateProduct {
             }
         }
 
-        @Value(staticConstructor = "of")
-        class OldProductMediaNotFound implements Result {
-            Long productMediaId;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processOldProductMediaNotFound(this);
-            }
-        }
-
-        @Value(staticConstructor = "of")
-        class OldVendorDetailsMediaNotFound implements Result {
-            Long vendorDetailsMediaId;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processOldVendorDetailsMediaNotFound(this);
-            }
-        }
-
         enum EmptyTranslations implements Result {
             INSTANCE;
 
@@ -269,8 +239,6 @@ public class UpdateProduct {
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
             T processSimilarProductNotFound(SimilarProductNotFound result);
-            T processOldProductMediaNotFound(OldProductMediaNotFound result);
-            T processOldVendorDetailsMediaNotFound(OldVendorDetailsMediaNotFound result);
             T processEmptyTranslations(EmptyTranslations result);
             T processTranslationError(TranslationError result);
         }

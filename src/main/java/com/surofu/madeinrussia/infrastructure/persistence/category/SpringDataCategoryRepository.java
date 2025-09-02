@@ -42,14 +42,6 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
             """)
     List<Category> findAll();
 
-    @Query("""
-                select c from Category c
-                where c.slug.value like 'l2_%'
-                    or c.slug.value like 'l1_%'
-                order by c.id
-            """)
-    List<Category> findAllL1AndL2();
-
     @Query(value = """
                 select
                 c.id,

@@ -17,7 +17,7 @@ public class RefreshMeCurrentSession {
         <T> T process(Processor<T> processor);
 
         static Result success(TokenDto tokenDto) {
-            log.info("Successfully processed update me access token: {}", tokenDto);
+            log.info("Successfully processed update me access token");
             return Success.of(tokenDto);
         }
 

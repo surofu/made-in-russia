@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor;
 
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.repository.VendorDetailsRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +20,15 @@ public class JpaVendorDetailsRepository implements VendorDetailsRepository {
     @Override
     public boolean existsByInn(VendorDetailsInn inn) {
         return repository.existsByInn(inn);
+    }
+
+    @Override
+    public boolean existsByInnAndNotVendorDetailsId(VendorDetailsInn inn, Long vendorId) {
+        return repository.existsByInnAndIdNot(inn, vendorId);
+    }
+
+    @Override
+    public VendorDetails save(VendorDetails vendorDetails) {
+        return repository.save(vendorDetails);
     }
 }

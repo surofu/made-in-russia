@@ -28,4 +28,10 @@ public interface MeService {
     DeleteMe.Result deleteMe(DeleteMe operation);
 
     VerifyDeleteMe.Result verifyDeleteMe(VerifyDeleteMe operation);
+
+    UploadMeVendorMedia.Result uploadMeVendorMedia(UploadMeVendorMedia operation);
+
+    DeleteMeVendorMediaById.Result deleteMeVendorMediaById(DeleteMeVendorMediaById operation);
+
+    DeleteMeVendorMediaByIdList.Result deleteMeVendorMediaByIdList(DeleteMeVendorMediaByIdList operation);
 }

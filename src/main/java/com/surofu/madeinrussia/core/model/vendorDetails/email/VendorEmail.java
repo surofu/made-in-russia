@@ -29,4 +29,16 @@ public final class VendorEmail implements Serializable {
 
     @Embedded
     private VendorEmailLastModificationDate lastModificationDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VendorEmail)) return false;
+        return id != null && id.equals(((VendorEmail) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

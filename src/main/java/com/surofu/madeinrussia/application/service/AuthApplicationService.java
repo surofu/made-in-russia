@@ -19,6 +19,7 @@ import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
@@ -273,7 +274,7 @@ public class AuthApplicationService implements AuthService {
         } catch (DisabledException e) {
             return LoginWithEmail.Result.accountBlocked(operation.getEmail());
         } catch (Exception ex) {
-            return LoginWithEmail.Result.invalidCredentials(operation.getEmail(), operation.getPassword());
+            return LoginWithEmail.Result.invalidCredentials();
         }
     }
 
@@ -283,7 +284,7 @@ public class AuthApplicationService implements AuthService {
         Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(operation.getLogin());
 
         if (userEmail.isEmpty()) {
-            return LoginWithLogin.Result.invalidCredentials(operation.getLogin(), operation.getPassword());
+            return LoginWithLogin.Result.invalidCredentials();
         }
 
         try {
@@ -292,7 +293,7 @@ public class AuthApplicationService implements AuthService {
         } catch (DisabledException e) {
             return LoginWithLogin.Result.accountBlocked(operation.getLogin());
         } catch (Exception e) {
-            return LoginWithLogin.Result.invalidCredentials(operation.getLogin(), operation.getPassword());
+            return LoginWithLogin.Result.invalidCredentials();
         }
     }
 
@@ -325,6 +326,10 @@ public class AuthApplicationService implements AuthService {
 
         user.setPassword(userPassword);
         userPassword.setUser(user);
+
+        if (user.getVendorDetails() != null) {
+            user.getVendorDetails().setDescription(VendorDetailsDescription.of(""));
+        }
 
         SecurityUser securityUser = new SecurityUser(user, userPassword, operation.getSessionInfo());
 

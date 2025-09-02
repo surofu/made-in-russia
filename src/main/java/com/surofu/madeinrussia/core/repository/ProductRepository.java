@@ -43,6 +43,8 @@ public interface ProductRepository {
 
     void delete(Product product);
 
+    void deleteByUserId(Long userId);
+
     // View
 
     Optional<ProductView> getProductViewByIdAndLang(Long productId, String lang);
@@ -52,4 +54,6 @@ public interface ProductRepository {
     List<SimilarProductView> getAllSimilarProductViewsByProductIdAndLang(Long id, String lang);
 
     Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id, String lang);
+
+    void flush();
 }

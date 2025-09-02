@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, Long> {
@@ -254,4 +253,6 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
         where p.id = :id
     """, nativeQuery = true)
     Optional<ProductWithTranslationsView> findProductWithTranslationsByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
+
+    void deleteByUserId(Long userId);
 }

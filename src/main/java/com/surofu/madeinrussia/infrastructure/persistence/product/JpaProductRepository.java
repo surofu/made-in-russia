@@ -89,6 +89,11 @@ public class JpaProductRepository implements ProductRepository {
         repository.delete(product);
     }
 
+    @Override
+    public void deleteByUserId(Long userId) {
+        repository.deleteByUserId(userId);
+    }
+
     // View
 
     @Override
@@ -109,5 +114,10 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id, String lang) {
         return repository.findProductWithTranslationsByIdAndLang(id, lang);
+    }
+
+    @Override
+    public void flush() {
+        repository.flush();
     }
 }

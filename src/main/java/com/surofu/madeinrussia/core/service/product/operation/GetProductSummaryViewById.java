@@ -16,7 +16,7 @@ public class GetProductSummaryViewById {
         <T> T process(Processor<T> processor);
 
         static Result success(ProductSummaryViewDto productSummaryViewDto) {
-            log.info("Successfully processed get product summary view dto by id: {}", productSummaryViewDto);
+            log.info("Successfully processed get product summary view dto by id: {}", productSummaryViewDto.getId());
             return Success.of(productSummaryViewDto);
         }
 

@@ -15,4 +15,6 @@ public interface SpringDataVendorDetailsRepository extends JpaRepository<VendorD
     Long findViewsCountById(@Param("id") Long id);
 
     boolean existsByInn(VendorDetailsInn inn);
+
+    boolean existsByInnAndIdNot(VendorDetailsInn inn, Long id);
 }

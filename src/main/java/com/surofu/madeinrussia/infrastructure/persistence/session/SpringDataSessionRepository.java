@@ -33,4 +33,6 @@ public interface SpringDataSessionRepository extends JpaRepository<Session, Long
             where s.user.id = :userId and s.deviceId = :deviceId
             """)
     void deleteByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId);
+
+    void deleteByUserId(Long userId);
 }

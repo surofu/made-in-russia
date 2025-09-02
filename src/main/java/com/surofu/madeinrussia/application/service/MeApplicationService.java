@@ -7,15 +7,13 @@ import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
-import com.surofu.madeinrussia.application.dto.vendor.VendorCountryDto;
-import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
-import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
-import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
+import com.surofu.madeinrussia.application.dto.vendor.*;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
+import com.surofu.madeinrussia.core.model.media.MediaType;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.session.SessionDeviceId;
@@ -28,6 +26,10 @@ import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.madeinrussia.core.model.vendorDetails.email.VendorEmailEmail;
+import com.surofu.madeinrussia.core.model.vendorDetails.media.VendorMedia;
+import com.surofu.madeinrussia.core.model.vendorDetails.media.VendorMediaMimeType;
+import com.surofu.madeinrussia.core.model.vendorDetails.media.VendorMediaPosition;
+import com.surofu.madeinrussia.core.model.vendorDetails.media.VendorMediaUrl;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
@@ -47,6 +49,8 @@ import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorC
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.faq.VendorFaqView;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import io.jsonwebtoken.JwtException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,10 +64,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -75,21 +81,27 @@ public class MeApplicationService implements MeService {
     private final SessionRepository sessionRepository;
     private final ProductSummaryViewRepository productSummaryViewRepository;
     private final ProductReviewRepository productReviewRepository;
+    private final VendorDetailsRepository vendorDetailsRepository;
     private final VendorCountryRepository vendorCountryRepository;
     private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
     private final VendorEmailRepository vendorEmailRepository;
     private final VendorSiteRepository vendorSiteRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
     private final VendorFaqRepository vendorFaqRepository;
+    private final VendorMediaRepository vendorMediaRepository;
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final JwtUtils jwtUtils;
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
+    private final ProductRepository productRepository;
 
     private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final MailService mailService;
     private final DeleteAccountCache deleteAccountCache;
+
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     @Value("${app.session.secret}")
     private String sessionSecret;
@@ -112,53 +124,56 @@ public class MeApplicationService implements MeService {
 
         UserView userView = userRepository.getViewById(securityUser.getUser().getId()).orElseThrow();
 
-        if (userView.getVendorDetails() != null) {
-            VendorDto vendorDto = VendorDto.of(userView);
-
-            List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
-                    userView.getVendorDetails().getId(),
-                    operation.getLocale().getLanguage()
-            );
-            List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
-                    userView.getVendorDetails().getId(),
-                    operation.getLocale().getLanguage()
-            );
-            List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
-                    userView.getVendorDetails().getId(),
-                    operation.getLocale().getLanguage()
-            );
-            List<VendorPhoneNumber> vendorPhoneNumberList = vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-            List<VendorEmail> vendorEmailList = vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-            List<VendorSite> vendorSiteList = vendorSiteRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-
-            List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
-            List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
-            List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
-            List<String> phoneNumbers = vendorPhoneNumberList.stream()
-                    .map(VendorPhoneNumber::getPhoneNumber)
-                    .map(VendorPhoneNumberPhoneNumber::toString)
-                    .toList();
-            List<String> emails = vendorEmailList.stream()
-                    .map(VendorEmail::getEmail)
-                    .map(VendorEmailEmail::toString)
-                    .toList();
-            List<String> sites = vendorSiteList.stream()
-                    .map(VendorSite::getUrl)
-                    .map(VendorSiteUrl::toString)
-                    .toList();
-
-            vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
-            vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
-            vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
-            vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
-            vendorDto.getVendorDetails().setEmails(emails);
-            vendorDto.getVendorDetails().setSites(sites);
-
-            return GetMe.Result.success(vendorDto);
+        if (userView.getVendorDetails() == null) {
+            UserDto userDto = UserDto.of(userView);
+            return GetMe.Result.success(userDto);
         }
 
-        UserDto userDto = UserDto.of(userView);
-        return GetMe.Result.success(userDto);
+        VendorDto vendorDto = VendorDto.of(userView);
+
+        List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
+                userView.getVendorDetails().getId(),
+                operation.getLocale().getLanguage()
+        );
+        List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
+                userView.getVendorDetails().getId(),
+                operation.getLocale().getLanguage()
+        );
+        List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
+                userView.getVendorDetails().getId(),
+                operation.getLocale().getLanguage()
+        );
+        List<VendorPhoneNumber> vendorPhoneNumberList = vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+        List<VendorEmail> vendorEmailList = vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+        List<VendorSite> vendorSiteList = vendorSiteRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+        List<VendorMedia> vendorMediaList = vendorMediaRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+
+        List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
+        List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
+        List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
+        List<String> phoneNumbers = vendorPhoneNumberList.stream()
+                .map(VendorPhoneNumber::getPhoneNumber)
+                .map(VendorPhoneNumberPhoneNumber::toString)
+                .toList();
+        List<String> emails = vendorEmailList.stream()
+                .map(VendorEmail::getEmail)
+                .map(VendorEmailEmail::toString)
+                .toList();
+        List<String> sites = vendorSiteList.stream()
+                .map(VendorSite::getUrl)
+                .map(VendorSiteUrl::toString)
+                .toList();
+        List<VendorMediaDto> vendorMediaDtoList = vendorMediaList.stream().map(VendorMediaDto::of).toList();
+
+        vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
+        vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
+        vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
+        vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
+        vendorDto.getVendorDetails().setEmails(emails);
+        vendorDto.getVendorDetails().setSites(sites);
+        vendorDto.getVendorDetails().setMedia(vendorMediaDtoList);
+
+        return GetMe.Result.success(vendorDto);
     }
 
     @Override
@@ -297,8 +312,13 @@ public class MeApplicationService implements MeService {
     @Transactional
     public UpdateMe.Result updateMe(UpdateMe operation) {
         User user = operation.getSecurityUser().getUser();
+        VendorDetails vendorDetails = user.getVendorDetails();
 
         if (operation.getUserPhoneNumber() != null) {
+            if (userRepository.existsUserByPhoneNumberAndNotUserId(operation.getUserPhoneNumber(), user.getId())) {
+                return UpdateMe.Result.phoneNumberAlreadyExists(operation.getUserPhoneNumber());
+            }
+
             user.setPhoneNumber(operation.getUserPhoneNumber());
         }
 
@@ -306,10 +326,12 @@ public class MeApplicationService implements MeService {
             user.setRegion(operation.getUserRegion());
         }
 
-        if (user.getVendorDetails() != null) {
-            VendorDetails vendorDetails = user.getVendorDetails();
-
+        if (vendorDetails != null) {
             if (operation.getInn() != null) {
+                if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(operation.getInn(), user.getId())) {
+                    return UpdateMe.Result.innAlreadyExists(operation.getInn());
+                }
+
                 vendorDetails.setInn(operation.getInn());
             }
 
@@ -321,6 +343,7 @@ public class MeApplicationService implements MeService {
                 try {
                     translationDto = translationRepository.expand(operation.getDescription().toString());
                 } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     return UpdateMe.Result.translationError(e);
                 }
 
@@ -331,62 +354,76 @@ public class MeApplicationService implements MeService {
                 Set<VendorCountry> vendorCountries = new HashSet<>();
 
                 for (VendorCountryName countryName : operation.getCountryNames()) {
-                    Optional<VendorCountry> existingCountry = vendorDetails.getVendorCountries().stream()
-                            .filter(c -> c.getName().toString().equals(countryName.toString()))
-                            .findFirst();
+                    VendorCountry vendorCountry = new VendorCountry();
+                    vendorCountry.setVendorDetails(vendorDetails);
 
-                    if (existingCountry.isEmpty()) {
-                        VendorCountry vendorCountry = new VendorCountry();
-                        vendorCountry.setVendorDetails(vendorDetails);
+                    HstoreTranslationDto translationDto;
 
-                        HstoreTranslationDto translationDto;
-
-                        try {
-                            translationDto = translationRepository.expand(countryName.toString());
-                        } catch (Exception e) {
-                            return UpdateMe.Result.translationError(e);
-                        }
-
-                        countryName.setTranslations(translationDto);
-                        vendorCountry.setName(countryName);
-                        vendorCountries.add(vendorCountry);
-                    } else {
-                        vendorCountries.add(existingCountry.get());
+                    try {
+                        translationDto = translationRepository.expand(countryName.toString());
+                    } catch (Exception e) {
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        return UpdateMe.Result.translationError(e);
                     }
+
+                    countryName.setTranslations(translationDto);
+                    vendorCountry.setName(countryName);
+                    vendorCountries.add(vendorCountry);
                 }
 
-                vendorDetails.setVendorCountries(vendorCountries);
+                List<VendorCountry> oldCountries = vendorCountryRepository.getByVendorId(vendorDetails.getId());
+
+                try {
+                    vendorCountryRepository.deleteAll(oldCountries);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
+
+                try {
+                    vendorCountryRepository.saveAll(vendorCountries);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
             }
 
             if (operation.getCategoryNames() != null && !operation.getCategoryNames().isEmpty()) {
                 Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
                 for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
-                    List<VendorProductCategory> existingCategories = vendorDetails.getVendorProductCategories().stream()
-                            .filter(c -> c.getName().toString().equals(categoryName.toString()))
-                            .toList();
+                    VendorProductCategory vendorProductCategory = new VendorProductCategory();
+                    vendorProductCategory.setVendorDetails(vendorDetails);
+                    vendorProductCategory.setName(categoryName);
 
-                    if (existingCategories.isEmpty()) {
-                        VendorProductCategory vendorProductCategory = new VendorProductCategory();
-                        vendorProductCategory.setVendorDetails(vendorDetails);
-                        vendorProductCategory.setName(categoryName);
+                    HstoreTranslationDto translationDto;
 
-                        HstoreTranslationDto translationDto;
-
-                        try {
-                            translationDto = translationRepository.expand(categoryName.toString());
-                        } catch (Exception e) {
-                            return UpdateMe.Result.translationError(e);
-                        }
-
-                        vendorProductCategory.getName().setTranslations(translationDto);
-                        vendorProductCategories.add(vendorProductCategory);
-                    } else {
-                        vendorProductCategories.addAll(existingCategories);
+                    try {
+                        translationDto = translationRepository.expand(categoryName.toString());
+                    } catch (Exception e) {
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        return UpdateMe.Result.translationError(e);
                     }
+
+                    vendorProductCategory.getName().setTranslations(translationDto);
+                    vendorProductCategories.add(vendorProductCategory);
                 }
 
-                vendorDetails.setVendorProductCategories(vendorProductCategories);
+                List<VendorProductCategory> oldProductCategories = vendorProductCategoryRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+                try {
+                    vendorProductCategoryRepository.deleteAll(oldProductCategories);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
+
+                try {
+                    vendorProductCategoryRepository.saveAll(vendorProductCategories);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
             }
 
             if (operation.getPhoneNumbers() != null) {
@@ -399,7 +436,21 @@ public class MeApplicationService implements MeService {
                     phoneNumberSet.add(phoneNumber);
                 }
 
-                vendorDetails.setPhoneNumbers(phoneNumberSet);
+                List<VendorPhoneNumber> oldPhoneNumbers = vendorPhoneNumberRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+                try {
+                    vendorPhoneNumberRepository.deleteAll(oldPhoneNumbers);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
+
+                try {
+                    vendorPhoneNumberRepository.saveAll(phoneNumberSet);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
             }
 
             if (operation.getEmails() != null) {
@@ -412,7 +463,21 @@ public class MeApplicationService implements MeService {
                     emailSet.add(vendorEmail);
                 }
 
-                vendorDetails.setEmails(emailSet);
+                List<VendorEmail> oldVendorEmails = vendorEmailRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+                try {
+                    vendorEmailRepository.deleteAll(oldVendorEmails);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
+
+                try {
+                    vendorEmailRepository.saveAll(emailSet);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
             }
 
             if (operation.getSites() != null) {
@@ -425,45 +490,42 @@ public class MeApplicationService implements MeService {
                     siteSet.add(site);
                 }
 
-                vendorDetails.setSites(siteSet);
-            }
+                List<VendorSite> oldVendorSites = vendorSiteRepository.getAllByVendorDetailsId(vendorDetails.getId());
 
-            user.setVendorDetails(vendorDetails);
-        }
+                try {
+                    vendorSiteRepository.deleteAll(oldVendorSites);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
+                }
 
-        User newUser = userRepository.save(user);
-
-        if (newUser.getVendorDetails() != null) {
-            for (VendorCountry country : newUser.getVendorDetails().getVendorCountries()) {
-                switch (operation.getLocale().getLanguage()) {
-                    case "en": {
-                        var name = VendorCountryName.of(country.getName().getTranslations().textEn());
-                        name.setTranslations(country.getName().getTranslations());
-                        country.setName(name);
-                        break;
-                    }
-                    case "ru": {
-                        var name = VendorCountryName.of(country.getName().getTranslations().textRu());
-                        name.setTranslations(country.getName().getTranslations());
-                        country.setName(name);
-                        break;
-                    }
-                    case "zh": {
-                        var name = VendorCountryName.of(country.getName().getTranslations().textZh());
-                        name.setTranslations(country.getName().getTranslations());
-                        country.setName(name);
-                        break;
-                    }
-                    default:
-                        break;
+                try {
+                    vendorSiteRepository.saveAll(siteSet);
+                } catch (Exception e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return UpdateMe.Result.saveError(e);
                 }
             }
-
-
-            return UpdateMe.Result.success(VendorDto.of(newUser));
         }
 
-        return UpdateMe.Result.success(UserDto.of(newUser));
+        User savedUser = userRepository.save(user);
+
+        if (savedUser.getVendorDetails() != null) {
+            List<VendorCountryView> vendorCountries = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(savedUser.getVendorDetails().getId(), operation.getLocale().getLanguage());
+            List<VendorProductCategoryView> vendorProductCategoryViews = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(savedUser.getVendorDetails().getId(), operation.getLocale().getLanguage());
+
+            List<VendorCountryDto> vendorCountryDtos = vendorCountries.stream().map(VendorCountryDto::of).toList();
+            List<VendorProductCategoryDto> vendorProductCategoryDtos = vendorProductCategoryViews.stream().map(VendorProductCategoryDto::of).toList();
+
+            VendorDto vendorDto = VendorDto.of(savedUser);
+
+            vendorDto.getVendorDetails().setCountries(vendorCountryDtos);
+            vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtos);
+
+            return UpdateMe.Result.success(vendorDto);
+        }
+
+        return UpdateMe.Result.success(UserDto.of(savedUser));
     }
 
     @Override
@@ -495,8 +557,17 @@ public class MeApplicationService implements MeService {
             return SaveMeAvatar.Result.saveError(e);
         }
 
-        UserAvatar avatar = UserAvatar.of(url);
-        operation.getSecurityUser().getUser().setAvatar(avatar);
+        User user = operation.getSecurityUser().getUser();
+
+        if (user.getAvatar() != null && StringUtils.trimToNull(user.getAvatar().toString()) != null) {
+            try {
+                fileStorageRepository.deleteMediaByLink(user.getAvatar().toString());
+            } catch (Exception e) {
+                log.warn("Error deleting avatar from storage", e);
+            }
+        }
+
+        user.setAvatar(UserAvatar.of(url));
 
         try {
             userRepository.save(operation.getSecurityUser().getUser());
@@ -510,18 +581,19 @@ public class MeApplicationService implements MeService {
     @Override
     @Transactional
     public DeleteMeAvatar.Result deleteMeAvatar(DeleteMeAvatar operation) {
-        if (operation.getSecurityUser().getUser().getAvatar() != null) {
+        User user = operation.getSecurityUser().getUser();
+
+        if (user.getAvatar() != null) {
             try {
-                fileStorageRepository.deleteMediaByLink(operation.getSecurityUser().getUser().getAvatar().getUrl());
+                fileStorageRepository.deleteMediaByLink(user.getAvatar().getUrl());
             } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return DeleteMeAvatar.Result.deleteError(e);
+               log.warn("Error deleting avatar from storage", e);
             }
 
-            operation.getSecurityUser().getUser().setAvatar(null);
+            user.setAvatar(null);
 
             try {
-                userRepository.save(operation.getSecurityUser().getUser());
+                userRepository.save(user);
             } catch (Exception e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return DeleteMeAvatar.Result.deleteError(e);
@@ -538,12 +610,15 @@ public class MeApplicationService implements MeService {
         deleteAccountCache.put(email.toString(), code);
         LocalDateTime expirationDate = LocalDateTime.now().plus(verificationTtlDuration);
 
-        try {
-            mailService.sendConfirmDeleteAccountMail(email.toString(), code, expirationDate, operation.getLocale());
-            return DeleteMe.Result.success(email);
-        } catch (Exception e) {
-            return DeleteMe.Result.sendMailError(e);
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                mailService.sendConfirmDeleteAccountMail(email.toString(), code, expirationDate, operation.getLocale());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+
+        return DeleteMe.Result.success(email);
     }
 
     @Override
@@ -564,8 +639,12 @@ public class MeApplicationService implements MeService {
             return VerifyDeleteMe.Result.invalidConfirmationCode(email);
         }
 
+        var user = operation.getSecurityUser().getUser();
+
         try {
-            userRepository.delete(operation.getSecurityUser().getUser());
+            productRepository.deleteByUserId(user.getId());
+            sessionRepository.deleteByUserId(user.getId());
+            userRepository.delete(user);
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return VerifyDeleteMe.Result.deleteError(email, e);
@@ -580,6 +659,212 @@ public class MeApplicationService implements MeService {
         }
 
         return VerifyDeleteMe.Result.success(email);
+    }
+
+    @Override
+    @Transactional
+    public UploadMeVendorMedia.Result uploadMeVendorMedia(UploadMeVendorMedia operation) {
+        if (operation.getMedia().size() != operation.getNewMediaPositions().size()) {
+            log.warn("Неверные позиции: новые медиа файлы({}), позиции: {} ({})", operation.getMedia().size(), operation.getNewMediaPositions(), operation.getNewMediaPositions().size());
+            return UploadMeVendorMedia.Result.invalidPosition(new RuntimeException("Invalid new media positions"));
+        }
+
+        List<MultipartFile> images = new ArrayList<>();
+        List<MultipartFile> videos = new ArrayList<>();
+
+        User user = operation.getSecurityUser().getUser();
+        VendorDetails vendorDetails = user.getVendorDetails();
+
+        if (vendorDetails == null) {
+            vendorDetails = new VendorDetails();
+            user.setVendorDetails(vendorDetails);
+        }
+
+        List<VendorMedia> vendorMediaImageList = new ArrayList<>();
+        List<VendorMedia> vendorMediaVideoList = new ArrayList<>();
+
+        for (int i = 0; i < operation.getMedia().size(); i++) {
+            MultipartFile file = operation.getMedia().get(i);
+
+            if (file.isEmpty()) {
+                return UploadMeVendorMedia.Result.emptyFile();
+            }
+
+            String contentType = Objects.requireNonNullElse(file.getContentType(), "");
+
+            if (contentType.contains("image")) {
+                images.add(file);
+                vendorMediaImageList.add(createVendorMedia(vendorDetails, file, MediaType.IMAGE));
+            } else if (contentType.contains("video")) {
+                videos.add(file);
+                vendorMediaVideoList.add(createVendorMedia(vendorDetails, file, MediaType.VIDEO));
+            } else {
+                return UploadMeVendorMedia.Result.unknownContentType(contentType);
+            }
+        }
+
+        List<String> imageLinks, videoLinks;
+
+        List<VendorMedia> media = vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+        if (media.size() != operation.getOldMediaIds().size()) {
+            log.warn("Неверные позиции: старые медиа из бд {} ({}), старые медиа из запроса: {} ({})", media.stream().map(VendorMedia::getId).toList(), media.size(), operation.getOldMediaIds(), operation.getOldMediaIds().size());
+            return UploadMeVendorMedia.Result.invalidPosition(new RuntimeException("Invalid old media positions"));
+        }
+
+        try {
+            imageLinks = fileStorageRepository.uploadManyImagesToFolder(FileStorageFolders.VENDOR_IMAGES.getValue(), images.toArray(MultipartFile[]::new));
+            videoLinks = fileStorageRepository.uploadManyVideosToFolder(FileStorageFolders.VENDOR_VIDEOS.getValue(), videos.toArray(MultipartFile[]::new));
+        } catch (Exception e) {
+            return UploadMeVendorMedia.Result.uploadError(user.getId(), e);
+        }
+
+        try {
+            for (int i = 0; i < imageLinks.size(); i++) {
+                String link = imageLinks.get(i);
+                vendorMediaImageList.get(i).setUrl(VendorMediaUrl.of(link));
+                vendorMediaImageList.get(i).setPosition(VendorMediaPosition.of(operation.getNewMediaPositions().get(i)));
+            }
+
+            for (int i = 0; i < videoLinks.size(); i++) {
+                String link = videoLinks.get(i);
+                vendorMediaVideoList.get(i).setUrl(VendorMediaUrl.of(link));
+                vendorMediaVideoList.get(i).setPosition(VendorMediaPosition.of(operation.getNewMediaPositions().get(imageLinks.size() + i)));
+            }
+        } catch (IndexOutOfBoundsException e) {
+            log.warn("Позиция нового медиа вышла за границы нового массива: {} ({})", operation.getMedia().size(), operation.getNewMediaPositions());
+            return UploadMeVendorMedia.Result.invalidPosition(e);
+        }
+
+        Map<Long, Integer> oldMediaPositions = new HashMap<>();
+
+        int newOldMediaIndex = 0;
+        for (int i = 0; i < operation.getOldMediaIds().size(); i++) {
+            if (operation.getNewMediaPositions().contains(i)) {
+                newOldMediaIndex += 1;
+            }
+
+            oldMediaPositions.put(operation.getOldMediaIds().get(i), newOldMediaIndex);
+            newOldMediaIndex++;
+        }
+
+        for (VendorMedia oldMedia : media) {
+            Integer oldMediaPosition = oldMediaPositions.get(oldMedia.getId());
+
+            if (oldMediaPosition == null) {
+                return UploadMeVendorMedia.Result.invalidPosition(new RuntimeException("Old media position not found"));
+            }
+
+            oldMedia.setPosition(VendorMediaPosition.of(oldMediaPosition));
+        }
+
+        media.addAll(vendorMediaImageList);
+        media.addAll(vendorMediaVideoList);
+
+        vendorDetails.setMedia(new HashSet<>(media));
+
+        try {
+            vendorMediaRepository.saveAll(vendorMediaImageList);
+            vendorMediaRepository.saveAll(vendorMediaVideoList);
+            User savedUser = userRepository.save(user);
+            VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(savedUser), "Saved user is null");
+            List<VendorMedia> savedMediaList = vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
+            List<VendorMediaDto> savedMediaDtoList = savedMediaList.stream().map(VendorMediaDto::of).toList();
+            vendorDto.getVendorDetails().setMedia(savedMediaDtoList);
+            return UploadMeVendorMedia.Result.success(vendorDto, vendorMediaImageList.size() + vendorMediaVideoList.size());
+        } catch (Exception e) {
+            return UploadMeVendorMedia.Result.saveError(user.getId(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteMeVendorMediaById.Result deleteMeVendorMediaById(DeleteMeVendorMediaById operation) {
+        User user = operation.getSecurityUser().getUser();
+        VendorDetails vendorDetails = user.getVendorDetails();
+
+        if (vendorDetails == null) {
+            return DeleteMeVendorMediaById.Result.notFound(operation.getId());
+        }
+
+        Optional<VendorMedia> vendorMediaOptional = vendorMediaRepository.getById(operation.getId());
+
+        if (vendorMediaOptional.isEmpty()) {
+            return DeleteMeVendorMediaById.Result.notFound(operation.getId());
+        }
+
+        List<VendorMedia> vendorMediaList = vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
+        List<VendorMedia> resultMediaList = new ArrayList<>();
+
+        int index = 0;
+        for (VendorMedia vendorMedia : vendorMediaList) {
+            if (vendorMedia.getId().equals(operation.getId())) {
+                try {
+                    vendorMediaRepository.delete(vendorMedia);
+                    fileStorageRepository.deleteMediaByLink(vendorMedia.getUrl().toString());
+                    continue;
+                } catch (Exception e) {
+                    return DeleteMeVendorMediaById.Result.deleteMediaError(e, operation.getId());
+                }
+            }
+
+            vendorMedia.setPosition(VendorMediaPosition.of(index));
+            resultMediaList.add(vendorMedia);
+            index++;
+        }
+
+        try {
+            vendorMediaRepository.saveAll(resultMediaList);
+            vendorMediaRepository.flush();
+            User newUser = userRepository.getUserById(user.getId()).orElseThrow();
+            VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(newUser), "Saved user is null");
+            List<VendorMedia> savedMediaList = vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
+            List<VendorMediaDto> savedMediaDtoList = savedMediaList.stream().map(VendorMediaDto::of).toList();
+            vendorDto.getVendorDetails().setMedia(savedMediaDtoList);
+            return DeleteMeVendorMediaById.Result.success(vendorDto, operation.getId());
+        } catch (Exception e) {
+            return DeleteMeVendorMediaById.Result.saveError(e, operation.getId());
+        }
+    }
+
+    @Override
+    @Transactional
+    public DeleteMeVendorMediaByIdList.Result deleteMeVendorMediaByIdList(DeleteMeVendorMediaByIdList operation) {
+        User user = operation.getSecurityUser().getUser();
+        VendorDetails vendorDetails = user.getVendorDetails();
+
+        Set<String> links = new HashSet<>();
+        List<VendorMedia> mediaToDelete = new ArrayList<>();
+
+        if (vendorDetails != null) {
+            List<VendorMedia> vendorMediaList = vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
+
+            vendorMediaList.removeIf(m -> {
+                if (operation.getIds().contains(m.getId())) {
+                    mediaToDelete.add(m);
+                    links.add(m.getUrl().toString());
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        try {
+            vendorMediaRepository.deleteAll(mediaToDelete);
+            vendorMediaRepository.flush();
+        } catch (Exception e) {
+            return DeleteMeVendorMediaByIdList.Result.deleteMediaError(e);
+        }
+
+        try {
+            fileStorageRepository.deleteMediaByLink(links.toArray(String[]::new));
+        } catch (Exception e) {
+            return DeleteMeVendorMediaByIdList.Result.deleteMediaError(e);
+        }
+
+        var newUser = userRepository.getUserById(user.getId()).orElseThrow();
+        var dto = vendorDetails != null ? VendorDto.of(newUser) : UserDto.of(newUser);
+        return DeleteMeVendorMediaByIdList.Result.success(dto);
     }
 
     /* ========== PRIVATE ========== */
@@ -610,5 +895,13 @@ public class MeApplicationService implements MeService {
         }
 
         return Page.empty(pageable);
+    }
+
+    private VendorMedia createVendorMedia(VendorDetails vendorDetails, MultipartFile file, MediaType mediaType) {
+        VendorMedia vendorMedia = new VendorMedia();
+        vendorMedia.setVendorDetails(vendorDetails);
+        vendorMedia.setMediaType(mediaType);
+        vendorMedia.setMimeType(VendorMediaMimeType.of(file.getContentType()));
+        return vendorMedia;
     }
 }

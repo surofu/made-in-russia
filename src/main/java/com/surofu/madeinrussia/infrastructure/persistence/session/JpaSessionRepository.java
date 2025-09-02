@@ -43,4 +43,9 @@ public class JpaSessionRepository implements SessionRepository {
     public void deleteSessionById(Long id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public void deleteByUserId(Long userId) {
+        repository.deleteByUserId(userId);
+    }
 }

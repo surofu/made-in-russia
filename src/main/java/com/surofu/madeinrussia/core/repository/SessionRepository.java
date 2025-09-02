@@ -18,4 +18,6 @@ public interface SessionRepository {
     void save(Session session);
 
     void deleteSessionById(Long id);
+
+    void deleteByUserId(Long userId);
 }

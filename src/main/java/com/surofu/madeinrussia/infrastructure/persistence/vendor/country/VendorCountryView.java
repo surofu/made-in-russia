@@ -7,6 +7,8 @@ public interface VendorCountryView {
 
     String getName();
 
+    String getValue();
+
     Instant getCreationDate();
 
     Instant getLastModificationDate();

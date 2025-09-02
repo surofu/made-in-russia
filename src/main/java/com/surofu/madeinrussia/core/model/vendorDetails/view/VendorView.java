@@ -56,4 +56,9 @@ public final class VendorView implements Serializable {
         if (!(o instanceof VendorView)) return false;
         return id != null && id.equals(((VendorView) o).id);
     }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

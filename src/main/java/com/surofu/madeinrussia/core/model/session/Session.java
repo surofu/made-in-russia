@@ -9,20 +9,19 @@ import lombok.*;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-@Getter
-@Setter
+@Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "sessions")
-public class Session implements Serializable {
+public final class Session implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -50,14 +49,13 @@ public class Session implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Session session = (Session) o;
+        if (!(o instanceof Session session)) return false;
         return id != null && id.equals(session.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return getClass().hashCode();
     }
 
     public static Session of(SessionInfo sessionInfo, User user, Session session) {

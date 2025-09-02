@@ -16,12 +16,12 @@ public class LoginWithLogin {
         <T> T process(Processor<T> processor);
 
         static Result success(LoginSuccessDto loginSuccessDto) {
-            log.info("Successfully processed login with login: {}", loginSuccessDto);
+            log.info("Successfully processed login with login");
             return Success.of(loginSuccessDto);
         }
 
-        static Result invalidCredentials(UserLogin login, UserPasswordPassword password) {
-            log.warn("Invalid login with email credentials provided: Login: {}, Password: {}", login, password);
+        static Result invalidCredentials() {
+            log.warn("Invalid login with email credentials provided");
             return InvalidCredentials.INSTANCE;
         }
 

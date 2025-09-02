@@ -23,12 +23,12 @@ public class LocalizationManager {
     private final MessageSource messageSource;
     private final CurrencyConverterService currencyConverterService;
 
-    public String localize(String messageCode, Locale locale, Object ...args) {
+    public String localize(String messageCode, Locale locale, Object... args) {
         String messageTemplate = messageSource.getMessage(messageCode, null, locale);
         return String.format(messageTemplate, args);
     }
 
-    public String localize(String messageCode, Object ...args) {
+    public String localize(String messageCode, Object... args) {
         Locale locale = LocaleContextHolder.getLocale();
         return localize(messageCode, locale, args);
     }
@@ -57,27 +57,6 @@ public class LocalizationManager {
     }
 
     public ProductDto localizePrice(ProductDto dto, Locale locale) {
-        for (ProductPriceDto price : dto.getPrices()) {
-            CurrencyCode from = CurrencyCode.valueOf(price.getCurrency());
-            CurrencyCode to = switch (locale.getLanguage()) {
-                case ("en") -> CurrencyCode.USD;
-                case ("ru") -> CurrencyCode.RUB;
-                case ("zh") -> CurrencyCode.CNY;
-                default -> from;
-            };
-
-            try {
-                BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, price.getOriginalPrice());
-                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, price.getDiscountedPrice());
-
-                price.setOriginalPrice(localizedOriginalPrice);
-                price.setDiscountedPrice(localizedDiscountedPrice);
-                price.setCurrency(to.name());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-
         CurrencyCode from = CurrencyCode.USD;
         CurrencyCode to = switch (locale.getLanguage()) {
             case ("en") -> CurrencyCode.USD;
@@ -92,8 +71,21 @@ public class LocalizationManager {
 
         for (ProductPackageOptionDto packagingOption : dto.getPackagingOptions()) {
             try {
-                BigDecimal convertedPrice = currencyConverterService.convert(from, to,  packagingOption.getPrice());
+                BigDecimal convertedPrice = currencyConverterService.convert(from, to, packagingOption.getPrice());
                 packagingOption.setPrice(convertedPrice);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        for (ProductPriceDto price : dto.getPrices()) {
+            try {
+                BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, price.getOriginalPrice());
+                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, price.getDiscountedPrice());
+
+                price.setOriginalPrice(localizedOriginalPrice);
+                price.setDiscountedPrice(localizedDiscountedPrice);
+                price.setCurrency(to.name());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

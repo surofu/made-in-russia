@@ -38,6 +38,7 @@ import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOp
 import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPrice;
 import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPriceUnit;
 import com.surofu.madeinrussia.core.model.product.price.*;
+import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
@@ -76,7 +77,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -659,7 +659,7 @@ public class ProductApplicationService implements ProductService {
             unitList.add(command.unit());
         }
 
-        List<HstoreTranslationDto> unitTranslationList = new ArrayList<>();
+        List<HstoreTranslationDto> unitTranslationList;
 
         try {
             unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
@@ -671,8 +671,16 @@ public class ProductApplicationService implements ProductService {
             productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
         }
 
-        product.getPrices().clear();
-        product.getPrices().addAll(productPriceList);
+        List<ProductPrice> oldProductPrices = productPriceRepository.getAllByProductId(product.getId());
+
+
+        try {
+            productPriceRepository.deleteAll(oldProductPrices);
+            productPriceRepository.saveAll(productPriceList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
 
         /* ========== Product Characteristics ========== */
         for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
@@ -798,6 +806,16 @@ public class ProductApplicationService implements ProductService {
             productCharacteristicSet.add(productCharacteristic);
         }
 
+        List<ProductCharacteristic> oldProductCharacteristics = productCharacteristicRepository.getAllByProductId(product.getId());
+
+        try {
+            productCharacteristicRepository.deleteAll(oldProductCharacteristics);
+            productCharacteristicRepository.saveAll(productCharacteristicSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
         product.getCharacteristics().clear();
         product.getCharacteristics().addAll(productCharacteristicSet);
 
@@ -812,6 +830,16 @@ public class ProductApplicationService implements ProductService {
             productFaq.getQuestion().setTranslations(translationQuestion);
             productFaq.getAnswer().setTranslations(translationAnswer);
             productFaqSet.add(productFaq);
+        }
+
+        List<ProductFaq> oldProductFaq = productFaqRepository.getAllByProductId(product.getId());
+
+        try {
+            productFaqRepository.deleteAll(oldProductFaq);
+            productFaqRepository.saveAll(productFaqSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
         }
 
         product.getFaq().clear();
@@ -832,6 +860,16 @@ public class ProductApplicationService implements ProductService {
             productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
         }
 
+        List<ProductDeliveryMethodDetails> oldProductDeliveryMethodDetails = productDeliveryMethodDetailsRepository.getAllByProductId(product.getId());
+
+        try {
+            productDeliveryMethodDetailsRepository.deleteAll(oldProductDeliveryMethodDetails);
+            productDeliveryMethodDetailsRepository.saveAll(productDeliveryMethodDetailsSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
         product.getDeliveryMethodDetails().clear();
         product.getDeliveryMethodDetails().addAll(productDeliveryMethodDetailsSet);
 
@@ -844,6 +882,16 @@ public class ProductApplicationService implements ProductService {
             HstoreTranslationDto translationName = resultMap.get(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i));
             productPackageOption.getName().setTranslations(translationName);
             productPackageOptionSet.add(productPackageOption);
+        }
+
+        List<ProductPackageOption> oldProductPackageOptions = productPackageOptionsRepository.getAllByProductId(product.getId());
+
+        try {
+            productPackageOptionsRepository.deleteAll(oldProductPackageOptions);
+            productPackageOptionsRepository.saveAll(productPackageOptionSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
         }
 
         product.getPackageOptions().clear();
@@ -860,12 +908,22 @@ public class ProductApplicationService implements ProductService {
             }
         }
 
-        product.getMedia().clear();
-        product.getMedia().addAll(new HashSet<>(productMediaList));
+        List<ProductMedia> oldProductMedia = productMediaRepository.getAllByProductId(product.getId());
+
+        try {
+            productMediaRepository.deleteAll(oldProductMedia);
+            productMediaRepository.saveAll(productMediaList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        product.setMedia(new HashSet<>(productMediaList));
 
         /* ========== Save Data ========== */
         try {
             productRepository.save(product);
+            productRepository.flush();
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct(e);
@@ -874,8 +932,8 @@ public class ProductApplicationService implements ProductService {
         try {
             for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
                 if (contentInfo.entity() instanceof ProductMedia) {
-                    ProductMedia productMedia = product.getMedia().stream()
-                            .filter(m -> m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
+                    ProductMedia productMedia = productMediaList.stream()
+                            .filter(m -> m.getUrl() != null && m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
                             .findFirst().orElseThrow();
 
                     if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
@@ -965,7 +1023,7 @@ public class ProductApplicationService implements ProductService {
         return GetSearchHints.Result.success(groupedSearchHints);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
@@ -1127,7 +1185,7 @@ public class ProductApplicationService implements ProductService {
         return DeleteProductById.Result.success(operation.getProductId());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     protected ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());

@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.core.model.user;
 
+import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.session.Session;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,8 +13,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,15 +40,27 @@ public final class User implements Serializable {
     private UserIsEnabled isEnabled;
 
     @ToString.Exclude
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "user"
+    )
+    private Set<VendorView> views = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "user"
+    )
+    private Set<Product> products = new HashSet<>();
+
+    @ToString.Exclude
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            mappedBy = "user"
     )
-    private Set<UserPassword> password;
+    private Set<UserPassword> password = new HashSet<>();
 
     @ToString.Exclude
     @Getter(AccessLevel.NONE)
@@ -55,26 +68,21 @@ public final class User implements Serializable {
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
     )
     private Set<VendorDetails> vendorDetails = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             mappedBy = "user",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            fetch = FetchType.LAZY
     )
     private Set<ProductReview> productReviews = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             mappedBy = "user",
-            fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
-            orphanRemoval = true
+            fetch = FetchType.LAZY
     )
     private Set<Session> sessions = new HashSet<>();
 
@@ -100,31 +108,36 @@ public final class User implements Serializable {
     private UserLastModificationDate lastModificationDate;
 
     public UserPassword getPassword() {
-        if (password == null) {
+        if (password == null || password.isEmpty()) {
             return null;
         }
 
-        return password.stream().findFirst().orElse(null);
+        return password.iterator().next();
     }
 
     public void setPassword(UserPassword password) {
-        this.password.clear();
-        if (password != null) {
-            this.password.add(password);
-        }
+        this.password = new HashSet<>();
+        password.setUser(this);
+        this.password.add(password);
     }
 
     public VendorDetails getVendorDetails() {
-        if (vendorDetails == null) {
+        if (vendorDetails == null || vendorDetails.isEmpty()) {
             return null;
         }
 
-        return vendorDetails.stream().findFirst().orElse(null);
+        return vendorDetails.iterator().next();
     }
 
     public void setVendorDetails(VendorDetails vendorDetails) {
-        this.vendorDetails.clear();
+        if (this.vendorDetails == null) {
+            this.vendorDetails = new HashSet<>();
+        } else {
+            this.vendorDetails.clear();
+        }
+
         if (vendorDetails != null) {
+            vendorDetails.setUser(this);
             this.vendorDetails.add(vendorDetails);
         }
     }
@@ -132,12 +145,12 @@ public final class User implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        return id != null && id.equals(((User) o).id);
+        if (!(o instanceof User user)) return false;
+        return id != null && id.equals(user.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return getClass().hashCode();
     }
 }

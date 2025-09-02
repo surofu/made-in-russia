@@ -47,4 +47,6 @@ public interface SpringDataProductMediaRepository extends JpaRepository<ProductM
     order by m.position
     """, nativeQuery = true)
     List<ProductMediaWithTranslationsView> findAllWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
+
+    List<ProductMedia> findAllByProductId(Long id);
 }

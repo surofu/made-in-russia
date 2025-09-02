@@ -33,6 +33,8 @@ public interface UserRepository {
 
     boolean existsUserByPhoneNumber(UserPhoneNumber userPhoneNumber);
 
+    boolean existsUserByPhoneNumberAndNotUserId(UserPhoneNumber userPhoneNumber, Long id);
+
     Optional<User> getVendorById(Long id);
 
     boolean existsVendorOrAdminById(Long id);

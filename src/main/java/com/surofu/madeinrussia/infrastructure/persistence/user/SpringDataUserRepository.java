@@ -14,47 +14,17 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataUserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    @EntityGraph(attributePaths = {
-            "vendorDetails",
-            "vendorDetails.vendorCountries",
-            "vendorDetails.vendorProductCategories",
-            "vendorDetails.faq",
-            "vendorDetails.phoneNumbers",
-            "vendorDetails.emails"
-    })
+    @EntityGraph(attributePaths = {"password", "vendorDetails"})
     List<User> findByIdIn(List<Long> ids);
 
     @Query("select u from User u where u.id = :id")
-    @EntityGraph(attributePaths = {
-            "password",
-            "vendorDetails",
-            "vendorDetails.vendorCountries",
-            "vendorDetails.vendorProductCategories",
-            "vendorDetails.faq",
-            "vendorDetails.phoneNumbers",
-            "vendorDetails.emails"
-    })
+    @EntityGraph(attributePaths = {"password", "vendorDetails"})
     Optional<User> findById(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {
-            "password",
-            "vendorDetails",
-            "vendorDetails.vendorCountries",
-            "vendorDetails.vendorProductCategories",
-            "vendorDetails.faq",
-            "vendorDetails.phoneNumbers",
-            "vendorDetails.emails"
-    })
+    @EntityGraph(attributePaths = {"password", "vendorDetails"})
     Optional<User> findByLogin(UserLogin userLogin);
 
-    @EntityGraph(attributePaths = {
-            "password", "vendorDetails",
-            "vendorDetails.vendorCountries",
-            "vendorDetails.vendorProductCategories",
-            "vendorDetails.faq",
-            "vendorDetails.phoneNumbers",
-            "vendorDetails.emails"
-    })
+    @EntityGraph(attributePaths = {"password", "vendorDetails"})
     Optional<User> findByEmail(UserEmail userEmail);
 
     boolean existsByEmail(UserEmail userEmail);
@@ -71,24 +41,19 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
 
     @Query("""
                 select u from User u
-                where u.id = :id and u.role = 'ROLE_VENDOR'
+                where u.id = :id and u.role in ('ROLE_VENDOR', 'ROLE_ADMIN')
             """)
-    @EntityGraph(attributePaths = {
-            "password", "vendorDetails",
-            "vendorDetails.vendorCountries",
-            "vendorDetails.vendorProductCategories",
-            "vendorDetails.faq",
-            "vendorDetails.phoneNumbers",
-            "vendorDetails.emails"
-    })
+    @EntityGraph(attributePaths = {"password", "vendorDetails"})
     Optional<User> getVendorById(@Param("id") Long id);
 
     @Query("""
             select count(*) > 0 from User u
-            where u.id = :vendorId and (u.role = 'ROLE_VENDOR' or u.role = 'ROLE_ADMIN')
+            where u.id = :vendorId and u.role in ('ROLE_VENDOR', 'ROLE_ADMIN')
             """)
     boolean existsVendorOrAdminById(@Param("vendorId") Long vendorId);
 
     // View
     Optional<UserView> findViewById(Long id);
+
+    boolean existsByPhoneNumberAndIdNot(UserPhoneNumber phoneNumber, Long id);
 }

@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.faq;
 
+import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
 import com.surofu.madeinrussia.core.repository.ProductFaqRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -19,5 +21,20 @@ public class JpaProductFaqRepository implements ProductFaqRepository {
 
     public List<ProductFaqWithTranslationsView> findAllWithTranslationsByProductIdAndLang(Long productId, String lang) {
         return repository.findAllViewsWithTranslationsByProductIdAndLang(productId, lang);
+    }
+
+    @Override
+    public List<ProductFaq> getAllByProductId(Long id) {
+        return repository.findAllByProductId(id);
+    }
+
+    @Override
+    public void deleteAll(Collection<ProductFaq> oldProductFaq) {
+        repository.deleteAll(oldProductFaq);
+    }
+
+    @Override
+    public void saveAll(Collection<ProductFaq> productFaqSet) {
+        repository.saveAll(productFaqSet);
     }
 }

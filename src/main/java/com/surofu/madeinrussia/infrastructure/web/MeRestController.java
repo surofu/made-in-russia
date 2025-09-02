@@ -51,8 +51,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -77,6 +79,9 @@ public class MeRestController {
     private final DeleteMeAvatar.Result.Processor<ResponseEntity<?>> deleteMeAvatarProcessor;
     private final DeleteMe.Result.Processor<ResponseEntity<?>> deleteMeProcessor;
     private final VerifyDeleteMe.Result.Processor<ResponseEntity<?>> verifyDeleteMeProcessor;
+    private final UploadMeVendorMedia.Result.Processor<ResponseEntity<?>> uploadMeVendorMediaProcessor;
+    private final DeleteMeVendorMediaById.Result.Processor<ResponseEntity<?>> deleteMeVendorMediaByIdProcessor;
+    private final DeleteMeVendorMediaByIdList.Result.Processor<ResponseEntity<?>> deleteMeVendorMediaByIdListProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -855,5 +860,40 @@ public class MeRestController {
         Locale locale = LocaleContextHolder.getLocale();
         VerifyDeleteMe operation = VerifyDeleteMe.of(securityUser, command.code(), locale);
         return meService.verifyDeleteMe(operation).process(verifyDeleteMeProcessor);
+    }
+
+    @PostMapping(value = "vendor/media", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> uploadMeVendorMedia(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @RequestPart("media") List<MultipartFile> media,
+            @RequestPart("oldMediaIds") List<Long> oldMediaIds,
+            @RequestPart("newMediaPositions") List<Integer> newMediaPositions
+    ) {
+        UploadMeVendorMedia operation = UploadMeVendorMedia.of(securityUser, media, oldMediaIds, newMediaPositions);
+        return meService.uploadMeVendorMedia(operation).process(uploadMeVendorMediaProcessor);
+    }
+
+    @DeleteMapping("vendor/media/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> deleteMeVendorMediaById(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable Long id
+    ) {
+        DeleteMeVendorMediaById operation = DeleteMeVendorMediaById.of(securityUser, id);
+        return meService.deleteMeVendorMediaById(operation).process(deleteMeVendorMediaByIdProcessor);
+    }
+
+    @DeleteMapping("vendor/media")
+    @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> deleteMeVendorMedia(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @RequestBody List<Long> ids
+    ) {
+        DeleteMeVendorMediaByIdList operation = DeleteMeVendorMediaByIdList.of(securityUser, Objects.requireNonNullElse(ids, new ArrayList<>()));
+        return meService.deleteMeVendorMediaByIdList(operation).process(deleteMeVendorMediaByIdListProcessor);
     }
 }

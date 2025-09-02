@@ -70,6 +70,11 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
+    public boolean existsUserByPhoneNumberAndNotUserId(UserPhoneNumber userPhoneNumber, Long id) {
+        return repository.existsByPhoneNumberAndIdNot(userPhoneNumber, id);
+    }
+
+    @Override
     public Optional<User> getVendorById(Long id) {
         return repository.getVendorById(id);
     }

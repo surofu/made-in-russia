@@ -1,4 +1,4 @@
-package com.surofu.madeinrussia.infrastructure.persistence.cloudinary;
+package com.surofu.madeinrussia.infrastructure.persistence.s3;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.EagerTransformation;
@@ -6,6 +6,7 @@ import com.surofu.madeinrussia.core.repository.FileStorageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Slf4j
-@Repository
+@Component
 @RequiredArgsConstructor
 public class CloudinaryRepository implements FileStorageRepository {
 
@@ -48,6 +49,18 @@ public class CloudinaryRepository implements FileStorageRepository {
     }
 
     @Override
+    public List<String> uploadManyImagesToFolder(String folderName, MultipartFile... files) throws IOException {
+        List<String> links = new ArrayList<>(files.length);
+
+        for (MultipartFile file : files) {
+            String link = uploadImageToFolder(file, folderName);
+            links.add(link);
+        }
+
+        return links;
+    }
+
+    @Override
     public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException {
         Map<Object, Object> options = new HashMap<>();
         options.put("resource_type", "video");
@@ -55,6 +68,18 @@ public class CloudinaryRepository implements FileStorageRepository {
         Map<?, ?> resultMap = uploadFileToFolder(file, folderName, options);
         List<Map> eagerList = (List<Map>) resultMap.get("eager");
         return eagerList.get(0).get("secure_url").toString();
+    }
+
+    @Override
+    public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException {
+        List<String> links = new ArrayList<>(files.length);
+
+        for (MultipartFile file : files) {
+            String link = uploadVideoToFolder(file, folderName);
+            links.add(link);
+        }
+
+        return links;
     }
 
     @Override

@@ -46,6 +46,8 @@ public final class VendorCountryDto implements Serializable {
     )
     private String name;
 
+    private String value;
+
     @Schema(
             description = "Timestamp when the country was first associated with the vendor",
             example = "2025-04-20T10:00:00Z",
@@ -73,6 +75,7 @@ public final class VendorCountryDto implements Serializable {
         return VendorCountryDto.builder()
                 .id(vendorCountry.getId())
                 .name(vendorCountry.getName().getValue())
+                .value(vendorCountry.getName().getTranslations().textEn())
                 .creationDate(vendorCountry.getCreationDate().getValue())
                 .lastModificationDate(vendorCountry.getLastModificationDate().getValue())
                 .build();
@@ -87,6 +90,7 @@ public final class VendorCountryDto implements Serializable {
         return VendorCountryDto.builder()
                 .id(view.getId())
                 .name(view.getName())
+                .value(view.getValue())
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

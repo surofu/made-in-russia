@@ -36,13 +36,28 @@ public class UpdateMe {
         <T> T process(Processor<T> processor);
 
         static Result success(AbstractAccountDto accountDto) {
-            log.info("Successfully processed update me: {}", accountDto);
+            log.info("Successfully processed update me");
             return Success.of(accountDto);
         }
 
         static Result translationError(Exception e) {
             log.error("Translation error while update me", e);
             return TranslationError.INSTANCE;
+        }
+
+        static Result phoneNumberAlreadyExists(UserPhoneNumber phoneNumber) {
+            log.warn("Phone number already in use: {}", phoneNumber);
+            return PhoneNumberAlreadyExists.of(phoneNumber);
+        }
+
+        static Result saveError(Exception e) {
+            log.error("Error saving update me", e);
+            return SaveError.INSTANCE;
+        }
+
+        static Result innAlreadyExists(VendorDetailsInn inn) {
+            log.warn("Inn already in use while update me: {}", inn);
+            return InnAlreadyExists.of(inn);
         }
 
         @Value(staticConstructor = "of")
@@ -64,9 +79,41 @@ public class UpdateMe {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class PhoneNumberAlreadyExists implements Result {
+            UserPhoneNumber phoneNumber;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processPhoneNumberAlreadyExists(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class InnAlreadyExists implements Result {
+            VendorDetailsInn inn;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInnAlreadyExists(this);
+            }
+        }
+
+        enum SaveError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSaveError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processTranslationError(TranslationError result);
+            T processPhoneNumberAlreadyExists(PhoneNumberAlreadyExists result);
+            T processInnAlreadyExists(InnAlreadyExists result);
+            T processSaveError(SaveError result);
         }
     }
 }

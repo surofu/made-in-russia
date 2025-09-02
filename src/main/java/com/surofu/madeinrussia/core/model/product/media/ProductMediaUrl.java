@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.media;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class ProductMediaUrl implements Serializable {
 
     private ProductMediaUrl(String url) {
         if (url == null || url.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ссылка медиа товара не может быть пустой");
+            throw new LocalizedValidationException("validation.media.url.empty");
         }
 
         if (url.length() >= 20_000) {
-            throw new IllegalArgumentException("Ссылка медиа товара не может быть больше 20,000 символов");
+            throw new LocalizedValidationException("validation.media.url.max_length");
         }
 
         this.value = url;
