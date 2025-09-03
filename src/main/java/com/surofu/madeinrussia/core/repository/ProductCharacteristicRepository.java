@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.characteristic
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface ProductCharacteristicRepository {
     List<ProductCharacteristicView> findAllViewsByProductIdAndLang(Long productId, String lang);

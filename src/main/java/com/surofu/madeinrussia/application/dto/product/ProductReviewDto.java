@@ -32,21 +32,11 @@ public final class ProductReviewDto implements Serializable {
     )
     private Long id;
 
+    private String approveStatus;
+
     @Schema(
             description = "Author of the review",
-            implementation = UserDto.class,
-            example = """
-                    {
-                      "id": 12345,
-                      "role": "User",
-                      "email": "user@example.com",
-                      "login": "john_doe",
-                      "phoneNumber": "+79123456789",
-                      "region": "Moscow, Russia",
-                      "registrationDate": "2025-05-04T09:17:20.767615Z",
-                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                    }
-                    """
+            implementation = UserDto.class
     )
     private UserDto author;
 
@@ -62,38 +52,7 @@ public final class ProductReviewDto implements Serializable {
     @Schema(
             description = "Media attachments for the product review (images, videos etc.) sorted by position in descending order",
             type = "array",
-            implementation = ProductReviewMediaDto.class,
-            example = """
-        [
-          {
-            "id": 1,
-            "mediaType": "video",
-            "mimeType": "video/mp4",
-            "url": "https://example.com/media/reviews/wood_video1.mp4",
-            "altText": "Обзор партии красного дерева",
-            "creationDate": "2025-05-04T09:17:20.767615Z",
-            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-          },
-          {
-            "id": 2,
-            "mediaType": "image",
-            "mimeType": "image/jpeg",
-            "url": "https://example.com/media/reviews/wood2.jpg",
-            "altText": "Текстура красного дерева крупным планом",
-            "creationDate": "2025-05-04T09:17:20.767615Z",
-            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-          },
-          {
-            "id": 3,
-            "mediaType": "image",
-            "mimeType": "image/jpeg",
-            "url": "https://example.com/media/reviews/wood1.jpg",
-            "altText": "Красное дерево - общий вид партии",
-            "creationDate": "2025-05-04T09:17:20.767615Z",
-            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-          }
-        ]
-        """
+            implementation = ProductReviewMediaDto.class
     )
     private List<ProductReviewMediaDto> media;
 
@@ -128,6 +87,7 @@ public final class ProductReviewDto implements Serializable {
     public static ProductReviewDto of(ProductReview productReview) {
         return ProductReviewDto.builder()
                 .id(productReview.getId())
+                .approveStatus(productReview.getApproveStatus().toString())
                 .author(UserDto.of(productReview.getUser()))
                 .text(productReview.getContent().toString())
                 .media(productReview.getMedia().stream().map(ProductReviewMediaDto::of).toList())
@@ -149,6 +109,7 @@ public final class ProductReviewDto implements Serializable {
 
         return ProductReviewDto.builder()
                 .id(productReview.getId())
+                .approveStatus(productReview.getApproveStatus().toString())
                 .author(UserDto.of(productReview.getUser()))
                 .text(content)
                 .media(productReview.getMedia().stream().map(ProductReviewMediaDto::of).toList())

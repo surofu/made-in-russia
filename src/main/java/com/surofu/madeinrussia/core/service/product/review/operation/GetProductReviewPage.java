@@ -1,10 +1,12 @@
 package com.surofu.madeinrussia.core.service.product.review.operation;
 
 import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Locale;
 
 @Slf4j
@@ -15,6 +17,7 @@ public class GetProductReviewPage {
     String content;
     Integer minRating;
     Integer maxRating;
+    List<ApproveStatus> approveStatuses;
     Locale locale;
 
     public interface Result {

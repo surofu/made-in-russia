@@ -13,10 +13,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Properties;
 
 @Service
@@ -25,12 +28,11 @@ public class MailApplicationService implements MailService {
     private final JavaMailSender mailSender;
     private final LocalizationManager localizationManager;
 
-    private int mailTimeout = 5000;
-    private int maxAttempts = 3;
-    private long retryDelay = 2000;
-
     @Value("${spring.mail.username}")
-    private String from;
+    private String mailHost;
+
+    @Value("${app.mail.support}")
+    private String supportMail;
 
     @Override
     public void sendVerificationMail(String to, String verificationCode, LocalDateTime expirationDate, Locale locale) throws MailException, MessagingException {
@@ -128,21 +130,48 @@ public class MailApplicationService implements MailService {
         sendEmail(to, subject, message);
     }
 
+    @Override
+    public void sendSupportMail(String username, String from, String subject, String content, List<MultipartFile> attachments) throws MessagingException {
+        String date = formatDate(LocalDateTime.now());
+        String message = MailTemplates.getSupportMail(username, from, subject, content, date);
+        sendEmailWithTimeout(mailHost, supportMail, subject, message, attachments);
+    }
+
 
     @Override
-    public void sendEmail(String to, String subject, String text) throws MailException {
+    public void sendEmail(String to, String subject, String text) throws MailException, MessagingException {
+        sendEmailWithTimeout(to, subject, text);
+    }
+
+    private void sendEmailWithTimeout(String to, String subject, String text)
+            throws MailException, MessagingException {
+        sendEmailWithTimeout(mailHost, to, subject, text);
+    }
+
+    private void sendEmailWithTimeout(String from, String to, String subject, String text)
+            throws MailException, MessagingException {
         int attempt = 0;
         MailException lastException = null;
+        int maxAttempts = 3;
 
         while (attempt < maxAttempts) {
             try {
                 attempt++;
-                sendEmailWithTimeout(to, subject, text);
+                JavaMailSenderImpl mailSenderWithTimeout = getMailSenderWithTimeout();
+                MimeMessage message = mailSenderWithTimeout.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(from);
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(text, true);
+                mailSenderWithTimeout.send(message);
                 return; // Успешная отправка
-            } catch (MailException | MessagingException e) {
-                lastException = (MailException) e;
+            } catch (MailException e) {
+                lastException = e;
+
                 if (attempt < maxAttempts) {
                     try {
+                        long retryDelay = 2000;
                         Thread.sleep(retryDelay);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
@@ -155,21 +184,47 @@ public class MailApplicationService implements MailService {
         throw new MailSendException("Failed to send email after " + maxAttempts + " attempts", lastException);
     }
 
-    private void sendEmailWithTimeout(String to, String subject, String text)
+    private void sendEmailWithTimeout(String from, String to, String subject, String text, List<MultipartFile> attachments)
             throws MailException, MessagingException {
+        int attempt = 0;
+        MailException lastException = null;
+        int maxAttempts = 3;
 
-        JavaMailSenderImpl mailSenderWithTimeout = getMailSenderWithTimeout();
+        while (attempt < maxAttempts) {
+            try {
+                attempt++;
+                JavaMailSenderImpl mailSenderWithTimeout = getMailSenderWithTimeout();
+                MimeMessage message = mailSenderWithTimeout.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(from);
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(text, true);
 
-        MimeMessage message = mailSenderWithTimeout.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                for (MultipartFile file : attachments) {
+                    if (!file.isEmpty()) {
+                        helper.addAttachment(Objects.requireNonNullElse(file.getOriginalFilename(), "Unknown"), () -> file.getInputStream());
+                    }
+                }
 
-        helper.setFrom(from);
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(text, true);
+                mailSenderWithTimeout.send(message);
+                return; // Успешная отправка
+            } catch (MailException e) {
+                lastException = e;
 
-        message.setContent(text, "text/html;charset=utf-8");
-        mailSenderWithTimeout.send(message);
+                if (attempt < maxAttempts) {
+                    try {
+                        long retryDelay = 2000;
+                        Thread.sleep(retryDelay);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new MailSendException("Email sending interrupted", ie);
+                    }
+                }
+            }
+        }
+
+        throw new MailSendException("Failed to send email after " + maxAttempts + " attempts", lastException);
     }
 
     private JavaMailSenderImpl getMailSenderWithTimeout() {
@@ -185,6 +240,7 @@ public class MailApplicationService implements MailService {
 
     private Properties getMailPropertiesWithTimeout() {
         Properties props = new Properties();
+        int mailTimeout = 5000;
         props.put("mail.smtp.timeout", mailTimeout);
         props.put("mail.smtp.connectiontimeout", mailTimeout);
         props.put("mail.smtp.writetimeout", mailTimeout);

@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.deliveryMethod
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface ProductDeliveryMethodDetailsRepository {
     List<ProductDeliveryMethodDetailsView> getAllViewsByProductIdAndLang(Long productId, String lang);

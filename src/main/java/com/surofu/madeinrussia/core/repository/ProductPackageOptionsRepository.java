@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.packageOption.
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface ProductPackageOptionsRepository {
     List<ProductPackageOptionView> getAllViewsByProductIdAndLang(Long productId, String lang);

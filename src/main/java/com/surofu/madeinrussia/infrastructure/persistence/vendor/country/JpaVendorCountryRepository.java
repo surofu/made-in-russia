@@ -1,14 +1,12 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.country;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.repository.VendorCountryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor

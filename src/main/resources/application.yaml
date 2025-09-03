@@ -177,6 +177,8 @@ app:
       secret: ${YANDEX_TRANSLATE_SECRET}
   okved:
     uri: https://agentom.ru/api/okved
+  mail:
+    support: ${MAIL_SUPPORT}
 
 telegram:
   bot:

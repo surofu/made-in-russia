@@ -12,14 +12,9 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -105,7 +100,7 @@ public class S3Repository implements FileStorageRepository {
         }
     }
 
-    private void deleteMediaByLink(String link) throws Exception {
+    private void deleteMediaByLink(String link) {
         String objectKey = extractKeyFromUrl(link);
 
         var deleteRequest = DeleteObjectRequest.builder()
@@ -117,7 +112,7 @@ public class S3Repository implements FileStorageRepository {
     }
 
     private String createKey(String folderName, String fileName) {
-        return folderName + "/" + UUID.randomUUID() + "-" + fileName;
+        return folderName + "/" + UUID.randomUUID() + "_" + fileName;
     }
 
     private String generatePublicUrl(String key) {

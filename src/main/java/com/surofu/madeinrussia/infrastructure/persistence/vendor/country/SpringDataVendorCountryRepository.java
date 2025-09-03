@@ -1,13 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.country;
 
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
-import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface SpringDataVendorCountryRepository extends JpaRepository<VendorCountry, Long> {
 

@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.utils;
 
-import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -54,18 +53,18 @@ public class MediaProcessor {
 
     public byte[] processVideo(byte[] data) throws IOException {
         BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
-
-        int originalWidth = image.getWidth();
-        int originalHeight = image.getHeight();
-
-        // Resize
-        if (image.getWidth() > videoMaxWidth) {
-            int newHeight = (int) ((double) videoMaxWidth / originalWidth * originalHeight);
-            image = Scalr.resize(image, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, videoMaxWidth, newHeight);
-        }
-
-        // Crop
-        image = cropImage(image, videoMaxWidth, videoMaxHeight);
+//
+//        int originalWidth = image.getWidth();
+//        int originalHeight = image.getHeight();
+//
+//        // Resize
+//        if (image.getWidth() > videoMaxWidth) {
+//            int newHeight = (int) ((double) videoMaxWidth / originalWidth * originalHeight);
+//            image = Scalr.resize(image, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, videoMaxWidth, newHeight);
+//        }
+//
+//        // Crop
+//        image = cropImage(image, videoMaxWidth, videoMaxHeight);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         ImageIO.write(image, "webm", output);

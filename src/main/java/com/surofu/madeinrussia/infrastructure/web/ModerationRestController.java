@@ -1,0 +1,36 @@
+package com.surofu.madeinrussia.infrastructure.web;
+
+import com.surofu.madeinrussia.application.command.moderation.SetReviewModerateStatusCommand;
+import com.surofu.madeinrussia.core.service.moderation.ModerationService;
+import com.surofu.madeinrussia.core.service.moderation.operation.SetProductReviewApproveStatus;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("api/v1/moderation")
+@Tag(
+        name = "Moderation",
+        description = "Contains operations for moderation: approve & disapprove"
+)
+public class ModerationRestController {
+
+    private final ModerationService moderationService;
+
+    private final SetProductReviewApproveStatus.Result.Processor<ResponseEntity<?>> setProductReviewApproveStatusProcessor;
+
+    @PostMapping("product-review/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> setApproveStatusProductReview(
+            @PathVariable Long id,
+            @RequestBody SetReviewModerateStatusCommand command
+    ) {
+        SetProductReviewApproveStatus operation = SetProductReviewApproveStatus.of(id, command.status());
+        return moderationService.setProductReviewApproveStatus(operation).process(setProductReviewApproveStatusProcessor);
+    }
+}

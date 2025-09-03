@@ -38,7 +38,6 @@ import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOp
 import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPrice;
 import com.surofu.madeinrussia.core.model.product.packageOption.ProductPackageOptionPriceUnit;
 import com.surofu.madeinrussia.core.model.product.price.*;
-import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.service.product.ProductService;
@@ -141,6 +140,12 @@ public class ProductApplicationService implements ProductService {
                 (fullProductDto.getDeliveryMethodsDetails() != null && fullProductDto.getDaysBeforeDiscountExpires() <= 0)) {
             for (ProductPriceDto price : fullProductDto.getPrices()) {
                 price.setDiscount(BigDecimal.ZERO);
+                price.setDiscountedPrice(price.getOriginalPrice());
+            }
+        }
+
+        for (ProductPriceDto price : fullProductDto.getPrices()) {
+            if (price.getDiscount().equals(BigDecimal.ZERO)) {
                 price.setDiscountedPrice(price.getOriginalPrice());
             }
         }
@@ -673,7 +678,6 @@ public class ProductApplicationService implements ProductService {
 
         List<ProductPrice> oldProductPrices = productPriceRepository.getAllByProductId(product.getId());
 
-
         try {
             productPriceRepository.deleteAll(oldProductPrices);
             productPriceRepository.saveAll(productPriceList);
@@ -681,6 +685,8 @@ public class ProductApplicationService implements ProductService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct(e);
         }
+
+        product.setPrices(new HashSet<>(productPriceList));
 
         /* ========== Product Characteristics ========== */
         for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {

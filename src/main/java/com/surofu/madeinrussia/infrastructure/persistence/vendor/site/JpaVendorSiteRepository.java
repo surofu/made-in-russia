@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.site;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
 import com.surofu.madeinrussia.core.repository.VendorSiteRepository;
 import lombok.RequiredArgsConstructor;

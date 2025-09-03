@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.dto.product.ProductReviewDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.core.model.media.MediaType;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.product.review.media.*;
@@ -57,7 +58,8 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
         Specification<ProductReview> specification = Specification
                 .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()))
-                .and(ProductReviewSpecifications.byContent(operation.getContent()));
+                .and(ProductReviewSpecifications.byContent(operation.getContent()))
+                .and(ProductReviewSpecifications.approveStatusIn(operation.getApproveStatuses()));
 
         Page<ProductReview> page = productReviewRepository.getPage(specification, pageable);
 
@@ -91,7 +93,8 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
         Specification<ProductReview> specification = Specification
                 .where(ProductReviewSpecifications.byProductId(operation.getProductId()))
-                .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+                .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()))
+                .and(ProductReviewSpecifications.approveStatusIn(ApproveStatus.APPROVED));
 
         Page<ProductReview> productReviewPage = productReviewRepository.getPage(specification, pageable);
 

@@ -42,6 +42,10 @@ public class LocalizationManager {
             default -> from;
         };
 
+        if (from == null) {
+            return view;
+        }
+
         try {
             BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, view.getOriginPrice());
             BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, view.getDiscountedPrice());

@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.review;
 
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.Product;
 import com.surofu.madeinrussia.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.madeinrussia.core.model.user.User;
@@ -8,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -31,7 +31,6 @@ import java.util.Set;
                 )
         }
 )
-@BatchSize(size = 20)
 public final class ProductReview implements Serializable {
 
     @Id
@@ -55,6 +54,10 @@ public final class ProductReview implements Serializable {
             foreignKey = @ForeignKey(name = "fk_product_reviews_user_id")
     )
     private User user;
+
+    @Column(name = "approve_status")
+    @Enumerated(EnumType.STRING)
+    private ApproveStatus approveStatus = ApproveStatus.PENDING;
 
     @OrderBy("position.value asc")
     @OneToMany(

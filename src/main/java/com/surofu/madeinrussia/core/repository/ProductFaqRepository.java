@@ -6,7 +6,6 @@ import com.surofu.madeinrussia.infrastructure.persistence.product.faq.ProductFaq
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface ProductFaqRepository {
     List<ProductFaqView> findAllViewsByProductIdAndLang(Long productId, String lang);

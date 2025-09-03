@@ -253,40 +253,40 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
-        <!-- Обработка изображений -->
-        <dependency>
-            <groupId>org.imgscalr</groupId>
-            <artifactId>imgscalr-lib</artifactId>
-            <version>4.2</version>
-        </dependency>
+<!--        &lt;!&ndash; Обработка изображений &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.imgscalr</groupId>-->
+<!--            <artifactId>imgscalr-lib</artifactId>-->
+<!--            <version>4.2</version>-->
+<!--        </dependency>-->
 
-        <!-- WebP поддержка -->
-        <dependency>
-            <groupId>com.github.romankh3</groupId>
-            <artifactId>image-comparison</artifactId>
-            <version>4.4.0</version>
-        </dependency>
+<!--        &lt;!&ndash; WebP поддержка &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.github.romankh3</groupId>-->
+<!--            <artifactId>image-comparison</artifactId>-->
+<!--            <version>4.4.0</version>-->
+<!--        </dependency>-->
 
-        <!-- WebP поддержка через Apache Imaging -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-imaging</artifactId>
-            <version>1.0-alpha3</version>
-        </dependency>
+<!--        &lt;!&ndash; WebP поддержка через Apache Imaging &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.commons</groupId>-->
+<!--            <artifactId>commons-imaging</artifactId>-->
+<!--            <version>1.0-alpha3</version>-->
+<!--        </dependency>-->
 
-        <!-- Video processing -->
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>javacv-platform</artifactId>
-            <version>1.5.7</version>
-        </dependency>
+<!--        &lt;!&ndash; Video processing &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco</groupId>-->
+<!--            <artifactId>javacv-platform</artifactId>-->
+<!--            <version>1.5.7</version>-->
+<!--        </dependency>-->
 
-        <!-- Apache Commons -->
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
+<!--        &lt;!&ndash; Apache Commons &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>commons-io</groupId>-->
+<!--            <artifactId>commons-io</artifactId>-->
+<!--            <version>2.11.0</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>

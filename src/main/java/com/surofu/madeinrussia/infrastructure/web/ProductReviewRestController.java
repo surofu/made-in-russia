@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.product.GetProductReviewPageDto;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.service.product.review.ProductReviewService;
 import com.surofu.madeinrussia.core.service.product.review.operation.DeleteProductReviewById;
 import com.surofu.madeinrussia.core.service.product.review.operation.GetProductReviewPage;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 
 @RestController
@@ -64,7 +66,7 @@ public class ProductReviewRestController {
                     )
             }
     )
-    public ResponseEntity<?> getProductReviewPageByProductId(
+    public ResponseEntity<?> getProductReviewPage(
             @Parameter(
                     name = "page",
                     description = "Zero-based page index (0..N)",
@@ -111,10 +113,13 @@ public class ProductReviewRestController {
                     schema = @Schema(type = "number", example = "10000")
             )
             @RequestParam(required = false)
-            Integer maxRating
+            Integer maxRating,
+
+            @RequestParam(required = false)
+            List<ApproveStatus> approveStatuses
     ) {
         Locale locale = LocaleContextHolder.getLocale();
-        GetProductReviewPage operation = GetProductReviewPage.of(page, size, content, minRating, maxRating, locale);
+        GetProductReviewPage operation = GetProductReviewPage.of(page, size, content, minRating, maxRating, approveStatuses, locale);
         return productReviewService.getProductReviewPage(operation).process(getProductReviewPageProcessor);
     }
 

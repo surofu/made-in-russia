@@ -127,7 +127,7 @@ public final class ProductPriceDto implements Serializable {
                 .unit(productPrice.getUnit().toString())
                 .originalPrice(productPrice.getOriginalPrice().getValue().setScale(0, RoundingMode.DOWN))
                 .discount(productPrice.getDiscount().getValue().setScale(0, RoundingMode.DOWN))
-                .discountedPrice(productPrice.getDiscountedPrice().getValue().setScale(0, RoundingMode.DOWN))
+                .discountedPrice(productPrice.getDiscount().getValue().equals(BigDecimal.ZERO) ? productPrice.getOriginalPrice().getValue() : productPrice.getDiscountedPrice().getValue().setScale(0, RoundingMode.DOWN))
                 .creationDate(productPrice.getCreationDate().getValue())
                 .lastModificationDate(productPrice.getLastModificationDate().getValue())
                 .build();
@@ -140,10 +140,10 @@ public final class ProductPriceDto implements Serializable {
                 .from(view.getQuantityFrom())
                 .to(view.getQuantityTo())
                 .currency(view.getCurrency().toString())
-                .unit(view.getUnit().toString())
+                .unit(view.getUnit())
                 .originalPrice(view.getOriginalPrice().setScale(0, RoundingMode.DOWN))
                 .discount(view.getDiscount().setScale(0, RoundingMode.DOWN))
-                .discountedPrice(view.getDiscountedPrice().setScale(0, RoundingMode.DOWN))
+                .discountedPrice(view.getDiscount().equals(BigDecimal.ZERO) ? view.getOriginalPrice() : view.getDiscountedPrice().setScale(0, RoundingMode.DOWN))
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

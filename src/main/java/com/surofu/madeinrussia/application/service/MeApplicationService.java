@@ -328,7 +328,7 @@ public class MeApplicationService implements MeService {
 
         if (vendorDetails != null) {
             if (operation.getInn() != null) {
-                if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(operation.getInn(), user.getId())) {
+                if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(operation.getInn(), vendorDetails.getId())) {
                     return UpdateMe.Result.innAlreadyExists(operation.getInn());
                 }
 

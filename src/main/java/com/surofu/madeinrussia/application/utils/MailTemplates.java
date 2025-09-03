@@ -54,6 +54,108 @@ public final class MailTemplates {
         return getConfirmDeleteAccountMailEn(code, expirationDate);
     }
 
+    public static String getSupportMail(String username, String fromMail, String subject, String content, String date) {
+        return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Обращение в поддержку от пользователя</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                            margin: 0;
+                        }
+                
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 25px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                            max-width: 650px;
+                            margin: 0 auto;
+                        }
+                
+                        .header {
+                            color: #2c5aa0;
+                            border-bottom: 2px solid #eee;
+                            padding-bottom: 15px;
+                            margin-bottom: 20px;
+                            text-align: center;
+                        }
+                
+                        .user-info {
+                            background-color: #f9f9f9;
+                            padding: 15px;
+                            border-left: 4px solid #3498db;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                            font-size: 15px;
+                        }
+                
+                        .message-block {
+                            background-color: #fff8e1;
+                            padding: 20px;
+                            border: 1px solid #ffeaa7;
+                            border-radius: 6px;
+                            margin: 20px 0;
+                            white-space: pre-line; /* Сохраняет переносы строк из сообщения пользователя */
+                        }
+                
+                        .footer {
+                            margin-top: 25px;
+                            font-size: 14px;
+                            text-align: center;
+                            color: #7f8c8d;
+                            border-top: 1px solid #eee;
+                            padding-top: 15px;
+                        }
+                
+                        .label {
+                            font-weight: bold;
+                            color: #555;
+                        }
+                
+                        .media {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>✉️ Новое обращение в поддержку</h1>
+                    </div>
+                
+                    <div class="user-info">
+                        <p><span class="label">От пользователя: %s</span></p>
+                        <p><span class="label">Email для связи:</span>
+                           <a href="mailto:[%s]">[%s]</a>
+                        </p>
+                        <p><span class="label">Дата и время обращения:</span>%s</p>
+                    </div>
+                
+                    <h2>%s</h2>
+                    <div class="message-block">%s</div>
+                
+                    <p><em>Обращение обработано и зарегистрировано в системе поддержки.</em></p>
+                
+                    <div class="footer">
+                        <p>С уважением,<br>Автоматизированная система уведомлений</p>
+                        <p>Exporteru Support</p>
+                    </div>
+                </div>
+                </body>
+                </html>
+                """.formatted(username, fromMail, fromMail, date, subject, content);
+    }
+
     private static String getEmailVerificationMessageRu(String code, String expirationDate) {
         return """
                 <!DOCTYPE html>
@@ -234,15 +336,162 @@ public final class MailTemplates {
     }
 
     private static String getDeleteAccountMailEn() {
-        return "Your account has been deleted";
+        return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Account Deletion</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                            max-width: 600px;
+                            margin: 0 auto;
+                        }
+                
+                        h2 {
+                            color: #d9534f;
+                        }
+                
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="container">
+                    <div>
+                        <h2>Hello!</h2>
+                        <p>Your account on exporteru.com has been deleted.</p>
+                        <p>Please complete the registration procedure again. If you did not register on Exporteru.com, simply ignore this message.</p>
+                        <div class="footer">
+                            <p>Best regards, <br>The exporteru.com team</p>
+                        </div>
+                    </div>
+                </div>
+                </body>
+                </html>
+                """;
     }
 
     private static String getDeleteAccountMailRu() {
-        return "Ваш аккаунт был удален";
+        return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Удаление аккаунта</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                            max-width: 600px;
+                            margin: 0 auto;
+                        }
+                
+                        h2 {
+                            color: #d9534f;
+                        }
+                
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="container">
+                    <div>
+                        <h2>Здравствуйте!</h2>
+                        <p>Ваш аккаунт на сайте exporteru.com был удален.</p>
+                        <p>Пожалуйста, пройдите процедуру регистрации заново. Если вы не регистрировались на сайте Exporteru.com, просто проигнорируйте это сообщение.</p>
+                        <div class="footer">
+                            <p>С уважением, <br>Команда exporteru.com</p>
+                        </div>
+                    </div>
+                </div>
+                </body>
+                </html>
+                """;
     }
 
     private static String getDeleteAccountMailZh() {
-        return "您的账户已被删除。";
+        return """
+                <!DOCTYPE html>
+                <html lang="zh">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>帐户删除</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                            max-width: 600px;
+                            margin: 0 auto;
+                        }
+                
+                        h2 {
+                            color: #d9534f;
+                        }
+                
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="container">
+                    <div>
+                        <h2>您好！</h2>
+                        <p>您在 exporteru.com 上的帐户已被删除。</p>
+                        <p>请重新完成注册程序。如果您没有在 Exporteru.com 上注册，请忽略此消息。</p>
+                        <div class="footer">
+                            <p>此致敬礼，<br>exporteru.com 团队</p>
+                        </div>
+                    </div>
+                </div>
+                </body>
+                </html>
+                """;
     }
 
     private static String getConfirmDeleteAccountMailEn(String code, String expirationDate) {

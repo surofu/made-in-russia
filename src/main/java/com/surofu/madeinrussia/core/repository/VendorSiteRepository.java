@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.madeinrussia.core.model.vendorDetails.site.VendorSite;
 
 import java.util.Collection;
