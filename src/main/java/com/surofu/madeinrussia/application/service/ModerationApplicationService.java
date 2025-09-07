@@ -82,6 +82,15 @@ public class ModerationApplicationService implements ModerationService {
             }
         }
 
+        product.setApproveStatus(operation.getApproveStatus());
+
+        try {
+            productRepository.save(product);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return SetProductApproveStatus.Result.saveError(operation.getId(), e);
+        }
+
         productSummaryCacheManager.clearAll();
         generalCacheService.clear();
 
