@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -116,13 +117,15 @@ public class S3Repository implements FileStorageRepository {
     }
 
     private String generatePublicUrl(String key) {
-        return domain + "/" + key;
+        String url = domain + "/" + key;
+        return UriComponentsBuilder.fromUriString(url)
+                .build()
+                .encode()
+                .toUriString();
     }
 
     private String extractKeyFromUrl(String url) {
         String[] parts = url.split(domain + "/");
         return parts[parts.length - 1];
     }
-
-
 }
