@@ -672,6 +672,12 @@ public class MeRestController {
             @DecimalMin("0")
             BigDecimal maxPrice,
 
+            @RequestParam(required = false, defaultValue = "id")
+            String sort,
+
+            @RequestParam(required = false, defaultValue = "asc")
+            String direction,
+
             @RequestParam(required = false)
             List<ApproveStatus> approveStatuses,
 
@@ -690,6 +696,8 @@ public class MeRestController {
                 categoryIds,
                 minPrice,
                 maxPrice,
+                sort,
+                direction,
                 Objects.requireNonNullElse(approveStatuses, new ArrayList<>())
         );
 

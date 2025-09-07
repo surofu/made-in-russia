@@ -23,6 +23,8 @@ public class GetMeProductSummaryViewPage {
     List<Long> categoryIds;
     BigDecimal minPrice;
     BigDecimal maxPrice;
+    String sort;
+    String direction;
     List<ApproveStatus> approveStatuses;
 
     public interface Result {

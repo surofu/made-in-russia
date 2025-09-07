@@ -5,10 +5,9 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Aspect
 @Component
@@ -16,11 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataSourceAspect {
 
     @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
-    public void setDataSource(JoinPoint joinPoint) {
-        Transactional transactional = ((MethodSignature) joinPoint.getSignature())
-                .getMethod().getAnnotation(Transactional.class);
-
-        if (transactional != null && transactional.readOnly()) {
+    public void setDataSource(JoinPoint ignoredJoinPoint) {
+        if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
             DatabaseContextHolder.setReadDataSource();
         } else {
             DatabaseContextHolder.setWriteDataSource();

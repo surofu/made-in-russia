@@ -41,6 +41,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
@@ -272,8 +273,10 @@ public class AuthApplicationService implements AuthService {
             LoginSuccessDto dto = login(operation.getEmail(), operation.getPassword());
             return LoginWithEmail.Result.success(dto);
         } catch (DisabledException e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithEmail.Result.accountBlocked(operation.getEmail());
         } catch (Exception ex) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithEmail.Result.invalidCredentials();
         }
     }
@@ -284,6 +287,7 @@ public class AuthApplicationService implements AuthService {
         Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(operation.getLogin());
 
         if (userEmail.isEmpty()) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithLogin.Result.invalidCredentials();
         }
 
@@ -291,8 +295,10 @@ public class AuthApplicationService implements AuthService {
             LoginSuccessDto dto = login(userEmail.get(), operation.getPassword());
             return LoginWithLogin.Result.success(dto);
         } catch (DisabledException e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithLogin.Result.accountBlocked(operation.getLogin());
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithLogin.Result.invalidCredentials();
         }
     }
@@ -624,7 +630,7 @@ public class AuthApplicationService implements AuthService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected LoginSuccessDto login(UserEmail userEmail, UserPasswordPassword userPasswordPassword) throws AuthenticationException {
         Authentication authenticationRequest = new UsernamePasswordAuthenticationToken(userEmail.toString(), userPasswordPassword.toString());
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);

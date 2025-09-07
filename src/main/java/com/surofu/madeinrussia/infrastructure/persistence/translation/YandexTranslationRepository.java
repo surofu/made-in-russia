@@ -70,19 +70,11 @@ public class YandexTranslationRepository implements TranslationRepository {
         }
 
         if (ru == null) {
-            if (en != null) {
-                ru = translateToRu(en).getTranslations()[0].getText();
-            } else {
-                ru = translateToRu(zh).getTranslations()[0].getText();
-            }
+            ru = translateToRu(en).getTranslations()[0].getText();
         }
 
         if (zh == null) {
-            if (ru != null) {
-                zh = translateToZh(ru).getTranslations()[0].getText();
-            } else {
-                zh = translateToZh(en).getTranslations()[0].getText();
-            }
+            zh = translateToZh(en).getTranslations()[0].getText();
         }
 
         return new HstoreTranslationDto(en, ru, zh);
@@ -155,11 +147,9 @@ public class YandexTranslationRepository implements TranslationRepository {
             throw new EmptyTranslationException("Input map cannot be empty");
         }
 
-        // Копируем исходные данные в результат
         Map<String, HstoreTranslationDto> result = new ConcurrentHashMap<>(map);
         TranslationMap translationMap = new TranslationMap();
 
-        // Анализ и подготовка переводов
         for (Map.Entry<String, HstoreTranslationDto> entry : map.entrySet()) {
             String key = entry.getKey();
             HstoreTranslationDto dto = entry.getValue();
@@ -172,7 +162,6 @@ public class YandexTranslationRepository implements TranslationRepository {
                 throw new EmptyTranslationException(key);
             }
 
-            // Заполняем только отсутствующие переводы
             if (en == null) {
                 if (ru != null) {
                     translationMap.put(key, LanguageCode.RU, LanguageCode.EN, ru);
@@ -198,34 +187,19 @@ public class YandexTranslationRepository implements TranslationRepository {
             }
         }
 
-        // Параллельное выполнение переводов
         try {
             CompletableFuture.allOf(
                     translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.RU, LanguageCode.EN), result),
-                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.ZH, LanguageCode.EN), result)
-            ).join();
-        } catch (Exception e) {
-            throw new ExecutionException("Failed to execute translations (Part 1)", e.getCause());
-        }
-
-        try {
-            CompletableFuture.allOf(
+                    translateAsync(LanguageCode.EN, translationMap.get(LanguageCode.ZH, LanguageCode.EN), result),
                     translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.EN, LanguageCode.RU), result),
-                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.ZH, LanguageCode.RU), result)
-            ).join();
-        } catch (Exception e) {
-            throw new ExecutionException("Failed to execute translations (Part 2)", e.getCause());
-        }
-
-        try {
-            CompletableFuture.allOf(
+                    translateAsync(LanguageCode.RU, translationMap.get(LanguageCode.ZH, LanguageCode.RU), result),
                     translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.EN, LanguageCode.ZH), result),
                     translateAsync(LanguageCode.ZH, translationMap.get(LanguageCode.RU, LanguageCode.ZH), result)
             ).join();
 
             return result;
         } catch (Exception e) {
-            throw new ExecutionException("Failed to execute translations (Part 3)", e.getCause());
+            throw new ExecutionException("Failed to execute translations", e.getCause());
         }
     }
 

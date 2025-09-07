@@ -766,21 +766,15 @@ public class ProductRestController {
         }
 
         ProductTitle productTitle = ProductTitle.of(createProductCommand.title());
-        productTitle.setTranslations(new HstoreTranslationDto(
-                createProductCommand.titleTranslations().en(),
-                createProductCommand.titleTranslations().ru(),
-                createProductCommand.titleTranslations().zh()
-        ));
+        productTitle.setTranslations(
+                HstoreTranslationDto.of(createProductCommand.titleTranslations()));
 
         ProductDescription productDescription = ProductDescription.of(
                 createProductCommand.mainDescription(),
                 createProductCommand.furtherDescription()
         );
-        productDescription.setMainDescriptionTranslations(new HstoreTranslationDto(
-                createProductCommand.mainDescriptionTranslations().en(),
-                createProductCommand.mainDescriptionTranslations().ru(),
-                createProductCommand.mainDescriptionTranslations().zh()
-        ));
+        productDescription.setMainDescriptionTranslations(
+                HstoreTranslationDto.of(createProductCommand.mainDescriptionTranslations()));
 
         if (createProductCommand.furtherDescriptionTranslations() != null) {
             if (
@@ -788,11 +782,8 @@ public class ProductRestController {
                             createProductCommand.furtherDescriptionTranslations().ru() != null ||
                             createProductCommand.furtherDescriptionTranslations().zh() != null
             ) {
-                productDescription.setFurtherDescriptionTranslations(new HstoreTranslationDto(
-                        createProductCommand.furtherDescriptionTranslations().en(),
-                        createProductCommand.furtherDescriptionTranslations().ru(),
-                        createProductCommand.furtherDescriptionTranslations().zh()
-                ));
+                productDescription.setFurtherDescriptionTranslations(
+                        HstoreTranslationDto.of(createProductCommand.furtherDescriptionTranslations()));
             }
         }
 

@@ -209,7 +209,10 @@ public class MeApplicationService implements MeService {
     @Override
     @Transactional(readOnly = true)
     public GetMeProductSummaryViewPage.Result getMeProductSummaryViewPage(GetMeProductSummaryViewPage operation) {
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
+        String[] sortStrings = operation.getSort().split(",");
+        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
+
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
 
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
         List<Long> categoryIdsWithChildren = new ArrayList<>();
@@ -587,7 +590,7 @@ public class MeApplicationService implements MeService {
             try {
                 fileStorageRepository.deleteMediaByLink(user.getAvatar().getUrl());
             } catch (Exception e) {
-               log.warn("Error deleting avatar from storage", e);
+                log.warn("Error deleting avatar from storage", e);
             }
 
             user.setAvatar(null);
@@ -889,7 +892,10 @@ public class MeApplicationService implements MeService {
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
 
             return productReviewPageWithoutMedia.map(r -> {
-                r.setMedia(productReviewMap.get(r.getId()).getMedia());
+                if (productReviewMap.containsKey(r.getId())) {
+                    r.setMedia(productReviewMap.get(r.getId()).getMedia());
+                }
+
                 return ProductReviewDto.of(r);
             });
         }
