@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.aspect;
 
 import com.surofu.madeinrussia.application.utils.DatabaseContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,10 +13,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Aspect
 @Component
 @Profile("prod")
+@Slf4j
 public class DataSourceAspect {
 
     @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
     public void setDataSource(JoinPoint ignoredJoinPoint) {
+        log.info("Use datasource: {}", TransactionSynchronizationManager.isCurrentTransactionReadOnly() ? "slave" : "master");
+
         if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
             DatabaseContextHolder.setReadDataSource();
         } else {

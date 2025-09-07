@@ -55,9 +55,7 @@ public final class Category implements Serializable {
 
     @OneToMany(
             mappedBy = "category",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            fetch = FetchType.LAZY
     )
     private Set<OkvedCategory> okvedCategories = new HashSet<>();
 

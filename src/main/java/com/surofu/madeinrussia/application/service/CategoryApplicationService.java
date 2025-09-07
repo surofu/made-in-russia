@@ -14,6 +14,7 @@ import com.surofu.madeinrussia.core.model.category.CategorySlug;
 import com.surofu.madeinrussia.core.model.okved.OkvedCategory;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.FileStorageRepository;
+import com.surofu.madeinrussia.core.repository.OkvedCategoryRepository;
 import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.*;
@@ -37,6 +38,7 @@ public class CategoryApplicationService implements CategoryService {
     private final CategoryCacheManager categoryCacheManager;
     private final CategoryListCacheManager categoryListCacheManager;
     private final GeneralCacheService generalCacheService;
+    private final OkvedCategoryRepository okvedCategoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -150,8 +152,10 @@ public class CategoryApplicationService implements CategoryService {
         try {
             translationResult = translationRepository.expand(HstoreTranslationDto.ofNullable(operation.getNameTranslations()));
         } catch (EmptyTranslationException e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateCategory.Result.emptyTranslations();
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateCategory.Result.translationError(e);
         }
 
@@ -175,6 +179,7 @@ public class CategoryApplicationService implements CategoryService {
         CategorySlug slugWithLevel = CategorySlug.of(operation.getSlug().toString(), parentCategoryLevel);
 
         if (categoryRepository.existsBySlug(slugWithLevel)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateCategory.Result.slugAlreadyExists(slugWithLevel);
         }
 
@@ -190,6 +195,13 @@ public class CategoryApplicationService implements CategoryService {
             okvedCategory.setCategory(category);
             okvedCategory.setOkvedId(okvedId);
             okvedCategorySet.add(okvedCategory);
+        }
+
+        try {
+            okvedCategoryRepository.saveAll(okvedCategorySet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateCategory.Result.saveError(category.getSlug(), e);
         }
 
         category.setOkvedCategories(okvedCategorySet);
@@ -227,19 +239,24 @@ public class CategoryApplicationService implements CategoryService {
     @Override
     @Transactional
     public UpdateCategoryById.Result updateCategoryById(UpdateCategoryById operation) {
-        Optional<Category> category = categoryRepository.getCategoryById(operation.getId());
+        Optional<Category> categoryOptional = categoryRepository.getCategoryById(operation.getId());
 
-        if (category.isEmpty()) {
+        if (categoryOptional.isEmpty()) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateCategoryById.Result.notFound(operation.getId());
         }
+
+        Category category = categoryOptional.get();
 
         HstoreTranslationDto translationResult;
 
         try {
             translationResult = translationRepository.expand(HstoreTranslationDto.ofNullable(operation.getNameTranslations()));
         } catch (EmptyTranslationException e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateCategoryById.Result.emptyTranslations();
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateCategoryById.Result.translationError(e);
         }
 
@@ -256,42 +273,53 @@ public class CategoryApplicationService implements CategoryService {
             try {
                 parentCategoryLevel = 1 + Integer.parseInt(parentCategory.get().getSlug().getValue().split("_")[0].split("l")[1]);
             } catch (NumberFormatException e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateCategoryById.Result.parentSlugLevelParseError(parentCategory.get().getSlug(), e);
             }
         }
 
         CategorySlug slugWithLevel = CategorySlug.of(operation.getSlug().toString(), parentCategoryLevel);
 
-        if (!category.get().getSlug().getValue().equals(slugWithLevel.getValue()) && categoryRepository.existsBySlug(slugWithLevel)) {
+        if (!category.getSlug().getValue().equals(slugWithLevel.getValue()) && categoryRepository.existsBySlug(slugWithLevel)) {
             return UpdateCategoryById.Result.slugAlreadyExists(slugWithLevel);
         }
 
-        category.get().setParent(parentCategory.orElse(null));
-        category.get().setName(operation.getName());
-        category.get().getName().setTranslations(translationResult);
-        category.get().setSlug(slugWithLevel);
+        category.setParent(parentCategory.orElse(null));
+        category.setName(operation.getName());
+        category.getName().setTranslations(translationResult);
+        category.setSlug(slugWithLevel);
 
-        Iterator<OkvedCategory> okvedCategoryIterator = category.get().getOkvedCategories().iterator();
+        List<OkvedCategory> newOkvedCategories  = new ArrayList<>();
+
+        Iterator<OkvedCategory> okvedCategoryIterator = category.getOkvedCategories().iterator();
         for (int i = 0; i < operation.getOkvedCategories().size(); i++) {
             String okvedId = operation.getOkvedCategories().get(i);
 
             if (okvedCategoryIterator.hasNext()) {
                 OkvedCategory okvedCategory = okvedCategoryIterator.next();
-                okvedCategory.setCategory(category.get());
+                okvedCategory.setCategory(category);
                 okvedCategory.setOkvedId(okvedId);
             } else {
                 OkvedCategory okvedCategory = new OkvedCategory();
-                okvedCategory.setCategory(category.get());
+                okvedCategory.setCategory(category);
                 okvedCategory.setOkvedId(okvedId);
-                category.get().getOkvedCategories().add(okvedCategory);
+                newOkvedCategories.add(okvedCategory);
+                category.getOkvedCategories().add(okvedCategory);
             }
+        }
+
+        try {
+            okvedCategoryRepository.saveAll(newOkvedCategories);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateCategoryById.Result.saveError(category.getSlug(), e);
         }
 
         boolean hasNewImage = false;
         if (operation.getImageFile() != null && !operation.getImageFile().isEmpty()) {
             try {
                 String url = fileStorageRepository.uploadImageToFolder(operation.getImageFile(), FileStorageFolders.CATEGORY_IMAGES.getValue());
-                category.get().setImageUrl(CategoryImageUrl.of(url));
+                category.setImageUrl(CategoryImageUrl.of(url));
                 hasNewImage = true;
             } catch (Exception e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -301,7 +329,7 @@ public class CategoryApplicationService implements CategoryService {
 
         if (hasNewImage && !operation.getSaveImage()) {
             try {
-                fileStorageRepository.deleteMediaByLink(category.get().getImageUrl().toString());
+                fileStorageRepository.deleteMediaByLink(category.getImageUrl().toString());
             } catch (Exception e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateCategoryById.Result.deleteMediaError(e);
@@ -309,20 +337,20 @@ public class CategoryApplicationService implements CategoryService {
         }
 
         try {
-            categoryRepository.save(category.get());
+            categoryRepository.save(category);
+
             try {
                 categoryCacheManager.clear();
                 categoryListCacheManager.clearAll();
+                generalCacheService.clear();
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
 
-            generalCacheService.clear();
-
-            return UpdateCategoryById.Result.success(category.get().getSlug());
+            return UpdateCategoryById.Result.success(category.getSlug());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateCategoryById.Result.saveError(category.get().getSlug(), e);
+            return UpdateCategoryById.Result.saveError(category.getSlug(), e);
         }
     }
 
@@ -342,6 +370,15 @@ public class CategoryApplicationService implements CategoryService {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return DeleteCategoryById.Result.deleteMediaError(e);
             }
+        }
+
+        List<OkvedCategory> okvedCategories = okvedCategoryRepository.getByCategoryId(operation.getId());
+
+        try {
+            okvedCategoryRepository.deleteAll(okvedCategories);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return DeleteCategoryById.Result.deleteError(e);
         }
 
         try {

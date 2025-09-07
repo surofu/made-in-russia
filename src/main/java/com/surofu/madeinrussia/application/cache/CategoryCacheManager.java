@@ -47,7 +47,7 @@ public class CategoryCacheManager {
     }
 
     public void clear() {
-        hashOperations.delete(CACHE_NAME);
+        redisTemplate.delete(CACHE_NAME);
     }
 
     public boolean contains(Long id, Locale locale) {
