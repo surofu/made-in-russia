@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.review;
 
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.repository.ProductReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,11 +26,16 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
 
     @Override
     public List<ProductReview> getByIdInWithMedia(List<Long> ids) {
-        return repository.findByIdInWithMedia(ids);
+        return repository.findAllByMediaIdInAndApproveStatus(ids, ApproveStatus.APPROVED);
     }
 
     @Override
     public Optional<ProductReview> getById(Long id) {
+        return repository.findByIdAndApproveStatus(id, ApproveStatus.APPROVED);
+    }
+
+    @Override
+    public Optional<ProductReview> getByIdWithAnyApproveStatus(Long id) {
         return repository.findById(id);
     }
 
@@ -55,5 +62,15 @@ public class JpaProductReviewRepository implements ProductReviewRepository {
     @Override
     public boolean isUserOwnerOfProductReview(Long userId, Long productReviewId) {
         return !repository.isUserOwnerOfProductReview(userId, productReviewId);
+    }
+
+    @Override
+    public List<ProductReview> getAllByProductId(Long id) {
+        return repository.findAllByProductId(id);
+    }
+
+    @Override
+    public void deleteAll(Collection<ProductReview> productReviews) {
+        repository.deleteAll(productReviews);
     }
 }

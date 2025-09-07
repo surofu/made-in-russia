@@ -13,8 +13,8 @@ import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.model.vendorDetails.view.VendorView;
 import com.surofu.madeinrussia.core.repository.*;
 import com.surofu.madeinrussia.core.repository.specification.ProductReviewSpecifications;
-import com.surofu.madeinrussia.core.service.product.review.operation.*;
 import com.surofu.madeinrussia.core.service.product.review.ProductReviewService;
+import com.surofu.madeinrussia.core.service.product.review.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,9 @@ public class ProductReviewApplicationService implements ProductReviewService {
     @Override
     @Transactional(readOnly = true)
     public GetProductReviewPage.Result getProductReviewPage(GetProductReviewPage operation) {
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
+        String[] sortStrings = operation.getSort().split(",");
+        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
 
         Specification<ProductReview> specification = Specification
                 .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()))
@@ -74,7 +76,9 @@ public class ProductReviewApplicationService implements ProductReviewService {
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
 
             Page<ProductReview> productReviewPageWithMedia = page.map(p -> {
-                p.setMedia(reviewMap.get(p.getId()).getMedia());
+                if (reviewMap.containsKey(p.getId())) {
+                    p.setMedia(reviewMap.get(p.getId()).getMedia());
+                }
                 return p;
             });
 
@@ -109,8 +113,10 @@ public class ProductReviewApplicationService implements ProductReviewService {
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
 
             Page<ProductReview> productReviewPageWithMedia = productReviewPage.map(p -> {
-               p.setMedia(reviewMap.get(p.getId()).getMedia());
-               return p;
+                if (reviewMap.containsKey(p.getId())) {
+                    p.setMedia(reviewMap.get(p.getId()).getMedia());
+                }
+                return p;
             });
 
             Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithMedia.map(r -> ProductReviewDto.of(r, operation.getLocale()));

@@ -11,7 +11,6 @@ import com.surofu.madeinrussia.core.model.user.UserAvatar;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserIsEnabled;
 import com.surofu.madeinrussia.core.repository.FileStorageRepository;
-import com.surofu.madeinrussia.core.repository.UserPasswordRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
 import com.surofu.madeinrussia.core.repository.specification.UserSpecifications;
 import com.surofu.madeinrussia.core.service.mail.MailService;
@@ -36,14 +35,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
-    private final UserPasswordRepository userPasswordRepository;
     private final FileStorageRepository fileStorageRepository;
     private final MailService mailService;
 
@@ -65,10 +62,16 @@ public class UserApplicationService implements UserService {
         List<Long> ids = page.getContent().stream().map(User::getId).toList();
         List<User> fullUserList = userRepository.getByIds(ids);
 
-        AtomicInteger index = new AtomicInteger();
-        Page<AbstractAccountDto> dtoPage = page.map(unused -> {
-            User fullUser = fullUserList.get(index.get());
-            index.getAndIncrement();
+        Page<AbstractAccountDto> dtoPage = page.map(user -> {
+            User fullUser = fullUserList.stream()
+                    .filter(u -> u.getId().equals(user.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fullUser == null) {
+                return UserDto.of(user);
+            }
+
             if (fullUser.getVendorDetails() != null) {
                 return VendorDto.of(fullUser);
             }

@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.model.product;
 
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetails;
 import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
@@ -64,6 +65,10 @@ public final class Product implements Serializable {
             foreignKey = @ForeignKey(name = "fk_products_user_id")
     )
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approve_status", nullable = false)
+    private ApproveStatus approveStatus = ApproveStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(

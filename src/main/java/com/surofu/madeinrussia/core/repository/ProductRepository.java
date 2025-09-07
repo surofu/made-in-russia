@@ -2,10 +2,8 @@ package com.surofu.madeinrussia.core.repository;
 
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
-import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
-import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.media.ProductMedia;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductView;
 import com.surofu.madeinrussia.infrastructure.persistence.product.ProductWithTranslationsView;
@@ -19,7 +17,9 @@ import java.util.Optional;
 public interface ProductRepository {
     Optional<Product> getProductById(Long productId);
 
-    Optional<Product> getProductByArticleCode(ProductArticleCode articleCode);
+    Optional<Product> getProductById(Long productId, List<ApproveStatus> approveStatuses);
+
+    Optional<Product> getProductByIdWithAnyApproveStatus(Long productId);
 
     Optional<Category> getProductCategoryByProductId(Long productId);
 
@@ -27,9 +27,6 @@ public interface ProductRepository {
 
     Optional<List<ProductMedia>> getProductMediaByProductId(Long productId);
 
-    Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId);
-
-    Optional<List<ProductFaq>> getProductFaqByProductId(Long productId);
 
     void save(Product product);
 
@@ -47,7 +44,7 @@ public interface ProductRepository {
 
     // View
 
-    Optional<ProductView> getProductViewByIdAndLang(Long productId, String lang);
+    Optional<ProductView> getProductViewByIdAndLangAndApproveStatuses(Long productId, String lang, List<ApproveStatus> approveStatuses);
 
     Optional<ProductView> getProductViewByArticleAndLang(String article, String lang);
 

@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.infrastructure.web;
 
 import com.surofu.madeinrussia.application.command.moderation.SetReviewModerateStatusCommand;
 import com.surofu.madeinrussia.core.service.moderation.ModerationService;
+import com.surofu.madeinrussia.core.service.moderation.operation.SetProductApproveStatus;
 import com.surofu.madeinrussia.core.service.moderation.operation.SetProductReviewApproveStatus;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,12 +22,24 @@ public class ModerationRestController {
 
     private final ModerationService moderationService;
 
+    private final SetProductApproveStatus.Result.Processor<ResponseEntity<?>> setProductApproveStatusProcessor;
     private final SetProductReviewApproveStatus.Result.Processor<ResponseEntity<?>> setProductReviewApproveStatusProcessor;
+
+    @PostMapping("product/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> setProductApproveStatus(
+            @PathVariable Long id,
+            @RequestBody SetReviewModerateStatusCommand command
+    ) {
+        SetProductApproveStatus operation = SetProductApproveStatus.of(id, command.status());
+        return moderationService.setProductApproveStatus(operation).process(setProductApproveStatusProcessor);
+    }
 
     @PostMapping("product-review/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
-    public ResponseEntity<?> setApproveStatusProductReview(
+    public ResponseEntity<?> setProductReviewApproveStatus(
             @PathVariable Long id,
             @RequestBody SetReviewModerateStatusCommand command
     ) {

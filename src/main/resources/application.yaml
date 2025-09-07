@@ -32,21 +32,6 @@ spring:
       allow-credentials: ${CORS_ALLOW_CREDENTIALS}
       max-age: ${CORS_MAX_AGE}
 
-  #========= Datasource =========#
-  datasource:
-    url: ${POSTGRES_URL}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-
-    #========= Hikari Pool =========#
-    hikari:
-      maximum-pool-size: 16
-      minimum-idle: 4
-      connection-timeout: 3000
-      leak-detection-threshold: 20000
-      auto-commit: false
-      idle-timeout: 30000
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
     properties:

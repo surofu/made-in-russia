@@ -123,7 +123,9 @@ public class ProductRestController {
             Long productId,
 
             @RequestParam(name = "hasTranslations", required = false, defaultValue = "false")
-            Boolean hasTranslations
+            Boolean hasTranslations,
+
+            @AuthenticationPrincipal SecurityUser securityUser
     ) {
         Locale locale = LocaleContextHolder.getLocale();
 
@@ -132,7 +134,7 @@ public class ProductRestController {
             return productService.getProductWithTranslationsByProductId(operation).process(getProductWithTranslationsByIdProcessor);
         }
 
-        GetProductById operation = GetProductById.of(locale, productId);
+        GetProductById operation = GetProductById.of(locale, productId, securityUser);
         return productService.getProductById(operation).process(getProductByIdProcessor);
     }
 

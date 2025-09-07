@@ -3,6 +3,8 @@ package com.surofu.madeinrussia.application.service;
 import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
+import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.repository.ProductSummaryViewRepository;
 import com.surofu.madeinrussia.core.repository.UserRepository;
@@ -60,7 +62,15 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
+        if (!operation.getApproveStatuses().isEmpty() && operation.getSecurityUser() != null && operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
+            specification = specification.and(ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
+        } else {
+            specification = specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.APPROVED));
+        }
+
+        String[] sortStrings = operation.getSort().split(",");
+        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
+        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
 

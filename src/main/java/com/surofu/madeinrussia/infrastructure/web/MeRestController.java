@@ -14,6 +14,7 @@ import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPage
 import com.surofu.madeinrussia.application.dto.session.SessionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
@@ -671,6 +672,9 @@ public class MeRestController {
             @DecimalMin("0")
             BigDecimal maxPrice,
 
+            @RequestParam(required = false)
+            List<ApproveStatus> approveStatuses,
+
             @Parameter(hidden = true)
             @AuthenticationPrincipal
             SecurityUser securityUser
@@ -685,7 +689,8 @@ public class MeRestController {
                 deliveryMethodIds,
                 categoryIds,
                 minPrice,
-                maxPrice
+                maxPrice,
+                Objects.requireNonNullElse(approveStatuses, new ArrayList<>())
         );
 
         return meService.getMeProductSummaryViewPage(operation).process(getMeProductSummaryViewPageProcessor);

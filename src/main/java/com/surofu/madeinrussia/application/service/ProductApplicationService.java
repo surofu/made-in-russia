@@ -22,6 +22,7 @@ import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.core.model.media.MediaType;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.*;
 import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristicName;
@@ -113,6 +114,7 @@ public class ProductApplicationService implements ProductService {
 
     private final ProductSummaryCacheManager productSummaryCacheManager;
     private final GeneralCacheService generalCacheService;
+    private final FaqApplicationService faqApplicationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -125,8 +127,19 @@ public class ProductApplicationService implements ProductService {
         }
 
         // Process
-        Optional<ProductView> productView = productRepository.getProductViewByIdAndLang(
-                operation.getProductId(), operation.getLocale().getLanguage()
+        List<ApproveStatus> approveStatuses = new ArrayList<>();
+        approveStatuses.add(ApproveStatus.APPROVED);
+
+        if (operation.getSecurityUser() != null && (
+                operation.getSecurityUser().getUser().getId().equals(operation.getProductId()) ||
+                        operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)
+        )) {
+            approveStatuses.add(ApproveStatus.PENDING);
+            approveStatuses.add(ApproveStatus.REJECTED);
+        }
+
+        Optional<ProductView> productView = productRepository.getProductViewByIdAndLangAndApproveStatuses(
+                operation.getProductId(), operation.getLocale().getLanguage(), approveStatuses
         );
 
         if (productView.isEmpty()) {
@@ -154,6 +167,7 @@ public class ProductApplicationService implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetProductWithTranslationsById.Result getProductWithTranslationsByProductId(GetProductWithTranslationsById operation) {
         Optional<ProductWithTranslationsView> view = productRepository.getProductWithTranslationsByProductIdAndLang(
                 operation.getId(), operation.getLocale().getLanguage());
@@ -232,13 +246,15 @@ public class ProductApplicationService implements ProductService {
     @Transactional(readOnly = true)
     public GetProductCharacteristicsByProductId.Result getProductCharacteristicsByProductId(GetProductCharacteristicsByProductId operation) {
         Long productId = operation.getProductId();
-        Optional<List<ProductCharacteristic>> productCharacteristics = productRepository.getProductCharacteristicsByProductId(productId);
-        Optional<List<ProductCharacteristicDto>> productCharacteristicDtos = productCharacteristics.map(list -> list.stream().map(ProductCharacteristicDto::of).toList());
-        if (productCharacteristicDtos.isPresent()) {
-            return GetProductCharacteristicsByProductId.Result.success(productCharacteristicDtos.get());
+
+        if (!productRepository.existsById(productId)) {
+            return GetProductCharacteristicsByProductId.Result.notFound(productId);
         }
 
-        return GetProductCharacteristicsByProductId.Result.notFound(productId);
+        List<ProductCharacteristic> productCharacteristics = productCharacteristicRepository.getAllByProductId(productId);
+        List<ProductCharacteristicDto> productCharacteristicDtos = productCharacteristics.stream().map(ProductCharacteristicDto::of).toList();
+        return GetProductCharacteristicsByProductId.Result.success(productCharacteristicDtos);
+
     }
 
     @Override
@@ -246,14 +262,14 @@ public class ProductApplicationService implements ProductService {
     public GetProductFaqByProductId.Result getProductFaqByProductId(GetProductFaqByProductId operation) {
         Long productId = operation.getProductId();
 
-        Optional<List<ProductFaq>> productFaq = productRepository.getProductFaqByProductId(productId);
-        Optional<List<ProductFaqDto>> productFaqDtos = productFaq.map(list -> list.stream().map(ProductFaqDto::of).toList());
-
-        if (productFaqDtos.isPresent()) {
-            return GetProductFaqByProductId.Result.success(productFaqDtos.get());
+        if (!productRepository.existsById(productId)) {
+            return GetProductFaqByProductId.Result.notFound(productId);
         }
 
-        return GetProductFaqByProductId.Result.notFound(productId);
+        List<ProductFaq> productFaq = productFaqRepository.getAllByProductId(productId);
+        List<ProductFaqDto> productFaqDtos = productFaq.stream().map(ProductFaqDto::of).toList();
+        return GetProductFaqByProductId.Result.success(productFaqDtos);
+
     }
 
     @Override
@@ -551,6 +567,48 @@ public class ProductApplicationService implements ProductService {
         /* ========== Save Data ========== */
         try {
             saveProduct(product);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productCharacteristicRepository.saveAll(productCharacteristicSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productFaqRepository.saveAll(productFaqSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productPriceRepository.saveAll(productPriceList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productDeliveryMethodDetailsRepository.saveAll(productDeliveryMethodDetailsSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productPackageOptionsRepository.saveAll(productPackageOptionSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProduct.Result.errorSavingProduct(e);
+        }
+
+        try {
+            productMediaRepository.saveAll(productMediaList);
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProduct.Result.errorSavingProduct(e);

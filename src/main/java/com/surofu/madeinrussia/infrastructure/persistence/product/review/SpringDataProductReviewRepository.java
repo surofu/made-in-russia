@@ -1,12 +1,15 @@
 package com.surofu.madeinrussia.infrastructure.persistence.product.review;
 
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface SpringDataProductReviewRepository extends JpaRepository<ProductReview, Long>, JpaSpecificationExecutor<ProductReview> {
     @Query("""
@@ -37,4 +40,10 @@ public interface SpringDataProductReviewRepository extends JpaRepository<Product
     boolean isUserOwnerOfProductReview(@Param("userId") Long userId, @Param("productReviewId") Long productReviewId);
 
     Long countByProduct_IdAndUser_Id(Long productId, Long userId);
+
+    List<ProductReview> findAllByProductId(Long id);
+
+    Optional<ProductReview> findByIdAndApproveStatus(Long id, ApproveStatus approveStatus);
+
+    List<ProductReview> findAllByMediaIdInAndApproveStatus(Collection<Long> mediaIds, ApproveStatus approveStatus);
 }

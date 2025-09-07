@@ -1,9 +1,12 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +23,12 @@ public class GetProductSummaryViewPage {
     List<Long> categoryIds;
     BigDecimal minPrice;
     BigDecimal maxPrice;
+    List<ApproveStatus> approveStatuses;
+    String sort;
+    String direction;
+
+    @Nullable
+    SecurityUser securityUser;
 
     public interface Result {
         <T> T process(Processor<T> processor);

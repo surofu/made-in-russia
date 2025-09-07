@@ -1,9 +1,11 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.dto.product.GetProductSummaryViewPageDto;
+import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.service.product.ProductSummaryService;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewById;
 import com.surofu.madeinrussia.core.service.product.operation.GetProductSummaryViewPage;
@@ -23,12 +25,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Slf4j
 @Validated
@@ -171,7 +176,18 @@ public class ProductSummaryViewRestController {
                     schema = @Schema(type = "number", format = "decimal", example = "100000")
             )
             @RequestParam(required = false)
-            BigDecimal maxPrice
+            BigDecimal maxPrice,
+
+            @RequestParam(required = false)
+            List<ApproveStatus> approveStatuses,
+
+            @RequestParam(required = false, defaultValue = "id")
+            String sort,
+
+            @RequestParam(required = false, defaultValue = "asc")
+            String direction,
+
+            @AuthenticationPrincipal SecurityUser securityUser
     ) {
         Locale locale = LocaleContextHolder.getLocale();
         GetProductSummaryViewPage operation = GetProductSummaryViewPage.of(
@@ -182,7 +198,11 @@ public class ProductSummaryViewRestController {
                 deliveryMethodIds,
                 categoryIds,
                 minPrice,
-                maxPrice
+                maxPrice,
+                Objects.requireNonNullElse(approveStatuses, new ArrayList<>()),
+                sort,
+                direction,
+                securityUser
         );
         return productSummaryService.getProductSummaryPage(operation).process(getProductSummaryPageProcessor);
     }

@@ -18,6 +18,8 @@ public class GetProductReviewPage {
     Integer minRating;
     Integer maxRating;
     List<ApproveStatus> approveStatuses;
+    String sort;
+    String direction;
     Locale locale;
 
     public interface Result {

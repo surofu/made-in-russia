@@ -1,13 +1,16 @@
 package com.surofu.madeinrussia.core.repository.specification;
 
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.user.UserRole;
 import com.surofu.madeinrussia.core.view.ProductSummaryView;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ProductSummarySpecifications {
@@ -137,5 +140,18 @@ public class ProductSummarySpecifications {
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    public static Specification<ProductSummaryView> approveStatusIn(@NonNull List<ApproveStatus> statuses) {
+        return approveStatusIn(statuses.toArray(new ApproveStatus[0]));
+    }
+
+    public static Specification<ProductSummaryView> approveStatusIn(@NonNull ApproveStatus ...statuses) {
+        if (statuses.length == 0) {
+            return ((root, query, criteriaBuilder) -> criteriaBuilder.conjunction());
+        }
+
+        List<String> approveStatusNames = Arrays.stream(statuses).map(ApproveStatus::name).toList();
+        return (root, query, cb) -> root.get("approveStatus").in(approveStatusNames);
     }
 }

@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,11 +73,15 @@ public class ProductReviewSpecifications {
         };
     }
 
-    public static Specification<ProductReview> approveStatusIn(List<ApproveStatus> statuses) {
+    public static Specification<ProductReview> approveStatusIn(@NonNull List<ApproveStatus> statuses) {
         return approveStatusIn(statuses.toArray(new ApproveStatus[0]));
     }
 
-    public static Specification<ProductReview> approveStatusIn(ApproveStatus ...statuses) {
+    public static Specification<ProductReview> approveStatusIn(@NonNull ApproveStatus ...statuses) {
+        if (statuses.length == 0) {
+            return ((root, query, criteriaBuilder) -> criteriaBuilder.conjunction());
+        }
+
         List<String> approveStatusNames = Arrays.stream(statuses).map(ApproveStatus::name).toList();
         return (root, query, cb) -> root.get("approveStatus").in(approveStatusNames);
     }

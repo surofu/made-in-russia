@@ -2,10 +2,8 @@ package com.surofu.madeinrussia.infrastructure.persistence.product;
 
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.product.Product;
-import com.surofu.madeinrussia.core.model.product.ProductArticleCode;
-import com.surofu.madeinrussia.core.model.product.characteristic.ProductCharacteristic;
-import com.surofu.madeinrussia.core.model.product.faq.ProductFaq;
 import com.surofu.madeinrussia.core.model.product.media.ProductMedia;
 import com.surofu.madeinrussia.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +21,22 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public Optional<Product> getProductById(Long productId) {
-        return repository.findById(productId);
+        return repository.findByIdAndApproveStatusIn(productId, List.of(ApproveStatus.APPROVED));
     }
 
     @Override
-    public Optional<Product> getProductByArticleCode(ProductArticleCode articleCode) {
-        return repository.findByArticleCode(articleCode);
+    public Optional<Product> getProductById(Long productId, List<ApproveStatus> approveStatuses) {
+        return repository.findByIdAndApproveStatusIn(productId, approveStatuses);
+    }
+
+    @Override
+    public Optional<ProductView> getProductViewByIdAndLangAndApproveStatuses(Long productId, String lang, List<ApproveStatus> approveStatuses) {
+        return repository.findProductViewByIdAndLangAndStatuses(productId, lang, approveStatuses.stream().map(ApproveStatus::name).toList());
+    }
+
+    @Override
+    public Optional<Product> getProductByIdWithAnyApproveStatus(Long productId) {
+        return repository.findById(productId);
     }
 
     @Override
@@ -47,16 +55,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(Long productId) {
-        return repository.getProductCharacteristicsByProductId(productId);
-    }
-
-    @Override
-    public Optional<List<ProductFaq>> getProductFaqByProductId(Long productId) {
-        return repository.getProductFaqByProductId(productId);
-    }
-
-    @Override
     public void save(Product product) {
         repository.save(product);
     }
@@ -71,12 +69,12 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public List<Product> findAllByIds(List<Long> productIds) {
-        return repository.findAllById(productIds);
+        return repository.findAllByIdInAndApproveStatus(productIds, ApproveStatus.APPROVED);
     }
 
     @Override
     public boolean existsById(Long productId) {
-        return repository.existsById(productId);
+        return repository.existsByIdAndApproveStatus(productId, ApproveStatus.APPROVED);
     }
 
     @Override
@@ -95,12 +93,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     // View
-
-    @Override
-    public Optional<ProductView> getProductViewByIdAndLang(Long productId, String lang) {
-        return repository.findProductViewByIdAndLang(productId, lang);
-    }
-
     @Override
     public Optional<ProductView> getProductViewByArticleAndLang(String article, String lang) {
         return repository.findProductViewByArticleCodeAndLang(article, lang);

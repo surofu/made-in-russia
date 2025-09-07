@@ -7,6 +7,7 @@ import com.surofu.madeinrussia.application.dto.DeliveryMethodDto;
 import com.surofu.madeinrussia.application.converter.DeliveryMethodsConverter;
 import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.core.model.currency.CurrencyCode;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,6 +35,10 @@ public final class ProductSummaryView implements Serializable {
     @Id
     @Column(name = "id")
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approve_status")
+    private ApproveStatus approveStatus;
 
     @Column(name = "title")
     private String title;

@@ -63,6 +63,8 @@ public class ProductDto implements Serializable {
     )
     private VendorDto user;
 
+    private String approveStatus;
+
     @Schema(
             description = "Category this product belongs to",
             implementation = CategoryDto.class,
@@ -332,6 +334,7 @@ public class ProductDto implements Serializable {
         return ProductDto.builder()
                 .id(product.getId())
                 .user(VendorDto.of(product.getUser()))
+                .approveStatus(product.getApproveStatus().toString())
                 .category(CategoryDto.ofWithoutChildren(product.getCategory()))
                 .deliveryMethods(product.getDeliveryMethods().stream()
                         .map(DeliveryMethodDto::of)
@@ -363,6 +366,7 @@ public class ProductDto implements Serializable {
     public static ProductDto of(ProductView view) {
         return ProductDto.builder()
                 .id(view.getId())
+                .approveStatus(view.getApproveStatus())
                 .article(view.getArticleCode())
                 .title(view.getTitle())
                 .mainDescription(view.getMainDescription())

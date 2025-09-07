@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ public interface ProductReviewRepository {
 
     Optional<ProductReview> getById(Long id);
 
+    Optional<ProductReview> getByIdWithAnyApproveStatus(Long id);
+
     Double findAverageRatingByVendorId(Long vendorId);
 
     Long getCountByProductIdAndUserId(Long productId, Long userId);
@@ -24,4 +27,8 @@ public interface ProductReviewRepository {
     void delete(ProductReview productReview);
 
     boolean isUserOwnerOfProductReview(Long userId, Long productReviewId);
+
+    List<ProductReview> getAllByProductId(Long id);
+
+    void deleteAll(Collection<ProductReview> productReviews);
 }

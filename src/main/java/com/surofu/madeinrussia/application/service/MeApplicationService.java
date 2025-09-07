@@ -225,8 +225,8 @@ public class MeApplicationService implements MeService {
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
                 .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
                 .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()));
-
+                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
+                .and(ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage

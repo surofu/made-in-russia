@@ -7,6 +7,8 @@ public interface ProductView {
 
     Long getUserId();
 
+    String getApproveStatus();
+
     String getArticleCode();
 
     String getTitle();

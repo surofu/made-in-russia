@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.me.operation;
 
 import com.surofu.madeinrussia.application.dto.product.ProductSummaryViewDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
+import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ public class GetMeProductSummaryViewPage {
     List<Long> categoryIds;
     BigDecimal minPrice;
     BigDecimal maxPrice;
+    List<ApproveStatus> approveStatuses;
 
     public interface Result {
 

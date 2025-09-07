@@ -95,6 +95,8 @@ public final class ProductSummaryViewDto implements Serializable {
     )
     private Long id;
 
+    private String approveStatus;
+
     @Schema(
             description = "Publisher of the product",
             implementation = UserDto.class,
@@ -257,21 +259,22 @@ public final class ProductSummaryViewDto implements Serializable {
     )
     private ZonedDateTime lastModificationDate;
 
-    public static ProductSummaryViewDto of(ProductSummaryView productSummaryView, String lang) {
+    public static ProductSummaryViewDto of(ProductSummaryView view, String lang) {
         return ProductSummaryViewDto.builder()
-                .id(productSummaryView.getId())
-                .user(productSummaryView.getUser())
-                .category(productSummaryView.getCategory())
-                .deliveryMethods(productSummaryView.getDeliveryMethods())
-                .title(productSummaryView.getTitleByLang(lang))
-                .originalPrice(productSummaryView.getOriginPrice() == null ? null : productSummaryView.getOriginPrice().setScale(2, RoundingMode.DOWN))
-                .discount(productSummaryView.getDiscount())
-                .discountedPrice(productSummaryView.getDiscountedPrice() == null ? null : productSummaryView.getDiscountedPrice().setScale(2, RoundingMode.DOWN))
-                .priceCurrency(productSummaryView.getPriceCurrencyCode() == null ? null : productSummaryView.getPriceCurrencyCode().toString())
-                .rating(productSummaryView.getRating())
-                .previewImageUrl(productSummaryView.getPreviewImageUrl())
-                .creationDate(productSummaryView.getCreationDate())
-                .lastModificationDate(productSummaryView.getLastModificationDate())
+                .id(view.getId())
+                .approveStatus(view.getApproveStatus().toString())
+                .user(view.getUser())
+                .category(view.getCategory())
+                .deliveryMethods(view.getDeliveryMethods())
+                .title(view.getTitleByLang(lang))
+                .originalPrice(view.getOriginPrice() == null ? null : view.getOriginPrice().setScale(2, RoundingMode.DOWN))
+                .discount(view.getDiscount())
+                .discountedPrice(view.getDiscountedPrice() == null ? null : view.getDiscountedPrice().setScale(2, RoundingMode.DOWN))
+                .priceCurrency(view.getPriceCurrencyCode() == null ? null : view.getPriceCurrencyCode().toString())
+                .rating(view.getRating())
+                .previewImageUrl(view.getPreviewImageUrl())
+                .creationDate(view.getCreationDate())
+                .lastModificationDate(view.getLastModificationDate())
                 .build();
     }
 }

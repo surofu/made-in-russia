@@ -94,7 +94,7 @@ public class S3Repository implements FileStorageRepository {
     }
 
     @Override
-    public void deleteMediaByLink(String... links) throws Exception {
+    public void deleteMediaByLink(String... links) {
         for (String link : links) {
             deleteMediaByLink(link);
         }

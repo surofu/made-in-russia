@@ -1,8 +1,10 @@
 package com.surofu.madeinrussia.core.service.product.operation;
 
 import com.surofu.madeinrussia.application.dto.product.ProductDto;
+import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 
 import java.util.Locale;
 
@@ -11,6 +13,9 @@ import java.util.Locale;
 public class GetProductById {
     Locale locale;
     Long productId;
+
+    @Nullable
+    SecurityUser securityUser;
 
     public interface Result {
         <T> T process(Processor<T> processor);

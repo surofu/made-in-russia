@@ -19,13 +19,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -116,10 +119,22 @@ public class ProductReviewRestController {
             Integer maxRating,
 
             @RequestParam(required = false)
-            List<ApproveStatus> approveStatuses
+            List<ApproveStatus> approveStatuses,
+
+            @RequestParam(required = false, defaultValue = "id")
+            String sort,
+
+            @RequestParam(required = false, defaultValue = "asc")
+            String direction
     ) {
         Locale locale = LocaleContextHolder.getLocale();
-        GetProductReviewPage operation = GetProductReviewPage.of(page, size, content, minRating, maxRating, approveStatuses, locale);
+        GetProductReviewPage operation = GetProductReviewPage.of(
+                page, size, content, minRating, maxRating,
+                Objects.requireNonNullElse(approveStatuses, new ArrayList<>()),
+                Objects.requireNonNullElse(StringUtils.trimToNull(sort), "creationDate"),
+                Objects.requireNonNullElse(StringUtils.trimToNull(direction), "asc"),
+                locale
+        );
         return productReviewService.getProductReviewPage(operation).process(getProductReviewPageProcessor);
     }
 
