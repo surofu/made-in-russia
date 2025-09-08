@@ -62,8 +62,12 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
-        if (!operation.getApproveStatuses().isEmpty() && operation.getSecurityUser() != null && operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
+        if (operation.getSecurityUser() != null && operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
             specification = specification.and(ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
+
+            if (operation.getApproveStatuses().isEmpty()) {
+                specification = specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.values()));
+            }
         } else {
             specification = specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.APPROVED));
         }
