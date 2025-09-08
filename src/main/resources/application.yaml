@@ -167,6 +167,7 @@ app:
 
 telegram:
   bot:
+    enable: ${BOT_ENABLE}
     username: ${BOT_USERNAME}
     token: ${BOT_TOKEN}
 

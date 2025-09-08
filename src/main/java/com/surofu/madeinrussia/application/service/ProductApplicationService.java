@@ -1,5 +1,7 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.annotation.Bench;
+import com.surofu.madeinrussia.application.cache.CategoryCacheManager;
 import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.cache.ProductCacheManager;
 import com.surofu.madeinrussia.application.cache.ProductSummaryCacheManager;
@@ -115,6 +117,7 @@ public class ProductApplicationService implements ProductService {
     private final ProductSummaryCacheManager productSummaryCacheManager;
     private final GeneralCacheService generalCacheService;
     private final FaqApplicationService faqApplicationService;
+    private final CategoryCacheManager categoryCacheManager;
 
     @Override
     @Transactional(readOnly = true)
@@ -999,7 +1002,7 @@ public class ProductApplicationService implements ProductService {
         return GetSearchHints.Result.success(groupedSearchHints);
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
@@ -1048,14 +1051,20 @@ public class ProductApplicationService implements ProductService {
         productDto.setDeliveryMethods(deliveryMethodDtoList);
 
         // Category
-        Optional<CategoryView> categoryView = categoryRepository.getCategoryViewByIdAndLang(
-                view.getCategoryId(),
-                locale.getLanguage()
-        );
+        CategoryDto categoryDtoFromCache = categoryCacheManager.getCategory(view.getCategoryId(), locale);
 
-        if (categoryView.isPresent()) {
-            CategoryDto categoryDto = CategoryDto.ofWithoutChildren(categoryView.get());
-            productDto.setCategory(categoryDto);
+        if (categoryDtoFromCache != null) {
+            productDto.setCategory(categoryDtoFromCache);
+        } else {
+            Optional<CategoryView> categoryView = categoryRepository.getCategoryViewByIdAndLang(
+                    view.getCategoryId(),
+                    locale.getLanguage()
+            );
+
+            if (categoryView.isPresent()) {
+                CategoryDto categoryDto = CategoryDto.ofWithoutChildren(categoryView.get());
+                productDto.setCategory(categoryDto);
+            }
         }
 
         // Media
@@ -1165,6 +1174,7 @@ public class ProductApplicationService implements ProductService {
     protected ProductWithTranslationsDto loadFullProduct(ProductWithTranslationsDto productDto, ProductWithTranslationsView view, Locale locale) {
         // Vendor
         Optional<UserView> userView = userRepository.getViewById(view.getUserId());
+
         if (userView.isPresent()) {
             VendorDto vendorDto = VendorDto.of(userView.get());
 

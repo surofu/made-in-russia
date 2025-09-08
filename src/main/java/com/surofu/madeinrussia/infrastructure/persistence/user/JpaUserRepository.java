@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.user;
 
+import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;

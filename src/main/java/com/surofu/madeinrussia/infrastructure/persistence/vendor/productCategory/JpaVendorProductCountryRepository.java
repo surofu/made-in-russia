@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.infrastructure.persistence.vendor.productCategory;
 
+import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategory;
 import com.surofu.madeinrussia.core.repository.VendorProductCategoryRepository;
 import lombok.RequiredArgsConstructor;
