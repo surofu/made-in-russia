@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.application.service;
 
-import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.application.cache.CategoryCacheManager;
 import com.surofu.madeinrussia.application.cache.GeneralCacheService;
 import com.surofu.madeinrussia.application.cache.ProductCacheManager;
@@ -889,6 +888,10 @@ public class ProductApplicationService implements ProductService {
 
         List<ProductMedia> oldProductMedia = productMediaRepository.getAllByProductId(product.getId());
 
+        List<ProductMedia> mergedProductMedia = productMediaList.stream()
+                .filter(m -> !oldProductMedia.contains(m))
+                .toList();
+
         try {
             productMediaRepository.deleteAll(oldProductMedia);
             productMediaRepository.saveAll(productMediaList);
@@ -897,7 +900,7 @@ public class ProductApplicationService implements ProductService {
             return UpdateProduct.Result.errorSavingProduct(e);
         }
 
-        product.setMedia(new HashSet<>(productMediaList));
+        product.setMedia(new HashSet<>(mergedProductMedia));
 
         /* ========== Save Data ========== */
         try {

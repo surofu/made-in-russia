@@ -35,9 +35,3 @@ app:
       leak-detection-threshold: 20000
       auto-commit: false
       idle-timeout: 30000
-  frontend:
-    oauth:
-      google:
-        redirect:
-          success: ${FRONT_END_HOST}
-          error: ${FRONT_END_HOST}/register

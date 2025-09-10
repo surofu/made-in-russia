@@ -3,10 +3,15 @@ package com.surofu.madeinrussia.infrastructure.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.surofu.madeinrussia.application.components.TelegramBot;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBot;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBotLoginHandler;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBotRegisterHandler;
+import com.surofu.madeinrussia.application.utils.LocalizationManager;
+import com.surofu.madeinrussia.core.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -42,7 +47,19 @@ public class WebConfig {
     }
 
     @Bean
-    public TelegramLongPollingBot myTelegramBot(TelegramBotConfig config) {
-        return new TelegramBot(config);
+    public TelegramLongPollingBot myTelegramBot(
+            TelegramBotConfig config,
+            LocalizationManager localizationManager,
+            @Lazy TelegramBotRegisterHandler telegramBotRegisterHandler,
+            @Lazy TelegramBotLoginHandler telegramBotLoginHandler,
+            UserRepository userRepository
+    ) {
+        return new TelegramBot(
+                config,
+                localizationManager,
+                telegramBotRegisterHandler,
+                telegramBotLoginHandler,
+                userRepository
+        );
     }
 }

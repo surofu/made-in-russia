@@ -56,4 +56,6 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
     Optional<UserView> findViewById(Long id);
 
     boolean existsByPhoneNumberAndIdNot(UserPhoneNumber phoneNumber, Long id);
+
+    Optional<User> findByTelegramUserId(Long telegramUserId);
 }

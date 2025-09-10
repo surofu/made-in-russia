@@ -164,6 +164,15 @@ app:
     uri: https://agentom.ru/api/okved
   mail:
     support: ${MAIL_SUPPORT}
+  frontend:
+    oauth:
+      google:
+        redirect:
+          success: ${FRONT_END_HOST}
+          error: ${FRONT_END_HOST}/register
+      telegram:
+        redirect:
+          success: ${FRONT_END_HOST}
 
 telegram:
   bot:

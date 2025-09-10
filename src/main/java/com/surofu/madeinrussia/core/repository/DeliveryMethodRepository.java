@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.madeinrussia.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 

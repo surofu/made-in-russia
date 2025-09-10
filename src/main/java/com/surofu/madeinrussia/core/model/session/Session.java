@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -68,9 +67,6 @@ public final class Session implements Serializable {
         SessionBrowser sessionBrowser = SessionBrowser.of(rawBrowserName);
         String rawOsName = userAgent.getOperatingSystem().getName();
         SessionOs sessionOs = SessionOs.of(rawOsName);
-        ZonedDateTime dateNow = ZonedDateTime.now();
-        SessionLastModificationDate sessionLastModificationDate = SessionLastModificationDate.of(dateNow);
-        SessionCreationDate sessionCreationDate = SessionCreationDate.of(dateNow);
 
         session.setUser(user);
         session.setDeviceId(sessionDeviceId);
@@ -78,8 +74,6 @@ public final class Session implements Serializable {
         session.setBrowser(sessionBrowser);
         session.setOs(sessionOs);
         session.setIpAddress(sessionIpAddress);
-        session.setCreationDate(sessionCreationDate);
-        session.setLastModificationDate(sessionLastModificationDate);
         return session;
     }
 }

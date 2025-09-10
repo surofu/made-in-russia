@@ -1,6 +1,6 @@
 package com.surofu.madeinrussia;
 
-import com.surofu.madeinrussia.application.components.TelegramBot;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;

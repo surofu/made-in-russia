@@ -23,6 +23,8 @@ public interface UserRepository {
 
     Optional<User> getUserByEmail(UserEmail userEmail);
 
+    Optional<User> getUserByTelegramUserId(Long telegramUserId);
+
     Optional<UserEmail> getUserEmailByLogin(UserLogin userLogin);
 
     User save(User user);

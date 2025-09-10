@@ -94,7 +94,7 @@ public final class VendorDetails implements Serializable {
     private VendorDetailsInn inn;
 
     @Embedded
-    private VendorDetailsDescription description;
+    private VendorDetailsDescription description = VendorDetailsDescription.of("");
 
     @Transient
     private Long vendorViewsCount = 0L;

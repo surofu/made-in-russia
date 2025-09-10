@@ -37,19 +37,24 @@ public final class User implements Serializable {
     private UserRole role = UserRole.ROLE_USER;
 
     @Embedded
-    private UserIsEnabled isEnabled;
+    private UserIsEnabled isEnabled = UserIsEnabled.of(true);
+
+    @Column(name = "telegram_user_id")
+    private Long telegramUserId;
 
     @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "user"
+            mappedBy = "user",
+            orphanRemoval = true
     )
     private Set<VendorView> views = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "user"
+            mappedBy = "user",
+            orphanRemoval = true
     )
     private Set<Product> products = new HashSet<>();
 
@@ -58,7 +63,9 @@ public final class User implements Serializable {
     @Setter(AccessLevel.NONE)
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "user"
+            mappedBy = "user",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            orphanRemoval = true
     )
     private Set<UserPassword> password = new HashSet<>();
 
@@ -68,21 +75,25 @@ public final class User implements Serializable {
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "user",
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            orphanRemoval = true
     )
     private Set<VendorDetails> vendorDetails = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             mappedBy = "user",
-            fetch = FetchType.LAZY
+            fetch = FetchType.LAZY,
+            orphanRemoval = true
     )
     private Set<ProductReview> productReviews = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             mappedBy = "user",
-            fetch = FetchType.LAZY
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            orphanRemoval = true
     )
     private Set<Session> sessions = new HashSet<>();
 

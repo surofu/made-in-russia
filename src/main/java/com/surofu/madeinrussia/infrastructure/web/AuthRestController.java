@@ -221,62 +221,6 @@ public class AuthRestController {
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
     }
 
-    @PostMapping("login-with-login")
-    @Operation(
-            summary = "Login with username",
-            description = "Authenticate user using username and password",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Authentication successful",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = LoginSuccessDto.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Invalid credentials",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "User not found",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SimpleResponseErrorDto.class)
-                            )
-                    )
-            }
-    )
-    public ResponseEntity<?> loginWithLogin(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "User login credentials",
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = LoginWithLoginCommand.class,
-                                    example = """
-                                            {
-                                                "login": "user123",
-                                                "password": "password123"
-                                            }
-                                            """)
-                    )
-            )
-            @RequestBody LoginWithLoginCommand command
-    ) {
-        LoginWithLogin operation = LoginWithLogin.of(
-                UserLogin.of(command.login()),
-                UserPasswordPassword.of(command.password())
-        );
-        return authService.loginWithLogin(operation).process(loginWithLoginProcessor);
-    }
-
     @PostMapping("verify-email")
     @Operation(
             summary = "Verify email address",

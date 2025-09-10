@@ -25,6 +25,10 @@ public final class VendorDetailsInn implements Serializable {
             throw new IllegalArgumentException("ИНН продавца не может быть меньше 7 символов");
         }
 
+        if (inn.length() > 255) {
+            throw new IllegalArgumentException("ИНН продавца не может быть больше 255 символов");
+        }
+
         this.value = inn;
     }
 

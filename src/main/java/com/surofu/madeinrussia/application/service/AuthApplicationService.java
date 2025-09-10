@@ -79,10 +79,6 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.userWithEmailAlreadyExists(operation.getUserEmail());
         }
 
-        if (userRepository.existsUserByLogin(operation.getUserLogin())) {
-            return Register.Result.userWithLoginAlreadyExists(operation.getUserLogin());
-        }
-
         if (operation.getUserPhoneNumber() != null && userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
             return Register.Result.userWithPhoneNumberAlreadyExists(operation.getUserPhoneNumber());
         }
@@ -129,10 +125,6 @@ public class AuthApplicationService implements AuthService {
     public RegisterVendor.Result registerVendor(RegisterVendor operation) {
         if (userRepository.existsUserByEmail(operation.getUserEmail())) {
             return RegisterVendor.Result.userWithEmailAlreadyExists(operation.getUserEmail());
-        }
-
-        if (userRepository.existsUserByLogin(operation.getUserLogin())) {
-            return RegisterVendor.Result.userWithLoginAlreadyExists(operation.getUserLogin());
         }
 
         if (operation.getUserPhoneNumber() != null && userRepository.existsUserByPhoneNumber(operation.getUserPhoneNumber())) {
@@ -278,28 +270,6 @@ public class AuthApplicationService implements AuthService {
         } catch (Exception ex) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return LoginWithEmail.Result.invalidCredentials();
-        }
-    }
-
-    @Override
-    @Transactional
-    public LoginWithLogin.Result loginWithLogin(LoginWithLogin operation) {
-        Optional<UserEmail> userEmail = userRepository.getUserEmailByLogin(operation.getLogin());
-
-        if (userEmail.isEmpty()) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return LoginWithLogin.Result.invalidCredentials();
-        }
-
-        try {
-            LoginSuccessDto dto = login(userEmail.get(), operation.getPassword());
-            return LoginWithLogin.Result.success(dto);
-        } catch (DisabledException e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return LoginWithLogin.Result.accountBlocked(operation.getLogin());
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return LoginWithLogin.Result.invalidCredentials();
         }
     }
 

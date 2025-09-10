@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.infrastructure.persistence.user;
 
-import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
@@ -43,6 +42,11 @@ public class JpaUserRepository implements UserRepository {
     @Override
     public Optional<User> getUserByEmail(UserEmail userEmail) {
         return repository.findByEmail(userEmail);
+    }
+
+    @Override
+    public Optional<User> getUserByTelegramUserId(Long telegramUserId) {
+        return repository.findByTelegramUserId(telegramUserId);
     }
 
     @Override

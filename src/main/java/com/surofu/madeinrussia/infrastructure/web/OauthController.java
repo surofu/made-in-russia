@@ -1,7 +1,8 @@
 package com.surofu.madeinrussia.infrastructure.web;
 
-import com.surofu.madeinrussia.application.components.TelegramBot;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBot;
 import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
+import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.telegram.TelegramUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,8 +10,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("api/v1/oauth2")
@@ -73,9 +77,9 @@ public class OauthController {
                     )
             }
     )
-    public ResponseEntity<?> callbackGet(@RequestBody TelegramUser user) {
-        String message = localizationManager.localize("telegram.bot.greeting", user.firstName());
-        telegramBot.sendMessage(user.id(), message);
+    public ResponseEntity<?> callbackGet(@RequestBody TelegramUser user, HttpServletRequest request) {
+        Locale locale = LocaleContextHolder.getLocale();
+        telegramBot.register(user, SessionInfo.of(request), locale);
         return ResponseEntity.ok().build();
     }
 }

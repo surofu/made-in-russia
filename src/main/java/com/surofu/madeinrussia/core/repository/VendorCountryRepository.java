@@ -1,6 +1,5 @@
 package com.surofu.madeinrussia.core.repository;
 
-import com.surofu.madeinrussia.application.annotation.Bench;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.infrastructure.persistence.vendor.country.VendorCountryView;
 

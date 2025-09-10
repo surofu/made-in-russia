@@ -9,8 +9,6 @@ public interface AuthService {
 
     LoginWithEmail.Result loginWithEmail(LoginWithEmail operation);
 
-    LoginWithLogin.Result loginWithLogin(LoginWithLogin operation);
-
     VerifyEmail.Result verifyEmail(VerifyEmail operation);
 
     Logout.Result logout(Logout operation);

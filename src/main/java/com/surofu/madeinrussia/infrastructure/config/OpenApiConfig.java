@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         url = "https://github.com/surofu"
                 ),
                 title = "OpenApi specification - Stanislav",
-                description = "OpenApi for MadeInRussia",
+                description = "OpenApi for Exporteru.com",
                 version = "1.0"
         ),
         servers = {
