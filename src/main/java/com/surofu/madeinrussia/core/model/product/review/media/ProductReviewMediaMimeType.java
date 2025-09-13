@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.review.media;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class ProductReviewMediaMimeType implements Serializable {
 
     private ProductReviewMediaMimeType(String mimeType) {
         if (mimeType == null || mimeType.trim().isEmpty()) {
-            throw new IllegalArgumentException("Тип контента медиа отзыва не может быть пустым");
+            throw new LocalizedValidationException("validation.media.mime_type.empty");
         }
 
         if (mimeType.length() > 255) {
-            throw new IllegalArgumentException("Тип контента медиа отзыва не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.media.mime_type.max_length");
         }
 
         this.value = mimeType;

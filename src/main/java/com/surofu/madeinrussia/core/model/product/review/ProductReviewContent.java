@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.product.review;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,11 +29,11 @@ public final class ProductReviewContent implements Serializable {
 
     private ProductReviewContent(String content) {
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Текст отзыва не может быть пустым");
+            throw new LocalizedValidationException("validation.product.review.content.empty");
         }
 
         if (content.length() >= 10_000) {
-            throw new IllegalArgumentException("Текст отзыва не может быть больше 10,000 символов");
+            throw new LocalizedValidationException("validation.product.review.content.max_length");
         }
 
         this.value = content;

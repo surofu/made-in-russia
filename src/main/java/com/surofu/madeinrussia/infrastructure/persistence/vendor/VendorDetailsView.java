@@ -8,6 +8,8 @@ public interface VendorDetailsView {
 
     VendorDetailsInn getInn();
 
+    VendorDetailsAddress getAddress();
+
     VendorDetailsDescription getDescription();
 
     @Value("#{@jpaVendorDetailsRepository.getViewsCountById(target.id)}")

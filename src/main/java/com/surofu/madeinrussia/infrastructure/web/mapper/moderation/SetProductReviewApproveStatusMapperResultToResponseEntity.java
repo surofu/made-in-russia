@@ -25,14 +25,14 @@ implements SetProductReviewApproveStatus.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processSaveError(SetProductReviewApproveStatus.Result.SaveError result) {
-        String message = localizationManager.localize("product_review.save.error");
+        String message = localizationManager.localize("product.review.save.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<?> processNotFound(SetProductReviewApproveStatus.Result.NotFound result) {
-        String message = localizationManager.localize("product_review.not_found_by_id", result.getId());
+        String message = localizationManager.localize("product.review.not_found_by_id", result.getId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

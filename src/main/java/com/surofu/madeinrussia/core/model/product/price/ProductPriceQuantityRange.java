@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.price;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -21,19 +22,19 @@ public final class ProductPriceQuantityRange implements Serializable {
 
     private ProductPriceQuantityRange(Integer from, Integer to) {
         if (from == null) {
-            throw new IllegalArgumentException("Начальное количество цены товара не может быть пустым");
+            throw new LocalizedValidationException("validation.product.price.quantity.from.empty");
         }
 
         if (to == null) {
-            throw new IllegalArgumentException("Конечное количество цены товара не может быть пустым");
+            throw new LocalizedValidationException("validation.product.price.quantity.to.empty");
         }
 
         if (from < 0) {
-            throw new IllegalArgumentException("Начальное количество цены товара не может быть отрицательным");
+            throw new LocalizedValidationException("validation.product.price.quantity.from.negative");
         }
 
         if (to < 0) {
-            throw new IllegalArgumentException("Конечное количество цены товара не может быть отрицательным");
+            throw new LocalizedValidationException("validation.product.price.quantity.to.negative");
         }
 
         this.from = from;

@@ -8,6 +8,7 @@ public record RegisterVendorCommand(
         String password,
         String phoneNumber,
         String inn,
+        String address,
         List<String> countries,
         List<String> productCategories,
         String avatarUrl

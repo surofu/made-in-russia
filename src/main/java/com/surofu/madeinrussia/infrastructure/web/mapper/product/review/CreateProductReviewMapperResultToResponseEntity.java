@@ -18,7 +18,7 @@ implements CreateProductReview.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processSuccess(CreateProductReview.Result.Success result) {
-        String message = localizationManager.localize("product_review.create.success");
+        String message = localizationManager.localize("product.review.create.success");
         SimpleResponseMessageDto responseMessageDto = SimpleResponseMessageDto.of(message);
         return new ResponseEntity<>(responseMessageDto, HttpStatus.CREATED);
     }
@@ -32,28 +32,28 @@ implements CreateProductReview.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processVendorProfileNotViewed(CreateProductReview.Result.VendorProfileNotViewed result) {
-        String message = localizationManager.localize("product_review.error.order_before_create");
+        String message = localizationManager.localize("product.review.error.order_before_create");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ResponseEntity<?> processAccountIsTooYoung(CreateProductReview.Result.AccountIsTooYoung result) {
-        String message = localizationManager.localize("product_review.error.minimum_account_age");
+        String message = localizationManager.localize("product.review.error.minimum_account_age");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ResponseEntity<?> processSaveError(CreateProductReview.Result.SaveError result) {
-        String message = localizationManager.localize("product_review.save.error");
+        String message = localizationManager.localize("product.review.save.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<?> processToManyReviews(CreateProductReview.Result.TooManyReviews result) {
-        String message = localizationManager.localize("validation.product_review.create.too_many_reviews");
+        String message = localizationManager.localize("validation.product.review.create.too_many_reviews");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }

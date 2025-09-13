@@ -23,6 +23,11 @@ public class DeleteMeSessionById {
             return NotFound.of(sessionId);
         }
 
+        static Result deleteError(Exception e) {
+            log.error("Delete error while processing delete me session", e);
+            return DeleteError.INSTANCE;
+        }
+
         @Value(staticConstructor = "of")
         class Success implements Result {
             Long sessionId;
@@ -43,10 +48,21 @@ public class DeleteMeSessionById {
             }
         }
 
+        enum DeleteError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteError(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
 
             T processNotFound(NotFound result);
+
+            T processDeleteError(DeleteError result);
         }
     }
 }

@@ -12,11 +12,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JpaOkvedCategoryRepository implements OkvedCategoryRepository {
 
-    private final SpringDataOkvedCategoryRepository repository;
+    private final
+    SpringDataOkvedCategoryRepository repository;
+
+    @Override
+    public List<OkvedCategory> getAll(List<Long> ids) {
+        return repository.findAllById(ids);
+    }
 
     @Override
     public List<OkvedCategory> getByCategoryId(Long categoryId) {
-        return repository.findByCategory_Id(categoryId);
+        return repository.findByCategoryId(categoryId);
     }
 
     @Override
@@ -27,5 +33,10 @@ public class JpaOkvedCategoryRepository implements OkvedCategoryRepository {
     @Override
     public void deleteAll(Collection<OkvedCategory> okvedCategories) {
         repository.deleteAll(okvedCategories);
+    }
+
+    @Override
+    public List<OkvedCategoryView> getAllViews() {
+        return repository.findAllViews();
     }
 }

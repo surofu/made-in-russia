@@ -18,7 +18,6 @@ import com.surofu.madeinrussia.application.dto.vendor.VendorFaqDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.exception.EmptyTranslationException;
-import com.surofu.madeinrussia.application.service.async.AsyncProductApplicationService;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
 import com.surofu.madeinrussia.core.model.category.Category;
 import com.surofu.madeinrussia.core.model.deliveryMethod.DeliveryMethod;
@@ -105,7 +104,6 @@ public class ProductApplicationService implements ProductService {
     private final ProductPackageOptionsRepository productPackageOptionsRepository;
     private final FileStorageRepository fileStorageRepository;
     private final TranslationRepository translationRepository;
-    private final AsyncProductApplicationService asyncProductApplicationService;
     private final TaskExecutor appTaskExecutor;
     private final ProductCacheManager productCacheManager;
     private final LocalizationManager localizationManager;
@@ -1159,9 +1157,7 @@ public class ProductApplicationService implements ProductService {
         }
 
         try {
-            asyncProductApplicationService.deleteProductMediaFiles(product.get())
-                    .thenCompose(unused -> asyncProductApplicationService.deleteProduct(product.get()))
-                    .join();
+            productRepository.delete(product.get());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteProductById.Result.deleteError(e);

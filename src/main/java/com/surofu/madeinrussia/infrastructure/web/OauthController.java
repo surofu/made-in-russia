@@ -79,7 +79,7 @@ public class OauthController {
     )
     public ResponseEntity<?> callbackGet(@RequestBody TelegramUser user, HttpServletRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
-        telegramBot.register(user, SessionInfo.of(request), locale);
+        telegramBot.authorize(user, SessionInfo.of(request), locale);
         return ResponseEntity.ok().build();
     }
 }

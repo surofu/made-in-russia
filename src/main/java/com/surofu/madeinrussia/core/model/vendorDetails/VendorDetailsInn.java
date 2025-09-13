@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.vendorDetails;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,15 +19,15 @@ public final class VendorDetailsInn implements Serializable {
 
     private VendorDetailsInn(String inn) {
         if (inn == null || inn.trim().isEmpty()) {
-            throw new IllegalArgumentException("ИНН продавца не может быть пустым");
+            throw new LocalizedValidationException("validation.vendor.inn.empty");
         }
 
         if (inn.length() < 7) {
-            throw new IllegalArgumentException("ИНН продавца не может быть меньше 7 символов");
+            throw new LocalizedValidationException("validation.vendor.inn.min_length");
         }
 
         if (inn.length() > 255) {
-            throw new IllegalArgumentException("ИНН продавца не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.vendor.inn.max_length");
         }
 
         this.value = inn;

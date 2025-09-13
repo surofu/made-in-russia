@@ -19,6 +19,7 @@ import com.surofu.madeinrussia.core.repository.TranslationRepository;
 import com.surofu.madeinrussia.core.service.category.CategoryService;
 import com.surofu.madeinrussia.core.service.category.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
+import com.surofu.madeinrussia.infrastructure.persistence.okved.OkvedCategoryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,6 +54,19 @@ public class CategoryApplicationService implements CategoryService {
         // Process
         List<CategoryView> categories = categoryRepository.getAllCategoriesViewsByLang(operation.getLocale().getLanguage());
         List<CategoryDto> categoryDtos = CategoryUtils.buildTreeFromViews(categories);
+        List<OkvedCategoryView> okvedCategoryViews = okvedCategoryRepository.getAllViews();
+
+        Map<Long, CategoryDto> categoryDtoMap = createCategoryMap(categoryDtos);
+
+        for (OkvedCategoryView view : okvedCategoryViews) {
+            CategoryDto categoryDto = categoryDtoMap.get(view.getCategoryId());
+
+            if (categoryDto.getOkved() == null) {
+                categoryDto.setOkved(new ArrayList<>());
+            }
+
+            categoryDto.getOkved().add(view.getOkvedId());
+        }
 
         try {
             categoryListCacheManager.setAllByLocale("ALL_" + operation.getLocale().getLanguage(), categoryDtos);
@@ -289,7 +304,7 @@ public class CategoryApplicationService implements CategoryService {
         category.getName().setTranslations(translationResult);
         category.setSlug(slugWithLevel);
 
-        List<OkvedCategory> newOkvedCategories  = new ArrayList<>();
+        List<OkvedCategory> newOkvedCategories = new ArrayList<>();
 
         Iterator<OkvedCategory> okvedCategoryIterator = category.getOkvedCategories().iterator();
         for (int i = 0; i < operation.getOkvedCategories().size(); i++) {
@@ -397,5 +412,20 @@ public class CategoryApplicationService implements CategoryService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteCategoryById.Result.deleteError(e);
         }
+    }
+
+    private Map<Long, CategoryDto> createCategoryMap(List<CategoryDto> dtos) {
+        Map<Long, CategoryDto> result = new HashMap<>();
+
+        for (CategoryDto dto : dtos) {
+            if (!dto.getChildren().isEmpty()) {
+                Map<Long, CategoryDto> childMap = createCategoryMap(dto.getChildren());
+                result.putAll(childMap);
+            }
+
+            result.put(dto.getId(), dto);
+        }
+
+        return result;
     }
 }

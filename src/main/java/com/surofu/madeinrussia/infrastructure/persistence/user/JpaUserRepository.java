@@ -46,7 +46,7 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public Optional<User> getUserByTelegramUserId(Long telegramUserId) {
-        return repository.findByTelegramUserId(telegramUserId);
+        return repository.findFirstByTelegramUserId(telegramUserId);
     }
 
     @Override

@@ -30,6 +30,11 @@ public class SaveMeAvatar {
             return SaveError.INSTANCE;
         }
 
+        static Result invalidContentType(String contentType) {
+            log.warn("Invalid content type while save user avatar");
+            return SaveError.valueOf(contentType);
+        }
+
         enum Success implements Result {
             INSTANCE;
 
@@ -57,10 +62,21 @@ public class SaveMeAvatar {
             }
         }
 
+        @Value(staticConstructor = "of")
+        class InvalidContentType implements Result {
+            String contentType;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInvalidContentType(this);
+            }
+        }
+
         interface Processor<T> {
             T processSuccess(Success result);
             T processSaveError(SaveError result);
             T processEmptyFile(EmptyFile result);
+            T processInvalidContentType(InvalidContentType result);
         }
     }
 }

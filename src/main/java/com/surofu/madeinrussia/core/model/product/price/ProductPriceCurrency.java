@@ -23,7 +23,7 @@ public final class ProductPriceCurrency implements Serializable {
 
     private ProductPriceCurrency(String currencyString) {
         if (currencyString == null || currencyString.trim().isEmpty()) {
-            throw new LocalizedValidationException("validation.product_price.empty");
+            throw new LocalizedValidationException("validation.product.price.currency.empty");
         }
 
         CurrencyCode currencyCode;
@@ -31,7 +31,7 @@ public final class ProductPriceCurrency implements Serializable {
         try {
             currencyCode = CurrencyCode.valueOf(currencyString);
         } catch (IllegalArgumentException e) {
-            throw new LocalizedValidationException("validation.product_price.type", currencyString);
+            throw new LocalizedValidationException("validation.product.price.currency.type", currencyString);
         }
 
         this.value = currencyCode;

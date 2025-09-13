@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.core.model.product.price;
 
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import com.surofu.madeinrussia.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,11 +29,11 @@ public final class ProductPriceUnit implements Serializable {
 
     private ProductPriceUnit(String unit) {
         if (unit == null || unit.trim().isEmpty()) {
-            throw new IllegalArgumentException("Единицы измерения цены товара не могут быть пустыми");
+            throw new LocalizedValidationException("validation.product.price.unit.empty");
         }
 
         if (unit.length() > 255) {
-            throw new IllegalArgumentException("Единицы измерения цены товара не могут быть больше 255 символов");
+            throw new LocalizedValidationException("validation.product.price.unit.max_length");
         }
 
         this.value = unit;

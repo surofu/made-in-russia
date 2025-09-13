@@ -5,6 +5,7 @@ import com.surofu.madeinrussia.core.model.user.UserEmail;
 import com.surofu.madeinrussia.core.model.user.UserLogin;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
@@ -21,6 +22,7 @@ public class ForceRegisterVendor {
     UserPasswordPassword password;
     UserPhoneNumber phoneNumber;
     VendorDetailsInn inn;
+    VendorDetailsAddress address;
     List<VendorCountryName> countryNames;
     List<VendorProductCategoryName> productCategoryNames;
     UserAvatar avatar;

@@ -23,6 +23,7 @@ public final class ProductPackageOptionName implements Serializable {
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
+    // TODO: Translation
     private ProductPackageOptionName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Название варианта упаковки товара не может быть пустым");

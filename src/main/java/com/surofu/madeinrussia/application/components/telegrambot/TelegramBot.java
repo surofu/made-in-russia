@@ -34,43 +34,56 @@ import java.util.function.Function;
 @Component
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
     private final TelegramBotConfig config;
-    private final LocalizationManager localizationManager;
+//    private final LocalizationManager localizationManager;
     private final TelegramBotRegisterHandler telegramBotRegisterHandler;
     private final TelegramBotLoginHandler telegramBotLoginHandler;
+    private final TelegramBotLinkAccountHandler telegramBotLinkAccountHandler;
     private final Map<String, Function<Update, Void>> comandMap;
-    private final Map<String, Function<Update, Void>> callbackMap;
+    private final Map<String, Function<Update, Void>> registerCallbackMap;
+    private final Map<String, Function<Update, Void>> linkAccountCallbackMap;
     private final UserRepository userRepository;
     private final Map<Long, TempUserObject> userObjectMap = new ConcurrentHashMap<>();
+    private final Map<Long, String> userHandlerMap = new ConcurrentHashMap<>();
 
     public TelegramBot(
             TelegramBotConfig config,
             LocalizationManager localizationManager,
             @Lazy TelegramBotRegisterHandler telegramBotRegisterHandler,
             @Lazy TelegramBotLoginHandler telegramBotLoginHandler,
+            @Lazy TelegramBotLinkAccountHandler telegramBotLinkAccountHandler,
             UserRepository userRepository
     ) {
         super(config.getBotToken());
         this.config = config;
-        this.localizationManager = localizationManager;
+//        this.localizationManager = localizationManager;
         this.telegramBotRegisterHandler = telegramBotRegisterHandler;
         this.telegramBotLoginHandler = telegramBotLoginHandler;
+        this.telegramBotLinkAccountHandler = telegramBotLinkAccountHandler;
         this.comandMap = new ConcurrentHashMap<>();
-        this.callbackMap = new ConcurrentHashMap<>();
+        this.registerCallbackMap = new ConcurrentHashMap<>();
+        this.linkAccountCallbackMap = new ConcurrentHashMap<>();
         this.userRepository = userRepository;
 
-//        comandMap.put("/start", this::register);
         comandMap.put("Отмена ❌", telegramBotRegisterHandler::cancel);
-
-        callbackMap.putAll(Map.of(
+        registerCallbackMap.putAll(Map.of(
                 "/register", telegramBotRegisterHandler::processRegister,
                 "/skip", telegramBotRegisterHandler::skipStep,
                 "/save-data", telegramBotRegisterHandler::processRegister,
                 "/reset", telegramBotRegisterHandler::reset
         ));
+        linkAccountCallbackMap.put(
+                "/link-account", telegramBotLinkAccountHandler::linkAccount
+        );
     }
 
     @Override
     public void onUpdateReceived(Update update) {
+        try {
+            System.out.println("me id: " + this.getMe().getId());
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+
         if (update.hasCallbackQuery()) {
             handleCallbackQuery(update);
             return;
@@ -78,6 +91,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
         if (update.hasMessage()) {
             if (update.getMessage().hasText()) {
+                long chatId = update.getMessage().getChatId();
                 log.info("User id: {}", update.getMessage().getFrom().getId());
                 log.info("Message: {}", update.getMessage().getText());
 
@@ -85,6 +99,14 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
                 if (comandMap.containsKey(text)) {
                     comandMap.get(text).apply(update);
+                } else if (userHandlerMap.containsKey(chatId)) {
+                    String handler = userHandlerMap.get(chatId);
+
+                    if ("register".equals(handler)) {
+                        telegramBotRegisterHandler.processRegister(update);
+                    } else if ("link-account".equals(handler)) {
+                        telegramBotLinkAccountHandler.linkAccount(update);
+                    }
                 } else if (telegramBotRegisterHandler.containsChat(update)) {
                     telegramBotRegisterHandler.processRegister(update);
                 } else {
@@ -103,7 +125,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         long chatId = TelegramBotUtils.safeGetChatId(update);
         String command = update.getCallbackQuery().getData();
 
-
         if ("/login".equals(command)) {
             String callbackId = TelegramBotUtils.saveGetCallbackId(update);
             answerCallback(callbackId, "", false);
@@ -115,14 +136,24 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
             TempUserObject userObject = userObjectMap.get(chatId);
             telegramBotLoginHandler.processLogin(update, userObject.sessionInfo, userObject.locale);
-        } else if (callbackMap.containsKey(command)) {
-            callbackMap.get(command).apply(update);
+        } else if (registerCallbackMap.containsKey(command)) {
+            userHandlerMap.put(chatId, "register");
+            registerCallbackMap.get(command).apply(update);
+        } else if (linkAccountCallbackMap.containsKey(command)) {
+            if (!telegramBotLinkAccountHandler.hasUser(update)) {
+                help(update);
+                return;
+            }
+
+            userHandlerMap.put(chatId, "link-account");
+            linkAccountCallbackMap.get(command).apply(update);
         } else {
+            userHandlerMap.put(chatId, "register");
             telegramBotRegisterHandler.processRegister(update);
         }
     }
 
-    public void register(TelegramUser telegramUser, SessionInfo sessionInfo, Locale locale) {
+    public void authorize(TelegramUser telegramUser, SessionInfo sessionInfo, Locale locale) {
         Optional<User> user = userRepository.getUserByTelegramUserId(telegramUser.id());
 
         if (user.isPresent()) {
@@ -134,7 +165,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     }
 
     private void help(Update update) {
-        long chatId = update.getMessage().getChatId();
+        long chatId = TelegramBotUtils.safeGetChatId(update);
         sendMessage(chatId, """
                 Пожалуйста, перейдите на сайт и выберете вход через телеграм там
                 """, InlineKeyboardBuilder.create()
@@ -169,9 +200,13 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         InlineKeyboardMarkup markup = InlineKeyboardBuilder.create()
                 .row()
                 .button("Зарегистрироваться", "/register")
+                .row()
+                .button("Привязать существующий аккаунт", "/link-account")
                 .build();
 
         telegramBotRegisterHandler.setup(telegramUser, sessionInfo, locale);
+        telegramBotLinkAccountHandler.setup(telegramUser, sessionInfo, locale);
+
         sendMessage(telegramUser.id(), greeting, markup);
     }
 

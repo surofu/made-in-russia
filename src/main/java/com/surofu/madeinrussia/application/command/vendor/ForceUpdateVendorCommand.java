@@ -7,6 +7,7 @@ public record ForceUpdateVendorCommand(
         String login,
         String phoneNumber,
         String inn,
+        String address,
         String description,
         List<String> countries,
         List<String> productCategories,

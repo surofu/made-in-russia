@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.components.telegrambot;
 
+import com.surofu.madeinrussia.application.components.TransliterationManager;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
@@ -11,6 +12,7 @@ import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPassword;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
@@ -86,6 +88,8 @@ public class TelegramBotRegisterHandler {
             this::stepPhoneNumberProcess,
             this::stepInnRequest,
             this::stepInnProcess,
+            this::stepAddressRequest,
+            this::stepAddressProcess,
             this::stepVendorCountriesRequest,
             this::stepVendorCountriesProcess,
             this::stepPasswordRequest,
@@ -110,9 +114,12 @@ public class TelegramBotRegisterHandler {
     }
 
     public void setup(TelegramUser telegramUser, SessionInfo sessionInfo, Locale locale) {
+        RegisterRequest request =  new RegisterRequest();
+        request.avatarUrl = telegramUser.photoUrl();
+
         history.put(telegramUser.id(), new RegisterObject(
                 RegisterStep.BEGIN,
-                new RegisterRequest(),
+                request,
                 sessionInfo,
                 locale
         ));
@@ -219,8 +226,10 @@ public class TelegramBotRegisterHandler {
         // Process
         if ("vendor".equals(accountType)) {
             registerObject.request.userRole = UserRole.ROLE_VENDOR;
-        } else {
+        } else if ("buyer".equals(accountType)) {
             registerObject.request.userRole = UserRole.ROLE_USER;
+        } else {
+            return null;
         }
 
         // Next step
@@ -238,6 +247,15 @@ public class TelegramBotRegisterHandler {
         // Arrange
         long chatId = safeGetChatId(update);
         String login = safeGetText(update);
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
 
         // Validate
         if (StringUtils.trimToNull(login) == null) {
@@ -271,6 +289,15 @@ public class TelegramBotRegisterHandler {
         // Arrange
         long chatId = safeGetChatId(update);
         String email = safeGetText(update).trim().toLowerCase();
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
 
         // Validate
         if (StringUtils.trimToNull(email) == null) {
@@ -333,6 +360,12 @@ public class TelegramBotRegisterHandler {
         long chatId = safeGetChatId(update);
         String region = safeGetText(update);
 
+        if (!COUNTRIES.containsKey(region)) {
+            messageSender.sendMessage(chatId, "Региона \"%s\" нет в списке");
+            prevOrFirstStep(update);
+            return null;
+        }
+
         // Answer
         String callbackId = saveGetCallbackId(update);
         messageSender.answerCallback(callbackId, "", false);
@@ -365,6 +398,24 @@ public class TelegramBotRegisterHandler {
         // Arrange
         long chatId = safeGetChatId(update);
         String phone = safeGetText(update);
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
 
         // Validate
         if (StringUtils.trimToNull(phone) == null) {
@@ -412,6 +463,15 @@ public class TelegramBotRegisterHandler {
         String inn = safeGetText(update);
         RegisterObject registerObject = history.get(chatId);
 
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
+
         // Validate
         if (StringUtils.trimToNull(inn) == null) {
             messageSender.sendMessage(chatId, "ИНН не может быть пустым");
@@ -427,6 +487,51 @@ public class TelegramBotRegisterHandler {
 
         // Act
         registerObject.request.vendor.inn = inn.trim();
+
+        // Next step
+        nextOrFirstStep(update);
+        return null;
+    }
+
+    private Void stepAddressRequest(Update update) {
+        // Arrange
+        long chatId = safeGetChatId(update);
+        RegisterObject registerObject = history.get(chatId);
+
+        if (UserRole.ROLE_USER.equals(registerObject.request.userRole)) {
+            nextOrFirstStep(update, 2);
+            return null;
+        }
+
+        // Act
+        messageSender.sendMessage(chatId, "Пришлите адрес вашей компании");
+        return null;
+    }
+
+    private Void stepAddressProcess(Update update) {
+        // Arrange
+        long chatId = safeGetChatId(update);
+        String address = safeGetText(update);
+        RegisterObject registerObject = history.get(chatId);
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
+
+        // Validate
+        if (StringUtils.trimToNull(address) == null) {
+            messageSender.sendMessage(chatId, "Адрес компании не может быть пустым");
+            prevOrFirstStep(update);
+            return null;
+        }
+
+        // Act
+        registerObject.request.vendor.address = address.trim();
 
         // Next step
         nextOrFirstStep(update);
@@ -505,8 +610,16 @@ public class TelegramBotRegisterHandler {
             // Next step
             nextOrFirstStep(update);
             return null;
-        } else if ("clear".equals(commandOrCountry)) {
+        }
+
+        if ("clear".equals(commandOrCountry)) {
             registerObject.request.vendor.countries.clear();
+            prevOrFirstStep(update);
+            return null;
+        }
+
+        if (!COUNTRIES.containsKey(commandOrCountry)) {
+            messageSender.sendMessage(chatId, "Региона \"%s\" нет в списке");
             prevOrFirstStep(update);
             return null;
         }
@@ -526,6 +639,15 @@ public class TelegramBotRegisterHandler {
         // Arrange
         long chatId = safeGetChatId(update);
         String password = safeGetText(update);
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
 
         // Hide Password
         DeleteMessage deleteMessage = new DeleteMessage();
@@ -569,6 +691,15 @@ public class TelegramBotRegisterHandler {
         // Arrange
         long chatId = safeGetChatId(update);
         String confirmPassword = safeGetText(update);
+
+        if (!update.hasMessage()) {
+            if (update.hasCallbackQuery()) {
+                String callbackId = saveGetCallbackId(update);
+                messageSender.answerCallback(callbackId, "", false);
+            }
+
+            return null;
+        }
 
         // Hide Password
         DeleteMessage deleteMessage = new DeleteMessage();
@@ -741,7 +872,8 @@ public class TelegramBotRegisterHandler {
         return null;
     }
 
-    private Void stepSaveDataProcess(Update update) {
+    @Transactional
+    protected Void stepSaveDataProcess(Update update) {
         // Arrange
         long chatId = safeGetChatId(update);
         RegisterObject registerObject = history.get(chatId);
@@ -811,6 +943,7 @@ public class TelegramBotRegisterHandler {
         user.setTelegramUserId(chatId);
         user.setLogin(userLogin);
         user.setEmail(userEmail);
+        user.setAvatar(UserAvatar.of(StringUtils.trimToNull(request.avatarUrl)));
         user.setPhoneNumber(userPhoneNumber);
 
         if (UserRole.ROLE_VENDOR.equals(request.userRole)) {
@@ -819,6 +952,11 @@ public class TelegramBotRegisterHandler {
             user.setVendorDetails(vendorDetails);
             VendorDetailsInn inn = VendorDetailsInn.of(request.vendor.inn);
             vendorDetails.setInn(inn);
+            VendorDetailsAddress address = VendorDetailsAddress.of(request.vendor.address);
+            vendorDetails.setAddress(address);
+
+            String transliterationLogin = TransliterationManager.transliterate(request.login);
+            user.setLogin(UserLogin.of(transliterationLogin));
 
             for (String countryName : request.vendor.countries) {
                 VendorCountry vendorCountry = new VendorCountry();
@@ -888,11 +1026,10 @@ public class TelegramBotRegisterHandler {
                 Регистрация прошла успешно!
                 """, InlineKeyboardBuilder.create()
                 .row()
-                .urlButton("Вернуться на Exporteru.com", formatedUrl)
+                .urlButton("Вернуться на Exporteru", formatedUrl)
                 .build());
 
-        // Reset
-        clearSteps(update);
+        history.remove(chatId);
         return null;
     }
 
@@ -977,17 +1114,19 @@ public class TelegramBotRegisterHandler {
         PHONE_NUMBER_PROCESS(10),
         INN_REQUEST_REQUEST(11),
         INN_REQUEST_PROCESS(12),
-        VENDOR_COUNTRIES_REQUEST(13),
-        VENDOR_COUNTRIES_PROCESS(14),
-        PASSWORD_REQUEST(15),
-        PASSWORD_PROCESS(16),
-        CONFIRM_PASSWORD_REQUEST(17),
-        CONFIRM_PASSWORD_PROCESS(18),
-        VERIFY_EMAIL_SEND_MAIL(19),
-        VERIFY_EMAIL_REQUEST(20),
-        VERIFY_EMAIL_PROCESS(21),
-        SAVE_DATA_REQUEST(22),
-        SAVE_DATA_PROCESS(23);
+        ADDRESS_REQUEST_REQUEST(13),
+        ADDRESS_REQUEST_PROCESS(14),
+        VENDOR_COUNTRIES_REQUEST(15),
+        VENDOR_COUNTRIES_PROCESS(16),
+        PASSWORD_REQUEST(17),
+        PASSWORD_PROCESS(18),
+        CONFIRM_PASSWORD_REQUEST(19),
+        CONFIRM_PASSWORD_PROCESS(20),
+        VERIFY_EMAIL_SEND_MAIL(21),
+        VERIFY_EMAIL_REQUEST(22),
+        VERIFY_EMAIL_PROCESS(23),
+        SAVE_DATA_REQUEST(24),
+        SAVE_DATA_PROCESS(25);
 
         private final int index;
 
@@ -1042,12 +1181,14 @@ public class TelegramBotRegisterHandler {
         private String password;
         private String region;
         private String phoneNumber;
+        private String avatarUrl;
         private VendorRequest vendor = new VendorRequest();
 
         @NoArgsConstructor
         @AllArgsConstructor
         public static class VendorRequest {
             private String inn;
+            private String address;
             private List<String> countries = new ArrayList<>();
         }
     }

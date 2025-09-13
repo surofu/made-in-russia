@@ -17,6 +17,7 @@ import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.moderation.ApproveStatus;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
@@ -347,6 +348,7 @@ public class MeRestController {
                 command.phoneNumber() != null ? UserPhoneNumber.of(command.phoneNumber()) : null,
                 command.region() != null ? UserRegion.of(command.region()) : null,
                 command.inn() != null ? VendorDetailsInn.of(command.inn()) : null,
+                command.address() != null ? VendorDetailsAddress.of(command.address()) : null,
                 command.description() != null ? VendorDetailsDescription.of(command.description()) : null,
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : null,
                 command.categories() != null ? command.categories().stream().map(VendorProductCategoryName::of).toList() : null,

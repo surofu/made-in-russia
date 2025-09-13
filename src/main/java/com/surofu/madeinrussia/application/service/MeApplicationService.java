@@ -10,7 +10,6 @@ import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.*;
 import com.surofu.madeinrussia.application.enums.FileStorageFolders;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
-import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.media.MediaType;
@@ -96,7 +95,6 @@ public class MeApplicationService implements MeService {
     private final TranslationRepository translationRepository;
     private final ProductRepository productRepository;
 
-    private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final MailService mailService;
     private final DeleteAccountCache deleteAccountCache;
 
@@ -338,6 +336,10 @@ public class MeApplicationService implements MeService {
                 vendorDetails.setInn(operation.getInn());
             }
 
+            if (operation.getAddress() != null) {
+                vendorDetails.setAddress(operation.getAddress());
+            }
+
             if (operation.getDescription() != null) {
                 vendorDetails.setDescription(operation.getDescription());
 
@@ -537,7 +539,13 @@ public class MeApplicationService implements MeService {
         Optional<Session> session = sessionRepository.getSessionById(operation.getSessionId());
 
         if (session.isPresent()) {
-            asyncSessionApplicationService.removeSessionById(operation.getSessionId());
+            try {
+                sessionRepository.deleteSessionById(session.get().getId());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return DeleteMeSessionById.Result.deleteError(e);
+            }
+
             return DeleteMeSessionById.Result.success(operation.getSessionId());
         }
 
@@ -554,7 +562,18 @@ public class MeApplicationService implements MeService {
         String url;
 
         try {
-            url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+            if (operation.getFile().getContentType() == null) {
+                return SaveMeAvatar.Result.invalidContentType("null");
+            }
+
+            if (operation.getFile().getContentType().contains("image")) {
+                url = fileStorageRepository.uploadImageToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+            } else if (operation.getFile().getContentType().contains("video")) {
+                url = fileStorageRepository.uploadVideoToFolder(operation.getFile(), FileStorageFolders.USERS_AVATARS.getValue());
+            } else {
+                return SaveMeAvatar.Result.invalidContentType(operation.getFile().getContentType());
+            }
+
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return SaveMeAvatar.Result.saveError(e);

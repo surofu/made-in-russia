@@ -1,6 +1,7 @@
 package com.surofu.madeinrussia.application.dto.category;
 
 import com.surofu.madeinrussia.core.model.category.Category;
+import com.surofu.madeinrussia.core.model.okved.OkvedCategory;
 import com.surofu.madeinrussia.infrastructure.persistence.category.CategoryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -54,6 +55,8 @@ public final class CategoryDto implements Serializable {
     )
     private String imageUrl;
 
+    private List<String> okved;
+
     @Schema(
             description = "Represents children category",
             type = "array",
@@ -92,6 +95,7 @@ public final class CategoryDto implements Serializable {
                 .id(category.getId())
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
+                .okved(category.getOkvedCategories().stream().map(OkvedCategory::toString).toList())
                 .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
                 .childrenCount(category.getChildrenCount())
                 .children(category.getChildren().stream().map(CategoryDto::of).toList())
@@ -107,6 +111,7 @@ public final class CategoryDto implements Serializable {
                 .slug(category.getSlug().getValue())
                 .name(category.getName().getValue())
                 .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
+                .okved(category.getOkvedCategories().stream().map(OkvedCategory::toString).toList())
                 .childrenCount(category.getChildrenCount())
                 .children(new ArrayList<>())
                 .creationDate(category.getCreationDate().getValue())
@@ -138,6 +143,7 @@ public final class CategoryDto implements Serializable {
                 .slug(this.getSlug())
                 .name(this.getName())
                 .imageUrl(this.getImageUrl() == null ? null : this.getImageUrl())
+                .okved(this.getOkved() == null ? null : this.getOkved())
                 .childrenCount(this.getChildrenCount())
                 .children(this.getChildren().stream().map(CategoryDto::copy).toList())
                 .creationDate(this.getCreationDate())

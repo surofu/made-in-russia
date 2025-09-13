@@ -42,56 +42,67 @@ public final class VendorDetails implements Serializable {
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorPhoneNumber> phoneNumbers = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorEmail> emails = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorSite> sites = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     @OrderBy("position.value")
     private Set<VendorMedia> media = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorCountry> vendorCountries = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorFaq> faq = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
-            mappedBy = "vendorDetails"
+            mappedBy = "vendorDetails",
+            orphanRemoval = true
     )
     private Set<VendorView> vendorViews = new HashSet<>();
 
     @Embedded
     private VendorDetailsInn inn;
+
+    @Embedded
+    private VendorDetailsAddress address;
 
     @Embedded
     private VendorDetailsDescription description = VendorDetailsDescription.of("");

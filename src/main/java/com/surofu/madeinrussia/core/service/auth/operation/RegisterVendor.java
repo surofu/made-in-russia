@@ -2,6 +2,7 @@ package com.surofu.madeinrussia.core.service.auth.operation;
 
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
@@ -21,6 +22,7 @@ public class RegisterVendor {
     UserPhoneNumber userPhoneNumber;
     UserAvatar avatar;
     VendorDetailsInn vendorDetailsInn;
+    VendorDetailsAddress vendorDetailsAddress;
     List<VendorCountryName> vendorCountryNames;
     List<VendorProductCategoryName> vendorProductCategoryNames;
     Locale locale;

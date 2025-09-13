@@ -8,11 +8,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface SpringDataOkvedCategoryRepository extends JpaRepository<OkvedCategory, Long> {
-    List<OkvedCategory> findByCategory_Id(Long categoryId);
+    List<OkvedCategory> findByCategoryId(Long categoryId);
 
-    @Query("""
-    select c from OkvedCategory c
-    where c.category.id in (:ids)
-    """)
-    List<OkvedCategory> findByCategory_Ids(@Param("ids") List<Long> ids);
+    @Query(value = """
+            select
+            c.category_id as categoryId,
+            c.okved_id as okvedId
+            from categories_okved c
+            """, nativeQuery = true)
+    List<OkvedCategoryView> findAllViews();
 }

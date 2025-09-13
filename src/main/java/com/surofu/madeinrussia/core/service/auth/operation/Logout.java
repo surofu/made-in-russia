@@ -13,14 +13,18 @@ public class Logout {
     public interface Result {
         <T> T process(Processor<T> processor);
 
-        static Result success(SimpleResponseMessageDto dto) {
+        static Result success() {
             log.info("Successfully processed logout");
-            return Success.of(dto);
+            return Success.INSTANCE;
         }
 
-        @Value(staticConstructor = "of")
-        class Success implements Result {
-            SimpleResponseMessageDto simpleResponseMessageDto;
+        static Result deleteError(Exception e) {
+            log.error("Error processing logout (deleting session)", e);
+            return DeleteError.INSTANCE;
+        }
+
+        enum Success implements Result {
+            INSTANCE;
 
             @Override
             public <T> T process(Processor<T> processor) {
@@ -28,9 +32,20 @@ public class Logout {
             }
         }
 
+        enum DeleteError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteError(this);
+            }
+        }
+
 
         interface Processor<T> {
             T processSuccess(Success result);
+
+            T processDeleteError(DeleteError result);
         }
     }
 }

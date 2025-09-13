@@ -26,7 +26,7 @@ public class CloudinaryRepository implements FileStorageRepository {
     private int imageMaxHeight;
 
     @Value("${app.compress.image.quality}")
-    private int imageQuality;
+    private float imageQuality;
 
     @Value("${app.compress.video.max-width}")
     private int videoMaxWidth;
@@ -35,7 +35,7 @@ public class CloudinaryRepository implements FileStorageRepository {
     private int videoMaxHeight;
 
     @Value("${app.compress.video.quality}")
-    private int videoQuality;
+    private float videoQuality;
 
     @Override
     public String uploadImageToFolder(MultipartFile file, String folderName) throws IOException {
@@ -127,7 +127,7 @@ public class CloudinaryRepository implements FileStorageRepository {
         return new EagerTransformation()
                 .width(imageMaxWidth)
                 .height(imageMaxHeight)
-                .quality(imageQuality)
+                .quality(imageQuality * 100)
                 .gravity("north")
                 .crop("fill")
                 .fetchFormat("webp");
@@ -137,7 +137,7 @@ public class CloudinaryRepository implements FileStorageRepository {
         return new EagerTransformation()
                 .width(videoMaxWidth)
                 .height(videoMaxHeight)
-                .quality(videoQuality)
+                .quality(videoQuality * 100)
                 .gravity("north")
                 .crop("fill")
                 .fetchFormat("webm");

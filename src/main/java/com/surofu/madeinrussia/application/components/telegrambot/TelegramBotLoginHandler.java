@@ -33,7 +33,7 @@ public class TelegramBotLoginHandler {
     @Value("${app.frontend.oauth.telegram.redirect.success}")
     private String redirectHost;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void processLogin(Update update, SessionInfo sessionInfo, Locale locale) {
         long chatId = TelegramBotUtils.safeGetChatId(update);
         Optional<User> userOptional = userRepository.getUserByTelegramUserId(chatId);

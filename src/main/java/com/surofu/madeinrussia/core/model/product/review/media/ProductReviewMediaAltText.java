@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.review.media;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class ProductReviewMediaAltText implements Serializable {
 
     private ProductReviewMediaAltText(String altText) {
         if (altText == null || altText.trim().isEmpty()) {
-            throw new IllegalArgumentException("Альтернативное описание медиа отзыва не может быть пустым");
+            throw new LocalizedValidationException("validation.media.alt_text.empty");
         }
 
         if (altText.length() > 255) {
-            throw new IllegalArgumentException("Альтернативное описание медиа отзыва не может быть больше 255 символов");
+            throw new LocalizedValidationException("validation.media.alt_text.max_length");
         }
 
         this.value = altText;

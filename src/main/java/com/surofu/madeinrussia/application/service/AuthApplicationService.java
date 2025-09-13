@@ -2,7 +2,7 @@ package com.surofu.madeinrussia.application.service;
 
 import com.surofu.madeinrussia.application.cache.RecoverPasswordRedisCacheManager;
 import com.surofu.madeinrussia.application.cache.UserVerificationRedisCacheManager;
-import com.surofu.madeinrussia.application.dto.SimpleResponseMessageDto;
+import com.surofu.madeinrussia.application.components.TransliterationManager;
 import com.surofu.madeinrussia.application.dto.auth.LoginSuccessDto;
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordDto;
 import com.surofu.madeinrussia.application.dto.auth.RecoverPasswordSuccessDto;
@@ -10,7 +10,6 @@ import com.surofu.madeinrussia.application.dto.auth.VerifyEmailSuccessDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
-import com.surofu.madeinrussia.application.service.async.AsyncSessionApplicationService;
 import com.surofu.madeinrussia.application.utils.AuthUtils;
 import com.surofu.madeinrussia.application.utils.JwtUtils;
 import com.surofu.madeinrussia.core.model.session.Session;
@@ -59,7 +58,6 @@ public class AuthApplicationService implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final VendorDetailsRepository vendorDetailsRepository;
     private final JwtUtils jwtUtils;
-    private final AsyncSessionApplicationService asyncSessionApplicationService;
     private final UserVerificationRedisCacheManager userVerificationRedisCacheManager;
     private final RecoverPasswordRedisCacheManager recoverPasswordRedisCacheManager;
     private final PasswordEncoder passwordEncoder;
@@ -135,17 +133,20 @@ public class AuthApplicationService implements AuthService {
             return RegisterVendor.Result.vendorWithInnAlreadyExists(operation.getVendorDetailsInn());
         }
 
+        String transliterationLogin = TransliterationManager.transliterate(operation.getUserLogin().toString());
+
         User user = new User();
         user.setRole(UserRole.ROLE_VENDOR);
         user.setIsEnabled(UserIsEnabled.of(true));
         user.setEmail(operation.getUserEmail());
-        user.setLogin(operation.getUserLogin());
+        user.setLogin(UserLogin.of(transliterationLogin));
         user.setPhoneNumber(operation.getUserPhoneNumber());
         user.setRegion(operation.getUserRegion());
         user.setAvatar(operation.getAvatar());
 
         VendorDetails vendorDetails = new VendorDetails();
         vendorDetails.setInn(operation.getVendorDetailsInn());
+        vendorDetails.setAddress(operation.getVendorDetailsAddress());
 
         Map<String, List<String>> translationMap = new HashMap<>();
 
@@ -343,16 +344,14 @@ public class AuthApplicationService implements AuthService {
         Long userId = operation.getSecurityUser().getUser().getId();
         SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
 
-        String message = "Успешный выход из аккаунта";
-        SimpleResponseMessageDto responseMessage = SimpleResponseMessageDto.of(message);
+        try {
+            sessionRepository.deleteSessionByUserIdAndDeviceId(userId, sessionDeviceId);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return Logout.Result.deleteError(e);
+        }
 
-        asyncSessionApplicationService.removeSessionByUserIdAndDeviceId(userId, sessionDeviceId)
-                .exceptionally(ex -> {
-                    log.error("Error while removing session", ex);
-                    return null;
-                });
-
-        return Logout.Result.success(responseMessage);
+        return Logout.Result.success();
     }
 
     @Override
@@ -524,6 +523,7 @@ public class AuthApplicationService implements AuthService {
         vendorDetails.setUser(user);
         user.setVendorDetails(vendorDetails);
         vendorDetails.setInn(operation.getInn());
+        vendorDetails.setAddress(operation.getAddress());
 
         List<VendorCountry> vendorCountryList = new ArrayList<>();
 
@@ -627,5 +627,39 @@ public class AuthApplicationService implements AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public LoginWithTelegram.Result loginWithTelegram(LoginWithTelegram operation) {
+        if (operation.getTelegramUser().id() == null) {
+            return LoginWithTelegram.Result.failure(operation.getTelegramUser().firstName());
+        }
+
+        Optional<User> userOptional = userRepository.getUserByTelegramUserId(operation.getTelegramUser().id());
+
+        if (userOptional.isEmpty()) {
+            return LoginWithTelegram.Result.failure(operation.getTelegramUser().firstName());
+        }
+
+        User user = userOptional.get();
+
+        Session session = sessionRepository.getSessionByUserIdAndDeviceId(user.getId(), operation.getSessionInfo().getDeviceId())
+                .orElse(Session.of(operation.getSessionInfo(), user, new Session()));
+
+        try {
+            sessionRepository.save(session);
+        } catch (Exception e) {
+            log.error("Save session error: {}", e.getMessage());
+            return LoginWithTelegram.Result.failure(operation.getTelegramUser().firstName());
+        }
+
+        SecurityUser securityUser = new SecurityUser(user, user.getPassword(), operation.getSessionInfo());
+
+        String accessToken = jwtUtils.generateAccessToken(securityUser);
+        String refreshToken = jwtUtils.generateRefreshToken(securityUser);
+
+        LoginSuccessDto dto = LoginSuccessDto.of(accessToken, refreshToken);
+        return LoginWithTelegram.Result.success(dto, operation.getTelegramUser().firstName());
     }
 }

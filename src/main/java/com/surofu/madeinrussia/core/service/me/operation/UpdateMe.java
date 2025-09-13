@@ -4,6 +4,7 @@ import com.surofu.madeinrussia.application.dto.AbstractAccountDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.core.model.user.UserPhoneNumber;
 import com.surofu.madeinrussia.core.model.user.UserRegion;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
@@ -24,6 +25,7 @@ public class UpdateMe {
     UserPhoneNumber userPhoneNumber;
     UserRegion userRegion;
     VendorDetailsInn inn;
+    VendorDetailsAddress address;
     VendorDetailsDescription description;
     List<VendorCountryName> countryNames;
     List<VendorProductCategoryName> categoryNames;

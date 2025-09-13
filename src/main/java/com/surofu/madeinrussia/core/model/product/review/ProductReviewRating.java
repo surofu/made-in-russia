@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.review;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,7 +19,7 @@ public final class ProductReviewRating implements Serializable {
 
     private ProductReviewRating(Integer rating) {
         if (rating < 0 || rating > 5) {
-            throw new IllegalArgumentException("Рейтинг отзыва должен быть между 0 и 5");
+            throw new LocalizedValidationException("validation.product.review.rating.length");
         }
 
         this.value = rating == 0 ? 1 : rating;

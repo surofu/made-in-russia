@@ -11,14 +11,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.io.InputStream;
+import java.util.*;
 
 @Primary
 @Slf4j
@@ -27,9 +27,10 @@ import java.util.UUID;
 public class S3Repository implements FileStorageRepository {
 
     private final S3Client client;
-    private final S3Presigner presigner;
 
     private final MediaProcessor mediaProcessor;
+    private final String imageTargetExtension = "jpg";
+    private final String videoTargetExtension = "mp4";
     @Value("${s3.endpoint}")
     private String endpoint;
     @Value("${s3.bucket}")
@@ -39,15 +40,15 @@ public class S3Repository implements FileStorageRepository {
 
     @Override
     public String uploadImageToFolder(MultipartFile file, String folderName) throws IOException {
-        var key = createKey(folderName, file.getOriginalFilename());
-//        var resultData = mediaProcessor.processImage(file.getBytes());
-//        System.out.println("len: " + resultData.length);
-        var request = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
+        String key = createKey(folderName, imageTargetExtension);
+        byte[] compressedImage = mediaProcessor.compressImage(file, imageTargetExtension);
+        InputStream inputStream = new ByteArrayInputStream(compressedImage);
+        RequestBody request = RequestBody.fromInputStream(inputStream, compressedImage.length);
 
         client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(file.getContentType())
+                .contentType("image/" + imageTargetExtension)
                 .acl(ObjectCannedACL.PUBLIC_READ)
                 .build(), request);
 
@@ -67,15 +68,16 @@ public class S3Repository implements FileStorageRepository {
     }
 
     @Override
-    public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException {
-        var key = createKey(folderName, file.getOriginalFilename());
-        var resultData = mediaProcessor.processVideo(file.getBytes());
-        var request = RequestBody.fromInputStream(new ByteArrayInputStream(resultData), resultData.length);
+    public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException, InterruptedException {
+        String key = createKey(folderName, videoTargetExtension);
+        byte[] resultData = mediaProcessor.compressVideo(file, videoTargetExtension);
+        InputStream inputStream = new ByteArrayInputStream(resultData);
+        RequestBody request = RequestBody.fromInputStream(inputStream, resultData.length);
 
         client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType("image/webm")
+                .contentType("image/" + videoTargetExtension)
                 .acl(ObjectCannedACL.PUBLIC_READ)
                 .build(), request);
 
@@ -83,7 +85,7 @@ public class S3Repository implements FileStorageRepository {
     }
 
     @Override
-    public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException {
+    public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException, InterruptedException {
         List<String> links = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -112,8 +114,8 @@ public class S3Repository implements FileStorageRepository {
         client.deleteObject(deleteRequest);
     }
 
-    private String createKey(String folderName, String fileName) {
-        return folderName + "/" + UUID.randomUUID() + "_" + fileName;
+    private String createKey(String folderName, String extension) {
+        return folderName + "/" + UUID.randomUUID() + "." + extension;
     }
 
     private String generatePublicUrl(String key) {

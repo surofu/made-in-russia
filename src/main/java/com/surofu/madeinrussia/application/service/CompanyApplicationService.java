@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.application.service;
 
+import com.surofu.madeinrussia.application.components.TransliterationManager;
 import com.surofu.madeinrussia.core.model.okved.OkvedCompany;
 import com.surofu.madeinrussia.core.repository.CategoryRepository;
 import com.surofu.madeinrussia.core.service.company.CompanyService;
@@ -38,6 +39,11 @@ public class CompanyApplicationService implements CompanyService {
         List<OkvedCompany> okvedCompanyList = futures.stream()
                 .map(CompletableFuture::join)
                 .flatMap(List::stream)
+                .map(c -> new OkvedCompany(
+                        TransliterationManager.transliterate(c.name()),
+                        c.inn(),
+                        c.ageInYears()
+                ))
                 .toList();
 
         return GetCompaniesByCategorySlug.Result.success(okvedCompanyList);

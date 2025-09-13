@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.product.price;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -19,11 +20,11 @@ public final class ProductPriceOriginalPrice implements Serializable {
 
     private ProductPriceOriginalPrice(BigDecimal originalPrice) {
         if (originalPrice == null) {
-            throw new IllegalArgumentException("Оригинальная цена товара не может быть пустой");
+            throw new LocalizedValidationException("validation.product.price.original.empty");
         }
 
         if (originalPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Оригинальная цена товара не может быть отрицательной");
+            throw new LocalizedValidationException("validation.product.price.original.negative");
         }
 
         this.value = originalPrice;

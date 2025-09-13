@@ -18,21 +18,21 @@ implements UpdateProductReview.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processSuccess(UpdateProductReview.Result.Success result) {
-        String message = localizationManager.localize("product_review.update.success");
+        String message = localizationManager.localize("product.review.update.success");
         SimpleResponseMessageDto responseMessageDto = SimpleResponseMessageDto.of(message);
         return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> processProductReviewNotFound(UpdateProductReview.Result.ProductReviewNotFound result) {
-        String message = localizationManager.localize("product_review.not_found_by_id_and_product_id", result.getProductReviewId(), result.getProductId());
+        String message = localizationManager.localize("product.review.not_found_by_id_and_product_id", result.getProductReviewId(), result.getProductId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processForbidden(UpdateProductReview.Result.Forbidden result) {
-        String message = localizationManager.localize("product_review.error.not_owner");
+        String message = localizationManager.localize("product.review.error.not_owner");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(errorDto, HttpStatus.FORBIDDEN);
     }
@@ -44,7 +44,7 @@ implements UpdateProductReview.Result.Processor<ResponseEntity<?>> {
 
     @Override
     public ResponseEntity<?> processSaveError(UpdateProductReview.Result.SaveError result) {
-        String message = localizationManager.localize("product_review.save.error");
+        String message = localizationManager.localize("product.review.save.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }

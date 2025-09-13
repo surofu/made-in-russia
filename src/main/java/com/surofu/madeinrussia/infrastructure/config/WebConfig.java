@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.surofu.madeinrussia.application.components.telegrambot.TelegramBot;
+import com.surofu.madeinrussia.application.components.telegrambot.TelegramBotLinkAccountHandler;
 import com.surofu.madeinrussia.application.components.telegrambot.TelegramBotLoginHandler;
 import com.surofu.madeinrussia.application.components.telegrambot.TelegramBotRegisterHandler;
 import com.surofu.madeinrussia.application.utils.LocalizationManager;
@@ -52,6 +53,7 @@ public class WebConfig {
             LocalizationManager localizationManager,
             @Lazy TelegramBotRegisterHandler telegramBotRegisterHandler,
             @Lazy TelegramBotLoginHandler telegramBotLoginHandler,
+            @Lazy TelegramBotLinkAccountHandler telegramBotLinkAccountHandler,
             UserRepository userRepository
     ) {
         return new TelegramBot(
@@ -59,6 +61,7 @@ public class WebConfig {
                 localizationManager,
                 telegramBotRegisterHandler,
                 telegramBotLoginHandler,
+                telegramBotLinkAccountHandler,
                 userRepository
         );
     }

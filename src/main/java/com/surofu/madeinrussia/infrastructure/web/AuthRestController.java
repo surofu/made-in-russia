@@ -8,8 +8,10 @@ import com.surofu.madeinrussia.application.dto.error.ValidationExceptionDto;
 import com.surofu.madeinrussia.application.model.security.SecurityUser;
 import com.surofu.madeinrussia.application.model.session.SessionInfo;
 import com.surofu.madeinrussia.core.model.auth.VerificationCode;
+import com.surofu.madeinrussia.core.model.telegram.TelegramUser;
 import com.surofu.madeinrussia.core.model.user.*;
 import com.surofu.madeinrussia.core.model.user.password.UserPasswordPassword;
+import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.madeinrussia.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.madeinrussia.core.model.vendorDetails.productCategory.VendorProductCategoryName;
@@ -53,7 +55,7 @@ public class AuthRestController {
     private final Register.Result.Processor<ResponseEntity<?>> registerProcessor;
     private final RegisterVendor.Result.Processor<ResponseEntity<?>> registerVendorProcessor;
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
-    private final LoginWithLogin.Result.Processor<ResponseEntity<?>> loginWithLoginProcessor;
+    private final LoginWithTelegram.Result.Processor<ResponseEntity<?>> loginWithTelegramProcessor;
     private final VerifyEmail.Result.Processor<ResponseEntity<?>> verifyEmailProcessor;
     private final Logout.Result.Processor<ResponseEntity<?>> logoutProcessor;
     private final RecoverPassword.Result.Processor<ResponseEntity<?>> recoverPasswordProcessor;
@@ -172,6 +174,7 @@ public class AuthRestController {
                 UserPhoneNumber.of(command.phoneNumber()),
                 UserAvatar.of(command.avatarUrl()),
                 VendorDetailsInn.of(command.inn()),
+                VendorDetailsAddress.of(command.address()),
                 vendorCountryList.stream().map(VendorCountryName::of).toList(),
                 vendorProductCategoryList.stream().map(VendorProductCategoryName::of).toList(),
                 locale
@@ -219,6 +222,16 @@ public class AuthRestController {
                 UserPasswordPassword.of(command.password())
         );
         return authService.loginWithEmail(operation).process(loginWithEmailProcessor);
+    }
+
+    @PostMapping("login-with-telegram")
+    public ResponseEntity<?> loginWithTelegram(
+            @RequestBody TelegramUser telegramUser,
+            HttpServletRequest request
+    ) {
+        SessionInfo sessionInfo = SessionInfo.of(request);
+        LoginWithTelegram operation = LoginWithTelegram.of(telegramUser, sessionInfo);
+        return authService.loginWithTelegram(operation).process(loginWithTelegramProcessor);
     }
 
     @PostMapping("verify-email")
@@ -488,6 +501,7 @@ public class AuthRestController {
                 UserPasswordPassword.of(StringUtils.trimToNull(command.password())),
                 UserPhoneNumber.of(StringUtils.trimToNull(command.phoneNumber())),
                 VendorDetailsInn.of(StringUtils.trimToNull(command.inn())),
+                VendorDetailsAddress.of(StringUtils.trimToNull(command.address())),
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
                 command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>(),
                 UserAvatar.of(StringUtils.trimToNull(command.avatarUrl()))

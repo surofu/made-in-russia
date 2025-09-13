@@ -36,4 +36,11 @@ implements SaveMeAvatar.Result.Processor<ResponseEntity<?>> {
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
+
+    @Override
+    public ResponseEntity<?> processInvalidContentType(SaveMeAvatar.Result.InvalidContentType result) {
+        String message = localizationManager.localize("file_storage.invalid_content_type", result.getContentType());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
 }

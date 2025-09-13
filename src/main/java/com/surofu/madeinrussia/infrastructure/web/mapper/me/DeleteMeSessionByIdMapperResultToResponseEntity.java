@@ -29,4 +29,11 @@ implements DeleteMeSessionById.Result.Processor<ResponseEntity<?>> {
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
+
+    @Override
+    public ResponseEntity<?> processDeleteError(DeleteMeSessionById.Result.DeleteError result) {
+        String message = localizationManager.localize("internal_server_error.unknown");
+        SimpleResponseErrorDto dto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(dto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

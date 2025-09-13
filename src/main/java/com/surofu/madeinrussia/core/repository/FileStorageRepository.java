@@ -10,9 +10,9 @@ public interface FileStorageRepository {
 
     List<String> uploadManyImagesToFolder(String folderName, MultipartFile ...files) throws IOException;
 
-    String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException;
+    String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException, InterruptedException;
 
-    List<String> uploadManyVideosToFolder(String folderName, MultipartFile ...files) throws IOException;
+    List<String> uploadManyVideosToFolder(String folderName, MultipartFile ...files) throws IOException, InterruptedException;
 
     void deleteMediaByLink(String ...links) throws Exception;
 }

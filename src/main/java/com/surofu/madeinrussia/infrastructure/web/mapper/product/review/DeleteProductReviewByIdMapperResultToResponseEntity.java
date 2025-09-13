@@ -18,21 +18,21 @@ public class DeleteProductReviewByIdMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processSuccess(DeleteProductReviewById.Result.Success result) {
-        String message = localizationManager.localize("product_review.delete.success");
+        String message = localizationManager.localize("product.review.delete.success");
         SimpleResponseMessageDto messageDto = SimpleResponseMessageDto.of(message);
         return new ResponseEntity<>(messageDto, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> processNotFound(DeleteProductReviewById.Result.NotFound result) {
-        String message = localizationManager.localize("product_review.not_found_by_id", result.getId());
+        String message = localizationManager.localize("product.review.not_found_by_id", result.getId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<?> processDeleteError(DeleteProductReviewById.Result.DeleteError result) {
-        String message = localizationManager.localize("product_review.delete.error");
+        String message = localizationManager.localize("product.review.delete.error");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }

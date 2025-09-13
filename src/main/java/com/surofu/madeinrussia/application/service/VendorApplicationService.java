@@ -5,7 +5,6 @@ import com.surofu.madeinrussia.application.dto.UserDto;
 import com.surofu.madeinrussia.application.dto.translation.HstoreTranslationDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorDto;
 import com.surofu.madeinrussia.application.dto.vendor.VendorReviewPageDto;
-import com.surofu.madeinrussia.application.service.async.AsyncVendorViewApplicationService;
 import com.surofu.madeinrussia.core.model.product.review.ProductReview;
 import com.surofu.madeinrussia.core.model.user.User;
 import com.surofu.madeinrussia.core.model.vendorDetails.VendorDetails;
@@ -28,6 +27,7 @@ import com.surofu.madeinrussia.core.service.vendor.VendorService;
 import com.surofu.madeinrussia.core.service.vendor.operation.*;
 import com.surofu.madeinrussia.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VendorApplicationService implements VendorService {
@@ -56,8 +57,6 @@ public class VendorApplicationService implements VendorService {
     private final VendorCountryRepository vendorCountryRepository;
     private final VendorProductCategoryRepository vendorProductCategoryRepository;
     private final TranslationRepository translationRepository;
-
-    private final AsyncVendorViewApplicationService asyncVendorViewApplicationService;
 
     @Override
     @Transactional
@@ -83,7 +82,12 @@ public class VendorApplicationService implements VendorService {
                     VendorView vendorView = new VendorView();
                     vendorView.setVendorDetails(vendorDetails);
                     vendorView.setUser(currentUser);
-                    asyncVendorViewApplicationService.saveVendorViewInDatabase(vendorView);
+
+                    try {
+                        vendorViewRepository.save(vendorView);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
             }
         }

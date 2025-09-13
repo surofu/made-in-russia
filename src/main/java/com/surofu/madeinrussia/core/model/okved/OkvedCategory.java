@@ -29,4 +29,9 @@ public final class OkvedCategory implements Serializable {
 
     @Column(name = "okved_id", nullable = false)
     private String okvedId;
+
+    @Override
+    public String toString() {
+        return okvedId;
+    }
 }

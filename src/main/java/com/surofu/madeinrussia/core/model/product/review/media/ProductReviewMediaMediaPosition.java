@@ -18,7 +18,7 @@ public final class ProductReviewMediaMediaPosition implements Serializable {
 
     private ProductReviewMediaMediaPosition(Integer position) {
         if (position < 0) {
-            throw new IllegalArgumentException("Позиция медиа отзыва не может быть пустой");
+            throw new IllegalArgumentException("vendor.media.invalid_position");
         }
 
         this.value = position;

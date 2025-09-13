@@ -46,6 +46,8 @@ public final class VendorDetailsDto implements Serializable {
     )
     private String inn;
 
+    private String address;
+
     private String description;
 
     private List<String> phoneNumbers = new ArrayList<>();
@@ -108,7 +110,8 @@ public final class VendorDetailsDto implements Serializable {
 
         return VendorDetailsDto.builder()
                 .id(vendorDetails.getId())
-                .inn(vendorDetails.getInn().getValue())
+                .inn(vendorDetails.getInn().toString())
+                .address(vendorDetails.getAddress() == null ? null : vendorDetails.getAddress().toString())
                 .description(vendorDetails.getDescription() == null ? null : vendorDetails.getDescription().toString())
                 .phoneNumbers(vendorDetails.getPhoneNumbers().stream().map(VendorPhoneNumber::getPhoneNumber).map(VendorPhoneNumberPhoneNumber::toString).toList())
                 .emails(vendorDetails.getEmails().stream().map(VendorEmail::getEmail).map(VendorEmailEmail::toString).toList())
@@ -132,6 +135,7 @@ public final class VendorDetailsDto implements Serializable {
         return VendorDetailsDto.builder()
                 .id(view.getId())
                 .inn(view.getInn().toString())
+                .address(view.getAddress().toString())
                 .description(view.getDescription() == null ? null : view.getDescription().toString())
                 .viewsCount(view.getViewsCount())
                 .creationDate(view.getCreationDate().getValue())

@@ -17,7 +17,7 @@ public class JpaVendorViewRepository implements VendorViewRepository {
     }
 
     @Override
-    public void saveVendorView(VendorView vendorView) {
+    public void save(VendorView vendorView) {
         repository.save(vendorView);
     }
 

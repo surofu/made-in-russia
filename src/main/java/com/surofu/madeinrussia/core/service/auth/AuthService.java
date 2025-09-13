@@ -20,4 +20,6 @@ public interface AuthService {
     ForceRegister.Result forceRegister(ForceRegister operation);
 
     ForceRegisterVendor.Result forceRegisterVendor(ForceRegisterVendor operation);
+
+    LoginWithTelegram.Result loginWithTelegram(LoginWithTelegram operation);
 }

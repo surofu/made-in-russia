@@ -1,5 +1,6 @@
 package com.surofu.madeinrussia.core.model.vendorDetails.faq;
 
+import com.surofu.madeinrussia.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -18,11 +19,11 @@ public final class VendorFaqAnswer implements Serializable {
 
     private VendorFaqAnswer(String answer) {
         if (answer == null || answer.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ответ не может быть пустым");
+            throw new LocalizedValidationException("validation.faq.answer.empty");
         }
 
         if (answer.length() >= 20_000) {
-            throw new IllegalArgumentException("Ответ не может быть больше 20,000 символов");
+            throw new LocalizedValidationException("validation.faq.answer.max_length");
         }
 
         this.value = answer;
