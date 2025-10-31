@@ -1,5 +1,0 @@
-build:
-  skip: yes
-run:
-  image: sutanisurofu/madeinrussia:latest
-  containerPort: 8080

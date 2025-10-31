@@ -1,0 +1,20 @@
+package com.surofu.exporteru.core.repository;
+
+import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.exporteru.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
+
+import java.util.Collection;
+import java.util.List;
+
+public interface VendorProductCategoryRepository {
+
+    List<VendorProductCategoryView> getAllViewsByVendorDetailsIdAndLang(Long id, String lang);
+
+    void saveAll(Collection<VendorProductCategory> vendorProductCategories);
+
+    void deleteAll(Collection<VendorProductCategory> vendorProductCategories);
+
+    void flush();
+
+    List<VendorProductCategory> getAllByVendorDetailsId(Long id);
+}

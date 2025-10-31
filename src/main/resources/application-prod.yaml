@@ -15,6 +15,10 @@ spring:
         registration:
           google:
             redirect-uri: "https://exporteru.com/api/v1/oauth2/callback/google"
+
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
 app:
   datasource:
     write:
@@ -35,3 +39,4 @@ app:
       leak-detection-threshold: 20000
       auto-commit: false
       idle-timeout: 30000
+

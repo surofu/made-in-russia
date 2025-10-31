@@ -1,0 +1,63 @@
+package com.surofu.exporteru.application.dto.advertisement;
+
+import com.surofu.exporteru.application.dto.translation.TranslationDto;
+import com.surofu.exporteru.application.utils.HstoreParser;
+import com.surofu.exporteru.infrastructure.persistence.advertisement.AdvertisementWithTranslationsView;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public final class AdvertisementWithTranslationsDto implements Serializable {
+
+    private Long id;
+
+    private String title;
+
+    private TranslationDto titleTranslations;
+
+    private String subtitle;
+
+    private TranslationDto subtitleTranslations;
+
+    private String thirdText;
+
+    private TranslationDto thirdTextTranslations;
+
+    private String link;
+
+    private String imageUrl;
+
+    private Boolean isBig;
+
+    private ZonedDateTime expirationDate;
+
+    private ZonedDateTime creationDate;
+
+    private ZonedDateTime lastModificationDate;
+
+    public static AdvertisementWithTranslationsDto of(AdvertisementWithTranslationsView view) {
+        return AdvertisementWithTranslationsDto.builder()
+                .id(view.getId())
+                .title(view.getTitle())
+                .titleTranslations(TranslationDto.of(HstoreParser.fromString(view.getTitleTranslations())))
+                .subtitle(view.getSubtitle())
+                .subtitleTranslations(TranslationDto.of(HstoreParser.fromString(view.getSubtitleTranslations())))
+                .thirdText(view.getThirdText())
+                .thirdTextTranslations(TranslationDto.of(HstoreParser.fromString(view.getThirdTextTranslations())))
+                .imageUrl(view.getImageUrl())
+                .link(view.getLink())
+                .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
+                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
+                .build();
+    }
+}

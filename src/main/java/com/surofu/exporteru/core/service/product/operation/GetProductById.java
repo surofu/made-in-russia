@@ -1,0 +1,58 @@
+package com.surofu.exporteru.core.service.product.operation;
+
+import com.surofu.exporteru.application.dto.product.ProductDto;
+import com.surofu.exporteru.application.model.security.SecurityUser;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
+
+import java.util.Locale;
+
+@Slf4j
+@Value(staticConstructor = "of")
+public class GetProductById {
+    Locale locale;
+    Long productId;
+
+    @Nullable
+    SecurityUser securityUser;
+
+    public interface Result {
+        <T> T process(Processor<T> processor);
+
+        static Result success(ProductDto productDto) {
+            log.info("Successfully processed get product by id: {}", productDto.getId());
+            return Success.of(productDto);
+        }
+
+        static Result notFound(Long productId) {
+            log.warn("Product with ID '{}' not found", productId);
+            return NotFound.of(productId);
+        }
+
+        @Value(staticConstructor = "of")
+        class Success implements Result {
+            ProductDto productDto;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSuccess(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class NotFound implements Result {
+            Long productId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processNotFound(this);
+            }
+        }
+
+        interface Processor<T> {
+            T processSuccess(Success result);
+            T processNotFound(NotFound result);
+        }
+    }
+}

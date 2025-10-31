@@ -16,7 +16,7 @@ server:
 #========= Spring =========#
 spring:
   application:
-    name: MadeInRussia
+    name: Exporteru
   servlet:
     multipart:
       max-file-size: ${UPLOADING_MAX_FILE_SIZE}
@@ -81,6 +81,7 @@ spring:
 
   #========= Mail =========#
   mail:
+    from: ${MAIL_FROM}
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
     username: ${MAIL_USERNAME}
@@ -92,6 +93,9 @@ spring:
         smtp:
           port: 25
           auth: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
           starttls:
             enable: true
             required: true
@@ -155,6 +159,11 @@ app:
       max-width: ${VIDEO_COMPRESS_MAX_WIDTH}
       max-height: ${VIDEO_COMPRESS_MAX_HEIGHT}
       quality: ${VIDEO_COMPRESS_QUALITY}
+    ad:
+      image:
+        max-width: ${AD_IMAGE_COMPRESS_MAX_WIDTH}
+        max-height: ${AD_IMAGE_COMPRESS_MAX_HEIGHT}
+        quality: ${AD_IMAGE_COMPRESS_QUALITY}
   yandex:
     translate:
       uri: https://translate.api.cloud.yandex.net/translate/v2/translate
@@ -165,6 +174,7 @@ app:
   mail:
     support: ${MAIL_SUPPORT}
   frontend:
+    product: ${FRONT_END_HOST}/card
     oauth:
       google:
         redirect:
@@ -179,6 +189,10 @@ telegram:
     enable: ${BOT_ENABLE}
     username: ${BOT_USERNAME}
     token: ${BOT_TOKEN}
+  bot2:
+    enable: ${BOT_2_ENABLE}
+    username: ${BOT_2_USERNAME}
+    token: ${BOT_2_TOKEN}
 
 springdoc:
   swagger-ui:
@@ -195,3 +209,8 @@ s3:
   region: ${S3_REGION}
   bucket: ${S3_BUCKET}
   domain: ${S3_DOMAIN}
+
+#========== CDN ==========#
+bunny:
+  cdn:
+    host: ${BUNNY_CDN_HOST}
