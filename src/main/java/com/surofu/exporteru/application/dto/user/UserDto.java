@@ -1,5 +1,6 @@
-package com.surofu.exporteru.application.dto;
+package com.surofu.exporteru.application.dto.user;
 
+import com.surofu.exporteru.application.dto.AbstractAccountDto;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.infrastructure.persistence.user.UserView;

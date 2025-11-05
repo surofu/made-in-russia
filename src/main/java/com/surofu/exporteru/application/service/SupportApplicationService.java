@@ -47,6 +47,7 @@ public class SupportApplicationService implements SupportService {
             mailService.sendSupportMail(
                     operation.getUsername(),
                     operation.getEmail(),
+                    operation.getPhoneNumber(),
                     subject,
                     body,
                     operation.getMedia()

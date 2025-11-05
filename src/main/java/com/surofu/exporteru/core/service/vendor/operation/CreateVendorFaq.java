@@ -2,7 +2,6 @@ package com.surofu.exporteru.core.service.vendor.operation;
 
 import com.surofu.exporteru.application.dto.vendor.VendorFaqDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
-import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaq;
 import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaqAnswer;
 import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaqQuestion;
 import lombok.Value;

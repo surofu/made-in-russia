@@ -1,7 +1,7 @@
 package com.surofu.exporteru.application.service;
 
-import com.surofu.exporteru.application.dto.AbstractAccountDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.components.TransliterationManager;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.dto.vendor.*;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
@@ -86,6 +86,17 @@ public class VendorApplicationService implements VendorService {
         }
 
         VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
+
+        if (!operation.getLocale().getLanguage().equals("ru")) {
+            String login = vendorDto.getLogin();
+            String address = vendorDto.getVendorDetails().getAddress();
+
+            String translitLogin = TransliterationManager.transliterate(login);
+            String translitAddress = TransliterationManager.transliterate(address);
+
+            vendorDto.setLogin(translitLogin);
+            vendorDto.getVendorDetails().setAddress(translitAddress);
+        }
 
         Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendorDetailsView.getId());
         vendorDto.getVendorDetails().setViewsCount(viewsCount);
@@ -504,7 +515,7 @@ public class VendorApplicationService implements VendorService {
 
         try {
             mailService.sendPhoneRequestMail(email, senderFirstName, senderEmail, senderPhoneNumber);
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             return SendCallRequestMail.Result.sendMailError(e);
         }
 

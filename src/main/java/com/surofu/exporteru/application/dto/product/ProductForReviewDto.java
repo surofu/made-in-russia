@@ -1,7 +1,6 @@
 package com.surofu.exporteru.application.dto.product;
 
 import com.surofu.exporteru.core.model.product.Product;
-import com.surofu.exporteru.core.model.product.review.ProductReview;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

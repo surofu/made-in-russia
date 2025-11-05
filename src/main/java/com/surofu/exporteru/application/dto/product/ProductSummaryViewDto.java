@@ -3,7 +3,7 @@ package com.surofu.exporteru.application.dto.product;
 import com.surofu.exporteru.application.dto.AbstractAccountDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.DeliveryMethodDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.core.view.ProductSummaryView;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;

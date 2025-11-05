@@ -149,15 +149,36 @@ public final class CategoryDto implements Serializable {
     }
 
     public CategoryDto copy() {
+        return copy(4);
+    }
+
+    private CategoryDto copy(int maxDepth) {
+        if (maxDepth <= 0) {
+            return CategoryDto.builder()
+                    .id(this.getId())
+                    .slug(this.getSlug())
+                    .name(this.getName())
+                    .imageUrl(this.getImageUrl())
+                    .iconUrl(this.getIconUrl())
+                    .okved(this.getOkved())
+                    .childrenCount(this.getChildrenCount())
+                    .children(new ArrayList<>())
+                    .creationDate(this.getCreationDate())
+                    .lastModificationDate(this.getLastModificationDate())
+                    .build();
+        }
+
         return CategoryDto.builder()
                 .id(this.getId())
                 .slug(this.getSlug())
                 .name(this.getName())
-                .imageUrl(this.getImageUrl() == null ? null : this.getImageUrl())
-                .iconUrl(this.getIconUrl() == null ? null : this.getIconUrl())
-                .okved(this.getOkved() == null ? null : this.getOkved())
+                .imageUrl(this.getImageUrl())
+                .iconUrl(this.getIconUrl())
+                .okved(this.getOkved() == null ? null : new ArrayList<>(this.getOkved()))
                 .childrenCount(this.getChildrenCount())
-                .children(this.getChildren().stream().map(CategoryDto::copy).toList())
+                .children(this.getChildren().stream()
+                        .map(child -> child.copy(maxDepth - 1))
+                        .toList())
                 .creationDate(this.getCreationDate())
                 .lastModificationDate(this.getLastModificationDate())
                 .build();

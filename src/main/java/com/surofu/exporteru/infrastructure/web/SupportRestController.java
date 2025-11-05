@@ -38,6 +38,7 @@ public class SupportRestController {
         SendSupportMail operation = SendSupportMail.of(
                 command.username(),
                 command.email(),
+                command.phoneNumber(),
                 command.subject(),
                 command.body(),
                 Objects.requireNonNullElse(media, new ArrayList<>())

@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -138,10 +139,10 @@ public class MailApplicationService implements MailService {
     }
 
     @Override
-    public void sendSupportMail(String username, String from, String subject, String content, List<MultipartFile> attachments) throws MessagingException, IOException {
+    public void sendSupportMail(String username, String from, String phoneNumber, String subject, String content, List<MultipartFile> attachments) throws IOException {
         String date = formatDate(LocalDateTime.now());
-        String message = MailTemplates.getSupportMail(username, from, subject, content, date);
-        sendWithMailer(supportMail, subject, message, attachments);
+        String message = MailTemplates.getSupportMail(username, from, phoneNumber, subject, content, date);
+        sendWithMailer("8268363@gmail.com", subject, message, attachments);
     }
 
     @Override
@@ -219,7 +220,7 @@ public class MailApplicationService implements MailService {
                 String filename = attachment.getOriginalFilename();
                 // Обрабатываем кириллицу в именах файлов
                 if (filename != null && containsCyrillic(filename)) {
-                    filename = new String(filename.getBytes("UTF-8"), "UTF-8");
+                    filename = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
                 }
 
                 builder.withAttachment(filename, dataSource);

@@ -1,6 +1,6 @@
 package com.surofu.exporteru.application.dto.session;
 
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.core.model.session.Session;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

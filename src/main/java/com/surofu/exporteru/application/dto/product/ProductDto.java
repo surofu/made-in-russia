@@ -2,6 +2,7 @@ package com.surofu.exporteru.application.dto.product;
 
 import com.surofu.exporteru.application.dto.*;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.ProductDiscountExpirationDate;

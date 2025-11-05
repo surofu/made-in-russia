@@ -1,7 +1,7 @@
 package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.dto.AbstractAccountDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.application.model.security.SecurityUser;
@@ -16,6 +16,7 @@ import com.surofu.exporteru.core.repository.specification.UserSpecifications;
 import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.core.service.user.UserService;
 import com.surofu.exporteru.core.service.user.operation.*;
+import com.surofu.exporteru.infrastructure.persistence.product.JpaProductRepository;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class UserApplicationService implements UserService {
     private final UserRepository userRepository;
     private final FileStorageRepository fileStorageRepository;
     private final MailService mailService;
+    private final JpaProductRepository productRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -207,7 +209,7 @@ public class UserApplicationService implements UserService {
 
         try {
             mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             log.warn(e.getMessage(), e);
         }
         return DeleteUserById.Result.success(operation.getId());
@@ -232,7 +234,7 @@ public class UserApplicationService implements UserService {
         try {
             mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
             return DeleteUserByEmail.Result.success(operation.getEmail());
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
         }
@@ -257,7 +259,7 @@ public class UserApplicationService implements UserService {
         try {
             mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
             return DeleteUserByLogin.Result.success(operation.getLogin());
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
         }

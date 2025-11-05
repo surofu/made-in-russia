@@ -11,6 +11,7 @@ import java.util.List;
 public class SendSupportMail {
     String username;
     String email;
+    String phoneNumber;
     String subject;
     String body;
     List<MultipartFile> media;

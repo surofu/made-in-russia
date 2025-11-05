@@ -1,4 +1,4 @@
-package com.surofu.exporteru.application.dto;
+package com.surofu.exporteru.application.dto.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

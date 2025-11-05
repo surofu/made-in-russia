@@ -17,9 +17,6 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorEmailEmail implements Serializable {
 
-    @Transient
-    private final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-
     @Column(name = "email", nullable = false)
     private String value;
 
@@ -32,6 +29,7 @@ public final class VendorEmailEmail implements Serializable {
             throw new LocalizedValidationException("validation.email.length");
         }
 
+        Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
         if (!EMAIL_PATTERN.matcher(value).matches()) {
             throw new LocalizedValidationException("validation.email.format");
         }

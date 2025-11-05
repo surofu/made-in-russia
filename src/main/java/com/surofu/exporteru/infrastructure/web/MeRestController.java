@@ -4,14 +4,14 @@ import com.surofu.exporteru.application.command.me.RefreshMeCurrentSessionComman
 import com.surofu.exporteru.application.command.me.UpdateMeCommand;
 import com.surofu.exporteru.application.command.me.VerifyDeleteMeCommand;
 import com.surofu.exporteru.application.dto.SimpleResponseMessageDto;
-import com.surofu.exporteru.application.dto.TokenDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.auth.TokenDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.exporteru.application.dto.error.ValidationExceptionDto;
 import com.surofu.exporteru.application.dto.me.GetMeProductReviewPageDto;
 import com.surofu.exporteru.application.dto.me.GetMeVendorProductReviewPageDto;
 import com.surofu.exporteru.application.dto.product.GetProductSummaryViewPageDto;
 import com.surofu.exporteru.application.dto.session.SessionDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.model.session.SessionInfo;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
@@ -88,6 +88,8 @@ public class MeRestController {
     private final DeleteMeVendorMediaById.Result.Processor<ResponseEntity<?>> deleteMeVendorMediaByIdProcessor;
     private final DeleteMeVendorMediaByIdList.Result.Processor<ResponseEntity<?>> deleteMeVendorMediaByIdListProcessor;
     private final DeleteMeReviewById.Result.Processor<ResponseEntity<?>> deleteMeReviewByIdProcessor;
+    private final GetMeFavoriteProducts.Result.Processor<ResponseEntity<?>> getMeFavoriteProductsProcessor;
+    private final ToggleMeFavoriteProductById.Result.Processor<ResponseEntity<?>> toggleMeFavoriteProductByIdProcessor;
 
     @GetMapping
     @SecurityRequirement(name = "Bearer Authentication")
@@ -958,5 +960,27 @@ public class MeRestController {
         Locale locale = LocaleContextHolder.getLocale();
         DeleteMeVendorMediaByIdList operation = DeleteMeVendorMediaByIdList.of(securityUser, Objects.requireNonNullElse(ids, new ArrayList<>()), locale);
         return meService.deleteMeVendorMediaByIdList(operation).process(deleteMeVendorMediaByIdListProcessor);
+    }
+
+    @GetMapping("favorite-products")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> getFavoriteProducts(
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        Locale locale = LocaleContextHolder.getLocale();
+        GetMeFavoriteProducts operation = GetMeFavoriteProducts.of(securityUser, locale);
+        return meService.getMeFavoriteProducts(operation).process(getMeFavoriteProductsProcessor);
+    }
+
+    @PutMapping("favorite-products/{productId}")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<?> toggleFavoriteProductById(
+            @PathVariable Long productId,
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        ToggleMeFavoriteProductById operation = ToggleMeFavoriteProductById.of(productId, securityUser);
+        return meService.toggleFavoriteProductById(operation).process(toggleMeFavoriteProductByIdProcessor);
     }
 }

@@ -26,7 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -41,14 +44,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     @Override
     @Transactional(readOnly = true)
     public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
-        // Check cache
-        String hash = getFirstPageHash(operation);
-        Page<ProductSummaryViewDto> cachedPage = productSummaryCacheManager.getFirstPage(hash);
-
-        if (cachedPage != null) {
-            return GetProductSummaryViewPage.Result.success(cachedPage);
-        }
-
         // Act
         List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
 
@@ -81,12 +76,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
                 .map(p -> ProductSummaryViewDto.of(
                         localizationManager.localizePrice(p, operation.getLocale()),
-                        operation.getLocale().getLanguage())
-                );
-
-        if (validateOperationHash(operation)) {
-            productSummaryCacheManager.setFirstPage(hash, productSummaryViewDtoPage);
-        }
+                        operation.getLocale().getLanguage()
+                ));
 
         return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }

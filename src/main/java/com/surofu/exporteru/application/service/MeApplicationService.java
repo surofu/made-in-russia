@@ -1,8 +1,10 @@
 package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.cache.DeleteAccountCache;
-import com.surofu.exporteru.application.dto.TokenDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.components.TransliterationManager;
+import com.surofu.exporteru.application.dto.auth.TokenDto;
+import com.surofu.exporteru.application.dto.user.ToggleUserFavoriteProductStatusDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.product.ProductReviewDto;
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
 import com.surofu.exporteru.application.dto.session.SessionDto;
@@ -12,7 +14,9 @@ import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.AuthUtils;
 import com.surofu.exporteru.application.utils.JwtUtils;
+import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.media.MediaType;
+import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.session.Session;
 import com.surofu.exporteru.core.model.session.SessionDeviceId;
@@ -97,6 +101,7 @@ public class MeApplicationService implements MeService {
     private final MailService mailService;
     private final DeleteAccountCache deleteAccountCache;
     private final JpaVendorViewRepository vendorViewRepository;
+    private final LocalizationManager localizationManager;
 
     @Value("${app.session.secret}")
     private String sessionSecret;
@@ -125,6 +130,17 @@ public class MeApplicationService implements MeService {
         }
 
         VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
+
+        if (!operation.getLocale().getLanguage().equals("ru")) {
+            String login = vendorDto.getLogin();
+            String address = vendorDto.getVendorDetails().getAddress();
+
+            String translitLogin = TransliterationManager.transliterate(login);
+            String translitAddress = TransliterationManager.transliterate(address);
+
+            vendorDto.setLogin(translitLogin);
+            vendorDto.getVendorDetails().setAddress(translitAddress);
+        }
 
         Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(userView.getVendorDetails().getId());
         vendorDto.getVendorDetails().setViewsCount(viewsCount);
@@ -231,7 +247,10 @@ public class MeApplicationService implements MeService {
 
         Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
         Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
-                .map(p -> ProductSummaryViewDto.of(p, operation.getLocale().getLanguage()));
+                .map(p -> ProductSummaryViewDto.of(
+                        localizationManager.localizePrice(p, operation.getLocale()),
+                        operation.getLocale().getLanguage()
+                ));
 
         return GetMeProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
     }
@@ -928,6 +947,55 @@ public class MeApplicationService implements MeService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return DeleteMeReviewById.Result.deleteError(operation.getId(), user, e);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetMeFavoriteProducts.Result getMeFavoriteProducts(GetMeFavoriteProducts operation) {
+        Long userId = operation.getSecurityUser().getUser().getId();
+        List<ProductSummaryView> products = productSummaryViewRepository.getProductSummaryViewByInUserFavoritesWithUserId(userId);
+        List<ProductSummaryViewDto> dtos = products.stream()
+                .map(p -> ProductSummaryViewDto.of(
+                        localizationManager.localizePrice(p, operation.getLocale()),
+                        operation.getLocale().getLanguage())
+                )
+                .toList();
+
+        dtos.forEach(d -> {
+            System.out.println("Address: " + ((VendorDto) d.getUser()).getVendorDetails().getAddress());
+        });
+
+        return GetMeFavoriteProducts.Result.success(dtos);
+    }
+
+    @Override
+    @Transactional
+    public ToggleMeFavoriteProductById.Result toggleFavoriteProductById(ToggleMeFavoriteProductById operation) {
+        Optional<Product> productOptional = productRepository.getProductById(operation.getProductId());
+
+        if (productOptional.isEmpty()) {
+            return ToggleMeFavoriteProductById.Result.productNotFound(operation.getProductId());
+        }
+
+        Product product = productOptional.get();
+        User user = userRepository.getUserById(operation.getSecurityUser().getUser().getId()).orElseThrow();
+
+        boolean status = productRepository.existsInFavorite(user.getId(), product.getId());
+
+        if (status) {
+            user.getFavoriteProducts().remove(product);
+        } else {
+            user.getFavoriteProducts().add(product);
+        }
+
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ToggleMeFavoriteProductById.Result.saveError(e, user.getEmail(), operation.getProductId());
+        }
+
+        return ToggleMeFavoriteProductById.Result.success(ToggleUserFavoriteProductStatusDto.of(!status));
     }
 
     /* ========== PRIVATE ========== */

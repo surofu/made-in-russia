@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPackageOptionPrice implements Serializable {
 
-    @Column(name = "price", nullable = false, columnDefinition = "decimal(10, 2)")
+    @Column(name = "price", nullable = false, columnDefinition = "decimal(15, 2)")
     private BigDecimal value;
 
     private ProductPackageOptionPrice(BigDecimal price) {

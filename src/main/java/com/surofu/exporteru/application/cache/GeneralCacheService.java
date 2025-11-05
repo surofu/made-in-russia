@@ -15,7 +15,6 @@ public class GeneralCacheService {
     private Duration ttl;
 
     private final String CACHE_NAME = "GENERAL";
-    private final String ALL_CACHE_NAME = "ALL";
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final HashOperations<String, String, GeneralDto> hashOperations;
@@ -43,6 +42,7 @@ public class GeneralCacheService {
     }
 
     private String createHash(Locale locale) {
+        String ALL_CACHE_NAME = "ALL";
         return ALL_CACHE_NAME + "_" + locale.getLanguage();
     }
 }

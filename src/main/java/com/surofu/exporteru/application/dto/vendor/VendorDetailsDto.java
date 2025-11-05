@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.dto.vendor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmailEmail;
@@ -48,6 +49,9 @@ public final class VendorDetailsDto implements Serializable {
     private String inn;
 
     private String address;
+
+    @JsonIgnore
+    private String addressTranslations;
 
     private String description;
 

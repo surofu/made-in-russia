@@ -166,7 +166,7 @@ public final class MailTemplates {
         );
     }
 
-    public static String getSupportMail(String username, String fromMail, String subject, String content, String date) {
+    public static String getSupportMail(String username, String fromMail, String phoneNumber, String subject, String content, String date) {
         return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -250,6 +250,9 @@ public final class MailTemplates {
                         <p><span class="label">Email для связи:</span>
                            <a href="mailto:[%s]">[%s]</a>
                         </p>
+                        <p><span class="label">Телефон для связи:</span>
+                           <strong>%s</strong>
+                        </p>
                         <p><span class="label">Дата и время обращения:</span>%s</p>
                     </div>
                 
@@ -265,7 +268,7 @@ public final class MailTemplates {
                 </div>
                 </body>
                 </html>
-                """.formatted(username, fromMail, fromMail, date, subject, content);
+                """.formatted(username, fromMail, fromMail, phoneNumber, date, subject, content);
     }
 
     private static String getEmailVerificationMessageRu(String code, String expirationDate) {

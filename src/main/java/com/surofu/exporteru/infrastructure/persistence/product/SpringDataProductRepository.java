@@ -332,4 +332,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query("select p from Product p join fetch p.user where p.id = :id")
     Optional<Product> findByIdWithUser(@Param("id") Long productId);
+
+    @Query(value = "select count(f) > 0 from users_favorite_products f where f.user_id = :userId and f.product_id = :productId", nativeQuery = true)
+    boolean existsByIdInUserFavorites(@Param("userId") Long userId, @Param("productId") Long productId);
 }

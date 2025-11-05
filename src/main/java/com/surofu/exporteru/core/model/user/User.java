@@ -59,6 +59,15 @@ public final class User implements Serializable {
     private Set<Product> products = new HashSet<>();
 
     @ToString.Exclude
+    @ManyToMany
+    @JoinTable(
+            name = "users_favorite_products",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    private Set<Product> favoriteProducts = new HashSet<>();
+
+    @ToString.Exclude
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @OneToMany(

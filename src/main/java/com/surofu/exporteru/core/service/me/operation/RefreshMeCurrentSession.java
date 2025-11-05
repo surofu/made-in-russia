@@ -1,6 +1,6 @@
 package com.surofu.exporteru.core.service.me.operation;
 
-import com.surofu.exporteru.application.dto.TokenDto;
+import com.surofu.exporteru.application.dto.auth.TokenDto;
 import com.surofu.exporteru.application.model.session.SessionInfo;
 import com.surofu.exporteru.core.model.session.SessionDeviceId;
 import com.surofu.exporteru.core.model.user.UserEmail;

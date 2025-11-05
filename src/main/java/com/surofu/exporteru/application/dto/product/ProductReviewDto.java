@@ -1,6 +1,6 @@
 package com.surofu.exporteru.application.dto.product;
 
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

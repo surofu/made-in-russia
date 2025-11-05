@@ -1,10 +1,10 @@
 package com.surofu.exporteru.core.repository.specification;
 
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
+import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.view.ProductSummaryView;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 
@@ -153,5 +153,16 @@ public class ProductSummarySpecifications {
 
         List<String> approveStatusNames = Arrays.stream(statuses).map(ApproveStatus::name).toList();
         return (root, query, cb) -> root.get("approveStatus").in(approveStatusNames);
+    }
+
+    public static Specification<ProductSummaryView> inUserFavorite(Long userId) {
+        return (root, query, cb) -> {
+            Subquery<Long> favoriteSubquery = query.subquery(Long.class);
+            Root<User> userRoot = favoriteSubquery.from(User.class);
+            Join<User, ProductSummaryView> favoriteProductsJoin = userRoot.join("favoriteProducts", JoinType.INNER);
+            favoriteSubquery.select(favoriteProductsJoin.get("id"))
+                    .where(cb.equal(userRoot.get("id"), userId));
+            return root.get("id").in(favoriteSubquery);
+        };
     }
 }

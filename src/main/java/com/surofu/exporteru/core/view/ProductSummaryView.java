@@ -6,6 +6,7 @@ import com.surofu.exporteru.application.dto.AbstractAccountDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.converter.DeliveryMethodsConverter;
+import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.currency.CurrencyCode;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import jakarta.persistence.*;
@@ -92,5 +93,25 @@ public final class ProductSummaryView implements Serializable {
         Matcher matcher = pattern.matcher(titleTranslations);
 
         return matcher.find() ? matcher.group(1) : title;
+    }
+
+    public String getAddressByLang(String lang) {
+        if (user instanceof VendorDto vendor) {
+            if (vendor.getVendorDetails() != null && vendor.getVendorDetails().getAddressTranslations() != null) {
+                String addressTranslations = vendor.getVendorDetails().getAddressTranslations();
+                return extractTranslationFromHstore(addressTranslations, lang);
+            }
+        }
+        return null;
+    }
+
+    private String extractTranslationFromHstore(String hstore, String lang) {
+        if (hstore == null || lang == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("\"" + lang + "\"=>\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(hstore);
+        return matcher.find() ? matcher.group(1) : null;
     }
 }

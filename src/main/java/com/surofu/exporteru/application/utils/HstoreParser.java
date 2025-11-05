@@ -3,20 +3,24 @@ package com.surofu.exporteru.application.utils;
 import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import jakarta.annotation.Nullable;
 
-import java.util.Objects;
-
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HstoreParser {
-    private static final Pattern HSTORE_PATTERN = Pattern.compile("\"((?:\\\\\"|[^\"])+)\"\\s*=>\\s*\"((?:\\\\\"|[^\"])*)\"");
+    // Исправленный паттерн без катастрофического backtracking
+    // Используем possessive quantifiers (*+) и atomic groups (?>...)
+    private static final Pattern HSTORE_PATTERN = Pattern.compile(
+            "\"((?:[^\\\\\"]|\\\\.)*+)\"\\s*=>\\s*\"((?:[^\\\\\"]|\\\\.)*+)\""
+    );
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("en", "ru", "zh");
 
     @Nullable
     public static String toString(@Nullable HstoreTranslationDto translation) {
+        String emptyHstore = "\"en\"=>\"\",\"ru\"=>\"\",\"zh\"=>\"\"";
+
         if (translation == null) {
-            return null;
+            return emptyHstore;
         }
 
         // Check if all translations are null or empty
@@ -25,7 +29,7 @@ public class HstoreParser {
                 (translation.textZh() != null && !translation.textZh().trim().isEmpty());
 
         if (!hasAnyContent) {
-            return null;
+            return emptyHstore;
         }
 
         List<String> pairs = new ArrayList<>();
@@ -46,7 +50,7 @@ public class HstoreParser {
             pairs.add(String.format("\"zh\"=>\"%s\"", escapedZh));
         }
 
-        return pairs.isEmpty() ? null : String.join(", ", pairs);
+        return pairs.isEmpty() ? emptyHstore : String.join(", ", pairs);
     }
 
     @Nullable
@@ -89,32 +93,20 @@ public class HstoreParser {
             return "";
         }
 
-        StringBuilder result = new StringBuilder();
-        boolean escape = false;
-
+        // Используем простой посимвольный разбор вместо replace
+        StringBuilder result = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
-
-            if (escape) {
-                switch (c) {
-                    case '\\' -> result.append('\\');
-                    case '"' -> result.append('"');
-                    // Для других escape-последовательностей оставляем как есть
-                    default -> result.append('\\').append(c);
+            if (c == '\\' && i + 1 < value.length()) {
+                char next = value.charAt(i + 1);
+                if (next == '\\' || next == '"') {
+                    result.append(next);
+                    i++; // Пропускаем следующий символ
+                    continue;
                 }
-                escape = false;
-            } else if (c == '\\') {
-                escape = true;
-            } else {
-                result.append(c);
             }
+            result.append(c);
         }
-
-        // Если строка закончилась на escape-символ, добавляем его
-        if (escape) {
-            result.append('\\');
-        }
-
         return result.toString();
     }
 
@@ -132,7 +124,7 @@ public class HstoreParser {
 
         while (matcher.find()) {
             String key = unescapeHstoreValue(matcher.group(1));
-            String value = matcher.group(2); // value будет unescaped в unescapeHstoreValue
+            String value = unescapeHstoreValue(matcher.group(2));
 
             if (SUPPORTED_LANGUAGES.contains(key)) {
                 result.put(key, value);

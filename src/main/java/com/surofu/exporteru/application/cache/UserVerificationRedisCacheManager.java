@@ -124,8 +124,6 @@ public final class UserVerificationRedisCacheManager {
         }
 
         public String getVerificationCode() throws OutOfAttemptsException {
-            System.out.println("Attempts: " + attempts);
-
             if (this.attempts > 0) {
                 this.attempts--;
                 return this.verificationCode;

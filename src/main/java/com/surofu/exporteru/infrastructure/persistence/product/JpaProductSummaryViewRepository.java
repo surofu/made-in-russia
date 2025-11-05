@@ -1,6 +1,7 @@
 package com.surofu.exporteru.infrastructure.persistence.product;
 
 import com.surofu.exporteru.core.repository.ProductSummaryViewRepository;
+import com.surofu.exporteru.core.repository.specification.ProductSummarySpecifications;
 import com.surofu.exporteru.core.view.ProductSummaryView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,5 +29,12 @@ public class JpaProductSummaryViewRepository implements ProductSummaryViewReposi
     @Override
     public Optional<ProductSummaryView> getProductSummaryViewById(Long id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public List<ProductSummaryView> getProductSummaryViewByInUserFavoritesWithUserId(Long userId) {
+        Specification<ProductSummaryView> specification = ProductSummarySpecifications.inUserFavorite(userId);
+        Page<ProductSummaryView> page = repository.findAll(specification, Pageable.unpaged());
+        return page.getContent();
     }
 }

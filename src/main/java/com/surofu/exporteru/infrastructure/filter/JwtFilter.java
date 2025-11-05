@@ -4,7 +4,6 @@ import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.model.session.SessionInfo;
 import com.surofu.exporteru.application.utils.JwtUtils;
 import com.surofu.exporteru.core.model.session.Session;
-import com.surofu.exporteru.core.model.session.SessionDeviceId;
 import com.surofu.exporteru.core.model.user.UserEmail;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.repository.SessionRepository;
@@ -74,7 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Optional<Session> currentSession = sessionRepository.getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionInfo.getDeviceId());
 
                 // Todo: Just for testing
-                if (true || currentSession.isPresent() || sessionSecret.equals(xInternalRequestHeader)) {
+                if (true) {
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             securityUser,
                             null,
@@ -87,17 +86,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     accessToken = jwtUtils.generateAccessToken(securityUser);
                     response.setHeader("Authorization", "Bearer " + accessToken);
 
-//                    SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
-//                    Session oldSession = sessionRepository
-//                            .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
-//                            .orElse(new Session());
-//                    Session session = Session.of(securityUser.getSessionInfo(), securityUser.getUser(), oldSession);
-//
-//                    try {
-//                        sessionRepository.save(session);
-//                    } catch (Exception ex) {
-//                        log.error("Error while saving session: {}", ex.getMessage(), ex);
-//                    }
                 }
             } catch (UsernameNotFoundException ex) {
                 log.warn("User with email '{}' not found", userEmail);

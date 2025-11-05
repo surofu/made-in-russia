@@ -14,4 +14,6 @@ public interface ProductSummaryViewRepository {
     List<ProductSummaryView> getProductSummaryViewByIds(List<Long> ids);
 
     Optional<ProductSummaryView> getProductSummaryViewById(Long id);
+
+    List<ProductSummaryView> getProductSummaryViewByInUserFavoritesWithUserId(Long userId);
 }

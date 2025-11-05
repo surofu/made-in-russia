@@ -43,6 +43,8 @@ public interface ProductRepository {
 
     void deleteByUserId(Long userId);
 
+    boolean existsInFavorite(Long userId, Long productId);
+
     // View
 
     Optional<ProductView> getProductViewByIdAndLangAndApproveStatuses(Long productId, String lang, List<ApproveStatus> approveStatuses);

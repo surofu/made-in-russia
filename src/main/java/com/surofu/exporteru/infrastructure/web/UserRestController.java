@@ -3,7 +3,7 @@ package com.surofu.exporteru.infrastructure.web;
 import com.surofu.exporteru.application.command.user.ChangeUserRoleCommand;
 import com.surofu.exporteru.application.command.user.ForceUpdateUserCommand;
 import com.surofu.exporteru.application.dto.SimpleResponseMessageDto;
-import com.surofu.exporteru.application.dto.UserDto;
+import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.category.UserPageDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.exporteru.core.model.user.*;

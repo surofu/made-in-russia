@@ -1,6 +1,5 @@
 package com.surofu.exporteru.infrastructure.web.mapper.faq;
 
-import com.surofu.exporteru.application.dto.SimpleResponseMessageDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.service.faq.operation.CreateFaq;

@@ -19,6 +19,7 @@ import com.surofu.exporteru.application.dto.vendor.VendorFaqDto;
 import com.surofu.exporteru.application.dto.vendor.VendorProductCategoryDto;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
+import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
@@ -291,30 +292,23 @@ public class ProductApplicationService implements ProductService {
     public CreateProduct.Result createProduct(CreateProduct operation) {
         entityManager.setFlushMode(FlushModeType.COMMIT);
 
+        // Валидация входных данных
+        CreateProduct.Result validationResult = validateOperation(operation);
+        if (validationResult != null) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return validationResult;
+        }
+
         Product product = new Product();
         product.setUser(operation.getSecurityUser().getUser());
 
-        Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
+        // Подготовка переводов
+        Map<String, HstoreTranslationDto> translationMap = prepareTranslations(operation);
 
-        product.setTitle(operation.getProductTitle());
-        translationMap.put(TranslationKeys.TITLE.name(), operation.getProductTitle().getTranslations());
+        // Установка базовых свойств
+        setBasicProductProperties(product, operation);
 
-        product.setDescription(operation.getProductDescription());
-        translationMap.put(TranslationKeys.MAIN_DESCRIPTION.name(), operation.getProductDescription().getMainDescriptionTranslations());
-
-        if (StringUtils.trimToNull(operation.getProductDescription().getFurtherDescription()) != null) {
-            if (isTranslationsPresent(operation.getProductDescription().getFurtherDescriptionTranslations())) {
-                translationMap.put(TranslationKeys.FURTHER_DESCRIPTION.name(), operation.getProductDescription().getFurtherDescriptionTranslations());
-            }
-        }
-
-        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
-        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
-
-        if (operation.getCategoryId() == null) {
-            throw new IllegalArgumentException("Категория товара не может быть пустой");
-        }
-
+        // Установка категории
         Optional<Category> category = categoryRepository.getCategoryById(operation.getCategoryId());
         if (category.isEmpty()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -322,91 +316,28 @@ public class ProductApplicationService implements ProductService {
         }
         product.setCategory(category.get());
 
-        if (operation.getDeliveryMethodIds() == null || operation.getDeliveryMethodIds().isEmpty()) {
-            throw new IllegalArgumentException("Способы доставки товара не могут быть пустыми");
-        }
-
-        Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
-        if (firstNotExistsDeliveryMethodId.isPresent()) {
+        // Установка методов доставки
+        CreateProduct.Result deliveryMethodResult = setDeliveryMethods(product, operation);
+        if (deliveryMethodResult != null) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return CreateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
+            return deliveryMethodResult;
         }
 
-        List<DeliveryMethod> deliveryMethodList = deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
-        product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
-
-        List<ProductPrice> productPriceList = new ArrayList<>();
-        List<String> unitList = new ArrayList<>();
-
-        for (int i = 0; i < operation.getCreateProductPriceCommands().size(); i++) {
-            CreateProductPriceCommand command = operation.getCreateProductPriceCommands().get(i);
-            ProductPrice productPrice = createProductPrice(command, product);
-            productPriceList.add(productPrice);
-            unitList.add(command.unit());
-        }
-
-        List<HstoreTranslationDto> unitTranslationList;
-        try {
-            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
-        } catch (Exception e) {
+        // Создание цен продукта
+        CreateProduct.Result priceResult = createProductPrices(product, operation);
+        if (priceResult != null) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return CreateProduct.Result.translationError(e);
+            return priceResult;
         }
 
-        for (int i = 0; i < unitTranslationList.size(); i++) {
-            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
+        // Установка похожих продуктов
+        CreateProduct.Result similarProductsResult = setSimilarProducts(product, operation);
+        if (similarProductsResult != null) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return similarProductsResult;
         }
 
-        product.setPrices(new HashSet<>(productPriceList));
-
-        Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
-        if (firstNotExistsSimilarProductId.isPresent()) {
-            return CreateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
-        }
-
-        List<Product> similarProducts = productRepository.findAllByIds(operation.getSimilarProductIds());
-        product.setSimilarProducts(new HashSet<>(similarProducts));
-
-        for (int i = 0; i < operation.getCreateProductCharacteristicCommands().size(); i++) {
-            CreateProductCharacteristicCommand command = operation.getCreateProductCharacteristicCommands().get(i);
-
-            if (isTranslationsPresent(command.nameTranslations()) && isTranslationsPresent(command.valueTranslations())) {
-                translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-                translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
-            }
-        }
-
-        for (int i = 0; i < operation.getCreateProductFaqCommands().size(); i++) {
-            CreateProductFaqCommand command = operation.getCreateProductFaqCommands().get(i);
-            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.ofNullable(command.questionTranslations()));
-            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.ofNullable(command.answerTranslations()));
-        }
-
-        for (int i = 0; i < operation.getCreateProductDeliveryMethodDetailsCommands().size(); i++) {
-            CreateProductDeliveryMethodDetailsCommand command = operation.getCreateProductDeliveryMethodDetailsCommands().get(i);
-
-            if (isTranslationsPresent(command.nameTranslations()) && isTranslationsPresent(command.valueTranslations())) {
-                translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-                translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
-            }
-        }
-
-        for (int i = 0; i < operation.getCreateProductPackageOptionCommands().size(); i++) {
-            CreateProductPackageOptionCommand command = operation.getCreateProductPackageOptionCommands().get(i);
-
-            if (isTranslationsPresent(command.nameTranslations())) {
-                translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-            }
-        }
-
-        for (int i = 0; i < operation.getCreateProductMediaAltTextCommands().size(); i++) {
-            CreateProductMediaAltTextCommand command = operation.getCreateProductMediaAltTextCommands().get(i);
-
-            if (isTranslationsPresent(command.translations())) {
-                translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i), HstoreTranslationDto.ofNullable(command.translations()));
-            }
-        }
-
+        // Расширение переводов
         Map<String, HstoreTranslationDto> resultMap;
         try {
             resultMap = translationRepository.expand(translationMap);
@@ -418,158 +349,19 @@ public class ProductApplicationService implements ProductService {
             return CreateProduct.Result.translationError(e);
         }
 
-        HstoreTranslationDto translatedTitle = resultMap.get(TranslationKeys.TITLE.name());
-        product.getTitle().setTranslations(translatedTitle);
+        // Применение переводов
+        applyTranslations(product, operation, resultMap);
 
-        HstoreTranslationDto translatedMainDescription = resultMap.get(TranslationKeys.MAIN_DESCRIPTION.name());
-        HstoreTranslationDto translatedFurtherDescription = resultMap.get(TranslationKeys.FURTHER_DESCRIPTION.name());
-        product.getDescription().setMainDescriptionTranslations(translatedMainDescription);
-        product.getDescription().setFurtherDescriptionTranslations(translatedFurtherDescription);
-
-        Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>(operation.getCreateProductCharacteristicCommands().size());
-        for (int i = 0; i < operation.getCreateProductCharacteristicCommands().size(); i++) {
-            if (!resultMap.containsKey(TranslationKeys.CHARACTERISTIC_NAME.with(i))) {
-                continue;
-            }
-
-            CreateProductCharacteristicCommand command = operation.getCreateProductCharacteristicCommands().get(i);
-            ProductCharacteristic productCharacteristic = createProductCharacteristic(command, product);
-            HstoreTranslationDto translatedCharacteristicName = resultMap.get(TranslationKeys.CHARACTERISTIC_NAME.with(i));
-            HstoreTranslationDto translatedCharacteristicValue = resultMap.get(TranslationKeys.CHARACTERISTIC_VALUE.with(i));
-            productCharacteristic.getName().setTranslations(translatedCharacteristicName);
-            productCharacteristic.getValue().setTranslations(translatedCharacteristicValue);
-            productCharacteristicSet.add(productCharacteristic);
-        }
-        product.setCharacteristics(productCharacteristicSet);
-
-        Set<ProductFaq> productFaqSet = new HashSet<>(operation.getCreateProductFaqCommands().size());
-        for (int i = 0; i < operation.getCreateProductFaqCommands().size(); i++) {
-            if (!resultMap.containsKey(TranslationKeys.FAQ_QUESTION.with(i))) {
-                continue;
-            }
-
-            CreateProductFaqCommand command = operation.getCreateProductFaqCommands().get(i);
-            ProductFaq productFaq = createProductFaq(command, product);
-            HstoreTranslationDto translatedFaqQuestion = resultMap.get(TranslationKeys.FAQ_QUESTION.with(i));
-            HstoreTranslationDto translatedFaqAnswer = resultMap.get(TranslationKeys.FAQ_ANSWER.with(i));
-            productFaq.getQuestion().setTranslations(translatedFaqQuestion);
-            productFaq.getAnswer().setTranslations(translatedFaqAnswer);
-            productFaqSet.add(productFaq);
-        }
-        product.setFaq(productFaqSet);
-
-        Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>(operation.getCreateProductDeliveryMethodDetailsCommands().size());
-        for (int i = 0; i < operation.getCreateProductDeliveryMethodDetailsCommands().size(); i++) {
-            if (!resultMap.containsKey(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i))) {
-                continue;
-            }
-
-            CreateProductDeliveryMethodDetailsCommand command = operation.getCreateProductDeliveryMethodDetailsCommands().get(i);
-            ProductDeliveryMethodDetails productDeliveryMethodDetails = createProductDeliveryMethodDetails(command, product);
-            HstoreTranslationDto translatedDeliveryMethodDetailsName = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i));
-            HstoreTranslationDto translatedDeliveryMethodDetailsValue = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i));
-            productDeliveryMethodDetails.getName().setTranslations(translatedDeliveryMethodDetailsName);
-            productDeliveryMethodDetails.getValue().setTranslations(translatedDeliveryMethodDetailsValue);
-            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
-        }
-        product.setDeliveryMethodDetails(productDeliveryMethodDetailsSet);
-
-        Set<ProductPackageOption> productPackageOptionSet = new HashSet<>(operation.getCreateProductPackageOptionCommands().size());
-        for (int i = 0; i < operation.getCreateProductPackageOptionCommands().size(); i++) {
-            if (!resultMap.containsKey(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i))) {
-                continue;
-            }
-
-            CreateProductPackageOptionCommand command = operation.getCreateProductPackageOptionCommands().get(i);
-            ProductPackageOption productPackageOption = createProductPackageOption(command, product);
-            HstoreTranslationDto translatedPackageOptionName = resultMap.get(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i));
-            productPackageOption.getName().setTranslations(translatedPackageOptionName);
-            productPackageOptionSet.add(productPackageOption);
-        }
-        product.setPackageOptions(productPackageOptionSet);
-
-        List<CompletableFuture<String>> allMediaFutureList = new ArrayList<>(operation.getProductMedia().size() + operation.getProductVendorDetailsMedia().size());
-        List<ProductMedia> productMediaList = new ArrayList<>(operation.getProductMedia().size());
-
-        for (int i = 0; i < operation.getProductMedia().size(); i++) {
-            MultipartFile file = operation.getProductMedia().get(i);
-            ProductMedia productMedia = new ProductMedia();
-            productMedia.setProduct(product);
-            productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-            productMedia.setPosition(ProductMediaPosition.of(i));
-
-            ProductMediaAltText altText = ProductMediaAltText.of(file.getOriginalFilename());
-            HstoreTranslationDto altTextTranslations;
-
-            if (i < operation.getCreateProductMediaAltTextCommands().size()) {
-                HstoreTranslationDto translatedAltText = resultMap.get(TranslationKeys.MEDIA_ALT_TEXT.with(i));
-                altTextTranslations = translatedAltText != null ? translatedAltText :
-                        new HstoreTranslationDto(file.getOriginalFilename(), file.getOriginalFilename(), file.getOriginalFilename());
-            } else {
-                altTextTranslations = new HstoreTranslationDto(file.getOriginalFilename(), file.getOriginalFilename(), file.getOriginalFilename());
-            }
-
-            altText.setTranslations(altTextTranslations);
-            productMedia.setAltText(altText);
-
-            if (file.getContentType() == null) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return CreateProduct.Result.invalidMediaType("null");
-            }
-
-            FileStorageFolders folderName;
-            if (file.getContentType().startsWith("image/")) {
-                productMedia.setMediaType(MediaType.IMAGE);
-                folderName = FileStorageFolders.PRODUCT_IMAGES;
-            } else if (file.getContentType().startsWith("video/")) {
-                productMedia.setMediaType(MediaType.VIDEO);
-                folderName = FileStorageFolders.PRODUCT_VIDEOS;
-            } else {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return CreateProduct.Result.invalidMediaType(file.getContentType());
-            }
-
-            CompletableFuture<String> productMediaFuture = CompletableFuture.supplyAsync(
-                    () -> {
-                        try {
-                            return fileStorageRepository.uploadImageToFolder(file, folderName.getValue());
-                        } catch (Exception e) {
-                            throw new CompletionException(e);
-                        }
-                    },
-                    appTaskExecutor
-            );
-
-            productMediaList.add(productMedia);
-            allMediaFutureList.add(productMediaFuture);
-        }
-
-        product.setMedia(new HashSet<>(productMediaList));
-
-        CompletableFuture<Void> allMediaFuture = CompletableFuture.allOf(allMediaFutureList.toArray(CompletableFuture[]::new));
-
-        try {
-            allMediaFuture.join();
-            for (int i = 0; i < operation.getProductMedia().size(); i++) {
-                String url = allMediaFutureList.get(i).get();
-                productMediaList.get(i).setUrl(ProductMediaUrl.of(url));
-                if (i == 0) {
-                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                }
-            }
-        } catch (Exception e) {
+        // Загрузка медиа
+        CreateProduct.Result mediaResult = uploadProductMedia(product, operation, resultMap);
+        if (mediaResult != null) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return CreateProduct.Result.errorSavingFiles(e);
+            return mediaResult;
         }
 
+        // Сохранение продукта и связанных сущностей
         try {
-            saveProduct(product);
-            productCharacteristicRepository.saveAll(productCharacteristicSet);
-            productFaqRepository.saveAll(productFaqSet);
-            productPriceRepository.saveAll(productPriceList);
-            productDeliveryMethodDetailsRepository.saveAll(productDeliveryMethodDetailsSet);
-            productPackageOptionsRepository.saveAll(productPackageOptionSet);
-            productMediaRepository.saveAll(productMediaList);
+            saveProductAndRelatedEntities(product);
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProduct.Result.errorSavingProduct(e);
@@ -580,13 +372,410 @@ public class ProductApplicationService implements ProductService {
         return CreateProduct.Result.success();
     }
 
+    private CreateProduct.Result validateOperation(CreateProduct operation) {
+        if (operation.getCategoryId() == null) {
+            throw new IllegalArgumentException("Категория товара не может быть пустой");
+        }
+
+        if (operation.getDeliveryMethodIds() == null || operation.getDeliveryMethodIds().isEmpty()) {
+            throw new IllegalArgumentException("Способы доставки товара не могут быть пустыми");
+        }
+
+        return null;
+    }
+
+    private Map<String, HstoreTranslationDto> prepareTranslations(CreateProduct operation) {
+        Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
+
+        translationMap.put(TranslationKeys.TITLE.name(), operation.getProductTitle().getTranslations());
+        translationMap.put(TranslationKeys.MAIN_DESCRIPTION.name(),
+                operation.getProductDescription().getMainDescriptionTranslations());
+
+        if (StringUtils.trimToNull(operation.getProductDescription().getFurtherDescription()) != null) {
+            if (isTranslationsPresent(operation.getProductDescription().getFurtherDescriptionTranslations())) {
+                translationMap.put(TranslationKeys.FURTHER_DESCRIPTION.name(),
+                        operation.getProductDescription().getFurtherDescriptionTranslations());
+            }
+        }
+
+        addCharacteristicTranslations(translationMap, operation.getCreateProductCharacteristicCommands());
+        addFaqTranslations(translationMap, operation.getCreateProductFaqCommands());
+        addDeliveryMethodDetailsTranslations(translationMap, operation.getCreateProductDeliveryMethodDetailsCommands());
+        addPackageOptionTranslations(translationMap, operation.getCreateProductPackageOptionCommands());
+        addMediaAltTextTranslations(translationMap, operation.getCreateProductMediaAltTextCommands());
+
+        return translationMap;
+    }
+
+    private void addCharacteristicTranslations(Map<String, HstoreTranslationDto> translationMap,
+                                               List<CreateProductCharacteristicCommand> commands) {
+        for (int i = 0; i < commands.size(); i++) {
+            CreateProductCharacteristicCommand command = commands.get(i);
+            if (isTranslationsPresent(command.nameTranslations()) && isTranslationsPresent(command.valueTranslations())) {
+                translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i),
+                        HstoreTranslationDto.ofNullable(command.nameTranslations()));
+                translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i),
+                        HstoreTranslationDto.ofNullable(command.valueTranslations()));
+            }
+        }
+    }
+
+    private void addFaqTranslations(Map<String, HstoreTranslationDto> translationMap,
+                                    List<CreateProductFaqCommand> commands) {
+        for (int i = 0; i < commands.size(); i++) {
+            CreateProductFaqCommand command = commands.get(i);
+            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i),
+                    HstoreTranslationDto.ofNullable(command.questionTranslations()));
+            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i),
+                    HstoreTranslationDto.ofNullable(command.answerTranslations()));
+        }
+    }
+
+    private void addDeliveryMethodDetailsTranslations(Map<String, HstoreTranslationDto> translationMap,
+                                                      List<CreateProductDeliveryMethodDetailsCommand> commands) {
+        for (int i = 0; i < commands.size(); i++) {
+            CreateProductDeliveryMethodDetailsCommand command = commands.get(i);
+            if (isTranslationsPresent(command.nameTranslations()) && isTranslationsPresent(command.valueTranslations())) {
+                translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i),
+                        HstoreTranslationDto.ofNullable(command.nameTranslations()));
+                translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i),
+                        HstoreTranslationDto.ofNullable(command.valueTranslations()));
+            }
+        }
+    }
+
+    private void addPackageOptionTranslations(Map<String, HstoreTranslationDto> translationMap,
+                                              List<CreateProductPackageOptionCommand> commands) {
+        for (int i = 0; i < commands.size(); i++) {
+            CreateProductPackageOptionCommand command = commands.get(i);
+            if (isTranslationsPresent(command.nameTranslations())) {
+                translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i),
+                        HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            }
+        }
+    }
+
+    private void addMediaAltTextTranslations(Map<String, HstoreTranslationDto> translationMap,
+                                             List<CreateProductMediaAltTextCommand> commands) {
+        for (int i = 0; i < commands.size(); i++) {
+            CreateProductMediaAltTextCommand command = commands.get(i);
+            if (isTranslationsPresent(command.translations())) {
+                translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i),
+                        HstoreTranslationDto.ofNullable(command.translations()));
+            }
+        }
+    }
+
+    private void setBasicProductProperties(Product product, CreateProduct operation) {
+        product.setTitle(operation.getProductTitle());
+        product.setDescription(operation.getProductDescription());
+        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
+        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
+    }
+
+    private CreateProduct.Result setDeliveryMethods(Product product, CreateProduct operation) {
+        Optional<Long> firstNotExistsDeliveryMethodId =
+                deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
+        if (firstNotExistsDeliveryMethodId.isPresent()) {
+            return CreateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
+        }
+
+        List<DeliveryMethod> deliveryMethodList =
+                deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+        product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
+        return null;
+    }
+
+    private CreateProduct.Result createProductPrices(Product product, CreateProduct operation) {
+        List<ProductPrice> productPriceList = new ArrayList<>();
+        List<String> unitList = new ArrayList<>();
+
+        for (CreateProductPriceCommand command : operation.getCreateProductPriceCommands()) {
+            ProductPrice productPrice = createProductPrice(command, product);
+            productPriceList.add(productPrice);
+            unitList.add(command.unit());
+        }
+
+        List<HstoreTranslationDto> unitTranslationList;
+        try {
+            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
+        } catch (Exception e) {
+            return CreateProduct.Result.translationError(e);
+        }
+
+        for (int i = 0; i < unitTranslationList.size(); i++) {
+            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
+        }
+
+        product.setPrices(new HashSet<>(productPriceList));
+        return null;
+    }
+
+    private CreateProduct.Result setSimilarProducts(Product product, CreateProduct operation) {
+        Optional<Long> firstNotExistsSimilarProductId =
+                productRepository.firstNotExists(operation.getSimilarProductIds());
+        if (firstNotExistsSimilarProductId.isPresent()) {
+            return CreateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
+        }
+
+        List<Product> similarProducts = productRepository.findAllByIds(operation.getSimilarProductIds());
+        product.setSimilarProducts(new HashSet<>(similarProducts));
+        return null;
+    }
+
+    private void applyTranslations(Product product, CreateProduct operation,
+                                   Map<String, HstoreTranslationDto> resultMap) {
+        applyTitleAndDescriptionTranslations(product, resultMap);
+        applyCharacteristicTranslations(product, operation, resultMap);
+        applyFaqTranslations(product, operation, resultMap);
+        applyDeliveryMethodDetailsTranslations(product, operation, resultMap);
+        applyPackageOptionTranslations(product, operation, resultMap);
+    }
+
+    private void applyTitleAndDescriptionTranslations(Product product,
+                                                      Map<String, HstoreTranslationDto> resultMap) {
+        HstoreTranslationDto translatedTitle = resultMap.get(TranslationKeys.TITLE.name());
+        product.getTitle().setTranslations(translatedTitle);
+
+        HstoreTranslationDto translatedMainDescription = resultMap.get(TranslationKeys.MAIN_DESCRIPTION.name());
+        HstoreTranslationDto translatedFurtherDescription = resultMap.get(TranslationKeys.FURTHER_DESCRIPTION.name());
+        product.getDescription().setMainDescriptionTranslations(translatedMainDescription);
+        product.getDescription().setFurtherDescriptionTranslations(translatedFurtherDescription);
+    }
+
+    private void applyCharacteristicTranslations(Product product, CreateProduct operation,
+                                                 Map<String, HstoreTranslationDto> resultMap) {
+        Set<ProductCharacteristic> characteristicSet = new HashSet<>();
+        List<CreateProductCharacteristicCommand> commands = operation.getCreateProductCharacteristicCommands();
+
+        for (int i = 0; i < commands.size(); i++) {
+            if (!resultMap.containsKey(TranslationKeys.CHARACTERISTIC_NAME.with(i))) {
+                continue;
+            }
+
+            CreateProductCharacteristicCommand command = commands.get(i);
+            ProductCharacteristic characteristic = createProductCharacteristic(command, product);
+
+            HstoreTranslationDto translatedName = resultMap.get(TranslationKeys.CHARACTERISTIC_NAME.with(i));
+            HstoreTranslationDto translatedValue = resultMap.get(TranslationKeys.CHARACTERISTIC_VALUE.with(i));
+
+            characteristic.getName().setTranslations(translatedName);
+            characteristic.getValue().setTranslations(translatedValue);
+            characteristicSet.add(characteristic);
+        }
+        product.setCharacteristics(characteristicSet);
+    }
+
+    private void applyFaqTranslations(Product product, CreateProduct operation,
+                                      Map<String, HstoreTranslationDto> resultMap) {
+        Set<ProductFaq> faqSet = new HashSet<>();
+        List<CreateProductFaqCommand> commands = operation.getCreateProductFaqCommands();
+
+        for (int i = 0; i < commands.size(); i++) {
+            if (!resultMap.containsKey(TranslationKeys.FAQ_QUESTION.with(i))) {
+                continue;
+            }
+
+            CreateProductFaqCommand command = commands.get(i);
+            ProductFaq faq = createProductFaq(command, product);
+
+            HstoreTranslationDto translatedQuestion = resultMap.get(TranslationKeys.FAQ_QUESTION.with(i));
+            HstoreTranslationDto translatedAnswer = resultMap.get(TranslationKeys.FAQ_ANSWER.with(i));
+
+            faq.getQuestion().setTranslations(translatedQuestion);
+            faq.getAnswer().setTranslations(translatedAnswer);
+            faqSet.add(faq);
+        }
+        product.setFaq(faqSet);
+    }
+
+    private void applyDeliveryMethodDetailsTranslations(Product product, CreateProduct operation,
+                                                        Map<String, HstoreTranslationDto> resultMap) {
+        Set<ProductDeliveryMethodDetails> detailsSet = new HashSet<>();
+        List<CreateProductDeliveryMethodDetailsCommand> commands =
+                operation.getCreateProductDeliveryMethodDetailsCommands();
+
+        for (int i = 0; i < commands.size(); i++) {
+            if (!resultMap.containsKey(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i))) {
+                continue;
+            }
+
+            CreateProductDeliveryMethodDetailsCommand command = commands.get(i);
+            ProductDeliveryMethodDetails details = createProductDeliveryMethodDetails(command, product);
+
+            HstoreTranslationDto translatedName = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i));
+            HstoreTranslationDto translatedValue = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i));
+
+            details.getName().setTranslations(translatedName);
+            details.getValue().setTranslations(translatedValue);
+            detailsSet.add(details);
+        }
+        product.setDeliveryMethodDetails(detailsSet);
+    }
+
+    private void applyPackageOptionTranslations(Product product, CreateProduct operation,
+                                                Map<String, HstoreTranslationDto> resultMap) {
+        Set<ProductPackageOption> optionSet = new HashSet<>();
+        List<CreateProductPackageOptionCommand> commands = operation.getCreateProductPackageOptionCommands();
+
+        for (int i = 0; i < commands.size(); i++) {
+            if (!resultMap.containsKey(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i))) {
+                continue;
+            }
+
+            CreateProductPackageOptionCommand command = commands.get(i);
+            ProductPackageOption option = createProductPackageOption(command, product);
+
+            HstoreTranslationDto translatedName = resultMap.get(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i));
+            option.getName().setTranslations(translatedName);
+            optionSet.add(option);
+        }
+        product.setPackageOptions(optionSet);
+    }
+
+    private CreateProduct.Result uploadProductMedia(Product product, CreateProduct operation,
+                                                    Map<String, HstoreTranslationDto> resultMap) {
+        List<CompletableFuture<String>> mediaFutureList = new ArrayList<>(operation.getProductMedia().size());
+        List<ProductMedia> productMediaList = new ArrayList<>(operation.getProductMedia().size());
+
+        for (int i = 0; i < operation.getProductMedia().size(); i++) {
+            MultipartFile file = operation.getProductMedia().get(i);
+
+            if (file.getContentType() == null) {
+                return CreateProduct.Result.invalidMediaType("null");
+            }
+
+            ProductMedia productMedia;
+
+            try {
+                productMedia = createProductMedia(file, product, i, operation, resultMap);
+            } catch (IllegalArgumentException e) {
+                return CreateProduct.Result.invalidMediaType(file.getContentType());
+            }
+
+            FileStorageFolders folderName = determineMediaFolder(file);
+            if (folderName == null) {
+                return CreateProduct.Result.invalidMediaType(file.getContentType());
+            }
+
+            CompletableFuture<String> mediaFuture = uploadMediaAsync(file, folderName);
+            productMediaList.add(productMedia);
+            mediaFutureList.add(mediaFuture);
+        }
+
+        product.setMedia(new HashSet<>(productMediaList));
+
+        return waitForMediaUploads(productMediaList, mediaFutureList, product);
+    }
+
+    private ProductMedia createProductMedia(MultipartFile file, Product product, int index,
+                                            CreateProduct operation, Map<String, HstoreTranslationDto> resultMap) throws IllegalArgumentException {
+        ProductMedia productMedia = new ProductMedia();
+        productMedia.setProduct(product);
+        productMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+        productMedia.setPosition(ProductMediaPosition.of(index));
+
+        ProductMediaAltText altText = ProductMediaAltText.of(file.getOriginalFilename());
+        HstoreTranslationDto altTextTranslations = getAltTextTranslations(file, index, operation, resultMap);
+        altText.setTranslations(altTextTranslations);
+        productMedia.setAltText(altText);
+
+        String contentType = file.getContentType();
+
+        if (contentType == null) {
+            throw new IllegalArgumentException("Empty content type");
+        }
+
+        if (contentType.startsWith("image/")) {
+            productMedia.setMediaType(MediaType.IMAGE);
+        } else if (contentType.startsWith("video/")) {
+            productMedia.setMediaType(MediaType.VIDEO);
+        } else {
+            throw new IllegalArgumentException("Unsupported content type: " + contentType);
+        }
+
+        return productMedia;
+    }
+
+    private HstoreTranslationDto getAltTextTranslations(MultipartFile file, int index,
+                                                        CreateProduct operation,
+                                                        Map<String, HstoreTranslationDto> resultMap) {
+        if (index < operation.getCreateProductMediaAltTextCommands().size()) {
+            HstoreTranslationDto translatedAltText = resultMap.get(TranslationKeys.MEDIA_ALT_TEXT.with(index));
+            if (translatedAltText != null) {
+                return translatedAltText;
+            }
+        }
+
+        String filename = file.getOriginalFilename();
+        return new HstoreTranslationDto(filename, filename, filename);
+    }
+
+    private FileStorageFolders determineMediaFolder(MultipartFile file) {
+        String contentType = file.getContentType();
+
+        if (contentType == null) {
+            return null;
+        }
+
+        if (contentType.startsWith("image/")) {
+            return FileStorageFolders.PRODUCT_IMAGES;
+        } else if (contentType.startsWith("video/")) {
+            return FileStorageFolders.PRODUCT_VIDEOS;
+        }
+        return null;
+    }
+
+    private CompletableFuture<String> uploadMediaAsync(MultipartFile file, FileStorageFolders folderName) {
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    try {
+                        return fileStorageRepository.uploadImageToFolder(file, folderName.getValue());
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                },
+                appTaskExecutor
+        );
+    }
+
+    private CreateProduct.Result waitForMediaUploads(List<ProductMedia> productMediaList,
+                                                     List<CompletableFuture<String>> mediaFutureList,
+                                                     Product product) {
+        CompletableFuture<Void> allMediaFuture =
+                CompletableFuture.allOf(mediaFutureList.toArray(CompletableFuture[]::new));
+
+        try {
+            allMediaFuture.join();
+            for (int i = 0; i < mediaFutureList.size(); i++) {
+                String url = mediaFutureList.get(i).get();
+                productMediaList.get(i).setUrl(ProductMediaUrl.of(url));
+                if (i == 0) {
+                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return CreateProduct.Result.errorSavingFiles(e);
+        }
+    }
+
+    private void saveProductAndRelatedEntities(Product product) {
+        productRepository.save(product);
+        productCharacteristicRepository.saveAll(product.getCharacteristics());
+        productFaqRepository.saveAll(product.getFaq());
+        productPriceRepository.saveAll(product.getPrices());
+        productDeliveryMethodDetailsRepository.saveAll(product.getDeliveryMethodDetails());
+        productPackageOptionsRepository.saveAll(product.getPackageOptions());
+        productMediaRepository.saveAll(product.getMedia());
+    }
+
     @Override
     @Transactional
     public UpdateProduct.Result updateProduct(UpdateProduct operation) {
         entityManager.setFlushMode(FlushModeType.COMMIT);
 
         Optional<Product> existingProduct = productRepository.getProductById(operation.getProductId());
-
         if (existingProduct.isEmpty()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.productNotFound(operation.getProductId());
@@ -594,213 +783,52 @@ public class ProductApplicationService implements ProductService {
 
         Product product = existingProduct.get();
 
-        if (
-                !product.getUser().getId().equals(operation.getSecurityUser().getUser().getId())
-                        && operation.getSecurityUser().getUser().getRole() != UserRole.ROLE_ADMIN
-        ) {
+        // Проверка прав доступа
+        if (!hasPermissionToUpdate(product, operation.getSecurityUser())) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.invalidOwner(operation.getProductId(), operation.getSecurityUser().getUser().getLogin());
         }
 
         Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
-        Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
 
-        /* ========== Product Title ========== */
-        product.setTitle(operation.getProductTitle());
-        translationMap.put(TranslationKeys.TITLE.name(), operation.getProductTitle().getTranslations());
+        // Обновление основных полей
+        updateBasicFields(product, operation, translationMap);
 
-        /* ========== Product Description ========== */
-        product.setDescription(ProductDescription.of(
-                operation.getProductDescription().getMainDescription(),
-                operation.getProductDescription().getFurtherDescription()
-        ));
-
-        translationMap.put(TranslationKeys.MAIN_DESCRIPTION.name(), operation.getProductDescription().getMainDescriptionTranslations());
-
-        if (StringUtils.trimToNull(operation.getProductDescription().getFurtherDescription()) != null) {
-            translationMap.put(TranslationKeys.FURTHER_DESCRIPTION.name(), operation.getProductDescription().getFurtherDescriptionTranslations());
+        // Обновление категории
+        UpdateProduct.Result categoryResult = updateCategory(product, operation);
+        if (categoryResult != UpdateProduct.Result.Success.INSTANCE) {
+            return categoryResult;
         }
 
-        /* ========== Product Discount ========== */
-        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
-        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
-
-        /* ========== Product Category ========== */
-        Category productCategory = product.getCategory();
-
-        if (!productCategory.getId().equals(operation.getCategoryId())) {
-            Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
-
-            if (newCategory.isEmpty()) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
-            }
-
-            product.setCategory(newCategory.get());
+        // Обновление методов доставки
+        UpdateProduct.Result deliveryResult = updateDeliveryMethods(product, operation);
+        if (deliveryResult != UpdateProduct.Result.Success.INSTANCE) {
+            return deliveryResult;
         }
 
-        /* ========== Product Delivery Methods ========== */
-        Set<DeliveryMethod> productDeliveryMethodList = product.getDeliveryMethods();
-        Set<Long> productDeliveryMethodIdsSet = productDeliveryMethodList.stream().map(DeliveryMethod::getId).collect(Collectors.toSet());
-
-        if (
-                !(productDeliveryMethodIdsSet.containsAll(operation.getDeliveryMethodIds()) &&
-                        new HashSet<>(operation.getDeliveryMethodIds()).containsAll(productDeliveryMethodIdsSet))
-        ) {
-            Optional<Long> firstNotExistsDeliveryMethodId = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
-
-            if (firstNotExistsDeliveryMethodId.isPresent()) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateProduct.Result.deliveryMethodNotFound(firstNotExistsDeliveryMethodId.get());
-            }
-
-            List<DeliveryMethod> deliveryMethodList = deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
-            product.setDeliveryMethods(new HashSet<>(deliveryMethodList));
+        // Обновление похожих продуктов
+        UpdateProduct.Result similarProductsResult = updateSimilarProducts(product, operation);
+        if (similarProductsResult != UpdateProduct.Result.Success.INSTANCE) {
+            return similarProductsResult;
         }
 
-        /* ========== Similar Products ========== */
-        Set<Long> similarProductIdSet = product.getSimilarProducts().stream().map(Product::getId).collect(Collectors.toSet());
-
-        if (
-                !(similarProductIdSet.containsAll(operation.getSimilarProductIds()) &&
-                        new HashSet<>(operation.getSimilarProductIds()).containsAll(similarProductIdSet))
-        ) {
-            Optional<Long> firstNotExistsSimilarProductId = productRepository.firstNotExists(operation.getSimilarProductIds());
-
-            if (firstNotExistsSimilarProductId.isPresent()) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateProduct.Result.similarProductNotFound(firstNotExistsSimilarProductId.get());
-            }
-
-            List<Product> similarProductList = productRepository.findAllByIds(operation.getSimilarProductIds());
-            product.setSimilarProducts(new HashSet<>(similarProductList));
+        // Обновление цен
+        UpdateProduct.Result pricesResult = updateProductPrices(product, operation);
+        if (pricesResult != UpdateProduct.Result.Success.INSTANCE) {
+            return pricesResult;
         }
 
-        /* ========== Product Prices ========== */
-        List<ProductPrice> productPriceList = new ArrayList<>();
-        List<String> unitList = new ArrayList<>();
+        // Подготовка переводов для характеристик, FAQ и т.д.
+        prepareTranslations(operation, translationMap);
 
-        for (UpdateProductPriceCommand command : operation.getUpdateProductPriceCommands()) {
-            ProductPrice productPrice = createProductPrice(command, product);
-            productPriceList.add(productPrice);
-            unitList.add(command.unit());
+        // Обработка медиа с правильными позициями
+        MediaUpdateResult mediaResult = prepareMediaUpdate(product, operation, translationMap);
+        if (mediaResult.error() != null) {
+            return mediaResult.error();
         }
 
-        List<HstoreTranslationDto> unitTranslationList;
-
-        try {
-            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
-        } catch (Exception e) {
-            return UpdateProduct.Result.translationError(e);
-        }
-
-        for (int i = 0; i < unitTranslationList.size(); i++) {
-            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
-        }
-
-        List<ProductPrice> oldProductPrices = productPriceRepository.getAllByProductId(product.getId());
-
-        try {
-            productPriceRepository.deleteAll(oldProductPrices);
-            productPriceRepository.saveAll(productPriceList);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        product.getPrices().clear();
-        product.getPrices().addAll(productPriceList);
-
-        /* ========== Product Characteristics ========== */
-        for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
-            UpdateProductCharacteristicCommand command = operation.getUpdateProductCharacteristicCommands().get(i);
-            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
-        }
-
-        /* ========== Product Faq ========== */
-        for (int i = 0; i < operation.getUpdateProductFaqCommands().size(); i++) {
-            UpdateProductFaqCommand command = operation.getUpdateProductFaqCommands().get(i);
-            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i), HstoreTranslationDto.ofNullable(command.questionTranslations()));
-            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i), HstoreTranslationDto.ofNullable(command.answerTranslations()));
-        }
-
-        /* ========== Product Delivery Method Details ========== */
-        for (int i = 0; i < operation.getUpdateProductDeliveryMethodDetailsCommands().size(); i++) {
-            UpdateProductDeliveryMethodDetailsCommand command = operation.getUpdateProductDeliveryMethodDetailsCommands().get(i);
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i), HstoreTranslationDto.ofNullable(command.valueTranslations()));
-        }
-
-        /* ========== Product Package Options ========== */
-        for (int i = 0; i < operation.getUpdateProductPackageOptionCommands().size(); i++) {
-            UpdateProductPackageOptionCommand command = operation.getUpdateProductPackageOptionCommands().get(i);
-            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i), HstoreTranslationDto.ofNullable(command.nameTranslations()));
-        }
-
-        /* ========== Product Media ========== */
-        List<Long> oldProductMediaIdList = operation.getOldProductMedia().stream().map(UpdateOldMediaDto::id).toList();
-        Set<ProductMedia> allOldProductMediaList = product.getMedia();
-        List<ProductMedia> newOldProductMediaList = allOldProductMediaList.stream().filter(m -> oldProductMediaIdList.contains(m.getId())).toList();
-        List<ProductMedia> oldProductMediaToDeleteList = allOldProductMediaList.stream().filter(m -> !oldProductMediaIdList.contains(m.getId())).toList();
-        Set<ProductMedia> mediaForDeleteSet = new HashSet<>(oldProductMediaToDeleteList);
-
-        List<ProductMedia> productMediaList = new ArrayList<>();
-        List<MultipartFile> productMediaFileSet = operation.getProductMedia();
-
-        String TEMP_URL = "TEMP_URL";
-        for (int i = 0, j = 0; i < newOldProductMediaList.size() + operation.getProductMedia().size(); i++) {
-            ProductMedia oldProductMedia = i >= newOldProductMediaList.size() ? null : newOldProductMediaList.get(i);
-
-            if (oldProductMedia == null) {
-                MultipartFile file = productMediaFileSet.get(j);
-                ProductMedia newProductMedia = new ProductMedia();
-                newProductMedia.setProduct(product);
-                newProductMedia.setPosition(ProductMediaPosition.of(i));
-
-                newProductMedia.setAltText(ProductMediaAltText.of(file.getOriginalFilename()));
-                if (operation.getUpdateProductMediaAltTextCommands() != null && operation.getUpdateProductMediaAltTextCommands().size() > j) {
-                    newProductMedia.setAltText(ProductMediaAltText.of(operation.getUpdateProductMediaAltTextCommands().get(j).altText()));
-                }
-                newProductMedia.getAltText().setTranslations(new HstoreTranslationDto(file.getOriginalFilename(), file.getOriginalFilename(), file.getOriginalFilename()));
-                newProductMedia.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-
-                if (operation.getUpdateProductMediaAltTextCommands() != null && operation.getUpdateProductMediaAltTextCommands().size() > i) {
-                    translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(i),
-                            HstoreTranslationDto.ofNullable(operation.getUpdateProductMediaAltTextCommands().get(j).translations()));
-                }
-
-                if (file.getContentType() == null ||
-                        (!file.getContentType().startsWith("image") &&
-                                !file.getContentType().startsWith("video"))) {
-                    return UpdateProduct.Result.invalidMediaType(file.getContentType());
-                }
-
-                newProductMedia.setUrl(ProductMediaUrl.of(UUID.randomUUID().toString()));
-
-                if (file.getContentType().startsWith("image")) {
-                    newProductMedia.setMediaType(MediaType.IMAGE);
-                    preloadContentSet.add(new PreloadContentInfo<>(newProductMedia, file, FileStorageFolders.PRODUCT_IMAGES.getValue()));
-                } else if (file.getContentType().startsWith("video")) {
-                    newProductMedia.setMediaType(MediaType.VIDEO);
-                    preloadContentSet.add(new PreloadContentInfo<>(newProductMedia, file, FileStorageFolders.PRODUCT_VIDEOS.getValue()));
-                }
-
-                if (i == 0) {
-                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(TEMP_URL));
-                }
-
-                productMediaList.add(i, newProductMedia);
-
-                j++;
-            } else {
-                productMediaList.add(i, oldProductMedia);
-            }
-        }
-
-        /* ========== Translation ========== */
+        // Получение переводов
         Map<String, HstoreTranslationDto> resultMap;
-
         try {
             resultMap = translationRepository.expand(translationMap);
         } catch (EmptyTranslationException e) {
@@ -811,148 +839,25 @@ public class ProductApplicationService implements ProductService {
             return UpdateProduct.Result.translationError(e);
         }
 
-        // Title
-        HstoreTranslationDto translatedTitle = resultMap.get(TranslationKeys.TITLE.name());
-        product.getTitle().setTranslations(translatedTitle);
+        // Применение переводов
+        applyTranslations(product, resultMap);
 
-        // Description
-        HstoreTranslationDto translatedMainDescription = resultMap.get(TranslationKeys.MAIN_DESCRIPTION.name());
-        product.getDescription().setMainDescriptionTranslations(translatedMainDescription);
-
-        if (resultMap.containsKey(TranslationKeys.FURTHER_DESCRIPTION.name())) {
-            HstoreTranslationDto translatedFurtherDescription = resultMap.get(TranslationKeys.FURTHER_DESCRIPTION.name());
-            product.getDescription().setFurtherDescriptionTranslations(translatedFurtherDescription);
+        // Обновление связанных сущностей
+        UpdateProduct.Result relatedEntitiesResult = updateRelatedEntities(product, operation, resultMap);
+        if (relatedEntitiesResult != UpdateProduct.Result.Success.INSTANCE) {
+            return relatedEntitiesResult;
         }
 
-        // Characteristics
-        Set<ProductCharacteristic> productCharacteristicSet = new HashSet<>(
-                operation.getUpdateProductCharacteristicCommands().size());
+        // Применение переводов к медиа
+        applyMediaTranslations(mediaResult.productMediaList(), resultMap);
 
-        for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
-            UpdateProductCharacteristicCommand command = operation.getUpdateProductCharacteristicCommands().get(i);
-            ProductCharacteristic productCharacteristic = createProductCharacteristic(command, product);
-            HstoreTranslationDto translationName = resultMap.get(TranslationKeys.CHARACTERISTIC_NAME.with(i));
-            HstoreTranslationDto translationValue = resultMap.get(TranslationKeys.CHARACTERISTIC_VALUE.with(i));
-            productCharacteristic.getName().setTranslations(translationName);
-            productCharacteristic.getValue().setTranslations(translationValue);
-            productCharacteristicSet.add(productCharacteristic);
+        // Сохранение медиа с правильными позициями
+        UpdateProduct.Result mediaSaveResult = saveMediaChanges(mediaResult, product);
+        if (mediaSaveResult != UpdateProduct.Result.Success.INSTANCE) {
+            return mediaSaveResult;
         }
 
-        List<ProductCharacteristic> oldProductCharacteristics = productCharacteristicRepository.getAllByProductId(product.getId());
-
-        try {
-            productCharacteristicRepository.deleteAll(oldProductCharacteristics);
-            productCharacteristicRepository.saveAll(productCharacteristicSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        product.getCharacteristics().clear();
-        product.getCharacteristics().addAll(productCharacteristicSet);
-
-        // Faq
-        Set<ProductFaq> productFaqSet = new HashSet<>(operation.getUpdateProductFaqCommands().size());
-
-        for (int i = 0; i < operation.getUpdateProductFaqCommands().size(); i++) {
-            UpdateProductFaqCommand command = operation.getUpdateProductFaqCommands().get(i);
-            ProductFaq productFaq = createProductFaq(command, product);
-            HstoreTranslationDto translationQuestion = resultMap.get(TranslationKeys.FAQ_QUESTION.with(i));
-            HstoreTranslationDto translationAnswer = resultMap.get(TranslationKeys.FAQ_ANSWER.with(i));
-            productFaq.getQuestion().setTranslations(translationQuestion);
-            productFaq.getAnswer().setTranslations(translationAnswer);
-            productFaqSet.add(productFaq);
-        }
-
-        List<ProductFaq> oldProductFaq = productFaqRepository.getAllByProductId(product.getId());
-
-        try {
-            productFaqRepository.deleteAll(oldProductFaq);
-            productFaqRepository.saveAll(productFaqSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        product.getFaq().clear();
-        product.getFaq().addAll(productFaqSet);
-
-        // Delivery Method Details
-        Set<ProductDeliveryMethodDetails> productDeliveryMethodDetailsSet = new HashSet<>(
-                operation.getUpdateProductDeliveryMethodDetailsCommands().size()
-        );
-
-        for (int i = 0; i < operation.getUpdateProductDeliveryMethodDetailsCommands().size(); i++) {
-            UpdateProductDeliveryMethodDetailsCommand command = operation.getUpdateProductDeliveryMethodDetailsCommands().get(i);
-            ProductDeliveryMethodDetails productDeliveryMethodDetails = createProductDeliveryMethodDetails(command, product);
-            HstoreTranslationDto translationName = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i));
-            HstoreTranslationDto translationValue = resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i));
-            productDeliveryMethodDetails.getName().setTranslations(translationName);
-            productDeliveryMethodDetails.getValue().setTranslations(translationValue);
-            productDeliveryMethodDetailsSet.add(productDeliveryMethodDetails);
-        }
-
-        List<ProductDeliveryMethodDetails> oldProductDeliveryMethodDetails = productDeliveryMethodDetailsRepository.getAllByProductId(product.getId());
-
-        try {
-            productDeliveryMethodDetailsRepository.deleteAll(oldProductDeliveryMethodDetails);
-            productDeliveryMethodDetailsRepository.saveAll(productDeliveryMethodDetailsSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        product.getDeliveryMethodDetails().clear();
-        product.getDeliveryMethodDetails().addAll(productDeliveryMethodDetailsSet);
-
-        // Package Options
-        Set<ProductPackageOption> productPackageOptionSet = new HashSet<>(operation.getUpdateProductPackageOptionCommands().size());
-
-        for (int i = 0; i < operation.getUpdateProductPackageOptionCommands().size(); i++) {
-            UpdateProductPackageOptionCommand command = operation.getUpdateProductPackageOptionCommands().get(i);
-            ProductPackageOption productPackageOption = createProductPackageOption(command, product);
-            HstoreTranslationDto translationName = resultMap.get(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i));
-            productPackageOption.getName().setTranslations(translationName);
-            productPackageOptionSet.add(productPackageOption);
-        }
-
-        List<ProductPackageOption> oldProductPackageOptions = productPackageOptionsRepository.getAllByProductId(product.getId());
-
-        try {
-            productPackageOptionsRepository.deleteAll(oldProductPackageOptions);
-            productPackageOptionsRepository.saveAll(productPackageOptionSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        product.getPackageOptions().clear();
-        product.getPackageOptions().addAll(productPackageOptionSet);
-
-        // Media
-        if (operation.getUpdateProductMediaAltTextCommands() != null) {
-            for (int i = 0; i < operation.getUpdateProductMediaAltTextCommands().size(); i++) {
-                if (productMediaList.size() > i) {
-                    ProductMedia productMedia = productMediaList.get(i);
-                    HstoreTranslationDto translatedMediaAltText = resultMap.get(TranslationKeys.MEDIA_ALT_TEXT.with(i));
-                    productMedia.getAltText().setTranslations(translatedMediaAltText);
-                }
-            }
-        }
-
-        try {
-            productMediaRepository.deleteAll(mediaForDeleteSet.stream()
-                    .filter(Objects::nonNull)
-                    .toList());
-            productMediaRepository.saveAll(productMediaList.stream()
-                    .filter(Objects::nonNull)
-                    .toList());
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateProduct.Result.errorSavingProduct(e);
-        }
-
-        /* ========== Save Data ========== */
+        // Сохранение продукта
         try {
             productRepository.save(product);
             productRepository.flush();
@@ -961,34 +866,518 @@ public class ProductApplicationService implements ProductService {
             return UpdateProduct.Result.errorSavingProduct(e);
         }
 
+        // Загрузка файлов и обновление URL
+        UpdateProduct.Result fileUploadResult = uploadMediaFiles(mediaResult, product);
+        if (fileUploadResult != UpdateProduct.Result.Success.INSTANCE) {
+            return fileUploadResult;
+        }
+
+        // Удаление старых файлов
+        UpdateProduct.Result fileDeletionResult = deleteOldMediaFiles(mediaResult.mediaToDelete());
+        if (fileDeletionResult != UpdateProduct.Result.Success.INSTANCE) {
+            return fileDeletionResult;
+        }
+
+        // Финальное сохранение и очистка кеша
+        return finalizeUpdate(product, operation.getProductId());
+    }
+
+    private boolean hasPermissionToUpdate(Product product, SecurityUser securityUser) {
+        return product.getUser().getId().equals(securityUser.getUser().getId())
+                || securityUser.getUser().getRole() == UserRole.ROLE_ADMIN;
+    }
+
+    private void updateBasicFields(Product product, UpdateProduct operation, Map<String, HstoreTranslationDto> translationMap) {
+        product.setTitle(operation.getProductTitle());
+        translationMap.put(TranslationKeys.TITLE.name(), operation.getProductTitle().getTranslations());
+
+        product.setDescription(ProductDescription.of(
+                operation.getProductDescription().getMainDescription(),
+                operation.getProductDescription().getFurtherDescription()
+        ));
+
+        translationMap.put(TranslationKeys.MAIN_DESCRIPTION.name(),
+                operation.getProductDescription().getMainDescriptionTranslations());
+
+        if (StringUtils.trimToNull(operation.getProductDescription().getFurtherDescription()) != null) {
+            translationMap.put(TranslationKeys.FURTHER_DESCRIPTION.name(),
+                    operation.getProductDescription().getFurtherDescriptionTranslations());
+        }
+
+        product.setMinimumOrderQuantity(ProductMinimumOrderQuantity.of(operation.getMinimumOrderQuantity()));
+        product.setDiscountExpirationDate(ProductDiscountExpirationDate.of(operation.getDiscountExpirationDate()));
+    }
+
+    private UpdateProduct.Result updateCategory(Product product, UpdateProduct operation) {
+        Category productCategory = product.getCategory();
+        if (!productCategory.getId().equals(operation.getCategoryId())) {
+            Optional<Category> newCategory = categoryRepository.getCategoryById(operation.getCategoryId());
+            if (newCategory.isEmpty()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
+            }
+            product.setCategory(newCategory.get());
+        }
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateDeliveryMethods(Product product, UpdateProduct operation) {
+        Set<Long> currentIds = product.getDeliveryMethods().stream()
+                .map(DeliveryMethod::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> newIds = new HashSet<>(operation.getDeliveryMethodIds());
+
+        if (!currentIds.equals(newIds)) {
+            Optional<Long> notExists = deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
+            if (notExists.isPresent()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateProduct.Result.deliveryMethodNotFound(notExists.get());
+            }
+
+            List<DeliveryMethod> deliveryMethods = deliveryMethodRepository
+                    .getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+            product.setDeliveryMethods(new HashSet<>(deliveryMethods));
+        }
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateSimilarProducts(Product product, UpdateProduct operation) {
+        Set<Long> currentIds = product.getSimilarProducts().stream()
+                .map(Product::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> newIds = new HashSet<>(operation.getSimilarProductIds());
+
+        if (!currentIds.equals(newIds)) {
+            Optional<Long> notExists = productRepository.firstNotExists(operation.getSimilarProductIds());
+            if (notExists.isPresent()) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateProduct.Result.similarProductNotFound(notExists.get());
+            }
+
+            List<Product> similarProducts = productRepository.findAllByIds(operation.getSimilarProductIds());
+            product.setSimilarProducts(new HashSet<>(similarProducts));
+        }
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateProductPrices(Product product, UpdateProduct operation) {
+        List<ProductPrice> productPriceList = new ArrayList<>();
+        List<String> unitList = new ArrayList<>();
+
+        for (UpdateProductPriceCommand command : operation.getUpdateProductPriceCommands()) {
+            ProductPrice productPrice = createProductPrice(command, product);
+            productPriceList.add(productPrice);
+            unitList.add(command.unit());
+        }
+
+        List<HstoreTranslationDto> unitTranslationList;
         try {
-            for (PreloadContentInfo<?> contentInfo : preloadContentSet) {
-                if (contentInfo.entity() instanceof ProductMedia pm) {
-                    if (mediaForDeleteSet.contains(pm)) {
-                        continue;
-                    }
+            unitTranslationList = translationRepository.expand(unitList.toArray(String[]::new));
+        } catch (Exception e) {
+            return UpdateProduct.Result.translationError(e);
+        }
 
-                    ProductMedia productMedia = productMediaList.stream()
-                            .filter(m -> m.getUrl() != null && m.getUrl().toString().equals(((ProductMedia) contentInfo.entity()).getUrl().toString()))
-                            .findFirst().orElseThrow();
+        for (int i = 0; i < unitTranslationList.size(); i++) {
+            productPriceList.get(i).getUnit().setTranslations(unitTranslationList.get(i));
+        }
 
-                    if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
-                        String url = fileStorageRepository.uploadImageToFolder(contentInfo.file(), contentInfo.folderName());
-                        productMedia.setUrl(ProductMediaUrl.of(url));
+        List<ProductPrice> oldPrices = productPriceRepository.getAllByProductId(product.getId());
 
-                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
-                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                        }
-                    }
+        try {
+            productPriceRepository.deleteAll(oldPrices);
+            productPriceRepository.saveAll(productPriceList);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
 
-                    if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
-                        String url = fileStorageRepository.uploadVideoToFolder(contentInfo.file(), contentInfo.folderName());
-                        productMedia.setUrl(ProductMediaUrl.of(url));
+        product.getPrices().clear();
+        product.getPrices().addAll(productPriceList);
 
-                        if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
-                            product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
-                        }
-                    }
+        return UpdateProduct.Result.success();
+    }
+
+    private void prepareTranslations(UpdateProduct operation, Map<String, HstoreTranslationDto> translationMap) {
+        // Характеристики
+        for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
+            UpdateProductCharacteristicCommand command = operation.getUpdateProductCharacteristicCommands().get(i);
+            translationMap.put(TranslationKeys.CHARACTERISTIC_NAME.with(i),
+                    HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.CHARACTERISTIC_VALUE.with(i),
+                    HstoreTranslationDto.ofNullable(command.valueTranslations()));
+        }
+
+        // FAQ
+        for (int i = 0; i < operation.getUpdateProductFaqCommands().size(); i++) {
+            UpdateProductFaqCommand command = operation.getUpdateProductFaqCommands().get(i);
+            translationMap.put(TranslationKeys.FAQ_QUESTION.with(i),
+                    HstoreTranslationDto.ofNullable(command.questionTranslations()));
+            translationMap.put(TranslationKeys.FAQ_ANSWER.with(i),
+                    HstoreTranslationDto.ofNullable(command.answerTranslations()));
+        }
+
+        // Детали методов доставки
+        for (int i = 0; i < operation.getUpdateProductDeliveryMethodDetailsCommands().size(); i++) {
+            UpdateProductDeliveryMethodDetailsCommand command = operation.getUpdateProductDeliveryMethodDetailsCommands().get(i);
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i),
+                    HstoreTranslationDto.ofNullable(command.nameTranslations()));
+            translationMap.put(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i),
+                    HstoreTranslationDto.ofNullable(command.valueTranslations()));
+        }
+
+        // Опции упаковки
+        for (int i = 0; i < operation.getUpdateProductPackageOptionCommands().size(); i++) {
+            UpdateProductPackageOptionCommand command = operation.getUpdateProductPackageOptionCommands().get(i);
+            translationMap.put(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i),
+                    HstoreTranslationDto.ofNullable(command.nameTranslations()));
+        }
+    }
+
+    private record MediaUpdateResult(
+            List<ProductMedia> productMediaList,
+            Set<ProductMedia> mediaToDelete,
+            Set<PreloadContentInfo<?>> preloadContentSet,
+            UpdateProduct.Result error
+    ) {}
+
+    private MediaUpdateResult prepareMediaUpdate(Product product, UpdateProduct operation,
+                                                 Map<String, HstoreTranslationDto> translationMap) {
+
+        // Получаем ID старых медиа, которые нужно сохранить
+        List<Long> oldMediaIdsToKeep = operation.getOldProductMedia().stream()
+                .map(UpdateOldMediaDto::id)
+                .toList();
+
+        Set<ProductMedia> allCurrentMedia = product.getMedia();
+
+        // Создаем Map для быстрого доступа к старым медиа по ID
+        Map<Long, ProductMedia> oldMediaMap = allCurrentMedia.stream()
+                .filter(m -> oldMediaIdsToKeep.contains(m.getId()))
+                .collect(Collectors.toMap(ProductMedia::getId, m -> m));
+
+        // Медиа для удаления (те, которых нет в списке для сохранения)
+        Set<ProductMedia> mediaToDelete = allCurrentMedia.stream()
+                .filter(m -> !oldMediaIdsToKeep.contains(m.getId()))
+                .collect(Collectors.toSet());
+
+        List<ProductMedia> productMediaList = new ArrayList<>();
+        Set<PreloadContentInfo<?>> preloadContentSet = new HashSet<>();
+        List<MultipartFile> newMediaFiles = operation.getProductMedia();
+
+        int currentPosition = 0;
+        int newMediaIndex = 0;
+
+        // Обрабатываем старые медиа в порядке, указанном в operation.getOldProductMedia()
+        for (UpdateOldMediaDto oldMediaDto : operation.getOldProductMedia()) {
+            ProductMedia oldMedia = oldMediaMap.get(oldMediaDto.id());
+            if (oldMedia != null) {
+                // Обновляем позицию для старого медиа
+                oldMedia.setPosition(ProductMediaPosition.of(currentPosition));
+                productMediaList.add(oldMedia);
+                currentPosition++;
+            }
+        }
+
+        // Добавляем новые медиа после старых
+        for (MultipartFile file : newMediaFiles) {
+            ProductMedia newMedia = new ProductMedia();
+            newMedia.setProduct(product);
+            newMedia.setPosition(ProductMediaPosition.of(currentPosition));
+
+            String filename = file.getOriginalFilename();
+            newMedia.setAltText(ProductMediaAltText.of(filename));
+            newMedia.getAltText().setTranslations(
+                    new HstoreTranslationDto(filename, filename, filename));
+
+            // Применяем кастомный alt text, если он предоставлен
+            if (operation.getUpdateProductMediaAltTextCommands() != null
+                    && newMediaIndex < operation.getUpdateProductMediaAltTextCommands().size()) {
+                UpdateProductMediaAltTextCommand altTextCommand =
+                        operation.getUpdateProductMediaAltTextCommands().get(newMediaIndex);
+                newMedia.setAltText(ProductMediaAltText.of(altTextCommand.altText()));
+
+                translationMap.put(TranslationKeys.MEDIA_ALT_TEXT.with(currentPosition),
+                        HstoreTranslationDto.ofNullable(altTextCommand.translations()));
+            }
+
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.startsWith("image") && !contentType.startsWith("video"))) {
+                return new MediaUpdateResult(null, null, null,
+                        UpdateProduct.Result.invalidMediaType(contentType));
+            }
+
+            newMedia.setMimeType(ProductMediaMimeType.of(contentType));
+            newMedia.setUrl(ProductMediaUrl.of(UUID.randomUUID().toString()));
+
+            if (contentType.startsWith("image")) {
+                newMedia.setMediaType(MediaType.IMAGE);
+                preloadContentSet.add(new PreloadContentInfo<>(newMedia, file,
+                        FileStorageFolders.PRODUCT_IMAGES.getValue()));
+            } else if (contentType.startsWith("video")) {
+                newMedia.setMediaType(MediaType.VIDEO);
+                preloadContentSet.add(new PreloadContentInfo<>(newMedia, file,
+                        FileStorageFolders.PRODUCT_VIDEOS.getValue()));
+            }
+
+            productMediaList.add(newMedia);
+            newMediaIndex++;
+            currentPosition++;
+        }
+
+        // Устанавливаем временный preview image URL, если есть медиа
+        if (!productMediaList.isEmpty()) {
+            product.setPreviewImageUrl(ProductPreviewImageUrl.of("TEMP_URL"));
+        }
+
+        return new MediaUpdateResult(productMediaList, mediaToDelete, preloadContentSet, null);
+    }
+
+    private void applyTranslations(Product product, Map<String, HstoreTranslationDto> resultMap) {
+        // Заголовок
+        HstoreTranslationDto translatedTitle = resultMap.get(TranslationKeys.TITLE.name());
+        product.getTitle().setTranslations(translatedTitle);
+
+        // Описание
+        HstoreTranslationDto translatedMainDescription = resultMap.get(TranslationKeys.MAIN_DESCRIPTION.name());
+        product.getDescription().setMainDescriptionTranslations(translatedMainDescription);
+
+        if (resultMap.containsKey(TranslationKeys.FURTHER_DESCRIPTION.name())) {
+            HstoreTranslationDto translatedFurtherDescription = resultMap.get(TranslationKeys.FURTHER_DESCRIPTION.name());
+            product.getDescription().setFurtherDescriptionTranslations(translatedFurtherDescription);
+        }
+    }
+
+    private UpdateProduct.Result updateRelatedEntities(Product product, UpdateProduct operation,
+                                                       Map<String, HstoreTranslationDto> resultMap) {
+
+        UpdateProduct.Result characteristicsResult = updateCharacteristics(product, operation, resultMap);
+        if (characteristicsResult != UpdateProduct.Result.Success.INSTANCE) {
+            return characteristicsResult;
+        }
+
+        UpdateProduct.Result faqResult = updateFaq(product, operation, resultMap);
+        if (faqResult != UpdateProduct.Result.Success.INSTANCE) {
+            return faqResult;
+        }
+
+        UpdateProduct.Result deliveryDetailsResult = updateDeliveryMethodDetails(product, operation, resultMap);
+        if (deliveryDetailsResult != UpdateProduct.Result.Success.INSTANCE) {
+            return deliveryDetailsResult;
+        }
+
+        UpdateProduct.Result packageOptionsResult = updatePackageOptions(product, operation, resultMap);
+        if (packageOptionsResult != UpdateProduct.Result.Success.INSTANCE) {
+            return packageOptionsResult;
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateCharacteristics(Product product, UpdateProduct operation,
+                                                       Map<String, HstoreTranslationDto> resultMap) {
+
+        Set<ProductCharacteristic> characteristics = new HashSet<>();
+
+        for (int i = 0; i < operation.getUpdateProductCharacteristicCommands().size(); i++) {
+            UpdateProductCharacteristicCommand command = operation.getUpdateProductCharacteristicCommands().get(i);
+            ProductCharacteristic characteristic = createProductCharacteristic(command, product);
+
+            HstoreTranslationDto translationName = resultMap.get(TranslationKeys.CHARACTERISTIC_NAME.with(i));
+            HstoreTranslationDto translationValue = resultMap.get(TranslationKeys.CHARACTERISTIC_VALUE.with(i));
+
+            characteristic.getName().setTranslations(translationName);
+            characteristic.getValue().setTranslations(translationValue);
+            characteristics.add(characteristic);
+        }
+
+        List<ProductCharacteristic> oldCharacteristics =
+                productCharacteristicRepository.getAllByProductId(product.getId());
+
+        try {
+            productCharacteristicRepository.deleteAll(oldCharacteristics);
+            productCharacteristicRepository.saveAll(characteristics);
+            product.getCharacteristics().clear();
+            product.getCharacteristics().addAll(characteristics);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateFaq(Product product, UpdateProduct operation,
+                                           Map<String, HstoreTranslationDto> resultMap) {
+
+        Set<ProductFaq> faqSet = new HashSet<>();
+
+        for (int i = 0; i < operation.getUpdateProductFaqCommands().size(); i++) {
+            UpdateProductFaqCommand command = operation.getUpdateProductFaqCommands().get(i);
+            ProductFaq faq = createProductFaq(command, product);
+
+            HstoreTranslationDto translationQuestion = resultMap.get(TranslationKeys.FAQ_QUESTION.with(i));
+            HstoreTranslationDto translationAnswer = resultMap.get(TranslationKeys.FAQ_ANSWER.with(i));
+
+            faq.getQuestion().setTranslations(translationQuestion);
+            faq.getAnswer().setTranslations(translationAnswer);
+            faqSet.add(faq);
+        }
+
+        List<ProductFaq> oldFaq = productFaqRepository.getAllByProductId(product.getId());
+
+        try {
+            productFaqRepository.deleteAll(oldFaq);
+            productFaqRepository.saveAll(faqSet);
+            product.getFaq().clear();
+            product.getFaq().addAll(faqSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updateDeliveryMethodDetails(Product product, UpdateProduct operation,
+                                                             Map<String, HstoreTranslationDto> resultMap) {
+
+        Set<ProductDeliveryMethodDetails> detailsSet = new HashSet<>();
+
+        for (int i = 0; i < operation.getUpdateProductDeliveryMethodDetailsCommands().size(); i++) {
+            UpdateProductDeliveryMethodDetailsCommand command =
+                    operation.getUpdateProductDeliveryMethodDetailsCommands().get(i);
+            ProductDeliveryMethodDetails details = createProductDeliveryMethodDetails(command, product);
+
+            HstoreTranslationDto translationName =
+                    resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_NAME.with(i));
+            HstoreTranslationDto translationValue =
+                    resultMap.get(TranslationKeys.DELIVERY_METHOD_DETAILS_VALUE.with(i));
+
+            details.getName().setTranslations(translationName);
+            details.getValue().setTranslations(translationValue);
+            detailsSet.add(details);
+        }
+
+        List<ProductDeliveryMethodDetails> oldDetails =
+                productDeliveryMethodDetailsRepository.getAllByProductId(product.getId());
+
+        try {
+            productDeliveryMethodDetailsRepository.deleteAll(oldDetails);
+            productDeliveryMethodDetailsRepository.saveAll(detailsSet);
+            product.getDeliveryMethodDetails().clear();
+            product.getDeliveryMethodDetails().addAll(detailsSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result updatePackageOptions(Product product, UpdateProduct operation,
+                                                      Map<String, HstoreTranslationDto> resultMap) {
+
+        Set<ProductPackageOption> optionsSet = new HashSet<>();
+
+        for (int i = 0; i < operation.getUpdateProductPackageOptionCommands().size(); i++) {
+            UpdateProductPackageOptionCommand command = operation.getUpdateProductPackageOptionCommands().get(i);
+            ProductPackageOption option = createProductPackageOption(command, product);
+
+            HstoreTranslationDto translationName = resultMap.get(TranslationKeys.PACKAGE_OPTIONS_NAME.with(i));
+            option.getName().setTranslations(translationName);
+            optionsSet.add(option);
+        }
+
+        List<ProductPackageOption> oldOptions =
+                productPackageOptionsRepository.getAllByProductId(product.getId());
+
+        try {
+            productPackageOptionsRepository.deleteAll(oldOptions);
+            productPackageOptionsRepository.saveAll(optionsSet);
+            product.getPackageOptions().clear();
+            product.getPackageOptions().addAll(optionsSet);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private void applyMediaTranslations(List<ProductMedia> mediaList, Map<String, HstoreTranslationDto> resultMap) {
+        for (int i = 0; i < mediaList.size(); i++) {
+            ProductMedia media = mediaList.get(i);
+            String translationKey = TranslationKeys.MEDIA_ALT_TEXT.with(i);
+
+            if (resultMap.containsKey(translationKey)) {
+                HstoreTranslationDto translatedAltText = resultMap.get(translationKey);
+                media.getAltText().setTranslations(translatedAltText);
+            }
+        }
+    }
+
+    private UpdateProduct.Result saveMediaChanges(MediaUpdateResult mediaResult, Product product) {
+        try {
+            // Удаляем старые медиа
+            productMediaRepository.deleteAll(mediaResult.mediaToDelete().stream()
+                    .filter(Objects::nonNull)
+                    .toList());
+
+            // Сохраняем новые и обновленные медиа
+            productMediaRepository.saveAll(mediaResult.productMediaList().stream()
+                    .filter(Objects::nonNull)
+                    .toList());
+
+            // Обновляем коллекцию медиа в продукте
+            product.getMedia().clear();
+            product.getMedia().addAll(mediaResult.productMediaList());
+
+            if (!mediaResult.productMediaList().isEmpty()) {
+                ProductMedia firstMedia = mediaResult.productMediaList().get(0);
+                product.setPreviewImageUrl(ProductPreviewImageUrl.of(firstMedia.getUrl().toString()));
+            }
+
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateProduct.Result.errorSavingProduct(e);
+        }
+
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result uploadMediaFiles(MediaUpdateResult mediaResult, Product product) {
+        String TEMP_URL = "TEMP_URL";
+
+        try {
+            for (PreloadContentInfo<?> contentInfo : mediaResult.preloadContentSet()) {
+                if (!(contentInfo.entity() instanceof ProductMedia pm)) {
+                    continue;
+                }
+
+                ProductMedia productMedia = mediaResult.productMediaList().stream()
+                        .filter(m -> m.getUrl() != null &&
+                                m.getUrl().toString().equals(pm.getUrl().toString()))
+                        .findFirst()
+                        .orElseThrow();
+
+                String url;
+                if (productMedia.getMediaType().equals(MediaType.IMAGE)) {
+                    url = fileStorageRepository.uploadImageToFolder(
+                            contentInfo.file(), contentInfo.folderName());
+                } else if (productMedia.getMediaType().equals(MediaType.VIDEO)) {
+                    url = fileStorageRepository.uploadVideoToFolder(
+                            contentInfo.file(), contentInfo.folderName());
+                } else {
+                    continue;
+                }
+
+                productMedia.setUrl(ProductMediaUrl.of(url));
+
+                // Устанавливаем preview image из первого загруженного медиа
+                if (product.getPreviewImageUrl().getValue().equals(TEMP_URL)) {
+                    product.setPreviewImageUrl(ProductPreviewImageUrl.of(url));
                 }
             }
         } catch (Exception e) {
@@ -996,31 +1385,40 @@ public class ProductApplicationService implements ProductService {
             return UpdateProduct.Result.errorSavingFiles(e);
         }
 
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result deleteOldMediaFiles(Set<ProductMedia> mediaToDelete) {
         try {
-            List<String> linksForDelete = new ArrayList<>();
+            List<String> linksForDelete = mediaToDelete.stream()
+                    .filter(Objects::nonNull)
+                    .map(media -> media.getUrl().toString())
+                    .toList();
 
-            for (Object entity : mediaForDeleteSet) {
-                if (entity instanceof ProductMedia productMedia) {
-                    linksForDelete.add(productMedia.getUrl().toString());
-                }
+            if (!linksForDelete.isEmpty()) {
+                fileStorageRepository.deleteMediaByLink(linksForDelete.toArray(new String[0]));
             }
-
-            fileStorageRepository.deleteMediaByLink(linksForDelete.toArray(new String[0]));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorDeletingFiles(e);
         }
 
+        return UpdateProduct.Result.success();
+    }
+
+    private UpdateProduct.Result finalizeUpdate(Product product, Long productId) {
+        product.setApproveStatus(ApproveStatus.PENDING);
+
         try {
             productRepository.save(product);
             productSummaryCacheManager.clearAll();
-            productCacheManager.clearById(operation.getProductId());
+            productCacheManager.clearById(productId);
+            generalCacheService.clear();
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateProduct.Result.errorSavingProduct(e);
         }
 
-        generalCacheService.clear();
         return UpdateProduct.Result.success();
     }
 
@@ -1296,14 +1694,14 @@ public class ProductApplicationService implements ProductService {
         productDto.setMedia(productMediaDtoList);
 
         // Similar Products
-        List<SimilarProductView> similarProductViewList = productRepository.getAllSimilarProductViewsByProductIdAndLang(
-                productDto.getId(),
-                locale.getLanguage()
-        );
-        List<SimilarProductDto> similarProductDtoList = similarProductViewList.stream()
-                .map(SimilarProductDto::of)
-                .toList();
-        productDto.setSimilarProducts(similarProductDtoList);
+//        List<SimilarProductView> similarProductViewList = productRepository.getAllSimilarProductViewsByProductIdAndLang(
+//                productDto.getId(),
+//                locale.getLanguage()
+//        );
+//        List<SimilarProductDto> similarProductDtoList = similarProductViewList.stream()
+//                .map(SimilarProductDto::of)
+//                .toList();
+//        productDto.setSimilarProducts(similarProductDtoList);
 
         // Characteristics
         List<ProductCharacteristicWithTranslationsView> productCharacteristicList = productCharacteristicRepository

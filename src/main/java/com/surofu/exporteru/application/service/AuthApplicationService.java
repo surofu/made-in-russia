@@ -20,6 +20,7 @@ import com.surofu.exporteru.core.model.user.*;
 import com.surofu.exporteru.core.model.user.password.UserPassword;
 import com.surofu.exporteru.core.model.user.password.UserPasswordPassword;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategory;
@@ -195,6 +196,9 @@ public class AuthApplicationService implements AuthService {
         VendorDetails vendorDetails = new VendorDetails();
         vendorDetails.setInn(operation.getVendorDetailsInn());
         vendorDetails.setAddress(operation.getVendorDetailsAddress());
+        VendorDetailsDescription description = VendorDetailsDescription.of("");
+        description.setTranslations(HstoreTranslationDto.empty());
+        vendorDetails.setDescription(description);
 
         Map<String, List<String>> translationMap = new HashMap<>();
 
@@ -360,6 +364,16 @@ public class AuthApplicationService implements AuthService {
 
         if (user.getVendorDetails() != null) {
             VendorDetails vendorDetails = user.getVendorDetails();
+
+            VendorDetailsDescription description = vendorDetails.getDescription();
+
+            if (description == null) {
+                vendorDetails.setDescription(VendorDetailsDescription.of(""));
+            }
+
+            if (description != null && description.getTranslations() == null) {
+                description.setTranslations(HstoreTranslationDto.empty());
+            }
 
             if (vendorDetails.getAddress() != null &&
                     StringUtils.trimToNull(vendorDetails.getAddress().toString()) != null) {

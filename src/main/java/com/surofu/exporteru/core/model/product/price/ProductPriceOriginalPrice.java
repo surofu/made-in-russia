@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceOriginalPrice implements Serializable {
 
-    @Column(name = "original_price", nullable = false, columnDefinition = "decimal(10, 2)")
+    @Column(name = "original_price", nullable = false, columnDefinition = "decimal(15, 2)")
     private BigDecimal value;
 
     private ProductPriceOriginalPrice(BigDecimal originalPrice) {
@@ -27,12 +27,22 @@ public final class ProductPriceOriginalPrice implements Serializable {
             throw new LocalizedValidationException("validation.product.price.original.negative");
         }
 
+        if (integerDigits(originalPrice) > 15) {
+            // Todo: Correct message
+            throw new LocalizedValidationException("validation.product.price.original.negative");
+        }
+
         this.value = originalPrice;
     }
 
     public static ProductPriceOriginalPrice of(BigDecimal originalPrice) {
         return new ProductPriceOriginalPrice(originalPrice);
     }
+
+    private int integerDigits(BigDecimal n) {
+        return n.signum() == 0 ? 1 : n.precision() - n.scale();
+    }
+
 
     @Override
     public String toString() {

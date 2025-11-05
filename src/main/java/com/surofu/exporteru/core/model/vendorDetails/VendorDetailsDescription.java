@@ -37,7 +37,9 @@ public final class VendorDetailsDescription implements Serializable {
     }
 
     public static VendorDetailsDescription of(String text) {
-        return new VendorDetailsDescription(text);
+        VendorDetailsDescription description = new VendorDetailsDescription(text);
+        description.setTranslations(HstoreTranslationDto.empty());
+        return description;
     }
 
     public HstoreTranslationDto getTranslations() {

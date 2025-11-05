@@ -36,4 +36,8 @@ public interface MeService {
     DeleteMeVendorMediaByIdList.Result deleteMeVendorMediaByIdList(DeleteMeVendorMediaByIdList operation);
 
     DeleteMeReviewById.Result deleteMeReviewById(DeleteMeReviewById operation);
+
+    GetMeFavoriteProducts.Result getMeFavoriteProducts(GetMeFavoriteProducts operation);
+
+    ToggleMeFavoriteProductById.Result toggleFavoriteProductById(ToggleMeFavoriteProductById operation);
 }

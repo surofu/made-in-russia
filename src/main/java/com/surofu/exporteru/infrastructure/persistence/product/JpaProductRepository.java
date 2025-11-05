@@ -107,6 +107,11 @@ public class JpaProductRepository implements ProductRepository {
         repository.deleteByUserId(userId);
     }
 
+    @Override
+    public boolean existsInFavorite(Long userId, Long productId) {
+        return repository.existsByIdInUserFavorites(userId, productId);
+    }
+
     // View
     @Override
     public Optional<ProductView> getProductViewByArticleAndLang(String article, String lang) {

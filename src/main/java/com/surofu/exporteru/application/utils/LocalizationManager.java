@@ -1,8 +1,10 @@
 package com.surofu.exporteru.application.utils;
 
+import com.surofu.exporteru.application.components.TransliterationManager;
 import com.surofu.exporteru.application.dto.product.ProductDto;
 import com.surofu.exporteru.application.dto.product.ProductPackageOptionDto;
 import com.surofu.exporteru.application.dto.product.ProductPriceDto;
+import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.currency.CurrencyCode;
 import com.surofu.exporteru.core.service.currency.CurrencyConverterService;
 import com.surofu.exporteru.core.view.ProductSummaryView;
@@ -23,6 +25,7 @@ public class LocalizationManager {
 
     private final MessageSource messageSource;
     private final CurrencyConverterService currencyConverterService;
+    private final TransliterationManager transliterationManager;
 
     public String localize(String messageCode, Locale locale, Object... args) {
         String messageTemplate = messageSource.getMessage(messageCode, null, locale);
@@ -40,7 +43,7 @@ public class LocalizationManager {
             case ("en") -> CurrencyCode.USD;
             case ("ru") -> CurrencyCode.RUB;
             case ("zh") -> CurrencyCode.CNY;
-            default -> from;
+            default -> CurrencyCode.USD;
         };
 
         if (from == null) {
@@ -68,6 +71,19 @@ public class LocalizationManager {
             log.error(e.getMessage(), e);
         }
 
+        if (!locale.getLanguage().equals("ru")) {
+            if (view.getUser() instanceof VendorDto vendorDto) {
+                String login = vendorDto.getLogin();
+                String address = vendorDto.getVendorDetails().getAddress();
+
+                String translitLogin = TransliterationManager.transliterate(login);
+                String translitAddress = TransliterationManager.transliterate(address);
+
+                vendorDto.setLogin(translitLogin);
+                vendorDto.getVendorDetails().setAddress(translitAddress);
+            }
+        }
+
         return view;
     }
 
@@ -77,7 +93,7 @@ public class LocalizationManager {
             case ("en") -> CurrencyCode.USD;
             case ("ru") -> CurrencyCode.RUB;
             case ("zh") -> CurrencyCode.CNY;
-            default -> from;
+            default -> CurrencyCode.USD;
         };
 
         if (!dto.getPrices().isEmpty()) {
@@ -118,6 +134,18 @@ public class LocalizationManager {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
+        }
+
+        if (!locale.getLanguage().equals("ru")) {
+            VendorDto vendorDto = dto.getUser();
+            String login = vendorDto.getLogin();
+            String address = vendorDto.getVendorDetails().getAddress();
+
+            String translitLogin = TransliterationManager.transliterate(login);
+            String translitAddress = TransliterationManager.transliterate(address);
+
+            vendorDto.setLogin(translitLogin);
+            vendorDto.getVendorDetails().setAddress(translitAddress);
         }
 
         return dto;

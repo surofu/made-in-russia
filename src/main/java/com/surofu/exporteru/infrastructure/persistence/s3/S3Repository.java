@@ -49,13 +49,6 @@ public class S3Repository implements FileStorageRepository {
         RequestBody request = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
         String resultExtension = fileExtension;
 
-//        if (!IGNORABLE_IMAGE_FORMATS.contains(fileExtension)) {
-//            byte[] compressedImage = mediaProcessor.compressImageToWebP(file, options);
-//            InputStream inputStream = new ByteArrayInputStream(compressedImage);
-//            request = RequestBody.fromInputStream(inputStream, compressedImage.length);
-//            resultExtension = "image/webp";
-//        }
-
         String key = createImageKey(folderName, resultExtension);
 
         if (fileExtension.contains("svg")) {
@@ -85,11 +78,8 @@ public class S3Repository implements FileStorageRepository {
     }
 
     @Override
-    public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException, InterruptedException {
+    public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException {
         String key = createVideoKey(folderName);
-//        byte[] resultData = mediaProcessor.compressVideoToWebM(file);
-//        InputStream inputStream = new ByteArrayInputStream(resultData);
-//        RequestBody request = RequestBody.fromInputStream(inputStream, resultData.length);
         RequestBody request = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
 
         client.putObject(PutObjectRequest.builder()
