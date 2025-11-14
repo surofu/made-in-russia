@@ -87,6 +87,7 @@ public class LocalizationManager {
         return view;
     }
 
+    // TODO: Make dynamic localize price
     public ProductDto localizePrice(ProductDto dto, Locale locale) {
         CurrencyCode from = CurrencyCode.USD;
         CurrencyCode to = switch (locale.getLanguage()) {

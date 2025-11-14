@@ -21,6 +21,7 @@ public final class AdvertisementThirdText implements Serializable {
     @Column(name = "third_text")
     private String value;
 
+    // TODO: AdvertisementThirdText Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

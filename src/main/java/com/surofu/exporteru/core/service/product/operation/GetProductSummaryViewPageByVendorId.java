@@ -1,6 +1,7 @@
 package com.surofu.exporteru.core.service.product.operation;
 
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
+import com.surofu.exporteru.application.model.security.SecurityUser;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ public class GetProductSummaryViewPageByVendorId {
     List<Long> deliveryMethodIds;
     BigDecimal minPrice;
     BigDecimal maxPrice;
+    SecurityUser securityUser;
 
     public interface Result {
         <T> T process(Processor<T> processor);

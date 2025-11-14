@@ -36,7 +36,7 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public Optional<User> getUserByLogin(UserLogin userLogin) {
-        return repository.findByLogin(userLogin);
+        return repository.findByLoginValue(userLogin.getValue());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public boolean existsUserByLogin(UserLogin userLogin) {
-        return repository.existsByLogin(userLogin);
+        return repository.existsByLoginValue(userLogin.getValue());
     }
 
     @Override

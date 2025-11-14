@@ -21,6 +21,7 @@ public final class VendorProductCategoryName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
+    // TODO: VendorProductCategoryName Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Embeddable
@@ -18,7 +19,7 @@ public final class VendorDetailsInn implements Serializable {
     private String value;
 
     private VendorDetailsInn(String inn) {
-        if (inn == null || inn.trim().isEmpty()) {
+        if (StringUtils.trimToNull(inn) == null) {
             throw new LocalizedValidationException("validation.vendor.inn.empty");
         }
 

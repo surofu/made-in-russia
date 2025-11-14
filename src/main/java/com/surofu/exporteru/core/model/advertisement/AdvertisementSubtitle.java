@@ -21,6 +21,7 @@ public final class AdvertisementSubtitle implements Serializable {
     @Column(name = "subtitle", nullable = false)
     private String value;
 
+    // TODO: AdvertisementSubtitle Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

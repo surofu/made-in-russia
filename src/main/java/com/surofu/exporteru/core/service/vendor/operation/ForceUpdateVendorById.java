@@ -3,6 +3,7 @@ package com.surofu.exporteru.core.service.vendor.operation;
 import com.surofu.exporteru.core.model.user.UserEmail;
 import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.user.UserPhoneNumber;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
@@ -24,6 +25,7 @@ public class ForceUpdateVendorById {
     UserPhoneNumber phoneNumber;
     VendorDetailsInn inn;
     VendorDetailsDescription description;
+    VendorDetailsAddress address;
     List<VendorCountryName> vendorCountries;
     List<VendorProductCategoryName> vendorProductCategories;
     List<VendorPhoneNumberPhoneNumber> phoneNumbers;

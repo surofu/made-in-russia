@@ -41,6 +41,7 @@ spring:
         order_inserts: true       # Оптимизация batch-операций
         order_updates: true
         jdbc:
+          time_zone: Europe/Moscow
           batch_size: 20          # Размер batch-операций
           fetch_size: 100         # Размер выборки для ResultSet
         query:
@@ -104,6 +105,8 @@ spring:
   messages:
     basename: messages/messages
     encoding: UTF-8
+  jackson:
+    time-zone: Europe/Moscow
 
 #========= Management =========#
 management:

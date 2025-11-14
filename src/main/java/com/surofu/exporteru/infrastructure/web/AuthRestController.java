@@ -350,9 +350,11 @@ public class AuthRestController {
                     )
             )
             @RequestBody RecoverPasswordCommand recoverPassword) {
+        Locale locale = LocaleContextHolder.getLocale();
         RecoverPassword operation = RecoverPassword.of(
                 UserEmail.of(recoverPassword.email()),
-                UserPasswordPassword.of(recoverPassword.newPassword())
+                UserPasswordPassword.of(recoverPassword.newPassword()),
+                locale
         );
         return authService.recoverPassword(operation).process(recoverPasswordProcessor);
     }

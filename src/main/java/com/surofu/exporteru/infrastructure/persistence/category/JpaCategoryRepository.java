@@ -36,6 +36,11 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public Optional<Category> getCategoryBySlug(CategorySlug slug) {
+        return repository.findBySlug(slug);
+    }
+
+    @Override
     public Boolean existsBySlug(CategorySlug slug) {
         return repository.existsBySlug(slug);
     }

@@ -31,6 +31,13 @@ implements CreateProductReview.Result.Processor<ResponseEntity<?>> {
     }
 
     @Override
+    public ResponseEntity<?> processUserIsAuthor(CreateProductReview.Result.UserIsAuthor result) {
+        String message = localizationManager.localize("product.review.error.user_is_author");
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
     public ResponseEntity<?> processVendorProfileNotViewed(CreateProductReview.Result.VendorProfileNotViewed result) {
         String message = localizationManager.localize("product.review.error.order_before_create");
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.FORBIDDEN);

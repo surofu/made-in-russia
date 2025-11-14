@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+// TODO: Make dynamic translate language
 public interface TranslationRepository {
     TranslationResponse translateToEn(String ...texts) throws IOException;
 

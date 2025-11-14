@@ -39,6 +39,7 @@ public class AdvertisementCacheManager {
         redisTemplate.expire(CACHE_NAME, ttl);
     }
 
+    // TODO: AdvertisementCacheManager. Fix translation
     public void remove(Long id) {
         hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("en")));
         hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("ru")));

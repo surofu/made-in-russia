@@ -8,4 +8,6 @@ public interface VendorViewRepository {
      void save(VendorView vendorView);
 
      boolean notExists(VendorView vendorView);
+
+     Boolean existsByUserIdAndVendorDetailsId(Long userId, Long vendorDetailsId);
 }

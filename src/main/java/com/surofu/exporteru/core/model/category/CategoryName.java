@@ -21,6 +21,7 @@ public final class CategoryName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
+    // TODO: CategoryName Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

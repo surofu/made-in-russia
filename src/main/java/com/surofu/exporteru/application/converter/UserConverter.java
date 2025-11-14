@@ -69,6 +69,7 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
         }
     }
 
+    // TODO: extractAddressTranslation. Make dynamic translation
     private String extractAddressTranslation(JsonNode translationsNode, String lang) {
         try {
             String hstoreString;

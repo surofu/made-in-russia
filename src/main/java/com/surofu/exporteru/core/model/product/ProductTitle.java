@@ -4,54 +4,55 @@ import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnTransformer;
 
-import java.io.Serializable;
-
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductTitle implements Serializable {
 
-    @Column(name = "title", nullable = false)
-    private String value;
+  @Column(name = "title", nullable = false)
+  private String value;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "title_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  // TODO: ProductTitle Translation. Hstore -> Jsonb
+  @Getter(AccessLevel.NONE)
+  @Setter(AccessLevel.NONE)
+  @ColumnTransformer(write = "?::hstore")
+  @Column(name = "title_translations", nullable = false, columnDefinition = "hstore")
+  private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
 
-    private ProductTitle(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название товара не должно быть пустым");
-        }
-
-        if (title.length() > 255) {
-            throw new IllegalArgumentException("Название товара не должно быть больше 255 символов");
-        }
-
-        this.value = title;
+  private ProductTitle(String title) {
+    if (title == null || title.trim().isEmpty()) {
+      throw new IllegalArgumentException("Название товара не должно быть пустым");
     }
 
-    public static ProductTitle of(String title) {
-        return new ProductTitle(title);
+    if (title.length() > 255) {
+      throw new IllegalArgumentException("Название товара не должно быть больше 255 символов");
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(this.translations);
-    }
+    this.value = title;
+  }
 
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
+  public static ProductTitle of(String title) {
+    return new ProductTitle(title);
+  }
 
-    @Override
-    public String toString() {
-        return value;
-    }
+  public HstoreTranslationDto getTranslations() {
+    return HstoreParser.fromString(this.translations);
+  }
+
+  public void setTranslations(HstoreTranslationDto translations) {
+    this.translations = HstoreParser.toString(translations);
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
 }

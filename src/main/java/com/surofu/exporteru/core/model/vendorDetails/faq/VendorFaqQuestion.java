@@ -20,6 +20,7 @@ public final class VendorFaqQuestion implements Serializable {
     @Column(name = "question", nullable = false)
     private String value;
 
+    // TODO: VendorFaqQuestion Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

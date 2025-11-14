@@ -33,6 +33,11 @@ public class CreateProductReview {
             return ProductNotFound.of(productId);
         }
 
+        static Result userIsAuthor(UserEmail userEmail) {
+            log.warn("User can't leave a comment, user is author: {}", userEmail);
+            return UserIsAuthor.INSTANCE;
+        }
+
         static Result vendorProfileNotViewed(UserEmail userEmail) {
             log.warn("VendorProfile not viewed by user with email '{}' when processing create product review", userEmail.toString());
             return VendorProfileNotViewed.INSTANCE;
@@ -89,6 +94,15 @@ public class CreateProductReview {
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processProductNotFound(this);
+            }
+        }
+
+        enum UserIsAuthor implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processUserIsAuthor(this);
             }
         }
 
@@ -185,6 +199,8 @@ public class CreateProductReview {
             T processEmptyFile(EmptyFile result);
 
             T processInvalidContentType(InvalidContentType result);
+
+            T processUserIsAuthor(UserIsAuthor result);
         }
     }
 }

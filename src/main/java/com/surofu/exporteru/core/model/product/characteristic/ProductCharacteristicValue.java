@@ -19,6 +19,7 @@ public final class ProductCharacteristicValue implements Serializable {
     @Column(name = "value", nullable = false)
     private String value;
 
+    // TODO: ProductCharacteristicValue Translation. Hstore -> Jsonb
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "value_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());

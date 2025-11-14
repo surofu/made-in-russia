@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.service;
 
+import com.surofu.exporteru.application.components.TransliterationManager;
 import com.surofu.exporteru.application.dto.product.ProductReviewDto;
 import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
@@ -21,6 +22,7 @@ import com.surofu.exporteru.infrastructure.persistence.product.ProductForReviewV
 import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -99,11 +101,15 @@ public class ProductReviewApplicationService implements ProductReviewService {
                 return p;
             });
 
-            Page<ProductReviewDto> dtoPage = productReviewPageWithMedia.map(r -> ProductReviewDto.of(r, operation.getLocale()));
+            Page<ProductReviewDto> dtoPage = productReviewPageWithMedia
+                    .map(r -> ProductReviewDto.of(r, operation.getLocale()))
+                    .map(this::transliterateUserLogin);
             return GetProductReviewPage.Result.success(dtoPage);
         }
 
-        Page<ProductReviewDto> productReviewDtoPage = page.map(ProductReviewDto::of);
+        Page<ProductReviewDto> productReviewDtoPage = page
+                .map(ProductReviewDto::of)
+                .map(this::transliterateUserLogin);
         return GetProductReviewPage.Result.success(productReviewDtoPage);
     }
 
@@ -111,34 +117,25 @@ public class ProductReviewApplicationService implements ProductReviewService {
     @Transactional(readOnly = true)
     public GetProductReviewPageByProductId.Result getProductReviewPageByProductId(GetProductReviewPageByProductId operation) {
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
-
         Specification<ProductReview> specification = Specification
                 .where(ProductReviewSpecifications.byProductId(operation.getProductId()))
                 .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()))
                 .and(ProductReviewSpecifications.approveStatusIn(ApproveStatus.APPROVED));
-
         Page<ProductReview> productReviewPage = productReviewRepository.getPage(specification, pageable);
-
         if (!productReviewPage.getContent().isEmpty()) {
             List<Long> reviewIds = productReviewPage.getContent().stream()
                     .map(ProductReview::getId)
                     .toList();
-
             List<ProductReview> reviewsWithMedia = productReviewRepository.getByIdInWithMedia(reviewIds);
-
             List<ProductForReviewView> productForReviewViewList = productRepository.getProductForReviewViewsByLang(operation.getLocale().getLanguage());
-
             Map<Long, ProductReview> reviewMap = reviewsWithMedia.stream()
                     .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
-
             Map<Long, ProductForReviewView> productForReviewViewMap = productForReviewViewList.stream()
                     .collect(Collectors.toMap(ProductForReviewView::getId, Function.identity()));
-
             Page<ProductReview> productReviewPageWithMedia = productReviewPage.map(p -> {
                 if (reviewMap.containsKey(p.getId())) {
                     p.setMedia(reviewMap.get(p.getId()).getMedia());
                 }
-
                 if (productForReviewViewMap.containsKey(p.getProductId())) {
                     ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
                     Product productReference = productRepository.getReferenceById(p.getProductId());
@@ -146,16 +143,47 @@ public class ProductReviewApplicationService implements ProductReviewService {
                     productReference.setPreviewImageUrl(ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
                     p.setProduct(productReference);
                 }
-
                 return p;
             });
-
-            Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithMedia.map(r -> ProductReviewDto.of(r, operation.getLocale()));
+            Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithMedia
+                    .map(r -> ProductReviewDto.of(r, operation.getLocale()))
+                    .map(this::transliterateUserLogin);
             return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
         }
-
-        Page<ProductReviewDto> productReviewDtoPage = productReviewPage.map(ProductReviewDto::of);
+        Page<ProductReviewDto> productReviewDtoPage = productReviewPage
+                .map(r -> translateProductReview(r, operation.getLocale()))
+                .map(this::transliterateUserLogin);
         return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
+    }
+
+    private static ProductReviewDto translateProductReview(ProductReview productReview, Locale locale) {
+        ProductReviewDto dto = ProductReviewDto.of(productReview);
+
+        String translatedProductTitle =
+            productReview.getProduct().getTitle().getTranslations().getLocale(locale);
+
+        if (StringUtils.trimToNull(translatedProductTitle) != null) {
+            dto.getProduct().setTitle(translatedProductTitle);
+        }
+
+        if (productReview.getUser().getLogin().getTransliteration() != null) {
+            String translatedUserLogin =
+                productReview.getUser().getLogin().getTransliteration().getLocale(locale);
+            dto.getAuthor().setLogin(translatedUserLogin);
+        }
+
+        String translatedText = productReview.getContent().getTranslations().getLocale(locale);
+
+        if (StringUtils.trimToNull(translatedText) != null) {
+            dto.setText(translatedText);
+        }
+
+        return dto;
+    }
+
+    private ProductReviewDto transliterateUserLogin(ProductReviewDto dto) {
+        dto.getAuthor().setLogin(TransliterationManager.transliterate(dto.getAuthor().getLogin()));
+        return dto;
     }
 
     @Override
@@ -190,6 +218,11 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return CreateProductReview.Result.accountIsTooYoung(user.getEmail());
         }
 
+        if (Objects.equals(user.getId(), product.get().getUser().getId())) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return CreateProductReview.Result.userIsAuthor(user.getEmail());
+        }
+
         Long userCurrentProductReviewsCount = productReviewRepository.getCountByProductIdAndUserId(operation.getProductId(), user.getId());
 
         if (userCurrentProductReviewsCount > 0) {
@@ -201,9 +234,15 @@ public class ProductReviewApplicationService implements ProductReviewService {
         vendorView.setVendorDetails(product.get().getUser().getVendorDetails());
         vendorView.setUser(user);
 
-        boolean viewIsNotExists = vendorViewRepository.notExists(vendorView);
+        boolean viewExists = false;
 
-        if (viewIsNotExists) {
+        if (product.get().getUser().getVendorDetails() != null) {
+            viewExists = vendorViewRepository.existsByUserIdAndVendorDetailsId(user.getId(), product.get().getUser().getVendorDetails().getId());
+        } else {
+            log.error("Vendor Details not found for user {}", user.getEmail());
+        }
+
+        if (!viewExists) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProductReview.Result.vendorProfileNotViewed(user.getEmail());
         }
@@ -216,22 +255,16 @@ public class ProductReviewApplicationService implements ProductReviewService {
         productReview.setRating(operation.getProductReviewRating());
 
         // Translation
-        TranslationResponse responseEn, responseRu, responseZh;
+        HstoreTranslationDto contentTranslation;
 
         try {
-            responseEn = translationRepository.translateToEn(operation.getProductReviewContent().toString());
-            responseRu = translationRepository.translateToRu(operation.getProductReviewContent().toString());
-            responseZh = translationRepository.translateToZh(operation.getProductReviewContent().toString());
+            contentTranslation = translationRepository.expand(operation.getProductReviewContent().toString());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return CreateProductReview.Result.translationError(e);
         }
 
-        productReview.getContent().setTranslations(new HstoreTranslationDto(
-                responseEn.getTranslations()[0].getText(),
-                responseRu.getTranslations()[0].getText(),
-                responseZh.getTranslations()[0].getText()
-        ));
+        productReview.getContent().setTranslations(contentTranslation);
 
         // Upload Media
         List<CompletableFuture<String>> mediaFutureList = new ArrayList<>(operation.getMedia().size());
@@ -323,7 +356,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
         User user = operation.getSecurityUser().getUser();
 
-        if (!user.getRole().equals(UserRole.ROLE_ADMIN) || productReviewRepository.isUserOwnerOfProductReview(user.getId(), operation.getProductReviewId())) {
+        if (!user.getRole().equals(UserRole.ROLE_ADMIN) && productReviewRepository.isUserOwnerOfProductReview(user.getId(), operation.getProductReviewId())) {
             return UpdateProductReview.Result.forbidden(
                     operation.getProductId(),
                     operation.getProductReviewId(),
@@ -380,7 +413,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
             return DeleteProductReview.Result.productReviewNotFound(operation.getProductReviewId(), operation.getProductId());
         }
 
-        if (!user.getRole().equals(UserRole.ROLE_ADMIN) || productReviewRepository.isUserOwnerOfProductReview(user.getId(), operation.getProductReviewId())) {
+        if (!user.getRole().equals(UserRole.ROLE_ADMIN) && productReviewRepository.isUserOwnerOfProductReview(user.getId(), operation.getProductReviewId())) {
             return DeleteProductReview.Result.forbidden(
                     operation.getProductId(),
                     operation.getProductReviewId(),

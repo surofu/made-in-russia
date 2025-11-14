@@ -21,6 +21,7 @@ public final class ProductReviewContent implements Serializable {
     @Column(name = "content", nullable = false, columnDefinition = "text")
     private String value;
 
+    // TODO: ProductReviewContent Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

@@ -5,6 +5,7 @@ import com.surofu.exporteru.core.model.currency.CurrencyCode;
 import com.surofu.exporteru.core.repository.CurrencyRepository;
 import com.surofu.exporteru.core.service.currency.CurrencyConverterService;
 import jakarta.annotation.PostConstruct;
+import java.time.ZonedDateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +93,7 @@ public class RussianCentralBankCurrencyConverterService implements CurrencyConve
                 return null;
             }
 
-            if (valueWithSetDateTime.setDateTime().plus(ttl).isBefore(LocalDateTime.now())) {
+            if (valueWithSetDateTime.setDateTime().plus(ttl).isBefore(ZonedDateTime.now())) {
                 map.get(from).remove(to);
                 return null;
             }
@@ -101,7 +102,7 @@ public class RussianCentralBankCurrencyConverterService implements CurrencyConve
         }
 
         public void put(CurrencyCode from, CurrencyCode to, BigDecimal value) {
-            var valueWithSetDateTime = new ValueWithSetDateTime(value, LocalDateTime.now());
+            var valueWithSetDateTime = new ValueWithSetDateTime(value, ZonedDateTime.now());
             var toMap = map.get(from);
 
             if (toMap == null) {
@@ -113,7 +114,7 @@ public class RussianCentralBankCurrencyConverterService implements CurrencyConve
             }
         }
 
-        private record ValueWithSetDateTime(BigDecimal value, LocalDateTime setDateTime) {
+        private record ValueWithSetDateTime(BigDecimal value, ZonedDateTime setDateTime) {
         }
     }
 }

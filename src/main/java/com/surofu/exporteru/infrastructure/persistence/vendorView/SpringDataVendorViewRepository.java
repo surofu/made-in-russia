@@ -13,4 +13,8 @@ public interface SpringDataVendorViewRepository extends JpaRepository<VendorView
     Long countByVendorDetailsId(@Param("vendorDetailsId") Long vendorDetailsId);
 
     boolean existsByVendorDetailsAndUser(VendorDetails vendorDetails, User user);
+
+    Boolean existsByUser_Id(Long userId);
+
+    Boolean existsByUser_IdAndVendorDetails_Id(Long userId, Long vendorDetailsId);
 }

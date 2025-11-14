@@ -43,34 +43,44 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             """, nativeQuery = true)
     Optional<Long> firstNotExists(Long[] productIdsArray);
 
+    // TODO: findHintViews. Migrate Hstore hardcode search to dynamic Jsonb
     @Query(value = """
-    select
-    p.id as productId,
-    coalesce(
-        p.title_translations -> :lang,
-        p.title
-    )  as productTitle,
-    p.preview_image_url as productImage,
-    c.id as categoryId,
-    coalesce(
-        c.name_translations -> :lang,
-        c.name
-    ) as categoryName,
-    c.image_url as categoryImage
-    from products p
-    join users u on u.id = p.user_id
-    join categories c on c.id = p.category_id
-    where (p.approve_status = 'APPROVED') and (
-            p.title ilike concat('%', :searchTerm, '%') or
-            (p.title_translations::hstore -> 'en') ilike concat('%', :searchTerm, '%') or
-            (p.title_translations::hstore -> 'ru') ilike concat('%', :searchTerm, '%') or
-            (p.title_translations::hstore -> 'zh') ilike concat('%', :searchTerm, '%') or
-            p.article_code ilike concat('%', :searchTerm, '%') or
-            u.login ilike concat('%', :searchTerm, '%') or
-            u.email ilike concat('%', :searchTerm, '%')
-    ) and (:vendorId is null or u.id = :vendorId)
-    order by c.name, p.title
-    """, nativeQuery = true)
+            SELECT
+                p.id as productId,
+                COALESCE(
+                    p.title_translations -> :lang,
+                    p.title
+                ) as productTitle,
+                p.preview_image_url as productImage,
+                c.id as categoryId,
+                COALESCE(
+                    c.name_translations -> :lang,
+                    c.name
+                ) as categoryName,
+                c.image_url as categoryImage,
+                c.slug as categorySlug
+            FROM categories c
+            LEFT JOIN products p ON c.id = p.category_id AND p.approve_status = 'APPROVED'
+            WHERE
+                -- Поиск по товарам (если они есть)
+                (p.id IS NOT NULL AND (
+                    p.title ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::hstore -> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::hstore -> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::hstore -> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    p.article_code ILIKE CONCAT('%', :searchTerm, '%')
+                ))
+                OR
+                -- Поиск по категориям (всегда)
+                (
+                    (c.name_translations::hstore -> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (c.name_translations::hstore -> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (c.name_translations::hstore -> 'zh') ILIKE CONCAT('%', :searchTerm, '%')
+                )
+            ORDER BY
+                COALESCE(c.name_translations -> :lang, c.name),
+                COALESCE(p.title_translations -> :lang, p.title);
+            """, nativeQuery = true)
     List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm, @Param("vendorId") Long vendorId, @Param("lang") String lang);
 
     // View
@@ -189,6 +199,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     """, nativeQuery = true)
     List<SimilarProductView> findAllSimilarProductViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
+    // TODO: findProductWithTranslationsByIdAndLang. Fix Hstore -> Text
     @Query(value = """
      select
         p.id,
@@ -240,6 +251,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     """, nativeQuery = true)
     Optional<ProductWithTranslationsView> findProductWithTranslationsByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
+    // TODO: findProductWithTranslationsByIdAndLangApproved. Fix Hstore -> Text
     @Query(value = """
      select
         p.id,

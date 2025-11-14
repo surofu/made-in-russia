@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.utils;
 
+import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.MailException;
 
@@ -896,6 +897,113 @@ public final class MailTemplates {
                 email, email,
                 Objects.requireNonNullElse(StringUtils.trimToNull(phoneNumber), "-"),
                 date
+        );
+    }
+
+    public static String getRejectedProductMail(String productUrl, HstoreTranslationDto productTitleTranslations) {
+        return """
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>⚠️ Товар отклонен</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    color: #333;
+                    padding: 20px;
+                }
+
+                .container {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+
+                .header {
+                    text-align: center;
+                    padding: 20px 0;
+                    border-bottom: 2px solid #eee;
+                    margin-bottom: 20px;
+                }
+
+                .rejection-alert {
+                    background-color: #ffebee;
+                    padding: 15px;
+                    border-radius: 6px;
+                    text-align: center;
+                    margin: 20px 0;
+                    border-left: 4px solid #f44336;
+                }
+
+                .info-block {
+                    background-color: #f9f9f9;
+                    padding: 15px;
+                    border-radius: 6px;
+                    margin: 15px 0;
+                }
+
+                .label {
+                    font-weight: bold;
+                    color: #555;
+                    width: 240px;
+                    display: inline-block;
+                }
+
+                .footer {
+                    margin-top: 30px;
+                    text-align: center;
+                    color: #777;
+                    font-size: 14px;
+                    border-top: 1px solid #eee;
+                    padding-top: 20px;
+                }
+
+                .product-link {
+                    color: #2196F3;
+                    text-decoration: none;
+                    font-weight: normal;
+                }
+
+                .product-link:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="container">
+            <div class="header">
+                <h2>⚠️ Товар отклонен</h2>
+            </div>
+
+            <div class="rejection-alert">
+                <strong>Модерация отклонила ваш товар</strong>
+            </div>
+
+            <div class="info-block">
+                <p><span class="label">Товар:</span> <a href="%s" class="product-link">%s</a></p>
+            </div>
+
+            <div class="info-block">
+                <p><span class="label">Статус:</span> ❌ Отклонен</p>
+                <p><span class="label">Причина:</span> Не соответствует правилам платформы</p>
+            </div>
+
+            <div class="footer">
+                <p>С уважением Exporteru.com</p>
+                <p><em>Для уточнения деталей обратитесь в поддержку</em></p>
+            </div>
+        </div>
+        </body>
+        </html>
+        """.formatted(
+                productUrl,
+                productTitleTranslations.textRu()
         );
     }
 }

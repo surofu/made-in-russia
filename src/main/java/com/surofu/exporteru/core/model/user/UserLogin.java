@@ -21,6 +21,8 @@ public final class UserLogin implements Serializable {
     @Column(name = "login", nullable = false)
     private String value;
 
+
+    // TODO: UserLogin Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

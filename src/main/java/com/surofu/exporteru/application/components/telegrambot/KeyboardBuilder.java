@@ -14,6 +14,7 @@ import java.util.List;
 public class KeyboardBuilder {
     private final LocalizationManager localizationManager;
 
+    // TODO: Telegram bot. Make createMainMenu IN translation
     public ReplyKeyboardMarkup createMainMenu() {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         keyboard.setResizeKeyboard(true);

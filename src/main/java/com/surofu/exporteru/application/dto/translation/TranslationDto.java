@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 
+// TODO: Remove TranslationDto -> Migrate to Jsonb
 @Schema(description = "Contains multilingual translations for a text field")
 public record TranslationDto(
         @Schema(

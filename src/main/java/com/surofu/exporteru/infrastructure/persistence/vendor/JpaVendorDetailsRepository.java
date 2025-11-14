@@ -6,11 +6,18 @@ import com.surofu.exporteru.core.repository.VendorDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class JpaVendorDetailsRepository implements VendorDetailsRepository {
 
     private final SpringDataVendorDetailsRepository repository;
+
+    @Override
+    public Optional<VendorDetails> getById(Long id) {
+        return repository.findById(id);
+    }
 
     @Override
     public Long getViewsCountById(Long id) {
@@ -19,12 +26,12 @@ public class JpaVendorDetailsRepository implements VendorDetailsRepository {
 
     @Override
     public boolean existsByInn(VendorDetailsInn inn) {
-        return repository.existsByInn(inn);
+        return repository.existsByInn_Value(inn.getValue());
     }
 
     @Override
     public boolean existsByInnAndNotVendorDetailsId(VendorDetailsInn inn, Long vendorId) {
-        return repository.existsByInnAndIdNot(inn, vendorId);
+        return repository.existsByInn_ValueAndIdNot(inn.getValue(), vendorId);
     }
 
     @Override

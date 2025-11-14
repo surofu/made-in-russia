@@ -11,5 +11,7 @@ public interface SearchHintView {
 
     String getCategoryName();
 
+    String getCategorySlug();
+
     String getCategoryImage();
 }

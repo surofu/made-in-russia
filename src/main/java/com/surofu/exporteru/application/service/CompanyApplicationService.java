@@ -38,6 +38,7 @@ public class CompanyApplicationService implements CompanyService {
 
     private final Semaphore dbOperationSemaphore = new Semaphore(20); // Ограничиваем до 20 параллельных операций
 
+    // TODO: getByCategorySlug. Make dynamic translation
     @Override
     @Transactional(readOnly = true)
     public GetCompaniesByCategorySlug.Result getByCategorySlug(GetCompaniesByCategorySlug operation) {

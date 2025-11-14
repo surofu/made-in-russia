@@ -14,5 +14,6 @@ import java.io.Serializable;
 public final class CategoryHintDto implements Serializable {
     Long id;
     String name;
+    String fullSlug;
     String image;
 }

@@ -316,6 +316,6 @@ public class ProductWithTranslationsDto implements Serializable {
             return null;
         }
 
-        return LocalDate.now().until(discountExpirationDate.toLocalDate(), ChronoUnit.DAYS);
+        return ZonedDateTime.now().until(discountExpirationDate.toLocalDate(), ChronoUnit.DAYS);
     }
 }

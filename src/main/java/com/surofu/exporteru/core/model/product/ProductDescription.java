@@ -24,12 +24,14 @@ public final class ProductDescription implements Serializable {
     @Column(name = "further_description", columnDefinition = "text")
     private String furtherDescription;
 
+    // TODO: mainDescriptionTranslations Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "main_description_translations", nullable = false, columnDefinition = "hstore")
     private String mainDescriptionTranslations;
 
+    // TODO: furtherDescriptionTranslations Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

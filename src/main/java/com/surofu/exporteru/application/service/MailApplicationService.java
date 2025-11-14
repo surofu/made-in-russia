@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.service;
 
+import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.application.utils.MailTemplates;
 import com.surofu.exporteru.core.service.mail.MailService;
@@ -20,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +44,7 @@ public class MailApplicationService implements MailService {
     private String fromName;
 
     @Override
-    public void sendVerificationMail(String to, String verificationCode, LocalDateTime expirationDate, Locale locale) throws MailException, IOException {
+    public void sendVerificationMail(String to, String verificationCode, ZonedDateTime expirationDate, Locale locale) throws MailException, IOException {
         String template = MailTemplates.getEmailVerification(verificationCode, formatDate(expirationDate), locale);
         String message = String.format(template, verificationCode, formatDate(expirationDate));
         String subject = localizationManager.localize("auth.email_verification.main_subject", locale);
@@ -51,7 +52,7 @@ public class MailApplicationService implements MailService {
     }
 
     @Override
-    public void sendRecoverPasswordVerificationMail(String to, String resetCode, LocalDateTime expirationDate) throws MailException, IOException {
+    public void sendRecoverPasswordVerificationMail(String to, String resetCode, ZonedDateTime expirationDate, Locale locale) throws MailException, IOException {
         String template = """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -132,7 +133,7 @@ public class MailApplicationService implements MailService {
     }
 
     @Override
-    public void sendConfirmDeleteAccountMail(String to, String code, LocalDateTime expirationDate, Locale locale) throws MailException, IOException {
+    public void sendConfirmDeleteAccountMail(String to, String code, ZonedDateTime expirationDate, Locale locale) throws MailException, IOException {
         String message = MailTemplates.getConfirmDeleteAccountMail(code, formatDate(expirationDate), locale);
         String subject = localizationManager.localize("account.mail.confirm_delete_account_mail_subject");
         sendWithMailer(to, subject, message);
@@ -140,9 +141,9 @@ public class MailApplicationService implements MailService {
 
     @Override
     public void sendSupportMail(String username, String from, String phoneNumber, String subject, String content, List<MultipartFile> attachments) throws IOException {
-        String date = formatDate(LocalDateTime.now());
+        String date = formatDate(ZonedDateTime.now());
         String message = MailTemplates.getSupportMail(username, from, phoneNumber, subject, content, date);
-        sendWithMailer("8268363@gmail.com", subject, message, attachments);
+        sendWithMailer(supportMail, subject, message, attachments);
     }
 
     @Override
@@ -153,18 +154,19 @@ public class MailApplicationService implements MailService {
 
     @Override
     public void sendPhoneRequestMail(String to, String senderFirstName, String senderEmail, String senderPhoneNumber) throws IOException {
-        String template = MailTemplates.getPhoneRequestMail(senderFirstName, senderEmail, senderPhoneNumber, formatDate(LocalDateTime.now()));
+        String template = MailTemplates.getPhoneRequestMail(senderFirstName, senderEmail, senderPhoneNumber, formatDate(ZonedDateTime.now()));
         sendWithMailer(to, "\uD83D\uDCDE Заявка на звонок / Call Request / 通话请求", template);
     }
 
     @Override
-    public void sendEmail(String to, String subject, String text) throws MailException, IOException {
-        sendWithMailer(to, subject, text);
+    public void sendRejectedProductMail(String to, String productUrl, HstoreTranslationDto productTitleTranslations) throws MailException, IOException {
+        String template = MailTemplates.getRejectedProductMail(productUrl, productTitleTranslations);
+        sendWithMailer(to, "\uD83D\uDCDE Модерация отклонила ваш товар / The moderation rejected your product / 审核拒绝了您的商品", template);
     }
 
     // Private
 
-    private String formatDate(LocalDateTime date) {
+    private String formatDate(ZonedDateTime date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         return date.format(formatter);
     }

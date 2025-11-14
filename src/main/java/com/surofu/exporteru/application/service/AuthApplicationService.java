@@ -30,6 +30,7 @@ import com.surofu.exporteru.core.service.auth.AuthService;
 import com.surofu.exporteru.core.service.auth.operation.*;
 import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
+import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +74,7 @@ public class AuthApplicationService implements AuthService {
     @Value("${app.redis.recover-password-ttl-duration}")
     private Duration recoverPasswordTtl;
 
+    // TODO: register. Make dynamic translation
     @Override
     @Transactional
     public Register.Result register(Register operation) {
@@ -134,7 +136,7 @@ public class AuthApplicationService implements AuthService {
             return Register.Result.saveInCacheError(e);
         }
 
-        LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
+        ZonedDateTime expiration = ZonedDateTime.now().plus(verificationTtl);
 
         try {
             mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, operation.getLocale());
@@ -145,6 +147,7 @@ public class AuthApplicationService implements AuthService {
         return Register.Result.success(operation.getUserEmail());
     }
 
+    // TODO: registerVendor. Make dynamic translation
     @Override
     @Transactional
     public RegisterVendor.Result registerVendor(RegisterVendor operation) {
@@ -288,7 +291,7 @@ public class AuthApplicationService implements AuthService {
             return RegisterVendor.Result.saveInCacheError(e);
         }
 
-        LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
+        ZonedDateTime expiration = ZonedDateTime.now().plus(verificationTtl);
 
         try {
             mailService.sendVerificationMail(user.getEmail().toString(), verificationCode, expiration, operation.getLocale());
@@ -437,22 +440,20 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public RecoverPassword.Result recoverPassword(RecoverPassword operation) {
-        boolean isUserExists = userRepository.existsUserByEmail(operation.getUserEmail());
-
-        if (!isUserExists) {
+        if (!userRepository.existsUserByEmail(operation.getUserEmail())) {
             return RecoverPassword.Result.userNotFound(operation.getUserEmail());
         }
 
         String recoverCode = AuthUtils.generateVerificationCode();
-        LocalDateTime expiration = LocalDateTime.now().plus(recoverPasswordTtl);
+        ZonedDateTime expiration = ZonedDateTime.now().plus(recoverPasswordTtl);
 
         RecoverPasswordDto recoverPasswordDto = new RecoverPasswordDto(recoverCode, operation.getNewUserPassword());
         recoverPasswordRedisCacheManager.set(operation.getUserEmail(), recoverPasswordDto);
 
         try {
-            mailService.sendRecoverPasswordVerificationMail(operation.getUserEmail().toString(), recoverCode, expiration);
+            mailService.sendRecoverPasswordVerificationMail(operation.getUserEmail().toString(), recoverCode, expiration, operation.getLocale());
         } catch (Exception e) {
             return RecoverPassword.Result.sendMailError(operation.getUserEmail(), e);
         }
@@ -518,6 +519,7 @@ public class AuthApplicationService implements AuthService {
         return VerifyRecoverPassword.Result.success(recoverPasswordSuccessDto, operation.getUserEmail());
     }
 
+    // TODO: forceRegister. Make dynamic translation
     @Override
     @Transactional
     public ForceRegister.Result forceRegister(ForceRegister operation) {
@@ -582,6 +584,7 @@ public class AuthApplicationService implements AuthService {
         }
     }
 
+    // TODO: forceRegisterVendor. Make dynamic translation
     @Override
     @Transactional
     public ForceRegisterVendor.Result forceRegisterVendor(ForceRegisterVendor operation) {

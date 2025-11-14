@@ -19,6 +19,7 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
+    // TODO: ProductDeliveryMethodDetailsName Translation. Hstore -> Jsonb
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());

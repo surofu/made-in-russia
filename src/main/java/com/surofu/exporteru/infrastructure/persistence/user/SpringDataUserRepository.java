@@ -4,6 +4,7 @@ import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserEmail;
 import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.user.UserPhoneNumber;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -19,17 +20,18 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
 
     @Query("select u from User u where u.id = :id")
     @EntityGraph(attributePaths = {"password", "vendorDetails"})
-    Optional<User> findById(@Param("id") Long id);
+    @NotNull
+    Optional<User> findById(@Param("id") @NotNull Long id);
 
     @EntityGraph(attributePaths = {"password", "vendorDetails"})
-    Optional<User> findByLogin(UserLogin userLogin);
+    Optional<User> findByLoginValue(String value);
 
     @EntityGraph(attributePaths = {"password", "vendorDetails"})
     Optional<User> findByEmail(UserEmail userEmail);
 
     boolean existsByEmail(UserEmail userEmail);
 
-    boolean existsByLogin(UserLogin userLogin);
+    boolean existsByLoginValue(String value);
 
     boolean existsByPhoneNumber(UserPhoneNumber userPhoneNumber);
 

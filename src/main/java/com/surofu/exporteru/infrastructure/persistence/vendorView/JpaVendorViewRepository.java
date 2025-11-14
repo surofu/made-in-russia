@@ -25,4 +25,9 @@ public class JpaVendorViewRepository implements VendorViewRepository {
     public boolean notExists(VendorView vendorView) {
         return repository.existsByVendorDetailsAndUser(vendorView.getVendorDetails(), vendorView.getUser());
     }
+
+    @Override
+    public Boolean existsByUserIdAndVendorDetailsId(Long userId, Long vendorDetailsId) {
+        return repository.existsByUser_IdAndVendorDetails_Id(userId, vendorDetailsId);
+    }
 }

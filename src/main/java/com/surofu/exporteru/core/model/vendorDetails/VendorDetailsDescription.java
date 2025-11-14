@@ -24,6 +24,7 @@ public final class VendorDetailsDescription implements Serializable {
     @Column(name = "description", nullable = false)
     private String value;
 
+    // TODO: VendorDetailsDescription Translation. Hstore -> Jsonb
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "description_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());

@@ -23,6 +23,7 @@ import com.surofu.exporteru.core.repository.VendorDetailsRepository;
 import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.infrastructure.persistence.vendor.country.JpaVendorCountryRepository;
 import jakarta.annotation.PostConstruct;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -805,7 +806,7 @@ public class TelegramBotRegisterHandler {
     private Void stepVerifyEmailSendMail(Update update) {
         long chatId = safeGetChatId(update);
 
-        LocalDateTime expiration = LocalDateTime.now().plus(verificationTtl);
+        ZonedDateTime expiration = ZonedDateTime.now().plus(verificationTtl);
         String verificationCode = AuthUtils.generateVerificationCode();
 
         RegisterObject registerObject = history.get(chatId);
@@ -833,13 +834,13 @@ public class TelegramBotRegisterHandler {
         long chatId = safeGetChatId(update);
         RegisterObject registerObject = history.get(chatId);
 
-        if (registerObject.emailVerificationAttempts <= 0 || (registerObject.emailVerificationBan != null && registerObject.emailVerificationBan.isAfter(LocalDateTime.now()))) {
+        if (registerObject.emailVerificationAttempts <= 0 || (registerObject.emailVerificationBan != null && registerObject.emailVerificationBan.isAfter(ZonedDateTime.now()))) {
             if (registerObject.emailVerificationBan == null) {
-                registerObject.emailVerificationBan = LocalDateTime.now().plusMinutes(2);
+                registerObject.emailVerificationBan = ZonedDateTime.now().plusMinutes(2);
                 registerObject.emailVerificationAttempts = 3;
             }
 
-            Duration duration = Duration.between(LocalDateTime.now(), registerObject.emailVerificationBan);
+            Duration duration = Duration.between(ZonedDateTime.now(), registerObject.emailVerificationBan);
             long minutes = duration.toMinutes();
             long seconds = duration.toSeconds() % 60;
 
@@ -860,7 +861,7 @@ public class TelegramBotRegisterHandler {
         RegisterObject registerObject = history.get(chatId);
 
         // Validation
-        if (registerObject.emailVerificationBan != null && registerObject.emailVerificationBan.isAfter(LocalDateTime.now())) {
+        if (registerObject.emailVerificationBan != null && registerObject.emailVerificationBan.isAfter(ZonedDateTime.now())) {
             prevOrFirstStep(update);
             return null;
         }
@@ -1237,7 +1238,7 @@ public class TelegramBotRegisterHandler {
         private Locale locale;
         private String emailVerificationCode;
         private int emailVerificationAttempts;
-        private LocalDateTime emailVerificationBan;
+        private ZonedDateTime emailVerificationBan;
 
         public RegisterObject(RegisterStep step, RegisterRequest request, SessionInfo sessionInfo, Locale locale) {
             this.step = step;

@@ -14,6 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryMethodName implements Serializable {
 
+    // TODO: DeliveryMethodName Translation. Hstore -> Jsonb
     @Column(name = "name", unique = true, nullable = false)
     private String value;
 

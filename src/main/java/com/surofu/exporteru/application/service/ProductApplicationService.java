@@ -22,6 +22,7 @@ import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.category.Category;
+import com.surofu.exporteru.core.model.category.CategorySlug;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
@@ -205,10 +206,9 @@ public class ProductApplicationService implements ProductService {
         if (productView.isEmpty()) {
             return GetProductByArticle.Result.notFound(operation.getArticleCode());
         }
+
         ProductDto productDto = ProductDto.of(productView.get());
-
         ProductDto fullProductDto = loadFullProduct(productDto, productView.get(), operation.getLocale());
-
         return GetProductByArticle.Result.success(fullProductDto);
     }
 
@@ -1433,15 +1433,21 @@ public class ProductApplicationService implements ProductService {
                         hint -> CategoryHintDto.builder()
                                 .id(hint.getCategoryId())
                                 .name(hint.getCategoryName())
+                                .fullSlug(getFullSlug(hint.getCategorySlug()))
                                 .image(hint.getCategoryImage())
                                 .build(),
                         LinkedHashMap::new,
                         Collectors.mapping(
-                                hint -> ProductHintDto.builder()
-                                        .id(hint.getProductId())
-                                        .title(hint.getProductTitle())
-                                        .image(hint.getProductImage())
-                                        .build(),
+                                hint -> {
+                                    if (hint.getProductId() != null) {
+                                        return ProductHintDto.builder()
+                                                .id(hint.getProductId())
+                                                .title(hint.getProductTitle())
+                                                .image(hint.getProductImage())
+                                                .build();
+                                    }
+                                    return null;
+                                },
                                 Collectors.toList()
                         )
                 ));
@@ -1449,11 +1455,34 @@ public class ProductApplicationService implements ProductService {
         List<SearchHintDto> groupedSearchHints = groupedProductHint.entrySet().stream()
                 .map(entry -> SearchHintDto.builder()
                         .category(entry.getKey())
-                        .products(entry.getValue())
+                        .products(entry.getValue().stream().filter(Objects::nonNull).collect(Collectors.toList()))
                         .build()
-                ).toList();
+                )
+                .toList();
 
         return GetSearchHints.Result.success(groupedSearchHints);
+    }
+
+    private String getFullSlug(String slug) {
+        StringBuilder fullSlug = new StringBuilder(getSlugWithoutLevel(slug));
+        String parentSlug = slug;
+
+        while (true) {
+            Optional<Category> category = categoryRepository.getCategoryBySlug(CategorySlug.of(parentSlug));
+
+            if (category.isEmpty() || category.get().getParent() == null) {
+                break;
+            }
+
+            parentSlug = category.get().getParent().getSlug().toString();
+            fullSlug.insert(0, getSlugWithoutLevel(parentSlug) + "/");
+        }
+
+        return fullSlug.toString();
+    }
+
+    private String getSlugWithoutLevel(String slug) {
+        return slug.split("_")[1];
     }
 
     @Transactional(readOnly = true)
@@ -1918,6 +1947,7 @@ public class ProductApplicationService implements ProductService {
         productRepository.save(product);
     }
 
+    // TODO: isTranslationsPresent. Make dynamic translation
     private boolean isTranslationsPresent(TranslationDto translationDto) {
         if (translationDto == null) {
             return false;

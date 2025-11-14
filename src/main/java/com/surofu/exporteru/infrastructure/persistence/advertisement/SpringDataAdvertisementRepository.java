@@ -37,6 +37,7 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
             """, nativeQuery = true)
     List<AdvertisementView> findAllViewsByLang(@Param("lang") String lang);
 
+    // TODO: findAllViewsByLang. Migrate Hstore hardcode search to dynamic Jsonb
     @Query(value = """
             select
             a.id,
@@ -114,6 +115,7 @@ public interface SpringDataAdvertisementRepository extends JpaRepository<Adverti
             """, nativeQuery = true)
     List<AdvertisementWithTranslationsView> findAllWithTranslationsViewsByLang(@Param("lang") String lang);
 
+    // TODO: findAllWithTranslationsViewsByLang. Migrate Hstore hardcode search to dynamic Jsonb
     @Query(value = """
                     select
                     a.id,

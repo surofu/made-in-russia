@@ -36,6 +36,7 @@ public class ProductCacheManager {
         hashOperations.delete(CACHE_NAME, id + locale);
     }
 
+    // TODO: ProductCacheManager. Fix translation
     public void clearById(Long id) {
         clearById(id, "en");
         clearById(id, "ru");

@@ -19,6 +19,7 @@ public final class ProductFaqQuestion implements Serializable {
     @Column(name = "question", nullable = false, columnDefinition = "text")
     private String value;
 
+    // TODO: ProductFaqQuestion Translation. Hstore -> Jsonb
     @ColumnTransformer(write = "?::hstore")
     @Column(name = "question_translations", nullable = false, columnDefinition = "hstore")
     private String translations = HstoreParser.toString(HstoreTranslationDto.empty());

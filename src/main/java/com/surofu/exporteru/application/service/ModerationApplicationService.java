@@ -8,26 +8,33 @@ import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMediaUrl;
 import com.surofu.exporteru.core.repository.*;
+import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.core.service.moderation.ModerationService;
 import com.surofu.exporteru.core.service.moderation.operation.SetProductApproveStatus;
 import com.surofu.exporteru.core.service.moderation.operation.SetProductReviewApproveStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.io.IOException;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ModerationApplicationService implements ModerationService {
 
+    @Value("${app.frontend.product}")
+    private String productHost;
     private final ProductRepository productRepository;
-
     private final ProductReviewRepository productReviewRepository;
     private final FileStorageRepository fileStorageRepository;
     private final ProductSummaryCacheManager productSummaryCacheManager;
     private final GeneralCacheService generalCacheService;
+    private final MailService mailService;
 
     @Override
     @Transactional
@@ -49,6 +56,14 @@ public class ModerationApplicationService implements ModerationService {
             return SetProductApproveStatus.Result.saveError(operation.getId(), e);
         }
 
+        if (operation.getApproveStatus() == ApproveStatus.REJECTED) {
+            String productUrl = String.format("%s/%s", productHost, product.getId());
+            try {
+                mailService.sendRejectedProductMail(product.getUser().getEmail().toString(), productUrl, product.getTitle().getTranslations());
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
 
         productSummaryCacheManager.clearAll();
         generalCacheService.clear();

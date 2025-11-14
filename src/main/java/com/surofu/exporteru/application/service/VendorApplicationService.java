@@ -1,13 +1,18 @@
 package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.components.TransliterationManager;
-import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.dto.vendor.*;
+import com.surofu.exporteru.application.dto.user.UserDto;
+import com.surofu.exporteru.application.dto.vendor.VendorCountryDto;
+import com.surofu.exporteru.application.dto.vendor.VendorDto;
+import com.surofu.exporteru.application.dto.vendor.VendorFaqDto;
+import com.surofu.exporteru.application.dto.vendor.VendorMediaDto;
+import com.surofu.exporteru.application.dto.vendor.VendorProductCategoryDto;
+import com.surofu.exporteru.application.dto.vendor.VendorReviewPageDto;
+import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
-import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
@@ -20,11 +25,28 @@ import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProdu
 import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSite;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSiteUrl;
-import com.surofu.exporteru.core.repository.*;
+import com.surofu.exporteru.core.model.vendorDetails.view.VendorView;
+import com.surofu.exporteru.core.repository.ProductReviewRepository;
+import com.surofu.exporteru.core.repository.TranslationRepository;
+import com.surofu.exporteru.core.repository.UserRepository;
+import com.surofu.exporteru.core.repository.VendorCountryRepository;
+import com.surofu.exporteru.core.repository.VendorDetailsRepository;
+import com.surofu.exporteru.core.repository.VendorEmailRepository;
+import com.surofu.exporteru.core.repository.VendorFaqRepository;
+import com.surofu.exporteru.core.repository.VendorPhoneNumberRepository;
+import com.surofu.exporteru.core.repository.VendorProductCategoryRepository;
+import com.surofu.exporteru.core.repository.VendorSiteRepository;
+import com.surofu.exporteru.core.repository.VendorViewRepository;
 import com.surofu.exporteru.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.core.service.vendor.VendorService;
-import com.surofu.exporteru.core.service.vendor.operation.*;
+import com.surofu.exporteru.core.service.vendor.operation.CreateVendorFaq;
+import com.surofu.exporteru.core.service.vendor.operation.DeleteVendorFaqById;
+import com.surofu.exporteru.core.service.vendor.operation.ForceUpdateVendorById;
+import com.surofu.exporteru.core.service.vendor.operation.GetVendorById;
+import com.surofu.exporteru.core.service.vendor.operation.GetVendorReviewPageById;
+import com.surofu.exporteru.core.service.vendor.operation.SendCallRequestMail;
+import com.surofu.exporteru.core.service.vendor.operation.UpdateVendorFaq;
 import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import com.surofu.exporteru.infrastructure.persistence.user.UserView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.VendorDetailsView;
@@ -32,7 +54,17 @@ import com.surofu.exporteru.infrastructure.persistence.vendor.country.VendorCoun
 import com.surofu.exporteru.infrastructure.persistence.vendor.faq.VendorFaqView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.media.JpaVendorMediaRepository;
 import com.surofu.exporteru.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
-import jakarta.mail.MessagingException;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,481 +76,600 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class VendorApplicationService implements VendorService {
 
-    private final UserRepository userRepository;
-    private final VendorDetailsRepository vendorDetailsRepository;
-    private final VendorViewRepository vendorViewRepository;
-    private final ProductReviewRepository productReviewRepository;
-    private final VendorFaqRepository vendorFaqRepository;
-    private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
-    private final VendorEmailRepository vendorEmailRepository;
-    private final VendorSiteRepository vendorSiteRepository;
-    private final VendorCountryRepository vendorCountryRepository;
-    private final VendorProductCategoryRepository vendorProductCategoryRepository;
-    private final TranslationRepository translationRepository;
-    private final MailService mailService;
-    private final JpaVendorMediaRepository vendorMediaRepository;
+  private final UserRepository userRepository;
+  private final VendorDetailsRepository vendorDetailsRepository;
+  private final VendorViewRepository vendorViewRepository;
+  private final ProductReviewRepository productReviewRepository;
+  private final VendorFaqRepository vendorFaqRepository;
+  private final VendorPhoneNumberRepository vendorPhoneNumberRepository;
+  private final VendorEmailRepository vendorEmailRepository;
+  private final VendorSiteRepository vendorSiteRepository;
+  private final VendorCountryRepository vendorCountryRepository;
+  private final VendorProductCategoryRepository vendorProductCategoryRepository;
+  private final TranslationRepository translationRepository;
+  private final MailService mailService;
+  private final JpaVendorMediaRepository vendorMediaRepository;
 
-    @Override
-    @Transactional
-    public GetVendorById.Result getVendorById(GetVendorById operation) {
-        Optional<UserView> userOptional = userRepository.getViewById(operation.getVendorId());
+  @Override
+  @Transactional
+  public GetVendorById.Result getVendorById(GetVendorById operation) {
+    Optional<UserView> userOptional = userRepository.getViewById(operation.getVendorId());
 
-        if (userOptional.isEmpty()) {
-            return GetVendorById.Result.notFound(operation.getVendorId());
+    if (userOptional.isEmpty()) {
+      return GetVendorById.Result.notFound(operation.getVendorId());
+    }
+
+    UserView userView = userOptional.get();
+    UserDto userDto = UserDto.of(userView, operation.getLocale());
+    VendorDetailsView vendorDetailsView = userView.getVendorDetails();
+
+    if (vendorDetailsView == null) {
+      return GetVendorById.Result.success(userDto);
+    }
+
+    VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
+
+    if (!operation.getLocale().getLanguage().equals("ru")) {
+      String login = vendorDto.getLogin();
+      String address = vendorDto.getVendorDetails().getAddress();
+
+      String translitLogin = TransliterationManager.transliterate(login);
+      String translitAddress = TransliterationManager.transliterate(address);
+
+      vendorDto.setLogin(translitLogin);
+      vendorDto.getVendorDetails().setAddress(translitAddress);
+    }
+
+    if (operation.getSecurityUser() != null) {
+      if (!vendorViewRepository.existsByUserIdAndVendorDetailsId(
+          operation.getSecurityUser().getUser().getId(), vendorDto.getVendorDetails().getId())) {
+        User user =
+            userRepository.getUserById(operation.getSecurityUser().getUser().getId()).orElseThrow();
+        VendorDetails vendorDetails =
+            vendorDetailsRepository.getById(vendorDto.getVendorDetails().getId()).orElseThrow();
+
+        VendorView vendorView = new VendorView();
+        vendorView.setUser(user);
+        vendorView.setVendorDetails(vendorDetails);
+
+        try {
+          vendorViewRepository.save(vendorView);
+        } catch (Exception e) {
+          log.error(e.getMessage(), e);
         }
+      }
+    }
 
-        UserView userView = userOptional.get();
-        UserDto userDto = UserDto.of(userView, operation.getLocale());
-        VendorDetailsView vendorDetailsView = userView.getVendorDetails();
+    Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendorDetailsView.getId());
+    vendorDto.getVendorDetails().setViewsCount(viewsCount);
 
-        if (vendorDetailsView == null) {
-            return GetVendorById.Result.success(userDto);
-        }
-
-        VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
-
-        if (!operation.getLocale().getLanguage().equals("ru")) {
-            String login = vendorDto.getLogin();
-            String address = vendorDto.getVendorDetails().getAddress();
-
-            String translitLogin = TransliterationManager.transliterate(login);
-            String translitAddress = TransliterationManager.transliterate(address);
-
-            vendorDto.setLogin(translitLogin);
-            vendorDto.getVendorDetails().setAddress(translitAddress);
-        }
-
-        Long viewsCount = vendorViewRepository.getCountByVendorDetailsId(vendorDetailsView.getId());
-        vendorDto.getVendorDetails().setViewsCount(viewsCount);
-
-        List<VendorCountryView> vendorCountryViewList = vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
-                userView.getVendorDetails().getId(),
-                operation.getLocale().getLanguage()
+    List<VendorCountryView> vendorCountryViewList =
+        vendorCountryRepository.getAllViewsByVendorDetailsIdAndLang(
+            userView.getVendorDetails().getId(),
+            operation.getLocale().getLanguage()
         );
-        List<VendorProductCategoryView> vendorProductCategoryViewList = vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
-                userView.getVendorDetails().getId(),
-                operation.getLocale().getLanguage()
+    List<VendorProductCategoryView> vendorProductCategoryViewList =
+        vendorProductCategoryRepository.getAllViewsByVendorDetailsIdAndLang(
+            userView.getVendorDetails().getId(),
+            operation.getLocale().getLanguage()
         );
-        List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
-                userView.getVendorDetails().getId(),
-                operation.getLocale().getLanguage()
+    List<VendorFaqView> vendorFaqViewList = vendorFaqRepository.getAllViewsByVendorDetailsIdAndLang(
+        userView.getVendorDetails().getId(),
+        operation.getLocale().getLanguage()
+    );
+    List<VendorPhoneNumber> vendorPhoneNumberList =
+        vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+    List<VendorEmail> vendorEmailList =
+        vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+    List<VendorSite> vendorSiteList =
+        vendorSiteRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+    List<VendorMedia> vendorMediaList =
+        vendorMediaRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+
+    List<VendorCountryDto> vendorCountryDtoList =
+        vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
+    List<VendorProductCategoryDto> vendorProductCategoryDtoList =
+        vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
+    List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
+    List<String> phoneNumbers = vendorPhoneNumberList.stream()
+        .map(VendorPhoneNumber::getPhoneNumber)
+        .map(VendorPhoneNumberPhoneNumber::toString)
+        .toList();
+    List<String> emails = vendorEmailList.stream()
+        .map(VendorEmail::getEmail)
+        .map(VendorEmailEmail::toString)
+        .toList();
+    List<String> sites = vendorSiteList.stream()
+        .map(VendorSite::getUrl)
+        .map(VendorSiteUrl::toString)
+        .toList();
+    List<VendorMediaDto> vendorMediaDtoList =
+        vendorMediaList.stream().map(VendorMediaDto::of).toList();
+
+    vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
+    vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
+    vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
+    vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
+    vendorDto.getVendorDetails().setEmails(emails);
+    vendorDto.getVendorDetails().setSites(sites);
+    vendorDto.getVendorDetails().setMedia(vendorMediaDtoList);
+
+    return GetVendorById.Result.success(vendorDto);
+  }
+
+  @Override
+  @Transactional
+  public GetVendorReviewPageById.Result getVendorReviewPageById(GetVendorReviewPageById operation) {
+    if (!userRepository.existsVendorOrAdminById(operation.getVendorId())) {
+      return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
+    }
+
+    Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+
+    Specification<ProductReview> specification = Specification
+        .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
+        .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
+            operation.getMaxRating()))
+        .and(ProductReviewSpecifications.approveStatusIn(List.of(ApproveStatus.APPROVED)));
+
+    Page<ProductReview> productReviewPage =
+        productReviewRepository.getPage(specification, pageable);
+
+    if (productReviewPage.getContent().isEmpty()) {
+      VendorReviewPageDto vendorReviewPageDto =
+          VendorReviewPageDto.of(productReviewPage, 0.0, operation.getLocale());
+      return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
+    }
+
+    List<Long> reviewIds = productReviewPage.getContent().stream()
+        .map(ProductReview::getId)
+        .toList();
+
+    List<ProductReview> reviewsWithMedia = productReviewRepository.getByIdInWithMedia(reviewIds);
+
+    Map<Long, ProductReview> reviewMap = reviewsWithMedia.stream()
+        .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
+
+    Page<ProductReview> productReviewPageWithMedia = productReviewPage
+        .map(p -> {
+          if (reviewMap.containsKey(p.getId())) {
+            p.setMedia(reviewMap.get(p.getId()).getMedia());
+          }
+          return p;
+        });
+
+    Double ratingAverage =
+        productReviewRepository.findAverageRatingByVendorId(operation.getVendorId());
+    VendorReviewPageDto vendorReviewPageDto =
+        VendorReviewPageDto.of(productReviewPageWithMedia, ratingAverage, operation.getLocale());
+    return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
+  }
+
+  @Override
+  @Transactional
+  public CreateVendorFaq.Result createVendorFaq(CreateVendorFaq operation) {
+    VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
+
+    HstoreTranslationDto questionTranslationResult, answerTranslationResult;
+
+    try {
+      questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
+      answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
+    } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      return CreateVendorFaq.Result.translationError(e);
+    }
+
+    VendorFaq faq = new VendorFaq();
+    faq.setVendorDetails(vendorDetails);
+    faq.setQuestion(operation.getQuestion());
+    faq.getQuestion().setTranslations(questionTranslationResult);
+    faq.setAnswer(operation.getAnswer());
+    faq.getAnswer().setTranslations(answerTranslationResult);
+
+    VendorFaq savedFaq;
+
+    try {
+      savedFaq = vendorFaqRepository.save(faq);
+    } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus();
+      return CreateVendorFaq.Result.saveError(e);
+    }
+
+    return CreateVendorFaq.Result.success(VendorFaqDto.of(savedFaq));
+  }
+
+  @Override
+  @Transactional
+  public DeleteVendorFaqById.Result deleteVendorFaqById(DeleteVendorFaqById operation) {
+    Optional<VendorFaq> vendorFaqOptional = vendorFaqRepository.findById(operation.getFaqId());
+
+    if (vendorFaqOptional.isEmpty()) {
+      return DeleteVendorFaqById.Result.notFound(operation.getFaqId());
+    }
+
+    try {
+      vendorFaqRepository.delete(vendorFaqOptional.get());
+    } catch (Exception e) {
+      return DeleteVendorFaqById.Result.deleteError(e);
+    }
+
+    return DeleteVendorFaqById.Result.success(operation.getFaqId());
+  }
+
+  @Override
+  @Transactional
+  public UpdateVendorFaq.Result updateVendorFaq(UpdateVendorFaq operation) {
+    VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
+
+    if (vendorDetails == null) {
+      return UpdateVendorFaq.Result.notFound(operation.getId());
+    }
+
+    Optional<VendorFaq> faqOptional =
+        vendorFaqRepository.getByIdAndVendorDetailsId(operation.getId(), vendorDetails.getId());
+
+    if (faqOptional.isEmpty()) {
+      return UpdateVendorFaq.Result.notFound(operation.getId());
+    }
+
+    HstoreTranslationDto questionTranslationResult, answerTranslationResult;
+
+    try {
+      questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
+      answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
+    } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      return UpdateVendorFaq.Result.translationError(operation.getId(), e);
+    }
+
+    VendorFaq faq = faqOptional.get();
+    faq.setQuestion(operation.getQuestion());
+    faq.getQuestion().setTranslations(questionTranslationResult);
+    faq.setAnswer(operation.getAnswer());
+    faq.getAnswer().setTranslations(answerTranslationResult);
+
+    VendorFaq savedFaq;
+
+    try {
+      savedFaq = vendorFaqRepository.save(faq);
+    } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      return UpdateVendorFaq.Result.saveError(operation.getId(), e);
+    }
+
+    return UpdateVendorFaq.Result.success(VendorFaqDto.of(savedFaq));
+  }
+
+  // TODO: forceUpdateVendorById. Make dynamic translation
+  @Override
+  @Transactional
+  public ForceUpdateVendorById.Result forceUpdateVendorById(ForceUpdateVendorById operation) {
+    try {
+      // Validation
+      User user = userRepository.getUserById(operation.getId())
+          .orElse(null);
+
+      if (user == null) {
+        return ForceUpdateVendorById.Result.notFound(operation.getId());
+      }
+
+      // Validate unique fields
+      ForceUpdateVendorById.Result validationResult = validateUniqueFields(operation, user);
+      if (validationResult != null) {
+        return validationResult;
+      }
+
+      if (user.getVendorDetails() != null &&
+          !Objects.equals(user.getVendorDetails().getInn(), operation.getInn())) {
+        if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(
+            operation.getInn(),
+            user.getVendorDetails().getId()
+        )) {
+          return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
+        }
+      }
+
+      // Get or create vendor details
+      VendorDetails vendorDetails = getOrCreateVendorDetails(user);
+
+      // Update user and vendor details
+      updateUserAndVendorDetails(operation, user, vendorDetails);
+
+      // Update collections
+      updateVendorCollections(operation, vendorDetails);
+
+      // Save changes
+      vendorDetailsRepository.save(vendorDetails);
+      userRepository.save(user);
+
+      log.info("Successfully force updated vendor by ID '{}'", operation.getId());
+      return ForceUpdateVendorById.Result.success(operation.getId());
+
+    } catch (Exception e) {
+      log.error("Error while force update vendor by ID '{}'", operation.getId(), e);
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
+    }
+  }
+
+// Вспомогательные методы
+
+  private ForceUpdateVendorById.Result validateUniqueFields(ForceUpdateVendorById operation,
+                                                            User user) {
+    if (!user.getEmail().equals(operation.getEmail()) &&
+        userRepository.existsUserByEmail(operation.getEmail())) {
+      return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
+    }
+
+    if (!user.getLogin().equals(operation.getLogin()) &&
+        userRepository.existsUserByLogin(operation.getLogin())) {
+      return ForceUpdateVendorById.Result.loginAlreadyExists(operation.getLogin());
+    }
+
+    if (!user.getPhoneNumber().equals(operation.getPhoneNumber()) &&
+        userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+      return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
+    }
+
+    return null;
+  }
+
+  private VendorDetails getOrCreateVendorDetails(User user) {
+    VendorDetails vendorDetails = user.getVendorDetails();
+
+    if (vendorDetails == null) {
+      vendorDetails = new VendorDetails();
+      vendorDetails.setUser(user);
+      user.setVendorDetails(vendorDetails);
+    }
+
+    return vendorDetails;
+  }
+
+  private void updateUserAndVendorDetails(
+      ForceUpdateVendorById operation, User user, VendorDetails vendorDetails
+  ) {
+    user.setEmail(operation.getEmail());
+    user.setLogin(operation.getLogin());
+    user.setPhoneNumber(operation.getPhoneNumber());
+    vendorDetails.setInn(operation.getInn());
+    vendorDetails.setDescription(operation.getDescription());
+    updateDescriptionTranslations(operation, vendorDetails);
+  }
+
+  private void updateDescriptionTranslations(ForceUpdateVendorById operation,
+                                             VendorDetails vendorDetails) {
+    String descriptionText = StringUtils.trimToNull(operation.getDescription().toString());
+    if (descriptionText != null) {
+      try {
+        HstoreTranslationDto descriptionTranslation = translationRepository.expand(descriptionText);
+        vendorDetails.getDescription().setTranslations(descriptionTranslation);
+      } catch (Exception e) {
+        throw new RuntimeException("Translation error for description", e);
+      }
+    }
+  }
+
+  private void updateVendorCollections(ForceUpdateVendorById operation,
+                                       VendorDetails vendorDetails) {
+    updatePhoneNumbers(operation, vendorDetails);
+    updateEmails(operation, vendorDetails);
+    updateSites(operation, vendorDetails);
+    updateCountriesAndCategories(operation, vendorDetails);
+  }
+
+  private void updatePhoneNumbers(ForceUpdateVendorById operation, VendorDetails vendorDetails) {
+    updateCollection(
+        operation.getPhoneNumbers(),
+        vendorPhoneNumberRepository::getAllByVendorDetailsId,
+        vendorPhoneNumberRepository::deleteAll,
+        (number) -> {
+          VendorPhoneNumber phoneNumber = new VendorPhoneNumber();
+          phoneNumber.setVendorDetails(vendorDetails);
+          phoneNumber.setPhoneNumber(number);
+          return phoneNumber;
+        },
+        vendorPhoneNumberRepository::saveAll,
+        vendorDetails
+    );
+  }
+
+  private void updateEmails(ForceUpdateVendorById operation, VendorDetails vendorDetails) {
+    updateCollection(
+        operation.getEmails(),
+        vendorEmailRepository::getAllByVendorDetailsId,
+        vendorEmailRepository::deleteAll,
+        (email) -> {
+          VendorEmail vendorEmail = new VendorEmail();
+          vendorEmail.setVendorDetails(vendorDetails);
+          vendorEmail.setEmail(email);
+          return vendorEmail;
+        },
+        vendorEmailRepository::saveAll,
+        vendorDetails
+    );
+  }
+
+  private void updateSites(ForceUpdateVendorById operation, VendorDetails vendorDetails) {
+    updateCollection(
+        operation.getSites(),
+        vendorSiteRepository::getAllByVendorDetailsId,
+        vendorSiteRepository::deleteAll,
+        (url) -> {
+          VendorSite vendorSite = new VendorSite();
+          vendorSite.setVendorDetails(vendorDetails);
+          vendorSite.setUrl(url);
+          return vendorSite;
+        },
+        vendorSiteRepository::saveAll,
+        vendorDetails
+    );
+  }
+
+  private <T, E> void updateCollection(
+      List<T> newItems,
+      Function<Long, List<E>> getExistingItems,
+      Consumer<List<E>> deleteItems,
+      Function<T, E> createEntity,
+      Consumer<List<E>> saveItems,
+      VendorDetails vendorDetails) {
+
+    if (newItems == null) {
+      return;
+    }
+
+    List<E> oldItems = getExistingItems.apply(vendorDetails.getId());
+    deleteItems.accept(oldItems);
+
+    if (!newItems.isEmpty()) {
+      List<E> newEntities = newItems.stream()
+          .map(createEntity)
+          .collect(Collectors.toList());
+      saveItems.accept(newEntities);
+    }
+  }
+
+  private void updateCountriesAndCategories(ForceUpdateVendorById operation,
+                                            VendorDetails vendorDetails) {
+    // Prepare new entities
+    List<VendorCountry> newCountries = operation.getVendorCountries().stream()
+        .map(name -> {
+          VendorCountry vendorCountry = new VendorCountry();
+          vendorCountry.setVendorDetails(vendorDetails);
+          vendorCountry.setName(name);
+          return vendorCountry;
+        })
+        .collect(Collectors.toList());
+
+    List<VendorProductCategory> newCategories = operation.getVendorProductCategories().stream()
+        .map(name -> {
+          VendorProductCategory vendorProductCategory = new VendorProductCategory();
+          vendorProductCategory.setVendorDetails(vendorDetails);
+          vendorProductCategory.setName(name);
+          return vendorProductCategory;
+        })
+        .collect(Collectors.toList());
+
+    // Get translations
+    Map<String, HstoreTranslationDto> translations = getTranslationsForCountriesAndCategories(
+        operation.getVendorCountries(), operation.getVendorProductCategories());
+
+    // Apply translations
+    applyTranslationsToEntities(newCountries, newCategories, translations);
+
+    // Update in database
+    updateCountriesAndCategoriesInDatabase(vendorDetails, newCountries, newCategories);
+  }
+
+  private Map<String, HstoreTranslationDto> getTranslationsForCountriesAndCategories(
+      List<VendorCountryName> countries, List<VendorProductCategoryName> categories) {
+
+    List<String> allStrings = Stream.concat(
+        countries.stream().map(VendorCountryName::toString),
+        categories.stream().map(VendorProductCategoryName::toString)
+    ).toList();
+
+    if (allStrings.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    try {
+      String[] flatStrings = allStrings.toArray(new String[0]);
+      TranslationResponse translationEn = translationRepository.translateToEn(flatStrings);
+      TranslationResponse translationRu = translationRepository.translateToRu(flatStrings);
+      TranslationResponse translationZh = translationRepository.translateToZh(flatStrings);
+
+      Map<String, HstoreTranslationDto> translations = new HashMap<>();
+      for (int i = 0; i < allStrings.size(); i++) {
+        HstoreTranslationDto translation = new HstoreTranslationDto(
+            translationEn.getTranslations()[i].getText(),
+            translationRu.getTranslations()[i].getText(),
+            translationZh.getTranslations()[i].getText()
         );
-        List<VendorPhoneNumber> vendorPhoneNumberList = vendorPhoneNumberRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-        List<VendorEmail> vendorEmailList = vendorEmailRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-        List<VendorSite> vendorSiteList = vendorSiteRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
-        List<VendorMedia> vendorMediaList = vendorMediaRepository.getAllByVendorDetailsId(userView.getVendorDetails().getId());
+        translations.put(allStrings.get(i), translation);
+      }
 
-        List<VendorCountryDto> vendorCountryDtoList = vendorCountryViewList.stream().map(VendorCountryDto::of).toList();
-        List<VendorProductCategoryDto> vendorProductCategoryDtoList = vendorProductCategoryViewList.stream().map(VendorProductCategoryDto::of).toList();
-        List<VendorFaqDto> vendorFaqDtoList = vendorFaqViewList.stream().map(VendorFaqDto::of).toList();
-        List<String> phoneNumbers = vendorPhoneNumberList.stream()
-                .map(VendorPhoneNumber::getPhoneNumber)
-                .map(VendorPhoneNumberPhoneNumber::toString)
-                .toList();
-        List<String> emails = vendorEmailList.stream()
-                .map(VendorEmail::getEmail)
-                .map(VendorEmailEmail::toString)
-                .toList();
-        List<String> sites = vendorSiteList.stream()
-                .map(VendorSite::getUrl)
-                .map(VendorSiteUrl::toString)
-                .toList();
-        List<VendorMediaDto> vendorMediaDtoList = vendorMediaList.stream().map(VendorMediaDto::of).toList();
+      return translations;
+    } catch (Exception e) {
+      throw new RuntimeException("Translation error for countries and categories", e);
+    }
+  }
 
-        vendorDto.getVendorDetails().setCountries(vendorCountryDtoList);
-        vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtoList);
-        vendorDto.getVendorDetails().setFaq(vendorFaqDtoList);
-        vendorDto.getVendorDetails().setPhoneNumbers(phoneNumbers);
-        vendorDto.getVendorDetails().setEmails(emails);
-        vendorDto.getVendorDetails().setSites(sites);
-        vendorDto.getVendorDetails().setMedia(vendorMediaDtoList);
+  private void applyTranslationsToEntities(
+      List<VendorCountry> countries,
+      List<VendorProductCategory> categories,
+      Map<String, HstoreTranslationDto> translations) {
 
-        return GetVendorById.Result.success(vendorDto);
+    for (VendorCountry country : countries) {
+      String key = country.getName().toString();
+      HstoreTranslationDto translation = translations.get(key);
+      if (translation != null) {
+        country.getName().setTranslations(translation);
+      }
     }
 
-    @Override
-    @Transactional
-    public GetVendorReviewPageById.Result getVendorReviewPageById(GetVendorReviewPageById operation) {
-        if (userRepository.existsVendorOrAdminById(operation.getVendorId())) {
-            Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
+    for (VendorProductCategory category : categories) {
+      String key = category.getName().toString();
+      HstoreTranslationDto translation = translations.get(key);
+      if (translation != null) {
+        category.getName().setTranslations(translation);
+      }
+    }
+  }
 
-            Specification<ProductReview> specification = Specification
-                    .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
-                    .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(), operation.getMaxRating()));
+  private void updateCountriesAndCategoriesInDatabase(
+      VendorDetails vendorDetails,
+      List<VendorCountry> newCountries,
+      List<VendorProductCategory> newCategories) {
 
-            Page<ProductReview> productReviewPage = productReviewRepository.getPage(specification, pageable);
+    // Delete old records
+    List<VendorCountry> oldCountries =
+        vendorCountryRepository.getAllByVendorDetailsId(vendorDetails.getId());
+    List<VendorProductCategory> oldCategories =
+        vendorProductCategoryRepository.getAllByVendorDetailsId(vendorDetails.getId());
 
-            if (productReviewPage.getContent().isEmpty()) {
-                VendorReviewPageDto vendorReviewPageDto = VendorReviewPageDto.of(productReviewPage, 0.0);
+    vendorCountryRepository.deleteAll(oldCountries);
+    vendorProductCategoryRepository.deleteAll(oldCategories);
 
-                return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
-            }
+    // Save new records
+    if (!newCountries.isEmpty()) {
+      vendorCountryRepository.saveAll(newCountries);
+    }
+    if (!newCategories.isEmpty()) {
+      vendorProductCategoryRepository.saveAll(newCategories);
+    }
+  }
 
-            List<Long> reviewIds = productReviewPage.getContent().stream()
-                    .map(ProductReview::getId)
-                    .toList();
+  @Override
+  @Transactional(readOnly = true)
+  public SendCallRequestMail.Result sendCallRequestMail(SendCallRequestMail operation) {
+    Optional<User> vendorOptional = userRepository.getVendorById(operation.getVendorId());
 
-            List<ProductReview> reviewsWithMedia = productReviewRepository.getByIdInWithMedia(reviewIds);
-
-            Map<Long, ProductReview> reviewMap = reviewsWithMedia.stream()
-                    .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
-
-            Page<ProductReview> productReviewPageWithMedia = productReviewPage.map(p -> {
-                if (reviewMap.containsKey(p.getId())) {
-                    p.setMedia(reviewMap.get(p.getId()).getMedia());
-                }
-                return p;
-            });
-
-            Double ratingAverage = productReviewRepository.findAverageRatingByVendorId(operation.getVendorId());
-            VendorReviewPageDto vendorReviewPageDto = VendorReviewPageDto.of(productReviewPageWithMedia, ratingAverage);
-
-            return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
-        }
-
-        return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
+    if (vendorOptional.isEmpty()) {
+      return SendCallRequestMail.Result.notFound(operation.getVendorId());
     }
 
-    @Override
-    @Transactional
-    public CreateVendorFaq.Result createVendorFaq(CreateVendorFaq operation) {
-        VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
+    User vendor = vendorOptional.get();
+    String email = vendor.getEmail().toString();
 
-        HstoreTranslationDto questionTranslationResult, answerTranslationResult;
+    User sender = operation.getSecurityUser().getUser();
+    String senderFirstName = sender.getLogin().toString();
+    String senderEmail = sender.getEmail().toString();
+    String senderPhoneNumber =
+        sender.getPhoneNumber() != null ? sender.getPhoneNumber().toString() : "-";
 
-        try {
-            questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
-            answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return CreateVendorFaq.Result.translationError(e);
-        }
-
-        VendorFaq faq = new VendorFaq();
-        faq.setVendorDetails(vendorDetails);
-        faq.setQuestion(operation.getQuestion());
-        faq.getQuestion().setTranslations(questionTranslationResult);
-        faq.setAnswer(operation.getAnswer());
-        faq.getAnswer().setTranslations(answerTranslationResult);
-
-        VendorFaq savedFaq;
-
-        try {
-            savedFaq = vendorFaqRepository.save(faq);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus();
-            return CreateVendorFaq.Result.saveError(e);
-        }
-
-        return CreateVendorFaq.Result.success(VendorFaqDto.of(savedFaq));
+    try {
+      mailService.sendPhoneRequestMail(email, senderFirstName, senderEmail, senderPhoneNumber);
+    } catch (IOException e) {
+      return SendCallRequestMail.Result.sendMailError(e);
     }
 
-    @Override
-    @Transactional
-    public DeleteVendorFaqById.Result deleteVendorFaqById(DeleteVendorFaqById operation) {
-        Optional<VendorFaq> vendorFaqOptional = vendorFaqRepository.findById(operation.getFaqId());
-
-        if (vendorFaqOptional.isEmpty()) {
-            return DeleteVendorFaqById.Result.notFound(operation.getFaqId());
-        }
-
-        try {
-            vendorFaqRepository.delete(vendorFaqOptional.get());
-        } catch (Exception e) {
-            return DeleteVendorFaqById.Result.deleteError(e);
-        }
-
-        return DeleteVendorFaqById.Result.success(operation.getFaqId());
-    }
-
-    @Override
-    @Transactional
-    public UpdateVendorFaq.Result updateVendorFaq(UpdateVendorFaq operation) {
-        VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
-
-        if (vendorDetails == null) {
-            return UpdateVendorFaq.Result.notFound(operation.getId());
-        }
-
-        Optional<VendorFaq> faqOptional = vendorFaqRepository.getByIdAndVendorDetailsId(operation.getId(), vendorDetails.getId());
-
-        if (faqOptional.isEmpty()) {
-            return UpdateVendorFaq.Result.notFound(operation.getId());
-        }
-
-        HstoreTranslationDto questionTranslationResult, answerTranslationResult;
-
-        try {
-            questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
-            answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateVendorFaq.Result.translationError(operation.getId(), e);
-        }
-
-        VendorFaq faq = faqOptional.get();
-        faq.setQuestion(operation.getQuestion());
-        faq.getQuestion().setTranslations(questionTranslationResult);
-        faq.setAnswer(operation.getAnswer());
-        faq.getAnswer().setTranslations(answerTranslationResult);
-
-        VendorFaq savedFaq;
-
-        try {
-            savedFaq = vendorFaqRepository.save(faq);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateVendorFaq.Result.saveError(operation.getId(), e);
-        }
-
-        return UpdateVendorFaq.Result.success(VendorFaqDto.of(savedFaq));
-    }
-
-    @Override
-    @Transactional
-    public ForceUpdateVendorById.Result forceUpdateVendorById(ForceUpdateVendorById operation) {
-        // Validation
-        if (operation.getVendorCountries().isEmpty()) {
-            return ForceUpdateVendorById.Result.emptyVendorCountries();
-        }
-
-        if (operation.getVendorProductCategories().isEmpty()) {
-            return ForceUpdateVendorById.Result.emptyVendorProductCategories();
-        }
-
-        Optional<User> userOptional = userRepository.getUserById(operation.getId());
-
-        if (userOptional.isEmpty()) {
-            return ForceUpdateVendorById.Result.notFound(operation.getId());
-        }
-
-        User user = userOptional.get();
-        VendorDetails vendorDetails = user.getVendorDetails();
-
-        if (vendorDetails == null) {
-            VendorDetails newVendorDetails = new VendorDetails();
-            newVendorDetails.setUser(user);
-            user.setVendorDetails(newVendorDetails);
-
-            vendorDetails = vendorDetailsRepository.save(newVendorDetails);
-        }
-
-        if (!user.getEmail().equals(operation.getEmail()) && userRepository.existsUserByEmail(operation.getEmail())) {
-            return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
-        }
-
-        if (!user.getLogin().equals(operation.getLogin()) && userRepository.existsUserByLogin(operation.getLogin())) {
-            return ForceUpdateVendorById.Result.loginAlreadyExists(operation.getLogin());
-        }
-
-        if (!user.getPhoneNumber().equals(operation.getPhoneNumber()) && userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
-            return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
-        }
-
-        VendorDetailsInn inn = Objects.requireNonNullElse(vendorDetails.getInn(), operation.getInn());
-        if (!inn.equals(operation.getInn())) {
-            if (vendorDetailsRepository.existsByInnAndNotVendorDetailsId(operation.getInn(), vendorDetails.getId())) {
-                return ForceUpdateVendorById.Result.innAlreadyExists(operation.getInn());
-            }
-        }
-
-        // Setting
-        user.setEmail(operation.getEmail());
-        user.setLogin(operation.getLogin());
-        user.setPhoneNumber(operation.getPhoneNumber());
-
-        vendorDetails.setUser(user);
-        user.setVendorDetails(vendorDetails);
-
-        vendorDetails.setInn(operation.getInn());
-        vendorDetails.setDescription(operation.getDescription());
-
-        if (StringUtils.trimToNull(operation.getDescription().toString()) != null) {
-            HstoreTranslationDto descriptionTranslation;
-
-            try {
-                descriptionTranslation = translationRepository.expand(operation.getDescription().toString());
-            } catch (Exception e) {
-                return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
-            }
-
-            vendorDetails.getDescription().setTranslations(descriptionTranslation);
-        }
-
-        Set<VendorPhoneNumber> vendorPhoneNumberSet = new HashSet<>();
-
-        for (VendorPhoneNumberPhoneNumber number : operation.getPhoneNumbers()) {
-            VendorPhoneNumber phoneNumber = new VendorPhoneNumber();
-            phoneNumber.setVendorDetails(vendorDetails);
-            phoneNumber.setPhoneNumber(number);
-            vendorPhoneNumberSet.add(phoneNumber);
-        }
-
-        List<VendorPhoneNumber> oldPhoneNumbers = vendorPhoneNumberRepository.getAllByVendorDetailsId(vendorDetails.getId());
-
-        try {
-            vendorPhoneNumberRepository.deleteAll(oldPhoneNumbers);
-            vendorPhoneNumberRepository.saveAll(vendorPhoneNumberSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
-        }
-
-        Set<VendorEmail> vendorEmailSet = new HashSet<>();
-
-        for (VendorEmailEmail email : operation.getEmails()) {
-            VendorEmail vendorEmail = new VendorEmail();
-            vendorEmail.setVendorDetails(vendorDetails);
-            vendorEmail.setEmail(email);
-            vendorEmailSet.add(vendorEmail);
-        }
-
-        List<VendorEmail> oldVendorEmails = vendorEmailRepository.getAllByVendorDetailsId(vendorDetails.getId());
-
-        try {
-            vendorEmailRepository.deleteAll(oldVendorEmails);
-            vendorEmailRepository.saveAll(vendorEmailSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
-        }
-
-        Set<VendorSite> vendorSiteSet = new HashSet<>();
-
-        for (VendorSiteUrl url : operation.getSites()) {
-            VendorSite vendorSite = new VendorSite();
-            vendorSite.setVendorDetails(vendorDetails);
-            vendorSite.setUrl(url);
-            vendorSiteSet.add(vendorSite);
-        }
-
-        List<VendorSite> oldVendorSites = vendorSiteRepository.getAllByVendorDetailsId(vendorDetails.getId());
-
-        try {
-            vendorSiteRepository.deleteAll(oldVendorSites);
-            vendorSiteRepository.saveAll(vendorSiteSet);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
-        }
-
-        List<VendorCountry> vendorCountryList = new ArrayList<>(operation.getVendorCountries().size());
-
-        for (VendorCountryName name : operation.getVendorCountries()) {
-            VendorCountry vendorCountry = new VendorCountry();
-            vendorCountry.setVendorDetails(vendorDetails);
-            vendorCountry.setName(name);
-            vendorCountryList.add(vendorCountry);
-        }
-
-        List<VendorProductCategory> vendorProductCategoryList = new ArrayList<>(operation.getVendorProductCategories().size());
-
-        for (VendorProductCategoryName name : operation.getVendorProductCategories()) {
-            VendorProductCategory vendorProductCategory = new VendorProductCategory();
-            vendorProductCategory.setVendorDetails(vendorDetails);
-            vendorProductCategory.setName(name);
-            vendorProductCategoryList.add(vendorProductCategory);
-        }
-
-        List<String> countryNames = operation.getVendorCountries().stream().map(VendorCountryName::toString).toList();
-        List<String> productCategoryNames = operation.getVendorProductCategories().stream().map(VendorProductCategoryName::toString).toList();
-
-        List<String> allStringList = new ArrayList<>(countryNames.size() + productCategoryNames.size());
-        allStringList.addAll(countryNames);
-        allStringList.addAll(productCategoryNames);
-
-        String[] flatStrings = allStringList.toArray(new String[0]);
-
-        TranslationResponse translationEn, translationRu, translationZh;
-
-        try {
-            translationEn = translationRepository.translateToEn(flatStrings);
-            translationRu = translationRepository.translateToRu(flatStrings);
-            translationZh = translationRepository.translateToZh(flatStrings);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
-        }
-
-        for (int i = 0; i < allStringList.size(); i++) {
-            if (countryNames.size() > i) {
-                vendorCountryList.get(i).getName().setTranslations(new HstoreTranslationDto(
-                        translationEn.getTranslations()[i].getText(),
-                        translationRu.getTranslations()[i].getText(),
-                        translationZh.getTranslations()[i].getText()
-                ));
-            }
-
-            if (countryNames.size() <= i) {
-                vendorProductCategoryList.get(i - countryNames.size()).getName().setTranslations(new HstoreTranslationDto(
-                        translationEn.getTranslations()[i].getText(),
-                        translationRu.getTranslations()[i].getText(),
-                        translationZh.getTranslations()[i].getText()
-                ));
-            }
-        }
-
-        List<VendorCountry> oldVendorCountries = vendorCountryRepository.getAllByVendorDetailsId(vendorDetails.getId());
-        List<VendorProductCategory> oldVendorProductCategoryList = vendorProductCategoryRepository.getAllByVendorDetailsId(vendorDetails.getId());
-
-        try {
-            vendorCountryRepository.deleteAll(oldVendorCountries);
-            vendorProductCategoryRepository.deleteAll(oldVendorProductCategoryList);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
-        }
-
-        try {
-            vendorCountryRepository.saveAll(vendorCountryList);
-            vendorProductCategoryRepository.saveAll(vendorProductCategoryList);
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.translationError(operation.getId(), e);
-        }
-
-        try {
-            userRepository.save(user);
-            return ForceUpdateVendorById.Result.success(operation.getId());
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public SendCallRequestMail.Result sendCallRequestMail(SendCallRequestMail operation) {
-        Optional<User> vendorOptional = userRepository.getVendorById(operation.getVendorId());
-
-        if (vendorOptional.isEmpty()) {
-            return SendCallRequestMail.Result.notFound(operation.getVendorId());
-        }
-
-        User vendor = vendorOptional.get();
-        String email = vendor.getEmail().toString();
-
-        User sender = operation.getSecurityUser().getUser();
-        String senderFirstName = sender.getLogin().toString();
-        String senderEmail = sender.getEmail().toString();
-        String senderPhoneNumber = sender.getPhoneNumber() != null ? sender.getPhoneNumber().toString() : "-";
-
-        try {
-            mailService.sendPhoneRequestMail(email, senderFirstName, senderEmail, senderPhoneNumber);
-        } catch (IOException e) {
-            return SendCallRequestMail.Result.sendMailError(e);
-        }
-
-        return SendCallRequestMail.Result.success();
-    }
+    return SendCallRequestMail.Result.success();
+  }
 }

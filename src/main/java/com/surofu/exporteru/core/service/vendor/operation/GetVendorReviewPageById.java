@@ -1,6 +1,7 @@
 package com.surofu.exporteru.core.service.vendor.operation;
 
 import com.surofu.exporteru.application.dto.vendor.VendorReviewPageDto;
+import java.util.Locale;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,7 @@ public class GetVendorReviewPageById {
     Integer size;
     Integer minRating;
     Integer maxRating;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);

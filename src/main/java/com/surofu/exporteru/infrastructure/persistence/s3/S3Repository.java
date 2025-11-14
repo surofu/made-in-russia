@@ -123,6 +123,14 @@ public class S3Repository implements FileStorageRepository {
     }
 
     private String createImageKey(String folderName, String extension) {
+        if (extension.contains("svg")) {
+            return createKey(folderName, "svg");
+        }
+
+        if (extension.contains("/")) {
+            return createKey(folderName, extension.substring(extension.indexOf("/")));
+        }
+
         return createKey(folderName, extension);
     }
 

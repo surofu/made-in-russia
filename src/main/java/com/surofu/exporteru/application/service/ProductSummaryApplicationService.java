@@ -2,9 +2,11 @@ package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.cache.ProductSummaryCacheManager;
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
+import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.user.UserRole;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.ProductSummaryViewRepository;
 import com.surofu.exporteru.core.repository.UserRepository;
@@ -130,12 +132,26 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
             allChildCategoriesIds.addAll(operation.getCategoryIds());
         }
 
+        List<ApproveStatus> statuses = new ArrayList<>();
+        statuses.add(ApproveStatus.APPROVED);
+
+        SecurityUser securityUser = operation.getSecurityUser();
+        if (securityUser != null) {
+            VendorDetails vendorDetails = securityUser.getUser().getVendorDetails();
+
+            if (vendorDetails != null && vendorDetails.getId().equals(operation.getVendorId()) || securityUser.getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
+                statuses.add(ApproveStatus.PENDING);
+                statuses.add(ApproveStatus.REJECTED);
+            }
+        }
+
         Specification<ProductSummaryView> specification = Specification
                 .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
                 .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
                 .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
                 .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
-                .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()));
+                .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()))
+                .and(ProductSummarySpecifications.approveStatusIn(statuses));
 
         Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
 

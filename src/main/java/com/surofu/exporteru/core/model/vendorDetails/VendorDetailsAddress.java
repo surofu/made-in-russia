@@ -20,6 +20,7 @@ public final class VendorDetailsAddress implements Serializable {
     @Column(name = "address")
     private String value;
 
+    // TODO: VendorDetailsAddress Translation. Hstore -> Jsonb
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ColumnTransformer(write = "?::hstore")

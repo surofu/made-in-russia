@@ -268,8 +268,13 @@ public class CategoryApplicationService implements CategoryService {
     @Override
     @Transactional
     public UpdateCategoryById.Result updateCategoryById(UpdateCategoryById operation) {
-        Optional<Category> categoryOptional = categoryRepository.getCategoryById(operation.getId());
+        // Валидация входных данных
+        if (operation == null || operation.getId() == null) {
+            throw new IllegalArgumentException("Operation or category ID cannot be null");
+        }
 
+        // Поиск категории
+        Optional<Category> categoryOptional = categoryRepository.getCategoryById(operation.getId());
         if (categoryOptional.isEmpty()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateCategoryById.Result.notFound(operation.getId());
@@ -277,8 +282,8 @@ public class CategoryApplicationService implements CategoryService {
 
         Category category = categoryOptional.get();
 
+        // Обработка переводов
         HstoreTranslationDto translationResult;
-
         try {
             translationResult = translationRepository.expand(HstoreTranslationDto.ofNullable(operation.getNameTranslations()));
         } catch (EmptyTranslationException e) {
@@ -289,35 +294,43 @@ public class CategoryApplicationService implements CategoryService {
             return UpdateCategoryById.Result.translationError(e);
         }
 
+        // Обработка родительской категории и уровня
         Optional<Category> parentCategory = Optional.empty();
         int parentCategoryLevel = 1;
 
         if (operation.getParentId() != null) {
             parentCategory = categoryRepository.getCategoryById(operation.getParentId());
-
             if (parentCategory.isEmpty()) {
                 return UpdateCategoryById.Result.parentNotFound(operation.getParentId());
             }
 
             try {
-                parentCategoryLevel = 1 + Integer.parseInt(parentCategory.get().getSlug().getValue().split("_")[0].split("l")[1]);
+                Category parent = parentCategory.get();
+                String slugValue = parent.getSlug().getValue();
+                String[] parts = slugValue.split("_");
+                if (parts.length > 0 && parts[0].startsWith("l")) {
+                    String levelStr = parts[0].substring(1);
+                    parentCategoryLevel = 1 + Integer.parseInt(levelStr);
+                }
             } catch (NumberFormatException e) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return UpdateCategoryById.Result.parentSlugLevelParseError(parentCategory.get().getSlug(), e);
             }
         }
 
-        CategorySlug slugWithLevel = CategorySlug.of(operation.getSlug().toString(), parentCategoryLevel);
-
+        // Создание и проверка slug
+        CategorySlug slugWithLevel = CategorySlug.of("l" + parentCategoryLevel + "_" + operation.getSlug().toString());
         if (!category.getSlug().getValue().equals(slugWithLevel.getValue()) && categoryRepository.existsBySlug(slugWithLevel)) {
             return UpdateCategoryById.Result.slugAlreadyExists(slugWithLevel);
         }
 
+        // Обновление основных полей
         category.setParent(parentCategory.orElse(null));
         category.setName(operation.getName());
         category.getName().setTranslations(translationResult);
         category.setSlug(slugWithLevel);
 
+        // Обновление OKVED категорий
         Set<OkvedCategory> existingOkvedCategories = category.getOkvedCategories();
         Set<String> newOkvedIds = new HashSet<>(operation.getOkvedCategories());
 
@@ -336,80 +349,19 @@ public class CategoryApplicationService implements CategoryService {
             }
         }
 
-        // Delete or upload image
-        if (!operation.getSaveImage() &&
-                category.getImageUrl() != null &&
-                StringUtils.trimToNull(category.getImageUrl().toString()) != null
-        ) {
-            try {
-                fileStorageRepository.deleteMediaByLink(category.getImageUrl().toString());
-                category.setImageUrl(null);
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateCategoryById.Result.deleteMediaError(e);
-            }
-        } else if (operation.getImageFile() != null && !operation.getImageFile().isEmpty()) {
-            String oldUrl = null;
-
-            if (category.getImageUrl() != null && StringUtils.trimToNull(category.getImageUrl().toString()) != null) {
-                oldUrl = category.getImageUrl().toString();
-            }
-
-            try {
-                String url = fileStorageRepository.uploadImageToFolder(operation.getImageFile(), FileStorageFolders.CATEGORY_IMAGES.getValue());
-                category.setImageUrl(CategoryImageUrl.of(url));
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateCategoryById.Result.uploadImageError(e);
-            }
-
-            if (oldUrl != null) {
-                try {
-                    fileStorageRepository.deleteMediaByLink(oldUrl);
-                } catch (Exception e) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                    return UpdateCategoryById.Result.deleteMediaError(e);
-                }
-            }
+        // Обработка изображения
+        UpdateCategoryById.Result imageResult = processCategoryImage(category, operation);
+        if (!(imageResult instanceof UpdateCategoryById.Result.Success)) {
+            return imageResult;
         }
 
-        // Delete or upload icon
-        if (!operation.getSaveIcon() &&
-                category.getIconUrl() != null &&
-                StringUtils.trimToNull(category.getIconUrl().toString()) != null
-        ) {
-            try {
-                fileStorageRepository.deleteMediaByLink(category.getIconUrl().toString());
-                category.setIconUrl(null);
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateCategoryById.Result.deleteMediaError(e);
-            }
-        } else if (operation.getIconFile() != null && !operation.getIconFile().isEmpty()) {
-            String oldUrl = null;
-
-            if (category.getIconUrl() != null && StringUtils.trimToNull(category.getIconUrl().toString()) != null) {
-                oldUrl = category.getIconUrl().toString();
-            }
-
-            try {
-                String url = fileStorageRepository.uploadImageToFolder(operation.getIconFile(), FileStorageFolders.CATEGORY_ICONS.getValue());
-                category.setIconUrl(CategoryIconUrl.of(url));
-            } catch (Exception e) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return UpdateCategoryById.Result.uploadImageError(e);
-            }
-
-            if (oldUrl != null) {
-                try {
-                    fileStorageRepository.deleteMediaByLink(category.getIconUrl().toString());
-                } catch (Exception e) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                    return UpdateCategoryById.Result.deleteMediaError(e);
-                }
-            }
+        // Обработка иконки
+        UpdateCategoryById.Result iconResult = processCategoryIcon(category, operation);
+        if (!(iconResult instanceof UpdateCategoryById.Result.Success)) {
+            return iconResult;
         }
 
+        // Сохранение и очистка кэша
         try {
             categoryRepository.save(category);
 
@@ -418,7 +370,7 @@ public class CategoryApplicationService implements CategoryService {
                 categoryListCacheManager.clearAll();
                 generalCacheService.clear();
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.error("Error clearing caches: {}", e.getMessage(), e);
             }
 
             return UpdateCategoryById.Result.success(category.getSlug());
@@ -426,6 +378,92 @@ public class CategoryApplicationService implements CategoryService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateCategoryById.Result.saveError(category.getSlug(), e);
         }
+    }
+
+    private UpdateCategoryById.Result processCategoryImage(Category category, UpdateCategoryById operation) {
+        String currentImageUrl = category.getImageUrl() != null ?
+                StringUtils.trimToNull(category.getImageUrl().toString()) : null;
+
+        // Удаление изображения если не нужно сохранять и оно существует
+        if (Boolean.FALSE.equals(operation.getSaveImage()) && currentImageUrl != null) {
+            try {
+                fileStorageRepository.deleteMediaByLink(currentImageUrl);
+                category.setImageUrl(null);
+                return UpdateCategoryById.Result.success(category.getSlug());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateCategoryById.Result.deleteMediaError(e);
+            }
+        }
+
+        // Загрузка нового изображения
+        if (operation.getImageFile() != null && !operation.getImageFile().isEmpty()) {
+            try {
+                String newUrl = fileStorageRepository.uploadImageToFolder(
+                        operation.getImageFile(),
+                        FileStorageFolders.CATEGORY_IMAGES.getValue()
+                );
+                category.setImageUrl(CategoryImageUrl.of(newUrl));
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateCategoryById.Result.uploadImageError(e);
+            }
+
+            // Удаление старого изображения после успешной загрузки нового
+            if (currentImageUrl != null) {
+                try {
+                    fileStorageRepository.deleteMediaByLink(currentImageUrl);
+                } catch (Exception e) {
+                    log.warn("Failed to delete old image: {}", currentImageUrl, e);
+                    // Не прерываем операцию при ошибке удаления старого файла
+                }
+            }
+        }
+
+        return UpdateCategoryById.Result.success(category.getSlug());
+    }
+
+    private UpdateCategoryById.Result processCategoryIcon(Category category, UpdateCategoryById operation) {
+        String currentIconUrl = category.getIconUrl() != null ?
+                StringUtils.trimToNull(category.getIconUrl().toString()) : null;
+
+        // Удаление иконки если не нужно сохранять и она существует
+        if (Boolean.FALSE.equals(operation.getSaveIcon()) && currentIconUrl != null) {
+            try {
+                fileStorageRepository.deleteMediaByLink(currentIconUrl);
+                category.setIconUrl(null);
+                return UpdateCategoryById.Result.success(category.getSlug());
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateCategoryById.Result.deleteMediaError(e);
+            }
+        }
+
+        // Загрузка новой иконки
+        if (operation.getIconFile() != null && !operation.getIconFile().isEmpty()) {
+            try {
+                String newUrl = fileStorageRepository.uploadImageToFolder(
+                        operation.getIconFile(),
+                        FileStorageFolders.CATEGORY_ICONS.getValue()
+                );
+                category.setIconUrl(CategoryIconUrl.of(newUrl));
+            } catch (Exception e) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return UpdateCategoryById.Result.uploadImageError(e);
+            }
+
+            // Удаление старой иконки после успешной загрузки новой
+            if (currentIconUrl != null) {
+                try {
+                    fileStorageRepository.deleteMediaByLink(currentIconUrl);
+                } catch (Exception e) {
+                    log.warn("Failed to delete old icon: {}", currentIconUrl, e);
+                    // Не прерываем операцию при ошибке удаления старого файла
+                }
+            }
+        }
+
+        return UpdateCategoryById.Result.success(category.getSlug());
     }
 
     @Override
