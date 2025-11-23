@@ -38,7 +38,7 @@ public class ExporteruApplication implements ApplicationRunner {
     public ExporteruApplication(
             @Qualifier("telegramBot")
             TelegramBot telegramBot,
-            @Qualifier("telegramBot2")
+            @Qualifier("englishTelegramBot")
             TelegramBot telegramBot2
     ) {
         this.telegramBot = telegramBot;

@@ -1,8 +1,8 @@
 package com.surofu.exporteru.core.service.faq.operation;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.core.model.faq.FaqAnswer;
 import com.surofu.exporteru.core.model.faq.FaqQuestion;
+import java.util.Map;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,9 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateFaqById {
     Long faqId;
     FaqQuestion question;
-    HstoreTranslationDto questionTranslations;
+    Map<String, String> questionTranslations;
     FaqAnswer answer;
-    HstoreTranslationDto answerTranslations;
+    Map<String, String> answerTranslations;
 
     public interface Result {
 

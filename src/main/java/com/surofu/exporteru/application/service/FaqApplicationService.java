@@ -2,7 +2,6 @@ package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.dto.faq.FaqDto;
 import com.surofu.exporteru.application.dto.faq.FaqWithTranslationsDto;
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.core.model.faq.Faq;
 import com.surofu.exporteru.core.repository.FaqRepository;
@@ -70,25 +69,14 @@ public class FaqApplicationService implements FaqService {
         faq.setQuestion(operation.getQuestion());
         faq.setAnswer(operation.getAnswer());
 
-        Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
-        translationMap.put(TranslationKeys.QUESTION.name(), operation.getQuestionTranslations());
-        translationMap.put(TranslationKeys.ANSWER.name(), operation.getAnswerTranslations());
-
-        Map<String, HstoreTranslationDto> resultMap;
-
         try {
-            resultMap = translationRepository.expand(translationMap);
+            faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestionTranslations()));
+            faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswerTranslations()));
         } catch (EmptyTranslationException e) {
             return CreateFaq.Result.emptyTranslations(e);
         } catch (Exception e) {
             return CreateFaq.Result.translationError(e);
         }
-
-        HstoreTranslationDto translatedQuestion = resultMap.get(TranslationKeys.QUESTION.name());
-        HstoreTranslationDto translatedAnswer = resultMap.get(TranslationKeys.ANSWER.name());
-
-        faq.getQuestion().setTranslations(translatedQuestion);
-        faq.getAnswer().setTranslations(translatedAnswer);
 
         Faq savedFaq;
 
@@ -104,37 +92,28 @@ public class FaqApplicationService implements FaqService {
     @Override
     @Transactional
     public UpdateFaqById.Result updateFaqById(UpdateFaqById operation) {
-        Optional<Faq> faq = faqRepository.getById(operation.getFaqId());
+        Optional<Faq> faqOptional = faqRepository.getById(operation.getFaqId());
 
-        if (faq.isEmpty()) {
+        if (faqOptional.isEmpty()) {
             return UpdateFaqById.Result.notFound(operation.getFaqId());
         }
 
-        faq.get().setQuestion(operation.getQuestion());
-        faq.get().setAnswer(operation.getAnswer());
+        Faq faq = faqOptional.get();
 
-        Map<String, HstoreTranslationDto> translationMap = new HashMap<>();
-        translationMap.put(TranslationKeys.QUESTION.name(), operation.getQuestionTranslations());
-        translationMap.put(TranslationKeys.ANSWER.name(), operation.getAnswerTranslations());
-
-        Map<String, HstoreTranslationDto> resultMap;
+        faq.setQuestion(operation.getQuestion());
+        faq.setAnswer(operation.getAnswer());
 
         try {
-            resultMap = translationRepository.expand(translationMap);
+            faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestionTranslations()));
+            faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswerTranslations()));
         } catch (EmptyTranslationException e) {
             return UpdateFaqById.Result.emptyTranslations(e);
         } catch (Exception e) {
             return UpdateFaqById.Result.translationError(e);
         }
 
-        HstoreTranslationDto translatedQuestion = resultMap.get(TranslationKeys.QUESTION.name());
-        HstoreTranslationDto translatedAnswer = resultMap.get(TranslationKeys.ANSWER.name());
-
-        faq.get().getQuestion().setTranslations(translatedQuestion);
-        faq.get().getAnswer().setTranslations(translatedAnswer);
-
         try {
-            faqRepository.save(faq.get());
+            faqRepository.save(faq);
             return UpdateFaqById.Result.success(operation.getFaqId());
         } catch (Exception e) {
             return UpdateFaqById.Result.saveFaqError(e);
@@ -156,9 +135,5 @@ public class FaqApplicationService implements FaqService {
         } catch (Exception e) {
             return DeleteFaqById.Result.deleteError(e);
         }
-    }
-
-    private enum TranslationKeys {
-        QUESTION, ANSWER
     }
 }

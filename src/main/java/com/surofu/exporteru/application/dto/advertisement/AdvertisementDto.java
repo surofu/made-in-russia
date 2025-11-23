@@ -1,14 +1,13 @@
 package com.surofu.exporteru.application.dto.advertisement;
 
-import com.surofu.exporteru.infrastructure.persistence.advertisement.AdvertisementView;
+import com.surofu.exporteru.core.model.advertisement.Advertisement;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -16,38 +15,42 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 public final class AdvertisementDto implements Serializable {
 
-    private Long id;
+  private Long id;
 
-    private String title;
+  private String title;
 
-    private String subtitle;
+  private String subtitle;
 
-    private String thirdText;
+  private String thirdText;
 
-    private String imageUrl;
+  private String imageUrl;
 
-    private String link;
+  private String link;
 
-    private Boolean isBig;
+  private Boolean isBig;
 
-    private ZonedDateTime expirationDate;
+  private ZonedDateTime expirationDate;
 
-    private ZonedDateTime creationDate;
+  private ZonedDateTime creationDate;
 
-    private ZonedDateTime lastModificationDate;
+  private ZonedDateTime lastModificationDate;
 
-    public static AdvertisementDto of(AdvertisementView view) {
-        return AdvertisementDto.builder()
-                .id(view.getId())
-                .title(view.getTitle())
-                .subtitle(view.getSubtitle())
-                .thirdText(view.getThirdText())
-                .imageUrl(view.getImageUrl())
-                .link(view.getLink())
-                .isBig(view.getIsBig())
-                .expirationDate(view.getExpirationDate() == null ? null : view.getExpirationDate().atZone(ZoneId.systemDefault()))
-                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
-                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
-                .build();
-    }
+  public static AdvertisementDto of(Advertisement advertisement, Locale locale) {
+    return AdvertisementDto.builder()
+        .id(advertisement.getId())
+        .title(
+            advertisement.getTitle() != null ? advertisement.getTitle().getLocalizedValue(locale) :
+                "")
+        .subtitle(advertisement.getSubtitle() != null ?
+            advertisement.getSubtitle().getLocalizedValue(locale) : "")
+        .thirdText(advertisement.getThirdText() != null ?
+            advertisement.getThirdText().getLocalizedValue(locale) : "")
+        .imageUrl(advertisement.getImage().getUrl())
+        .link(advertisement.getLink().toString())
+        .isBig(advertisement.getIsBig().getValue())
+        .expirationDate(advertisement.getExpirationDate().getValue())
+        .creationDate(advertisement.getCreationDate().getValue())
+        .lastModificationDate(advertisement.getLastModificationDate().getValue())
+        .build();
+  }
 }

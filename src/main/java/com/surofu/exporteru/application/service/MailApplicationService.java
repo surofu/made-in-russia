@@ -1,12 +1,11 @@
 package com.surofu.exporteru.application.service;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.application.utils.MailTemplates;
 import com.surofu.exporteru.core.service.mail.MailService;
 import jakarta.activation.DataSource;
-import jakarta.mail.MessagingException;
 import jakarta.mail.util.ByteArrayDataSource;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.simplejavamail.api.email.Email;
@@ -159,8 +158,8 @@ public class MailApplicationService implements MailService {
     }
 
     @Override
-    public void sendRejectedProductMail(String to, String productUrl, HstoreTranslationDto productTitleTranslations) throws MailException, IOException {
-        String template = MailTemplates.getRejectedProductMail(productUrl, productTitleTranslations);
+    public void sendRejectedProductMail(String to, String productUrl, Map<String, String> translations) throws MailException, IOException {
+        String template = MailTemplates.getRejectedProductMail(productUrl, translations);
         sendWithMailer(to, "\uD83D\uDCDE Модерация отклонила ваш товар / The moderation rejected your product / 审核拒绝了您的商品", template);
     }
 

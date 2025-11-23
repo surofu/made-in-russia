@@ -9,6 +9,12 @@ public interface CategoryView {
 
     String getName();
 
+    String getTitle();
+
+    String getLabel();
+
+    String getDescription();
+
     String getSlug();
 
     String getImageUrl();

@@ -40,11 +40,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<Product> getProductByIdApproved(Long productId, List<ApproveStatus> approveStatuses) {
-        return repository.findByIdAndApproveStatusIn(productId, approveStatuses);
-    }
-
-    @Override
     public Optional<ProductView> getProductViewByIdAndLangAndApproveStatuses(Long productId, String lang, List<ApproveStatus> approveStatuses) {
         return repository.findProductViewByIdAndLangAndStatuses(productId, lang, approveStatuses.stream().map(ApproveStatus::name).toList());
     }
@@ -129,18 +124,8 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLangApproved(Long id, String lang) {
-        return repository.findProductWithTranslationsByIdAndLangApproved(id, lang);
-    }
-
-    @Override
     public List<ProductForReviewView> getProductForReviewViewsByLang(String lang) {
         return repository.findProductForReviewViewsByLang(lang);
-    }
-
-    @Override
-    public List<ProductForReviewView> getProductForReviewViewsByProductIdAndLang(Long id, String lang) {
-        return repository.findProductForReviewViewsByProductIdAndLang(id, lang);
     }
 
     @Override

@@ -14,11 +14,11 @@ public interface SpringDataVendorFaqRepository extends JpaRepository<VendorFaq, 
             select
             id,
             coalesce(
-                question_translations -> :lang,
+                question_translations::jsonb ->> :lang,
                 question
             ) as question,
             coalesce(
-                answer_translations -> :lang,
+                answer_translations::jsonb ->> :lang,
                 answer
             ) as answer,
             creation_date,

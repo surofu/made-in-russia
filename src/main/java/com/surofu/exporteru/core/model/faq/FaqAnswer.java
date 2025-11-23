@@ -1,19 +1,21 @@
 package com.surofu.exporteru.core.model.faq;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class FaqAnswer implements Serializable {
@@ -21,12 +23,9 @@ public final class FaqAnswer implements Serializable {
     @Column(name = "answer", nullable = false)
     private String value;
 
-    // TODO: FaqAnswer Translation. Hstore -> Jsonb
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "answer_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "answer_translations")
+    private Map<String, String> translations = new HashMap<>();
 
     private FaqAnswer(String answer) {
         if (answer == null || answer.trim().isEmpty()) {
@@ -42,14 +41,6 @@ public final class FaqAnswer implements Serializable {
 
     public static FaqAnswer of(String answer) {
         return new FaqAnswer(answer);
-    }
-
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
-
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

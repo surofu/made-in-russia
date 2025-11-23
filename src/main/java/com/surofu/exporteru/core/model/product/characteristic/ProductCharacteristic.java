@@ -1,63 +1,64 @@
 package com.surofu.exporteru.core.model.product.characteristic;
 
 import com.surofu.exporteru.core.model.product.Product;
-import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.Serializable;
-
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "product_characteristics",
-        indexes = {
-                @Index(
-                        name = "idx_product_characteristics_product_id",
-                        columnList = "product_id"
-                )
-        }
-)
+@Table(name = "product_characteristics")
 public final class ProductCharacteristic implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "product_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_product_characteristics_product_id")
-    )
-    private Product product;
+  @ToString.Exclude
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
 
-    @Embedded
-    private ProductCharacteristicName name;
+  @Embedded
+  private ProductCharacteristicName name;
 
-    @Embedded
-    private ProductCharacteristicValue value;
+  @Embedded
+  private ProductCharacteristicValue value;
 
-    @Embedded
-    private ProductCharacteristicCreationDate creationDate;
+  @Embedded
+  private ProductCharacteristicCreationDate creationDate;
 
-    @Embedded
-    private ProductCharacteristicLastModificationDate lastModificationDate;
+  @Embedded
+  private ProductCharacteristicLastModificationDate lastModificationDate;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductCharacteristic)) return false;
-        return id != null && id.equals(((ProductCharacteristic)o).id);
-    }
+  @Override
+  public boolean equals(Object o) {
+      if (this == o) {
+          return true;
+      }
+      if (!(o instanceof ProductCharacteristic productCharacteristic)) {
+          return false;
+      }
+    return Objects.equals(name, productCharacteristic.name)
+        && Objects.equals(value, productCharacteristic.value);
+  }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, value);
+  }
 }

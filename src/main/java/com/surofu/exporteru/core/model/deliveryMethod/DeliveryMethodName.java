@@ -3,20 +3,29 @@ package com.surofu.exporteru.core.model.deliveryMethod;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryMethodName implements Serializable {
 
-    // TODO: DeliveryMethodName Translation. Hstore -> Jsonb
     @Column(name = "name", unique = true, nullable = false)
     private String value;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "name_translations")
+    private Map<String, String> translations = new HashMap<>();
 
     private DeliveryMethodName(String name) {
         if (name == null || name.trim().isEmpty()) {

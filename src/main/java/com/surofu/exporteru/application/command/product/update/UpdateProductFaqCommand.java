@@ -1,7 +1,7 @@
 package com.surofu.exporteru.application.command.product.update;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 
 @Schema(description = "Command for updating an existing frequently asked questions about a product")
 public record UpdateProductFaqCommand(
@@ -10,13 +10,13 @@ public record UpdateProductFaqCommand(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String question,
 
-        TranslationDto questionTranslations,
+        Map<String, String> questionTranslations,
 
         @Schema(description = "Answer to the FAQ question",
                 example = "The box includes the device, charging cable, and documentation",
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String answer,
 
-        TranslationDto answerTranslations
+        Map<String, String> answerTranslations
 ) {
 }

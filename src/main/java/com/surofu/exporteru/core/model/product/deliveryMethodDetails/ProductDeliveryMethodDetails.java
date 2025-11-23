@@ -2,6 +2,7 @@ package com.surofu.exporteru.core.model.product.deliveryMethodDetails;
 
 import com.surofu.exporteru.core.model.product.Product;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,12 +41,13 @@ public final class ProductDeliveryMethodDetails implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductDeliveryMethodDetails)) return false;
-        return id != null && id.equals(((ProductDeliveryMethodDetails) o).id);
+        if (!(o instanceof ProductDeliveryMethodDetails productDeliveryMethodDetails)) return false;
+        return Objects.equals(name, productDeliveryMethodDetails.name)
+            && Objects.equals(value, productDeliveryMethodDetails.value);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(name, value);
     }
 }

@@ -13,11 +13,11 @@ public interface SpringDataProductFaqRepository extends JpaRepository<ProductFaq
             select
             f.id,
             coalesce(
-                f.question_translations -> :lang,
+                f.question_translations::jsonb ->> :lang,
                 f.question
             ) as question,
             coalesce(
-                f.answer_translations -> :lang,
+                f.answer_translations::jsonb ->> :lang,
                 f.answer
             ) as answer,
             f.creation_date,
@@ -31,15 +31,15 @@ public interface SpringDataProductFaqRepository extends JpaRepository<ProductFaq
             select
             f.id,
             coalesce(
-                f.question_translations -> :lang,
+                f.question_translations::jsonb ->> :lang,
                 f.question
             ) as question,
-            f.question_translations::text,
+            f.question_translations,
             coalesce(
-                f.answer_translations -> :lang,
+                f.answer_translations::jsonb ->> :lang,
                 f.answer
             ) as answer,
-            f.answer_translations::text,
+            f.answer_translations,
             f.creation_date,
             f.last_modification_date
             from product_faq f

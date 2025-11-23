@@ -1,19 +1,42 @@
 package com.surofu.exporteru.infrastructure.persistence.product.characteristic;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.Map;
 
 public interface ProductCharacteristicWithTranslationsView {
-    Long getId();
+  Long getId();
 
-    String getName();
+  String getName();
 
-    String getNameTranslations();
+  String getNameTranslations();
 
-    String getValue();
+  String getValue();
 
-    String getValueTranslations();
+  String getValueTranslations();
 
-    Instant getCreationDate();
+  Instant getCreationDate();
 
-    Instant getLastModificationDate();
+  Instant getLastModificationDate();
+
+  default Map<String, String> getNameTranslationsMap() {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      return mapper.readValue(getNameTranslations(), new TypeReference<>() {
+      });
+    } catch (Exception e) {
+      return Map.of();
+    }
+  }
+
+  default Map<String, String> getValueTranslationsMap() {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      return mapper.readValue(getValueTranslations(), new TypeReference<>() {
+      });
+    } catch (Exception e) {
+      return Map.of();
+    }
+  }
 }

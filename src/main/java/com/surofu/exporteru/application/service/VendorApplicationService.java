@@ -1,7 +1,6 @@
 package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.components.TransliterationManager;
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorCountryDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
@@ -14,7 +13,6 @@ import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
-import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaq;
@@ -22,7 +20,6 @@ import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategory;
-import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSite;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.exporteru.core.model.vendorDetails.view.VendorView;
@@ -47,7 +44,6 @@ import com.surofu.exporteru.core.service.vendor.operation.GetVendorById;
 import com.surofu.exporteru.core.service.vendor.operation.GetVendorReviewPageById;
 import com.surofu.exporteru.core.service.vendor.operation.SendCallRequestMail;
 import com.surofu.exporteru.core.service.vendor.operation.UpdateVendorFaq;
-import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import com.surofu.exporteru.infrastructure.persistence.user.UserView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.VendorDetailsView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.country.VendorCountryView;
@@ -55,8 +51,6 @@ import com.surofu.exporteru.infrastructure.persistence.vendor.faq.VendorFaqView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.media.JpaVendorMediaRepository;
 import com.surofu.exporteru.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +58,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -205,7 +198,7 @@ public class VendorApplicationService implements VendorService {
   @Override
   @Transactional
   public GetVendorReviewPageById.Result getVendorReviewPageById(GetVendorReviewPageById operation) {
-    if (!userRepository.existsVendorOrAdminById(operation.getVendorId())) {
+    if (userRepository.existsVendorOrAdminById(operation.getVendorId())) {
       return GetVendorReviewPageById.Result.vendorNotFound(operation.getVendorId());
     }
 
@@ -255,22 +248,18 @@ public class VendorApplicationService implements VendorService {
   public CreateVendorFaq.Result createVendorFaq(CreateVendorFaq operation) {
     VendorDetails vendorDetails = operation.getSecurityUser().getUser().getVendorDetails();
 
-    HstoreTranslationDto questionTranslationResult, answerTranslationResult;
+    VendorFaq faq = new VendorFaq();
+    faq.setVendorDetails(vendorDetails);
+    faq.setQuestion(operation.getQuestion());
+    faq.setAnswer(operation.getAnswer());
 
     try {
-      questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
-      answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
+      faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestion().toString()));
+      faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswer().toString()));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateVendorFaq.Result.translationError(e);
     }
-
-    VendorFaq faq = new VendorFaq();
-    faq.setVendorDetails(vendorDetails);
-    faq.setQuestion(operation.getQuestion());
-    faq.getQuestion().setTranslations(questionTranslationResult);
-    faq.setAnswer(operation.getAnswer());
-    faq.getAnswer().setTranslations(answerTranslationResult);
 
     VendorFaq savedFaq;
 
@@ -318,21 +307,17 @@ public class VendorApplicationService implements VendorService {
       return UpdateVendorFaq.Result.notFound(operation.getId());
     }
 
-    HstoreTranslationDto questionTranslationResult, answerTranslationResult;
+    VendorFaq faq = faqOptional.get();
+    faq.setQuestion(operation.getQuestion());
+    faq.setAnswer(operation.getAnswer());
 
     try {
-      questionTranslationResult = translationRepository.expand(operation.getQuestion().toString());
-      answerTranslationResult = translationRepository.expand(operation.getAnswer().toString());
+      faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestion().toString()));
+      faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswer().toString()));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateVendorFaq.Result.translationError(operation.getId(), e);
     }
-
-    VendorFaq faq = faqOptional.get();
-    faq.setQuestion(operation.getQuestion());
-    faq.getQuestion().setTranslations(questionTranslationResult);
-    faq.setAnswer(operation.getAnswer());
-    faq.getAnswer().setTranslations(answerTranslationResult);
 
     VendorFaq savedFaq;
 
@@ -387,12 +372,9 @@ public class VendorApplicationService implements VendorService {
       // Save changes
       vendorDetailsRepository.save(vendorDetails);
       userRepository.save(user);
-
-      log.info("Successfully force updated vendor by ID '{}'", operation.getId());
       return ForceUpdateVendorById.Result.success(operation.getId());
 
     } catch (Exception e) {
-      log.error("Error while force update vendor by ID '{}'", operation.getId(), e);
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return ForceUpdateVendorById.Result.saveError(operation.getId(), e);
     }
@@ -448,8 +430,7 @@ public class VendorApplicationService implements VendorService {
     String descriptionText = StringUtils.trimToNull(operation.getDescription().toString());
     if (descriptionText != null) {
       try {
-        HstoreTranslationDto descriptionTranslation = translationRepository.expand(descriptionText);
-        vendorDetails.getDescription().setTranslations(descriptionTranslation);
+        vendorDetails.getDescription().setTranslations(translationRepository.expand(descriptionText));
       } catch (Exception e) {
         throw new RuntimeException("Translation error for description", e);
       }
@@ -457,7 +438,7 @@ public class VendorApplicationService implements VendorService {
   }
 
   private void updateVendorCollections(ForceUpdateVendorById operation,
-                                       VendorDetails vendorDetails) {
+                                       VendorDetails vendorDetails) throws Exception {
     updatePhoneNumbers(operation, vendorDetails);
     updateEmails(operation, vendorDetails);
     updateSites(operation, vendorDetails);
@@ -543,6 +524,11 @@ public class VendorApplicationService implements VendorService {
           VendorCountry vendorCountry = new VendorCountry();
           vendorCountry.setVendorDetails(vendorDetails);
           vendorCountry.setName(name);
+          try {
+            vendorCountry.getName().setTranslations(translationRepository.expand(name.getTranslations()));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
           return vendorCountry;
         })
         .collect(Collectors.toList());
@@ -552,75 +538,17 @@ public class VendorApplicationService implements VendorService {
           VendorProductCategory vendorProductCategory = new VendorProductCategory();
           vendorProductCategory.setVendorDetails(vendorDetails);
           vendorProductCategory.setName(name);
+          try {
+            vendorProductCategory.getName().setTranslations(translationRepository.expand(name.getTranslations()));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
           return vendorProductCategory;
         })
         .collect(Collectors.toList());
 
-    // Get translations
-    Map<String, HstoreTranslationDto> translations = getTranslationsForCountriesAndCategories(
-        operation.getVendorCountries(), operation.getVendorProductCategories());
-
-    // Apply translations
-    applyTranslationsToEntities(newCountries, newCategories, translations);
-
     // Update in database
     updateCountriesAndCategoriesInDatabase(vendorDetails, newCountries, newCategories);
-  }
-
-  private Map<String, HstoreTranslationDto> getTranslationsForCountriesAndCategories(
-      List<VendorCountryName> countries, List<VendorProductCategoryName> categories) {
-
-    List<String> allStrings = Stream.concat(
-        countries.stream().map(VendorCountryName::toString),
-        categories.stream().map(VendorProductCategoryName::toString)
-    ).toList();
-
-    if (allStrings.isEmpty()) {
-      return Collections.emptyMap();
-    }
-
-    try {
-      String[] flatStrings = allStrings.toArray(new String[0]);
-      TranslationResponse translationEn = translationRepository.translateToEn(flatStrings);
-      TranslationResponse translationRu = translationRepository.translateToRu(flatStrings);
-      TranslationResponse translationZh = translationRepository.translateToZh(flatStrings);
-
-      Map<String, HstoreTranslationDto> translations = new HashMap<>();
-      for (int i = 0; i < allStrings.size(); i++) {
-        HstoreTranslationDto translation = new HstoreTranslationDto(
-            translationEn.getTranslations()[i].getText(),
-            translationRu.getTranslations()[i].getText(),
-            translationZh.getTranslations()[i].getText()
-        );
-        translations.put(allStrings.get(i), translation);
-      }
-
-      return translations;
-    } catch (Exception e) {
-      throw new RuntimeException("Translation error for countries and categories", e);
-    }
-  }
-
-  private void applyTranslationsToEntities(
-      List<VendorCountry> countries,
-      List<VendorProductCategory> categories,
-      Map<String, HstoreTranslationDto> translations) {
-
-    for (VendorCountry country : countries) {
-      String key = country.getName().toString();
-      HstoreTranslationDto translation = translations.get(key);
-      if (translation != null) {
-        country.getName().setTranslations(translation);
-      }
-    }
-
-    for (VendorProductCategory category : categories) {
-      String key = category.getName().toString();
-      HstoreTranslationDto translation = translations.get(key);
-      if (translation != null) {
-        category.getName().setTranslations(translation);
-      }
-    }
   }
 
   private void updateCountriesAndCategoriesInDatabase(

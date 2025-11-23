@@ -3,6 +3,7 @@ package com.surofu.exporteru.core.model.product.price;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,5 +48,17 @@ public final class ProductPriceOriginalPrice implements Serializable {
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductPriceOriginalPrice productPriceOriginalPrice)) return false;
+        return Objects.equals(value, productPriceOriginalPrice.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

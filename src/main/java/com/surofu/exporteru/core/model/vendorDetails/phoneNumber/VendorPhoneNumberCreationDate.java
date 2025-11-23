@@ -33,6 +33,6 @@ public final class VendorPhoneNumberCreationDate implements Serializable {
 
     @Override
     public String toString() {
-        return this.value.toString();
+        return value.toString();
     }
 }

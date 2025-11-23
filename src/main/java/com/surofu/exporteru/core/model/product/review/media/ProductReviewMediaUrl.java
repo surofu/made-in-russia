@@ -3,6 +3,7 @@ package com.surofu.exporteru.core.model.product.review.media;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,5 +37,17 @@ public final class ProductReviewMediaUrl implements Serializable {
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductReviewMediaUrl productReviewMediaUrl)) return false;
+        return Objects.equals(value, productReviewMediaUrl.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

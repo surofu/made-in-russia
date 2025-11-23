@@ -39,4 +39,3 @@ app:
       leak-detection-threshold: 20000
       auto-commit: false
       idle-timeout: 30000
-

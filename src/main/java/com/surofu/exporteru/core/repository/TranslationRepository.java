@@ -1,29 +1,21 @@
 package com.surofu.exporteru.core.repository;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
-
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-// TODO: Make dynamic translate language
 public interface TranslationRepository {
-    TranslationResponse translateToEn(String ...texts) throws IOException;
+  TranslationResponse translateToEn(String... texts) throws IOException;
 
-    TranslationResponse translateToRu(String ...texts) throws IOException;
+  TranslationResponse translateToRu(String... texts) throws IOException;
 
-    TranslationResponse translateToZh(String ...texts) throws IOException;
+  TranslationResponse translateToZh(String... texts) throws IOException;
 
-    HstoreTranslationDto expand(HstoreTranslationDto dto) throws EmptyTranslationException, IOException;
+  TranslationResponse translateToIn(String... texts) throws IOException;
 
-    HstoreTranslationDto expand(String text) throws EmptyTranslationException, IOException;
+  Map<String, String> expand(Map<String, String> translations)
+      throws EmptyTranslationException, IOException;
 
-    List<HstoreTranslationDto> expand(String ...texts) throws EmptyTranslationException, IOException;
-
-    Map<String, List<HstoreTranslationDto>> expandStrings(Map<String, List<String>> map) throws IOException;
-
-    Map<String, HstoreTranslationDto> expand(Map<String, HstoreTranslationDto> map) throws EmptyTranslationException, ExecutionException;
+  Map<String, String> expand(String text) throws EmptyTranslationException, IOException;
 }

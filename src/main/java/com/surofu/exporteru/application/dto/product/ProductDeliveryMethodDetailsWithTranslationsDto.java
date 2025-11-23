@@ -1,9 +1,8 @@
 package com.surofu.exporteru.application.dto.product;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import com.surofu.exporteru.infrastructure.persistence.product.deliveryMethodDetails.ProductDeliveryMethodDetailsWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,11 +26,11 @@ public final class ProductDeliveryMethodDetailsWithTranslationsDto implements Se
 
     private String name;
 
-    private TranslationDto nameTranslations;
+    private Map<String, String> nameTranslations;
 
     private String value;
 
-    private TranslationDto valueTranslations;
+    private Map<String, String> valueTranslations;
 
     private ZonedDateTime creationDate;
 
@@ -42,9 +41,9 @@ public final class ProductDeliveryMethodDetailsWithTranslationsDto implements Se
         return ProductDeliveryMethodDetailsWithTranslationsDto.builder()
                 .id(view.getId())
                 .name(view.getName())
-                .nameTranslations(TranslationDto.of(HstoreParser.fromString(view.getNameTranslations())))
+                .nameTranslations(view.getNameTranslationsMap())
                 .value(view.getValue())
-                .valueTranslations(TranslationDto.of(HstoreParser.fromString(view.getValueTranslations())))
+                .valueTranslations(view.getValueTranslationsMap())
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

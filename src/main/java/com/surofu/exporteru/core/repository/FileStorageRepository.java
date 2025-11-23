@@ -15,7 +15,7 @@ public interface FileStorageRepository {
 
     String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException;
 
-    List<String> uploadManyVideosToFolder(String folderName, MultipartFile ...files) throws IOException, InterruptedException;
+    List<String> uploadManyVideosToFolder(String folderName, MultipartFile ...files) throws IOException;
 
     void deleteMediaByLink(String ...links);
 }

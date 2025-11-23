@@ -1,6 +1,5 @@
 package com.surofu.exporteru.application.service;
 
-import com.surofu.exporteru.application.cache.ProductSummaryCacheManager;
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.LocalizationManager;
@@ -17,6 +16,11 @@ import com.surofu.exporteru.core.service.product.operation.GetProductSummaryView
 import com.surofu.exporteru.core.service.product.operation.GetProductSummaryViewPageByVendorId;
 import com.surofu.exporteru.core.service.product.operation.GetProductSummaryViewsByIds;
 import com.surofu.exporteru.core.view.ProductSummaryView;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,167 +31,183 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductSummaryApplicationService implements ProductSummaryService {
-    private final ProductSummaryViewRepository productSummaryViewRepository;
-    private final UserRepository userRepository;
-    private final ProductSummaryCacheManager productSummaryCacheManager;
-    private final LocalizationManager localizationManager;
-    private final CategoryRepository categoryRepository;
+  private final ProductSummaryViewRepository productSummaryViewRepository;
+  private final UserRepository userRepository;
+  private final LocalizationManager localizationManager;
+  private final CategoryRepository categoryRepository;
 
-    @Override
-    @Transactional(readOnly = true)
-    public GetProductSummaryViewPage.Result getProductSummaryPage(GetProductSummaryViewPage operation) {
-        // Act
-        List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
+  @Override
+  @Transactional(readOnly = true)
+  public GetProductSummaryViewPage.Result getProductSummaryPage(
+      GetProductSummaryViewPage operation) {
+    // Act
+    List<Long> allChildCategoriesIds =
+        categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
 
-        if (operation.getCategoryIds() != null) {
-            allChildCategoriesIds.addAll(operation.getCategoryIds());
-        }
-
-        Specification<ProductSummaryView> specification = Specification
-                .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
-                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
-                .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
-
-        if (operation.getSecurityUser() != null && operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
-            specification = specification.and(ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
-
-            if (operation.getApproveStatuses().isEmpty()) {
-                specification = specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.values()));
-            }
-        } else {
-            specification = specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.APPROVED));
-        }
-
-        String[] sortStrings = operation.getSort().split(",");
-        Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
-
-        Page<ProductSummaryView> productSummaryViewPage = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-
-        Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
-                .map(p -> ProductSummaryViewDto.of(
-                        localizationManager.localizePrice(p, operation.getLocale()),
-                        operation.getLocale().getLanguage()
-                ));
-
-        return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
+    if (operation.getCategoryIds() != null) {
+      allChildCategoriesIds.addAll(operation.getCategoryIds());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public GetProductSummaryViewsByIds.Result getProductSummaryViewsByIds(GetProductSummaryViewsByIds operation) {
-        List<ProductSummaryView> productSummaryViewList = productSummaryViewRepository.getProductSummaryViewByIds(operation.getProductIds());
-        List<ProductSummaryViewDto> productSummaryViewDtoList = new ArrayList<>(productSummaryViewList.size());
+    Specification<ProductSummaryView> specification = Specification
+        .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+        .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
+        .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(),
+            operation.getMaxPrice()))
+        .and(ProductSummarySpecifications.byTitle(operation.getTitle()));
 
-        for (ProductSummaryView view : productSummaryViewList) {
-            productSummaryViewDtoList.add(ProductSummaryViewDto.of(
-                    localizationManager.localizePrice(view, operation.getLocale()),
-                    operation.getLocale().getLanguage())
-            );
-        }
+    if (operation.getSecurityUser() != null &&
+        operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
+      specification = specification.and(
+          ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
 
-        return GetProductSummaryViewsByIds.Result.success(productSummaryViewDtoList);
+      if (operation.getApproveStatuses().isEmpty()) {
+        specification =
+            specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.values()));
+      }
+    } else {
+      specification =
+          specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.APPROVED));
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public GetProductSummaryViewById.Result getProductSummaryViewById(GetProductSummaryViewById operation) {
-        Long productSummaryId = operation.getProductSummaryId();
-        Optional<ProductSummaryView> productSummaryView = productSummaryViewRepository.getProductSummaryViewById(productSummaryId);
-        Optional<ProductSummaryViewDto> productSummaryViewDto = productSummaryView
-                .map(p -> ProductSummaryViewDto.of(
-                        localizationManager.localizePrice(p, operation.getLocale()),
-                        operation.getLocale().getLanguage())
-                );
+    String[] sortStrings = operation.getSort().split(",");
+    Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
+    Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
 
-        if (productSummaryViewDto.isPresent()) {
-            return GetProductSummaryViewById.Result.success(productSummaryViewDto.get());
-        }
+    Page<ProductSummaryView> productSummaryViewPage =
+        productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
 
-        return GetProductSummaryViewById.Result.notFound(productSummaryId);
+    Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
+        .map(p -> ProductSummaryViewDto.of(
+            localizationManager.localizePrice(p, operation.getLocale()),
+            operation.getLocale().getLanguage()
+        ));
+
+    return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public GetProductSummaryViewsByIds.Result getProductSummaryViewsByIds(
+      GetProductSummaryViewsByIds operation) {
+    List<ProductSummaryView> productSummaryViewList =
+        productSummaryViewRepository.getProductSummaryViewByIds(operation.getProductIds());
+    List<ProductSummaryViewDto> productSummaryViewDtoList =
+        new ArrayList<>(productSummaryViewList.size());
+
+    for (ProductSummaryView view : productSummaryViewList) {
+      productSummaryViewDtoList.add(ProductSummaryViewDto.of(
+          localizationManager.localizePrice(view, operation.getLocale()),
+          operation.getLocale().getLanguage())
+      );
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public GetProductSummaryViewPageByVendorId.Result getProductSummaryViewPageByVendorId(GetProductSummaryViewPageByVendorId operation) {
-        if (!userRepository.existsVendorOrAdminById(operation.getVendorId())) {
-            return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());
-        }
+    return GetProductSummaryViewsByIds.Result.success(productSummaryViewDtoList);
+  }
 
-        // Process
-        List<Long> allChildCategoriesIds = categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
+  @Override
+  @Transactional(readOnly = true)
+  public GetProductSummaryViewById.Result getProductSummaryViewById(
+      GetProductSummaryViewById operation) {
+    Long productSummaryId = operation.getProductSummaryId();
+    Optional<ProductSummaryView> productSummaryView =
+        productSummaryViewRepository.getProductSummaryViewById(productSummaryId);
+    Optional<ProductSummaryViewDto> productSummaryViewDto = productSummaryView
+        .map(p -> ProductSummaryViewDto.of(
+            localizationManager.localizePrice(p, operation.getLocale()),
+            operation.getLocale().getLanguage())
+        );
 
-        if (operation.getCategoryIds() != null) {
-            allChildCategoriesIds.addAll(operation.getCategoryIds());
-        }
-
-        List<ApproveStatus> statuses = new ArrayList<>();
-        statuses.add(ApproveStatus.APPROVED);
-
-        SecurityUser securityUser = operation.getSecurityUser();
-        if (securityUser != null) {
-            VendorDetails vendorDetails = securityUser.getUser().getVendorDetails();
-
-            if (vendorDetails != null && vendorDetails.getId().equals(operation.getVendorId()) || securityUser.getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
-                statuses.add(ApproveStatus.PENDING);
-                statuses.add(ApproveStatus.REJECTED);
-            }
-        }
-
-        Specification<ProductSummaryView> specification = Specification
-                .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
-                .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
-                .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(), operation.getMaxPrice()))
-                .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
-                .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()))
-                .and(ProductSummarySpecifications.approveStatusIn(statuses));
-
-        Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), Sort.by("creationDate").descending());
-
-        Page<ProductSummaryView> page = productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-        Page<ProductSummaryViewDto> pageDto = page
-                .map(p -> ProductSummaryViewDto.of(
-                        localizationManager.localizePrice(p, operation.getLocale()),
-                        operation.getLocale().getLanguage())
-                );
-
-        return GetProductSummaryViewPageByVendorId.Result.success(pageDto);
+    if (productSummaryViewDto.isPresent()) {
+      return GetProductSummaryViewById.Result.success(productSummaryViewDto.get());
     }
 
-    private String getFirstPageHash(GetProductSummaryViewPage operation) {
-        return operation.getLocale().getLanguage() +
-                operation.getPage() +
-                operation.getSize() +
-                operation.getTitle() +
-                operation.getSort() +
-                operation.getDirection() +
-                Objects.requireNonNullElse(operation.getCategoryIds(), "") +
-                Objects.requireNonNullElse(operation.getDeliveryMethodIds(), "") +
-                Objects.requireNonNullElse(operation.getMinPrice(), "") +
-                Objects.requireNonNullElse(operation.getMaxPrice(), "");
+    return GetProductSummaryViewById.Result.notFound(productSummaryId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public GetProductSummaryViewPageByVendorId.Result getProductSummaryViewPageByVendorId(
+      GetProductSummaryViewPageByVendorId operation) {
+    if (userRepository.existsVendorOrAdminById(operation.getVendorId())) {
+      return GetProductSummaryViewPageByVendorId.Result.vendorNotFound(operation.getVendorId());
     }
 
-    private boolean validateOperationHash(GetProductSummaryViewPage operation) {
-        boolean page = operation.getPage() >= 1 && operation.getPage() <= 10;
-        boolean size = operation.getSize() == 10;
-        boolean title = operation.getTitle() == null || operation.getTitle().isEmpty();
-        boolean sort = operation.getSort() == null;
-        boolean direction = operation.getDirection() == null;
-        boolean category = operation.getCategoryIds() == null || operation.getCategoryIds().isEmpty();
-        boolean deliveryMethod = operation.getDeliveryMethodIds() == null || operation.getDeliveryMethodIds().isEmpty();
-        boolean minPrice = operation.getMinPrice() == null || operation.getMinPrice().compareTo(BigDecimal.valueOf(100)) <= 0;
-        boolean maxPrice = operation.getMaxPrice() == null || operation.getMaxPrice().compareTo(BigDecimal.valueOf(1_000_000)) <= 0;
-        return page && size && title && category && deliveryMethod && minPrice && maxPrice && sort && direction;
+    // Process
+    List<Long> allChildCategoriesIds =
+        categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
+
+    if (operation.getCategoryIds() != null) {
+      allChildCategoriesIds.addAll(operation.getCategoryIds());
     }
+
+    List<ApproveStatus> statuses = new ArrayList<>();
+    statuses.add(ApproveStatus.APPROVED);
+
+    SecurityUser securityUser = operation.getSecurityUser();
+    if (securityUser != null) {
+      VendorDetails vendorDetails = securityUser.getUser().getVendorDetails();
+
+      if (vendorDetails != null && vendorDetails.getId().equals(operation.getVendorId()) ||
+          securityUser.getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
+        statuses.add(ApproveStatus.PENDING);
+        statuses.add(ApproveStatus.REJECTED);
+      }
+    }
+
+    Specification<ProductSummaryView> specification = Specification
+        .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+        .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
+        .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(),
+            operation.getMaxPrice()))
+        .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
+        .and(ProductSummarySpecifications.byVendorId(operation.getVendorId()))
+        .and(ProductSummarySpecifications.approveStatusIn(statuses));
+
+    Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(),
+        Sort.by("creationDate").descending());
+
+    Page<ProductSummaryView> page =
+        productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
+    Page<ProductSummaryViewDto> pageDto = page
+        .map(p -> ProductSummaryViewDto.of(
+            localizationManager.localizePrice(p, operation.getLocale()),
+            operation.getLocale().getLanguage())
+        );
+
+    return GetProductSummaryViewPageByVendorId.Result.success(pageDto);
+  }
+
+  private String getFirstPageHash(GetProductSummaryViewPage operation) {
+    return operation.getLocale().getLanguage() +
+        operation.getPage() +
+        operation.getSize() +
+        operation.getTitle() +
+        operation.getSort() +
+        operation.getDirection() +
+        Objects.requireNonNullElse(operation.getCategoryIds(), "") +
+        Objects.requireNonNullElse(operation.getDeliveryMethodIds(), "") +
+        Objects.requireNonNullElse(operation.getMinPrice(), "") +
+        Objects.requireNonNullElse(operation.getMaxPrice(), "");
+  }
+
+  private boolean validateOperationHash(GetProductSummaryViewPage operation) {
+    boolean page = operation.getPage() >= 1 && operation.getPage() <= 10;
+    boolean size = operation.getSize() == 10;
+    boolean title = operation.getTitle() == null || operation.getTitle().isEmpty();
+    boolean sort = operation.getSort() == null;
+    boolean direction = operation.getDirection() == null;
+    boolean category = operation.getCategoryIds() == null || operation.getCategoryIds().isEmpty();
+    boolean deliveryMethod =
+        operation.getDeliveryMethodIds() == null || operation.getDeliveryMethodIds().isEmpty();
+    boolean minPrice = operation.getMinPrice() == null ||
+        operation.getMinPrice().compareTo(BigDecimal.valueOf(100)) <= 0;
+    boolean maxPrice = operation.getMaxPrice() == null ||
+        operation.getMaxPrice().compareTo(BigDecimal.valueOf(1_000_000)) <= 0;
+    return page && size && title && category && deliveryMethod && minPrice && maxPrice && sort &&
+        direction;
+  }
 }

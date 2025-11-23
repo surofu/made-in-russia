@@ -6,7 +6,6 @@ import com.surofu.exporteru.application.dto.auth.TokenDto;
 import com.surofu.exporteru.application.dto.product.ProductReviewDto;
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
 import com.surofu.exporteru.application.dto.session.SessionDto;
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.dto.user.ToggleUserFavoriteProductStatusDto;
 import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorCountryDto;
@@ -94,7 +93,6 @@ import com.surofu.exporteru.infrastructure.persistence.vendor.productCategory.Ve
 import com.surofu.exporteru.infrastructure.persistence.vendorView.JpaVendorViewRepository;
 import io.jsonwebtoken.JwtException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -354,7 +352,7 @@ public class MeApplicationService implements MeService {
 
   private ProductReview translateProductReview(ProductReview productReview, Locale locale) {
     String translatedProductTitle =
-        productReview.getProduct().getTitle().getTranslations().getLocale(locale);
+        productReview.getProduct().getTitle().getLocalizedValue(locale);
 
     if (StringUtils.trimToNull(translatedProductTitle) != null) {
       productReview.getProduct().setTitle(ProductTitle.of(translatedProductTitle));
@@ -362,11 +360,11 @@ public class MeApplicationService implements MeService {
 
     if (productReview.getUser().getLogin().getTransliteration() != null) {
       String translatedUserLogin =
-          productReview.getUser().getLogin().getTransliteration().getLocale(locale);
+          productReview.getUser().getLogin().getLocalizedValue(locale);
       productReview.getUser().setLogin(UserLogin.of(translatedUserLogin));
     }
 
-    String translatedText = productReview.getContent().getTranslations().getLocale(locale);
+    String translatedText = productReview.getContent().getLocalizedValue(locale);
 
     if (StringUtils.trimToNull(translatedText) != null) {
       productReview.setContent(ProductReviewContent.of(translatedText));
@@ -452,32 +450,26 @@ public class MeApplicationService implements MeService {
       }
 
       if (operation.getAddress() != null) {
-        HstoreTranslationDto translationDto;
+        vendorDetails.setAddress(operation.getAddress());
 
         try {
-          translationDto = translationRepository.expand(operation.getAddress().toString());
+          vendorDetails.getAddress().setTranslations(translationRepository.expand(operation.getAddress().toString()));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
         }
-
-        vendorDetails.setAddress(operation.getAddress());
-        vendorDetails.getAddress().setTranslations(translationDto);
       }
 
       if (operation.getDescription() != null) {
         vendorDetails.setDescription(operation.getDescription());
 
-        HstoreTranslationDto translationDto;
 
         try {
-          translationDto = translationRepository.expand(operation.getDescription().toString());
+          vendorDetails.getDescription().setTranslations(translationRepository.expand(operation.getDescription().toString()));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
         }
-
-        vendorDetails.getDescription().setTranslations(translationDto);
       }
 
       if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
@@ -486,18 +478,15 @@ public class MeApplicationService implements MeService {
         for (VendorCountryName countryName : operation.getCountryNames()) {
           VendorCountry vendorCountry = new VendorCountry();
           vendorCountry.setVendorDetails(vendorDetails);
-
-          HstoreTranslationDto translationDto;
+          vendorCountry.setName(countryName);
 
           try {
-            translationDto = translationRepository.expand(countryName.toString());
+            countryName.setTranslations(translationRepository.expand(countryName.toString()));
           } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateMe.Result.translationError(e);
           }
 
-          countryName.setTranslations(translationDto);
-          vendorCountry.setName(countryName);
           vendorCountries.add(vendorCountry);
         }
 
@@ -527,16 +516,14 @@ public class MeApplicationService implements MeService {
           vendorProductCategory.setVendorDetails(vendorDetails);
           vendorProductCategory.setName(categoryName);
 
-          HstoreTranslationDto translationDto;
-
           try {
-            translationDto = translationRepository.expand(categoryName.toString());
+            vendorProductCategory.getName().setTranslations(translationRepository.expand(categoryName.toString()));
+
           } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return UpdateMe.Result.translationError(e);
           }
 
-          vendorProductCategory.getName().setTranslations(translationDto);
           vendorProductCategories.add(vendorProductCategory);
         }
 

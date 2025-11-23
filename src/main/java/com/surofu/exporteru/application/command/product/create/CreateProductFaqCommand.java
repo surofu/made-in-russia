@@ -1,22 +1,22 @@
 package com.surofu.exporteru.application.command.product.create;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 
 @Schema(description = "Command for creating frequently asked questions about a product")
 public record CreateProductFaqCommand(
-        @Schema(description = "FAQ question text",
-                example = "What's included in the box?",
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        String question,
+    @Schema(description = "FAQ question text",
+        example = "What's included in the box?",
+        requiredMode = Schema.RequiredMode.REQUIRED)
+    String question,
 
-        TranslationDto questionTranslations,
+    Map<String, String> questionTranslations,
 
-        @Schema(description = "Answer to the FAQ question",
-                example = "The box includes the device, charging cable, and documentation",
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        String answer,
+    @Schema(description = "Answer to the FAQ question",
+        example = "The box includes the device, charging cable, and documentation",
+        requiredMode = Schema.RequiredMode.REQUIRED)
+    String answer,
 
-        TranslationDto answerTranslations
+    Map<String, String> answerTranslations
 ) {
 }

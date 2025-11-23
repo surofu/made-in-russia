@@ -1,59 +1,58 @@
 package com.surofu.exporteru.core.model.advertisement;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnTransformer;
-
-import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class AdvertisementSubtitle implements Serializable {
 
-    @Column(name = "subtitle", nullable = false)
-    private String value;
+  @Column(name = "subtitle", nullable = false)
+  private String value;
 
-    // TODO: AdvertisementSubtitle Translation. Hstore -> Jsonb
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "subtitle_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "subtitle_translations", nullable = false, columnDefinition = "hstore")
+  private Map<String, String> translations = new HashMap<>();
 
-    private AdvertisementSubtitle(String subtitle) {
-        if (subtitle == null || subtitle.trim().isEmpty()) {
-            throw new LocalizedValidationException("validation.subtitle.empty");
-        }
-
-        if (subtitle.length() > 255) {
-            throw new LocalizedValidationException("validation.subtitle.max_length");
-        }
-
-        this.value = subtitle;
+  private AdvertisementSubtitle(String subtitle) {
+    if (subtitle == null || subtitle.trim().isEmpty()) {
+      throw new LocalizedValidationException("validation.subtitle.empty");
     }
 
-    public static AdvertisementSubtitle of(String subtitle) {
-        return new AdvertisementSubtitle(subtitle);
+    if (subtitle.length() > 255) {
+      throw new LocalizedValidationException("validation.subtitle.max_length");
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
+    this.value = subtitle;
+  }
 
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
+  public String getLocalizedValue(Locale locale) {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
     }
+    return Objects.requireNonNullElse(translations.get(locale.getLanguage()), Objects.requireNonNullElse(value, ""));
+  }
 
-    @Override
-    public String toString() {
-        return value;
-    }
+  public static AdvertisementSubtitle of(String subtitle) {
+    return new AdvertisementSubtitle(subtitle);
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
 }

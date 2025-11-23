@@ -3,12 +3,13 @@ package com.surofu.exporteru.core.service.product.operation;
 import com.surofu.exporteru.application.command.product.create.*;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.core.model.product.ProductDescription;
+import com.surofu.exporteru.core.model.product.ProductDiscountExpirationDate;
+import com.surofu.exporteru.core.model.product.ProductMinimumOrderQuantity;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
@@ -26,8 +27,8 @@ public class CreateProduct {
     List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
     List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
     List<CreateProductMediaAltTextCommand> createProductMediaAltTextCommands;
-    Integer minimumOrderQuantity;
-    ZonedDateTime discountExpirationDate;
+    ProductMinimumOrderQuantity minimumOrderQuantity;
+    ProductDiscountExpirationDate discountExpirationDate;
     List<MultipartFile> productMedia;
     List<MultipartFile> productVendorDetailsMedia;
 
@@ -74,7 +75,7 @@ public class CreateProduct {
             return SimilarProductNotFound.of(similarProductId);
         }
 
-        static Result emptyTranslation(String moduleName) {
+        static Result emptyTranslations(String moduleName) {
             log.warn("Empty translation: {}", moduleName);
             return EmptyTranslation.INSTANCE;
         }

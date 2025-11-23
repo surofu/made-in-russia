@@ -1,9 +1,8 @@
 package com.surofu.exporteru.application.dto.product;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import com.surofu.exporteru.infrastructure.persistence.product.media.ProductMediaWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -54,7 +53,7 @@ public final class ProductMediaWithTranslationsDto {
     )
     private String altText;
 
-    private TranslationDto altTextTranslations;
+    private Map<String, String> altTextTranslations;
 
     @Schema(
             description = "Timestamp when the media was first uploaded",
@@ -80,7 +79,7 @@ public final class ProductMediaWithTranslationsDto {
                 .mimeType(view.getMimeType())
                 .url(view.getUrl())
                 .altText(view.getAltText())
-                .altTextTranslations(TranslationDto.of(HstoreParser.fromString(view.getAltTextTranslations())))
+                .altTextTranslations(view.getAltTextTranslationsMap())
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

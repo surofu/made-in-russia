@@ -1,6 +1,7 @@
 package com.surofu.exporteru.core.service.product.operation;
 
 import com.surofu.exporteru.application.dto.category.CategoryDto;
+import java.util.Locale;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Value(staticConstructor = "of")
 public class GetProductCategoryByProductId {
     Long productId;
+    Locale locale;
 
     public interface Result {
         <T> T process(Processor<T> processor);

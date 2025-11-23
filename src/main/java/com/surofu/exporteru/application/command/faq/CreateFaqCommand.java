@@ -1,11 +1,11 @@
 package com.surofu.exporteru.application.command.faq;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
+import java.util.Map;
 
 public record CreateFaqCommand(
-        String question,
-        TranslationDto questionTranslations,
-        String answer,
-        TranslationDto answerTranslations
+    String question,
+    Map<String, String> questionTranslations,
+    String answer,
+    Map<String, String> answerTranslations
 ) {
 }

@@ -1,55 +1,62 @@
 package com.surofu.exporteru.core.model.product.characteristic;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
-
-import java.io.Serializable;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductCharacteristicName implements Serializable {
 
-    @Column(name = "name", nullable = false)
-    private String value;
+  @Column(name = "name", nullable = false)
+  private String value;
 
-    // TODO: ProductCharacteristicName Translation. Hstore -> Jsonb
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "name_translations")
+  private Map<String, String> translations = new HashMap<>();
 
-    private ProductCharacteristicName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название характеристики не может быть пустой");
-        }
-
-        if (name.length() > 255) {
-            throw new IllegalArgumentException("Название характеристики не может быть больше 255 символов");
-        }
-
-        this.value = name;
+  private ProductCharacteristicName(String name) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("Название характеристики не может быть пустой");
     }
 
-    public static ProductCharacteristicName of(String name) {
-        return new ProductCharacteristicName(name);
+    if (name.length() > 255) {
+      throw new IllegalArgumentException(
+          "Название характеристики не может быть больше 255 символов");
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
+    this.value = name;
+  }
 
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
+  public static ProductCharacteristicName of(String name) {
+    return new ProductCharacteristicName(name);
+  }
 
-    @Override
-    public String toString() {
-        return value;
-    }
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ProductCharacteristicName productCharacteristicName)) return false;
+    return Objects.equals(value, productCharacteristicName.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
 }

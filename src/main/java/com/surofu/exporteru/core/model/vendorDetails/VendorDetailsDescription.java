@@ -1,70 +1,55 @@
 package com.surofu.exporteru.core.model.vendorDetails;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.ColumnTransformer;
-import org.springframework.context.i18n.LocaleContextHolder;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Objects;
-
+@Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorDetailsDescription implements Serializable {
 
-    @Getter(AccessLevel.NONE)
-    @Column(name = "description", nullable = false)
-    private String value;
+  @Getter(AccessLevel.NONE)
+  @Column(name = "description", nullable = false)
+  private String value;
 
-    // TODO: VendorDetailsDescription Translation. Hstore -> Jsonb
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "description_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "description_translations")
+  private Map<String, String> translations = new HashMap<>();
 
-    private VendorDetailsDescription(String text) {
-        if (text != null && text.length() > 20_000) {
-            throw new LocalizedValidationException("validation.vendor.description.max_length");
-        }
-
-        this.value = Objects.requireNonNullElse(text, "");
+  private VendorDetailsDescription(String text) {
+    if (text != null && text.length() > 20_000) {
+      throw new LocalizedValidationException("validation.vendor.description.max_length");
     }
 
-    public static VendorDetailsDescription of(String text) {
-        VendorDetailsDescription description = new VendorDetailsDescription(text);
-        description.setTranslations(HstoreTranslationDto.empty());
-        return description;
-    }
+    this.value = Objects.requireNonNullElse(text, "");
+  }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(Objects.requireNonNullElse(StringUtils.trimToNull(translations), ""));
+  public String getLocalizedValue(Locale locale) {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
     }
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
 
-    public void setTranslations(HstoreTranslationDto dto) {
-        this.translations = HstoreParser.toString(dto);
-    }
+  public static VendorDetailsDescription of(String text) {
+    return new VendorDetailsDescription(text);
+  }
 
-    public String getValue() {
-        Locale locale = LocaleContextHolder.getLocale();
-        var valueNonNull = Objects.requireNonNullElse(value, "");
-
-        return switch (locale.getLanguage()) {
-            case "en" -> Objects.requireNonNullElse(StringUtils.trimToNull(getTranslations().textEn()), valueNonNull);
-            case "ru" -> Objects.requireNonNullElse(StringUtils.trimToNull(getTranslations().textRu()), valueNonNull);
-            case "zh" -> Objects.requireNonNullElse(StringUtils.trimToNull(getTranslations().textZh()), valueNonNull);
-            default -> value;
-        };
-    }
-
-    @Override
-    public String toString() {
-        return getValue();
-    }
+  @Override
+  public String toString() {
+    return value;
+  }
 }

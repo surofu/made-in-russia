@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// TODO: Migrate ProductSummaryView Hstore -> Jsonb
 @Data
 @Entity
 @Immutable
@@ -94,25 +93,5 @@ public final class ProductSummaryView implements Serializable {
         Matcher matcher = pattern.matcher(titleTranslations);
 
         return matcher.find() ? matcher.group(1) : title;
-    }
-
-    public String getAddressByLang(String lang) {
-        if (user instanceof VendorDto vendor) {
-            if (vendor.getVendorDetails() != null && vendor.getVendorDetails().getAddressTranslations() != null) {
-                String addressTranslations = vendor.getVendorDetails().getAddressTranslations();
-                return extractTranslationFromHstore(addressTranslations, lang);
-            }
-        }
-        return null;
-    }
-
-    private String extractTranslationFromHstore(String hstore, String lang) {
-        if (hstore == null || lang == null) {
-            return null;
-        }
-
-        Pattern pattern = Pattern.compile("\"" + lang + "\"=>\"([^\"]*)\"");
-        Matcher matcher = pattern.matcher(hstore);
-        return matcher.find() ? matcher.group(1) : null;
     }
 }

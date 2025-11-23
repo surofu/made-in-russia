@@ -3,6 +3,7 @@ package com.surofu.exporteru.core.model.product.review.media;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -63,12 +64,12 @@ public final class ProductReviewMedia implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductReviewMedia)) return false;
-        return id != null && id.equals(((ProductReviewMedia) o).id);
+        if (!(o instanceof ProductReviewMedia productReviewMedia)) return false;
+        return Objects.equals(url, productReviewMedia.url);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(url);
     }
 }

@@ -86,7 +86,7 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public boolean existsVendorOrAdminById(Long id) {
-        return repository.existsVendorOrAdminById(id);
+        return !repository.existsVendorOrAdminById(id);
     }
 
     @Override

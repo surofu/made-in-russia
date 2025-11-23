@@ -17,15 +17,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "users",
-        indexes = {
-                @Index(name = "idx_users_login", columnList = "login"),
-                @Index(name = "idx_users_email", columnList = "email"),
-                @Index(name = "idx_users_phone_number", columnList = "phone_number"),
-                @Index(name = "idx_users_vendor_details_id", columnList = "vendor_details_id")
-        }
-)
+@Table(name = "users")
 public final class User implements Serializable {
 
     @Id

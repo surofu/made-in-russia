@@ -1,11 +1,11 @@
 package com.surofu.exporteru.core.service.mail;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.springframework.mail.MailException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,7 +32,6 @@ public interface MailService {
   void sendPhoneRequestMail(String email, String senderFirstName, String senderEmail,
                             String senderPhoneNumber) throws IOException;
 
-  void sendRejectedProductMail(String to, String productUrl,
-                               HstoreTranslationDto productTitleTranslations)
+  void sendRejectedProductMail(String to, String productUrl, Map<String, String> translations)
       throws MailException, IOException;
 }

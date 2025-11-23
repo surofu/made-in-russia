@@ -1,45 +1,45 @@
 package com.surofu.exporteru.core.model.deliveryMethod;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
-
-import java.io.Serializable;
 
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "delivery_methods",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_delivery_methods_name",
-                        columnNames = "name"
-                )
-        },
-        indexes = {
-                @Index(
-                        name = "idx_delivery_methods_name",
-                        columnList = "name"
-                )
-        }
-)
-@BatchSize(size = 40)
+@Table(name = "delivery_methods")
 public final class DeliveryMethod implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Embedded
-    private DeliveryMethodName name;
+  @Embedded
+  private DeliveryMethodName name;
 
-    @Embedded
-    private DeliveryMethodCreationDate creationDate;
+  @Embedded
+  private DeliveryMethodCreationDate creationDate;
 
-    @Embedded
-    private DeliveryMethodLastModificationDate lastModificationDate;
+  @Embedded
+  private DeliveryMethodLastModificationDate lastModificationDate;
+
+  @Override
+  public boolean equals(Object o) {
+      if (this == o) {
+          return true;
+      }
+      if (!(o instanceof DeliveryMethod deliveryMethod)) {
+          return false;
+      }
+    return Objects.equals(name, deliveryMethod.name);
+  }
 }

@@ -13,7 +13,7 @@ public interface SpringDataProductPackageOptionRepository extends JpaRepository<
             select
             o.id,
             coalesce(
-                o.name_translations -> :lang,
+                o.name_translations::jsonb ->> :lang,
                 o.name
             ) as name,
             o.price,
@@ -29,10 +29,10 @@ public interface SpringDataProductPackageOptionRepository extends JpaRepository<
             select
             o.id,
             coalesce(
-                o.name_translations -> :lang,
+                o.name_translations::jsonb ->> :lang,
                 o.name
             ) as name,
-            o.name_translations::text,
+            o.name_translations,
             o.price,
             o.price_unit,
             o.creation_date,

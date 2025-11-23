@@ -13,11 +13,11 @@ public interface SpringDataVendorCountryRepository extends JpaRepository<VendorC
             select
             id,
             coalesce(
-                name_translations::hstore -> :lang,
+                name_translations::jsonb ->> :lang,
                 name
             ) as name,
             coalesce(
-                name_translations::hstore -> 'en',
+                name_translations::jsonb ->> 'en',
                 name
             ) as value,
             creation_date,

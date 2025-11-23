@@ -2,6 +2,7 @@ package com.surofu.exporteru.core.model.product.price;
 
 import com.surofu.exporteru.core.model.product.Product;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,15 +14,7 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "product_prices",
-        indexes = {
-                @Index(
-                        name = "idx_product_prices_product_id",
-                        columnList = "product_id"
-                )
-        }
-)
+@Table(name = "product_prices")
 public final class ProductPrice implements Serializable {
 
     @Id
@@ -30,11 +23,7 @@ public final class ProductPrice implements Serializable {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "product_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_product_prices_product_id")
-    )
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @Embedded
@@ -64,12 +53,13 @@ public final class ProductPrice implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductPrice)) return false;
-        return id != null && id.equals(((ProductPrice) o).id);
+        if (!(o instanceof ProductPrice productPrice)) return false;
+        return Objects.equals(originalPrice, productPrice.originalPrice)
+            && Objects.equals(discount, productPrice.discount);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(originalPrice, discount);
     }
 }

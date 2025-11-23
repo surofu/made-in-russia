@@ -17,7 +17,7 @@ public interface SpringDataProductMediaRepository extends JpaRepository<ProductM
     m.position,
     m.url,
     coalesce(
-        m.alt_text_translations -> :lang,
+        m.alt_text_translations::jsonb ->> :lang,
         m.alt_text
     ) as alt_text,
     m.creation_date,
@@ -36,10 +36,10 @@ public interface SpringDataProductMediaRepository extends JpaRepository<ProductM
     m.position,
     m.url,
     coalesce(
-        m.alt_text_translations -> :lang,
+        m.alt_text_translations::jsonb ->> :lang,
         m.alt_text
     ) as alt_text,
-    m.alt_text_translations::text,
+    m.alt_text_translations,
     m.creation_date,
     m.last_modification_date
     from product_media m

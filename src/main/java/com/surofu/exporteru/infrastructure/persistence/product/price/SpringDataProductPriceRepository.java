@@ -16,7 +16,7 @@ public interface SpringDataProductPriceRepository extends JpaRepository<ProductP
             p.quantity_to as quantityTo,
             p.currency as currency,
             coalesce(
-                p.unit_translations -> :lang,
+                p.unit_translations::jsonb ->> :lang,
                 p.quantity_unit
             ) as unit,
             p.original_price as originalPrice,

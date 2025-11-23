@@ -93,7 +93,7 @@ public class S3Repository implements FileStorageRepository {
     }
 
     @Override
-    public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException, InterruptedException {
+    public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException {
         List<String> links = new ArrayList<>();
 
         for (MultipartFile file : files) {

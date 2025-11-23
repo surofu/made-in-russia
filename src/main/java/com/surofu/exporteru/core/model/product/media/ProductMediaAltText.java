@@ -1,18 +1,20 @@
 package com.surofu.exporteru.core.model.product.media;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductMediaAltText implements Serializable {
@@ -20,11 +22,9 @@ public final class ProductMediaAltText implements Serializable {
     @Column(name = "alt_text", nullable = false)
     private String value;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "alt_text_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "alt_text_translations")
+    private Map<String, String> translations = new HashMap<>();
 
     private ProductMediaAltText(String altText) {
         if (altText == null || altText.trim().isEmpty()) {
@@ -40,14 +40,6 @@ public final class ProductMediaAltText implements Serializable {
 
     public static ProductMediaAltText of(String altText) {
         return new ProductMediaAltText(altText);
-    }
-
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
-
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
     }
 
     @Override

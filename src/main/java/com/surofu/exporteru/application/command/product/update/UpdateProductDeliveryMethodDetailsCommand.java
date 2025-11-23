@@ -1,22 +1,22 @@
 package com.surofu.exporteru.application.command.product.update;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 
 @Schema(description = "Command for updating an existing product delivery method details")
 public record UpdateProductDeliveryMethodDetailsCommand(
-        @Schema(description = "Name of the delivery method detail",
-                example = "Delivery Time",
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        String name,
+    @Schema(description = "Name of the delivery method detail",
+        example = "Delivery Time",
+        requiredMode = Schema.RequiredMode.REQUIRED)
+    String name,
 
-        TranslationDto nameTranslations,
+    Map<String, String> nameTranslations,
 
-        @Schema(description = "Value of the delivery method detail",
-                example = "2-3 business days",
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        String value,
+    @Schema(description = "Value of the delivery method detail",
+        example = "2-3 business days",
+        requiredMode = Schema.RequiredMode.REQUIRED)
+    String value,
 
-        TranslationDto valueTranslations
+    Map<String, String> valueTranslations
 ) {
 }

@@ -24,7 +24,7 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
                 select
                 dm.id,
                 coalesce(
-                    dm.name_translations -> :lang,
+                    dm.name_translations::jsonb ->> :lang,
                     dm.name
                 ) as name,
                 dm.creation_date as "creationDate",
@@ -37,7 +37,7 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
                 select
                 dm.id,
                 coalesce(
-                    dm.name_translations -> :lang,
+                    dm.name_translations::jsonb ->> :lang,
                     dm.name
                 ) as name,
                 dm.creation_date as "creationDate",
@@ -53,7 +53,7 @@ public interface SpringDataDeliveryMethodRepository extends JpaRepository<Delive
             select
             dm.id,
             coalesce(
-                dm.name_translations -> :lang,
+                dm.name_translations::jsonb ->> :lang,
                 dm.name
             ) as name,
             dm.creation_date as "creationDate",

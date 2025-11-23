@@ -149,10 +149,6 @@ app:
     currency-ttl-duration: ${REDIS_CURRENCY_TTL_DURATION}
     verification-ttl-duration: ${REDIS_VERIFICATION_DURATION}
     recover-password-ttl-duration: ${REDIS_RECOVER_PASSWORD_DURATION}
-  cloudinary:
-    api-key: ${CLOUDINARY_API_KEY}
-    api-secret: ${CLOUDINARY_API_SECRET}
-    cloud-name: ${CLOUDINARY_CLOUD_NAME}
   compress:
     image:
       max-width: ${IMAGE_COMPRESS_MAX_WIDTH}
@@ -172,8 +168,6 @@ app:
       uri: https://translate.api.cloud.yandex.net/translate/v2/translate
       folder-id: ${YANDEX_TRANSLATE_FOLDER_ID}
       secret: ${YANDEX_TRANSLATE_SECRET}
-  okved:
-    uri: https://agentom.ru/api/okved
   mail:
     support: ${MAIL_SUPPORT}
   frontend:
@@ -189,13 +183,18 @@ app:
 
 telegram:
   bot:
-    enable: ${BOT_ENABLE}
-    username: ${BOT_USERNAME}
-    token: ${BOT_TOKEN}
-  bot2:
-    enable: ${BOT_2_ENABLE}
-    username: ${BOT_2_USERNAME}
-    token: ${BOT_2_TOKEN}
+    russian:
+      enable: ${BOT_RUSSIAN_ENABLE}
+      username: ${BOT_RUSSIAN_USERNAME}
+      token: ${BOT_RUSSIAN_TOKEN}
+    english:
+      enable: ${BOT_ENGLISH_ENABLE}
+      username: ${BOT_ENGLISH_USERNAME}
+      token: ${BOT_ENGLISH_TOKEN}
+    china:
+      enable: ${BOT_CHINA_ENABLE}
+      username: ${BOT_CHINA_USERNAME}
+      token: ${BOT_CHINA_TOKEN}
 
 springdoc:
   swagger-ui:

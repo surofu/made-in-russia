@@ -1,19 +1,21 @@
 package com.surofu.exporteru.core.model.product;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnTransformer;
 
 import java.io.Serializable;
-import java.util.Objects;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDescription implements Serializable {
@@ -24,19 +26,13 @@ public final class ProductDescription implements Serializable {
     @Column(name = "further_description", columnDefinition = "text")
     private String furtherDescription;
 
-    // TODO: mainDescriptionTranslations Translation. Hstore -> Jsonb
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "main_description_translations", nullable = false, columnDefinition = "hstore")
-    private String mainDescriptionTranslations;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "main_description_translations")
+    private Map<String, String> mainDescriptionTranslations = new HashMap<>();
 
-    // TODO: furtherDescriptionTranslations Translation. Hstore -> Jsonb
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "further_description_translations", columnDefinition = "hstore")
-    private String furtherDescriptionTranslations;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "further_description_translations")
+    private Map<String, String> furtherDescriptionTranslations = new HashMap<>();
 
     private ProductDescription(String mainDescription, String furtherDescription) {
         if (mainDescription == null || mainDescription.trim().isEmpty()) {
@@ -55,35 +51,6 @@ public final class ProductDescription implements Serializable {
         this.furtherDescription = furtherDescription;
     }
 
-    public HstoreTranslationDto getMainDescriptionTranslations() {
-        if (this.mainDescriptionTranslations == null) {
-            return null;
-        }
-
-        return HstoreParser.fromString(this.mainDescriptionTranslations);
-    }
-
-    public void setMainDescriptionTranslations(HstoreTranslationDto translations) {
-        this.mainDescriptionTranslations = HstoreParser.toString(
-                Objects.requireNonNullElseGet(translations, HstoreTranslationDto::empty));
-    }
-
-    public HstoreTranslationDto getFurtherDescriptionTranslations() {
-        if (this.furtherDescriptionTranslations == null) {
-            return HstoreTranslationDto.empty();
-        }
-
-        return HstoreParser.fromString(this.furtherDescriptionTranslations);
-    }
-
-    public void setFurtherDescriptionTranslations(HstoreTranslationDto translations) {
-        if (translations == null) {
-            this.furtherDescriptionTranslations = null;
-        } else {
-            this.furtherDescriptionTranslations = HstoreParser.toString(translations);
-        }
-    }
-
     public static ProductDescription of(String mainDescription, String furtherDescription) {
         return new ProductDescription(mainDescription, furtherDescription);
     }
@@ -91,5 +58,18 @@ public final class ProductDescription implements Serializable {
     @Override
     public String toString() {
         return mainDescription + " - " + furtherDescription;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductDescription productDescription)) return false;
+        return Objects.equals(mainDescription, productDescription.mainDescription)
+            && Objects.equals(furtherDescription, productDescription.furtherDescription);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mainDescription, furtherDescription);
     }
 }

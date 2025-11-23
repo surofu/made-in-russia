@@ -3,8 +3,8 @@ package com.surofu.exporteru.core.model.product.media;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.product.Product;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
 
 import java.io.Serializable;
 
@@ -12,16 +12,7 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "product_media",
-        indexes = {
-                @Index(
-                        name = "idx_product_media_product_id",
-                        columnList = "product_id"
-                )
-        }
-)
-@BatchSize(size = 20)
+@Table(name = "product_media")
 public final class ProductMedia implements Serializable {
 
     @Id
@@ -62,12 +53,12 @@ public final class ProductMedia implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductMedia)) return false;
-        return id != null && id.equals(((ProductMedia)o).id);
+        if (!(o instanceof ProductMedia productMedia)) return false;
+        return Objects.equals(url, productMedia.url);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(url);
     }
 }

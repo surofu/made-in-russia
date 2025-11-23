@@ -18,8 +18,6 @@ public interface ProductRepository {
 
     Product getReferenceById(Long productId);
 
-    Optional<Product> getProductByIdApproved(Long productId, List<ApproveStatus> approveStatuses);
-
     Optional<Product> getProductByIdWithAnyApproveStatus(Long productId);
 
     Optional<Category> getProductCategoryByProductId(Long productId);
@@ -55,11 +53,7 @@ public interface ProductRepository {
 
     Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id, String lang);
 
-    Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLangApproved(Long id, String lang);
-
     List<ProductForReviewView> getProductForReviewViewsByLang(String lang);
-
-    List<ProductForReviewView> getProductForReviewViewsByProductIdAndLang(Long id, String lang);
 
     void flush();
 

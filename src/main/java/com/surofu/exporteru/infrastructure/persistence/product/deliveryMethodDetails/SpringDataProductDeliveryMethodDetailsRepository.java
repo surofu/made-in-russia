@@ -13,11 +13,11 @@ public interface SpringDataProductDeliveryMethodDetailsRepository extends JpaRep
             select
             d.id,
             coalesce(
-                d.name_translations -> :lang,
+                d.name_translations::jsonb ->> :lang,
                 d.name
             ) as name,
             coalesce(
-                d.value_translations -> :lang,
+                d.value_translations::jsonb ->> :lang,
                 d.value
             ) as value,
             d.creation_date,
@@ -28,23 +28,23 @@ public interface SpringDataProductDeliveryMethodDetailsRepository extends JpaRep
     List<ProductDeliveryMethodDetailsView> findAllViewsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
 
     @Query(value = """
-            select
-            d.id,
-            coalesce(
-                d.name_translations -> :lang,
-                d.name
-            ) as name,
-            d.name_translations::text,
-            coalesce(
-                d.value_translations -> :lang,
-                d.value
-            ) as value,
-            d.value_translations::text,
-            d.creation_date,
-            d.last_modification_date
-            from product_delivery_method_details d
-            where d.product_id = :productId
-            """, nativeQuery = true)
+        select
+        d.id,
+        coalesce(
+            d.name_translations::jsonb ->> :lang,
+            d.name
+        ) as name,
+        d.name_translations,
+        coalesce(
+            d.value_translations::jsonb ->> :lang,
+            d.value
+        ) as value,
+        d.value_translations,
+        d.creation_date,
+        d.last_modification_date
+        from product_delivery_method_details d
+        where d.product_id = :productId
+        """, nativeQuery = true)
     List<ProductDeliveryMethodDetailsWithTranslationsView> findAllViewsWithTranslationsByProductIdAndLang(@Param("productId") Long productId, @Param("lang") String lang);
 
     List<ProductDeliveryMethodDetails> findAllByProductId(Long id);

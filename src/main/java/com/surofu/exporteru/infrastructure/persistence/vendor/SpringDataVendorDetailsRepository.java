@@ -1,7 +1,6 @@
 package com.surofu.exporteru.infrastructure.persistence.vendor;
 
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
-import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsInn;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

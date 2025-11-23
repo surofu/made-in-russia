@@ -4,6 +4,9 @@ import com.surofu.exporteru.application.components.telegrambot.TelegramBot;
 import com.surofu.exporteru.application.dto.auth.LoginSuccessDto;
 import com.surofu.exporteru.application.model.session.SessionInfo;
 import com.surofu.exporteru.core.model.telegram.TelegramUser;
+import com.surofu.exporteru.infrastructure.config.telegrambot.ChinaTelegramBotConfig;
+import com.surofu.exporteru.infrastructure.config.telegrambot.EnglishTelegramBotConfig;
+import com.surofu.exporteru.infrastructure.config.telegrambot.RussianTelegramBotConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,8 +15,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import java.io.IOException;
+import java.util.Locale;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,91 +28,93 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.IOException;
-import java.util.Locale;
-
+@Slf4j
 @Controller
 @RequestMapping("api/v1/oauth2")
+@RequiredArgsConstructor
 @Tag(name = "OAuth2 Authentication", description = "Endpoints for OAuth2 authentication flows")
 public class OauthController {
-    @Value("${telegram.bot.enable:false}")
-    private boolean botEnabled;
+  private final TelegramBot russianTelegramBot;
+  private final TelegramBot englishTelegramBot;
+  private final TelegramBot chinaTelegramBot;
+  private final RussianTelegramBotConfig russianTelegramBotConfig;
+  private final EnglishTelegramBotConfig englishTelegramBotConfig;
+  private final ChinaTelegramBotConfig chinaTelegramBotConfig;
 
-    @Value("${telegram.bot2.enable:false}")
-    private boolean bot2Enabled;
+  @GetMapping("google")
+  @PreAuthorize("permitAll()")
+  @Operation(
+      summary = "Initiate Google OAuth2 flow",
+      description = "Redirects to Google's OAuth2 authorization endpoint to start the authentication flow",
+      responses = {
+          @ApiResponse(
+              responseCode = "302",
+              description = "Redirect to Google's authorization page"
+          ),
+          @ApiResponse(
+              responseCode = "500",
+              description = "Internal server error if redirection fails"
+          )
+      }
+  )
+  public void google(HttpServletResponse response) throws IOException {
+    response.sendRedirect("/api/v1/oauth2/authorize/google");
+  }
 
-    private final TelegramBot telegramBot;
-    private final TelegramBot telegramBot2;
+  @PostMapping("telegram/callback")
+  @PreAuthorize("permitAll()")
+  @Operation(
+      summary = "Processing telegram authorization",
+      description = "Start the authentication flow",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Returning authenticated user jwt",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = LoginSuccessDto.class)
+              )
+          ),
+          @ApiResponse(
+              responseCode = "202",
+              description = "User not authenticated -> auth with telegram bot"
+          ),
+          @ApiResponse(
+              responseCode = "500",
+              description = "Internal server error if redirection fails"
+          )
+      }
+  )
+  public ResponseEntity<?> callbackGet(@RequestBody @Valid TelegramUser user,
+                                       HttpServletRequest request) {
+    Locale locale = LocaleContextHolder.getLocale();
+    TelegramBot telegramBot = getTelegramBot(locale);
 
-    public OauthController(
-            @Qualifier("telegramBot") TelegramBot telegramBot,
-            @Qualifier("telegramBot2") TelegramBot telegramBot2
-    ) {
-        this.telegramBot = telegramBot;
-        this.telegramBot2 = telegramBot2;
+    if (telegramBot != null) {
+      SessionInfo sessionInfo = SessionInfo.of(request);
+      telegramBot.authorize(user, sessionInfo, locale);
+    } else {
+      log.warn("No active telegram bot found for locale: {}", locale.getLanguage());
     }
 
-    @GetMapping("google")
-    @PreAuthorize("permitAll()")
-    @Operation(
-            summary = "Initiate Google OAuth2 flow",
-            description = "Redirects to Google's OAuth2 authorization endpoint to start the authentication flow",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "302",
-                            description = "Redirect to Google's authorization page"
-                    ),
-                    @ApiResponse(
-                            responseCode = "500",
-                            description = "Internal server error if redirection fails"
-                    )
-            }
-    )
-    public void google(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/api/v1/oauth2/authorize/google");
+    return ResponseEntity.ok().build();
+  }
+
+  private TelegramBot getTelegramBot(Locale locale) {
+    String language = locale.getLanguage();
+
+    if (language.equals("ru") && russianTelegramBotConfig.getEnable()) {
+      return russianTelegramBot;
     }
 
-    @PostMapping("telegram/callback")
-    @PreAuthorize("permitAll()")
-    @Operation(
-            summary = "Processing telegram authorization",
-            description = "Start the authentication flow",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Returning authenticated user jwt",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = LoginSuccessDto.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "202",
-                            description = "User not authenticated -> auth with telegram bot"
-                    ),
-                    @ApiResponse(
-                            responseCode = "500",
-                            description = "Internal server error if redirection fails"
-                    )
-            }
-    )
-    public ResponseEntity<?> callbackGet(@RequestBody @Valid TelegramUser user, HttpServletRequest request) {
-        Locale locale = LocaleContextHolder.getLocale();
-
-        if (Locale.forLanguageTag("ru").equals(locale)) {
-            if (botEnabled) {
-                telegramBot.authorize(user, SessionInfo.of(request), locale);
-            } else if (bot2Enabled) {
-                telegramBot2.authorize(user, SessionInfo.of(request), locale);
-            }
-        } else {
-            if (bot2Enabled) {
-                telegramBot2.authorize(user, SessionInfo.of(request), locale);
-            } else if (botEnabled) {
-                telegramBot.authorize(user, SessionInfo.of(request), locale);
-            }
-        }
-
-        return ResponseEntity.ok().build();
+    if (language.equals("en") && englishTelegramBotConfig.getEnable()) {
+      return englishTelegramBot;
     }
+
+    if (language.equals("zh") && chinaTelegramBotConfig.getEnable()) {
+      return chinaTelegramBot;
+    }
+
+    return null;
+  }
 }

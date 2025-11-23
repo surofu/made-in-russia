@@ -40,6 +40,7 @@ public final class VendorDetails implements Serializable {
     )
     private User user;
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -48,6 +49,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorPhoneNumber> phoneNumbers = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -56,6 +58,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorEmail> emails = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -63,6 +66,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorSite> sites = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -72,6 +76,7 @@ public final class VendorDetails implements Serializable {
     @OrderBy("position.value")
     private Set<VendorMedia> media = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -80,6 +85,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorCountry> vendorCountries = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",
@@ -88,6 +94,7 @@ public final class VendorDetails implements Serializable {
     )
     private Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
+    @ToString.Exclude
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "vendorDetails",

@@ -1,16 +1,14 @@
 package com.surofu.exporteru.application.dto.faq;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import com.surofu.exporteru.infrastructure.persistence.faq.FaqWithTranslationsView;
+import java.io.Serializable;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -18,29 +16,29 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 public final class FaqWithTranslationsDto implements Serializable {
 
-    private Long id;
+  private Long id;
 
-    private String question;
+  private String question;
 
-    private TranslationDto questionTranslations;
+  private Map<String, String> questionTranslations;
 
-    private String answer;
+  private String answer;
 
-    private TranslationDto answerTranslations;
+  private Map<String, String> answerTranslations;
 
-    private ZonedDateTime creationDate;
+  private ZonedDateTime creationDate;
 
-    private ZonedDateTime lastModificationDate;
+  private ZonedDateTime lastModificationDate;
 
-    public static FaqWithTranslationsDto of(FaqWithTranslationsView view) {
-        return FaqWithTranslationsDto.builder()
-                .id(view.getId())
-                .question(view.getQuestion())
-                .questionTranslations(TranslationDto.of(HstoreParser.fromString(view.getQuestionTranslations())))
-                .answer(view.getAnswer())
-                .answerTranslations(TranslationDto.of(HstoreParser.fromString(view.getAnswerTranslations())))
-                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
-                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
-                .build();
-    }
+  public static FaqWithTranslationsDto of(FaqWithTranslationsView view) {
+    return FaqWithTranslationsDto.builder()
+        .id(view.getId())
+        .question(view.getQuestion())
+        .questionTranslations(view.getQuestionTranslations())
+        .answer(view.getAnswer())
+        .answerTranslations(view.getAnswerTranslations())
+        .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+        .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
+        .build();
+  }
 }

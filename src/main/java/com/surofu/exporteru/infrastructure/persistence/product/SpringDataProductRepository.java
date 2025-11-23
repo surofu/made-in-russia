@@ -4,7 +4,6 @@ import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
-import com.surofu.exporteru.core.model.product.ProductArticleCode;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.exporteru.core.model.product.faq.ProductFaq;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
@@ -27,12 +26,6 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     @Query("select m from ProductMedia m where m.product.id = :productId")
     Optional<List<ProductMedia>> getProductMediaByProductId(@Param("productId") Long productId);
 
-    @Query("select c from ProductCharacteristic c where c.product.id = :productId")
-    Optional<List<ProductCharacteristic>> getProductCharacteristicsByProductId(@Param("productId") Long productId);
-
-    @Query("select faq from ProductFaq faq where faq.product.id = :productId")
-    Optional<List<ProductFaq>> getProductFaqByProductId(@Param("productId") Long productId);
-
     @Query(value = """
             SELECT input.id
             FROM unnest(?1) WITH ORDINALITY AS input(id, ord)
@@ -43,18 +36,17 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             """, nativeQuery = true)
     Optional<Long> firstNotExists(Long[] productIdsArray);
 
-    // TODO: findHintViews. Migrate Hstore hardcode search to dynamic Jsonb
     @Query(value = """
             SELECT
                 p.id as productId,
                 COALESCE(
-                    p.title_translations -> :lang,
+                    p.title_translations::jsonb ->> :lang,
                     p.title
                 ) as productTitle,
                 p.preview_image_url as productImage,
                 c.id as categoryId,
                 COALESCE(
-                    c.name_translations -> :lang,
+                    c.name_translations::jsonb ->> :lang,
                     c.name
                 ) as categoryName,
                 c.image_url as categoryImage,
@@ -65,21 +57,23 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
                 -- Поиск по товарам (если они есть)
                 (p.id IS NOT NULL AND (
                     p.title ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::hstore -> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::hstore -> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::hstore -> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::jsonb ->> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::jsonb ->> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::jsonb ->> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (p.title_translations::jsonb ->> 'hi') ILIKE CONCAT('%', :searchTerm, '%') OR
                     p.article_code ILIKE CONCAT('%', :searchTerm, '%')
                 ))
                 OR
                 -- Поиск по категориям (всегда)
                 (
-                    (c.name_translations::hstore -> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (c.name_translations::hstore -> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (c.name_translations::hstore -> 'zh') ILIKE CONCAT('%', :searchTerm, '%')
+                    (c.name_translations::jsonb ->> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (c.name_translations::jsonb ->> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (c.name_translations::jsonb ->> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
+                    (c.name_translations::jsonb ->> 'hi') ILIKE CONCAT('%', :searchTerm, '%')
                 )
             ORDER BY
-                COALESCE(c.name_translations -> :lang, c.name),
-                COALESCE(p.title_translations -> :lang, p.title);
+                COALESCE(c.name_translations::jsonb ->> :lang, c.name),
+                COALESCE(p.title_translations::jsonb ->> :lang, p.title);
             """, nativeQuery = true)
     List<SearchHintView> findHintViews(@Param("searchTerm") String searchTerm, @Param("vendorId") Long vendorId, @Param("lang") String lang);
 
@@ -93,15 +87,15 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
                 p.category_id,
                 p.article_code as "articleCode",
                 coalesce(
-                    p.title_translations -> :lang,
+                    p.title_translations::jsonb ->> :lang,
                     p.title
                 ) as title,
                 coalesce(
-                    p.main_description_translations -> :lang,
+                    p.main_description_translations::jsonb ->> :lang,
                     p.main_description
                 ) as "mainDescription",
                 coalesce(
-                    p.further_description_translations -> :lang,
+                    p.further_description_translations::jsonb ->> :lang,
                     p.further_description
                 ) as "furtherDescription",
                 p.preview_image_url as "previewImageUrl",
@@ -142,15 +136,15 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
         p.category_id,
         p.article_code as "articleCode",
         coalesce(
-            p.title_translations -> :lang,
+            p.title_translations::jsonb ->> :lang,
             p.title
         ) as title,
         coalesce(
-            p.main_description_translations -> :lang,
+            p.main_description_translations::jsonb ->> :lang,
             p.main_description
         ) as "mainDescription",
         coalesce(
-            p.further_description_translations -> :lang,
+            p.further_description_translations::jsonb ->> :lang,
             p.further_description
         ) as "furtherDescription",
         p.preview_image_url as "previewImageUrl",
@@ -189,7 +183,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     select
     p.id,
     coalesce(
-        p.title_translations -> :lang,
+        p.title_translations::jsonb ->> :lang,
         p.title
     ) as title,
     p.preview_image_url
@@ -199,7 +193,6 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     """, nativeQuery = true)
     List<SimilarProductView> findAllSimilarProductViewByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
-    // TODO: findProductWithTranslationsByIdAndLang. Fix Hstore -> Text
     @Query(value = """
      select
         p.id,
@@ -207,20 +200,20 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
         p.category_id,
         p.article_code as "articleCode",
         coalesce(
-            p.title_translations -> :lang,
+            p.title_translations::jsonb ->> :lang,
             p.title
         ) as title,
-        p.title_translations::text as "titleTranslations",
+        p.title_translations,
         coalesce(
-            p.main_description_translations -> :lang,
+            p.main_description_translations::jsonb ->> :lang,
             p.main_description
         ) as "mainDescription",
-        p.main_description_translations::text as "mainDescriptionTranslations",
+        p.main_description_translations,
         coalesce(
-            p.further_description_translations -> :lang,
+            p.further_description_translations::jsonb ->> :lang,
             p.further_description
         ) as "furtherDescription",
-        p.further_description_translations::text as "furtherDescriptionTranslations",
+        p.further_description_translations,
         p.preview_image_url as "previewImageUrl",
         p.minimum_order_quantity as "minimumOrderQuantity",
         p.discount_expiration_date as "discountExpirationDate",
@@ -251,63 +244,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
     """, nativeQuery = true)
     Optional<ProductWithTranslationsView> findProductWithTranslationsByIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
-    // TODO: findProductWithTranslationsByIdAndLangApproved. Fix Hstore -> Text
-    @Query(value = """
-     select
-        p.id,
-        p.user_id as "userId",
-        p.category_id,
-        p.article_code as "articleCode",
-        coalesce(
-            p.title_translations -> :lang,
-            p.title
-        ) as title,
-        p.title_translations::text as "titleTranslations",
-        coalesce(
-            p.main_description_translations -> :lang,
-            p.main_description
-        ) as "mainDescription",
-        p.main_description_translations::text as "mainDescriptionTranslations",
-        coalesce(
-            p.further_description_translations -> :lang,
-            p.further_description
-        ) as "furtherDescription",
-        p.further_description_translations::text as "furtherDescriptionTranslations",
-        p.preview_image_url as "previewImageUrl",
-        p.minimum_order_quantity as "minimumOrderQuantity",
-        p.discount_expiration_date as "discountExpirationDate",
-        p.creation_date as "creationDate",
-        p.last_modification_date as "lastModificationDate",
-        (
-            select
-                case
-                    when count(pr.rating) = 0 then null
-                    else cast(round(
-                        case
-                            when avg(pr.rating) < 1.0 then 1.0
-                            when avg(pr.rating) > 5.0 then 5.0
-                            else avg(pr.rating)
-                        end, 1
-                    ) as double precision)
-                end
-            from product_reviews pr
-            where pr.product_id = :id
-        ) as "rating",
-        (
-            select count(*)
-            from product_reviews pr
-            where pr.product_id = :id
-        ) as "reviewsCount"
-        from products p
-        where p.approve_status = 'APPROVED' and p.id = :id
-    """, nativeQuery = true)
-    Optional<ProductWithTranslationsView> findProductWithTranslationsByIdAndLangApproved(@Param("id") Long id, @Param("lang") String lang);
-
     void deleteByUserId(Long userId);
-
-    Optional<Product> findByIdAndApproveStatus(Long productId, ApproveStatus approveStatus);
-
-    Optional<Product> findByArticleCodeAndApproveStatus(ProductArticleCode articleCode, ApproveStatus approveStatus);
 
     List<Product> findAllByIdInAndApproveStatus(Collection<Long> ids, ApproveStatus approveStatus);
 
@@ -319,7 +256,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             select
             p.id,
             coalesce(
-                p.title_translations -> :lang,
+                p.title_translations::jsonb ->> :lang,
                 p.title
             )        as title,
             p.preview_image_url
@@ -327,20 +264,6 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             order by p.id
             """, nativeQuery = true)
     List<ProductForReviewView> findProductForReviewViewsByLang(@Param("lang") String lang);
-
-    @Query(value = """
-            select
-            p.id,
-            coalesce(
-                p.title_translations -> :lang,
-                p.title
-            )        as title,
-            p.preview_image_url
-            from products p
-            where p.id = :id
-            order by p.id
-            """, nativeQuery = true)
-    List<ProductForReviewView> findProductForReviewViewsByProductIdAndLang(@Param("id") Long id, @Param("lang") String lang);
 
     @Query("select p from Product p join fetch p.user where p.id = :id")
     Optional<Product> findByIdWithUser(@Param("id") Long productId);

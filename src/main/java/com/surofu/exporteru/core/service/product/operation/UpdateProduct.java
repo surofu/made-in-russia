@@ -3,13 +3,14 @@ package com.surofu.exporteru.core.service.product.operation;
 import com.surofu.exporteru.application.command.product.update.*;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.core.model.product.ProductDescription;
+import com.surofu.exporteru.core.model.product.ProductDiscountExpirationDate;
+import com.surofu.exporteru.core.model.product.ProductMinimumOrderQuantity;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.user.UserLogin;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
@@ -28,8 +29,8 @@ public class UpdateProduct {
     List<UpdateProductDeliveryMethodDetailsCommand> updateProductDeliveryMethodDetailsCommands;
     List<UpdateProductPackageOptionCommand> updateProductPackageOptionCommands;
     List<UpdateProductMediaAltTextCommand> updateProductMediaAltTextCommands;
-    Integer minimumOrderQuantity;
-    ZonedDateTime discountExpirationDate;
+    ProductMinimumOrderQuantity minimumOrderQuantity;
+    ProductDiscountExpirationDate discountExpirationDate;
     List<UpdateOldMediaDto> oldProductMedia;
     List<UpdateOldMediaDto> oldVendorDetailsMedia;
     List<MultipartFile> productMedia;

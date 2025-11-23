@@ -1,58 +1,58 @@
 package com.surofu.exporteru.core.model.vendorDetails.faq;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnTransformer;
-
-import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorFaqQuestion implements Serializable {
 
-    @Column(name = "question", nullable = false)
-    private String value;
+  @Column(name = "question", nullable = false)
+  private String value;
 
-    // TODO: VendorFaqQuestion Translation. Hstore -> Jsonb
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "question_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "question_translations")
+  private Map<String, String> translations = new HashMap<>();
 
-    private VendorFaqQuestion(String question) {
-        if (question == null || question.trim().isEmpty()) {
-            throw new IllegalArgumentException("Вопрос не может быть пустым");
-        }
-
-        if (question.length() >= 20_000) {
-            throw new IllegalArgumentException("Вопрос не может быть больше 20,000 символов");
-        }
-
-        this.value = question;
+  // TODO: Translate
+  private VendorFaqQuestion(String question) {
+    if (question == null || question.trim().isEmpty()) {
+      throw new IllegalArgumentException("Вопрос не может быть пустым");
     }
 
-    public static VendorFaqQuestion of(String question) {
-        return new VendorFaqQuestion(question);
+    if (question.length() >= 20_000) {
+      throw new IllegalArgumentException("Вопрос не может быть больше 20,000 символов");
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
+    this.value = question;
+  }
 
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
+  public static VendorFaqQuestion of(String question) {
+    return new VendorFaqQuestion(question);
+  }
 
-    @Override
-    public String toString() {
-        return value;
+  public String getLocalizedValue(Locale locale) {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
     }
+    return translations.getOrDefault(locale.getLanguage(), value);
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
 }

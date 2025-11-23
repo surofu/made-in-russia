@@ -1,6 +1,7 @@
 package com.surofu.exporteru.infrastructure.persistence.product;
 
 import java.time.Instant;
+import java.util.Map;
 
 public interface ProductWithTranslationsView {
     Long getId();
@@ -11,15 +12,15 @@ public interface ProductWithTranslationsView {
 
     String getTitle();
 
-    String getTitleTranslations();
+    Map<String, String> getTitleTranslations();
 
     String getMainDescription();
 
-    String getMainDescriptionTranslations();
+    Map<String, String> getMainDescriptionTranslations();
 
     String getFurtherDescription();
 
-    String getFurtherDescriptionTranslations();
+    Map<String, String> getFurtherDescriptionTranslations();
 
     String getPreviewImageUrl();
 

@@ -1,17 +1,21 @@
 package com.surofu.exporteru.core.model.product.deliveryMethodDetails;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
+import lombok.Setter;
 
 import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDeliveryMethodDetailsName implements Serializable {
@@ -19,10 +23,9 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
     @Column(name = "name", nullable = false)
     private String value;
 
-    // TODO: ProductDeliveryMethodDetailsName Translation. Hstore -> Jsonb
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "name_translations")
+    private Map<String, String> translations = new HashMap<>();
 
     private ProductDeliveryMethodDetailsName(String name) {
         this.value = name;
@@ -36,16 +39,20 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
         return new ProductDeliveryMethodDetailsName(name);
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
-
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
-
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductDeliveryMethodDetailsName productDeliveryMethodDetailsName)) return false;
+        return Objects.equals(value, productDeliveryMethodDetailsName.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

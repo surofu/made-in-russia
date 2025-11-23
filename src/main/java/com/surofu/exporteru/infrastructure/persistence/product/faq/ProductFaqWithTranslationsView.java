@@ -1,17 +1,18 @@
 package com.surofu.exporteru.infrastructure.persistence.product.faq;
 
 import java.time.Instant;
+import java.util.Map;
 
 public interface ProductFaqWithTranslationsView {
     Long getId();
 
     String getQuestion();
 
-    String getQuestionTranslations();
+    Map<String, String> getQuestionTranslations();
 
     String getAnswer();
 
-    String getAnswerTranslations();
+    Map<String, String> getAnswerTranslations();
 
     Instant getCreationDate();
 

@@ -409,10 +409,8 @@ public class MediaProcessor {
                 writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
                 writeParam.setCompressionQuality(quality);
 
-                if (writeParam instanceof javax.imageio.plugins.jpeg.JPEGImageWriteParam) {
-                    javax.imageio.plugins.jpeg.JPEGImageWriteParam jpegParams =
-                            (javax.imageio.plugins.jpeg.JPEGImageWriteParam) writeParam;
-                    jpegParams.setOptimizeHuffmanTables(true);
+                if (writeParam instanceof javax.imageio.plugins.jpeg.JPEGImageWriteParam jpegParams) {
+                  jpegParams.setOptimizeHuffmanTables(true);
                 }
             }
 

@@ -2,7 +2,6 @@ package com.surofu.exporteru.infrastructure.web;
 
 import com.surofu.exporteru.application.command.advertisement.SaveAdvertisementCommand;
 import com.surofu.exporteru.application.dto.advertisement.AdvertisementDto;
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
 import com.surofu.exporteru.core.model.advertisement.*;
 import com.surofu.exporteru.core.service.advertisement.AdvertisementService;
 import com.surofu.exporteru.core.service.advertisement.operation.*;
@@ -165,11 +164,11 @@ public class AdvertisementRestController {
             @RequestPart("image") MultipartFile image
     ) {
         AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(HstoreTranslationDto.ofNullable(command.titleTranslations()));
+        title.setTranslations(command.titleTranslations());
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(HstoreTranslationDto.ofNullable(command.subtitleTranslations()));
+        subtitle.setTranslations(command.subtitleTranslations());
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(HstoreTranslationDto.ofNullable(command.thirdTextTranslations()));
+        thirdText.setTranslations(command.thirdTextTranslations());
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
@@ -235,11 +234,11 @@ public class AdvertisementRestController {
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(HstoreTranslationDto.ofNullable(command.titleTranslations()));
+        title.setTranslations(command.titleTranslations());
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(HstoreTranslationDto.ofNullable(command.subtitleTranslations()));
+        subtitle.setTranslations(command.subtitleTranslations());
         AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(HstoreTranslationDto.ofNullable(command.thirdTextTranslations()));
+        thirdText.setTranslations(command.thirdTextTranslations());
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());

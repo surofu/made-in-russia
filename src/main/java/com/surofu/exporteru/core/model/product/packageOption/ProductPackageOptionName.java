@@ -1,56 +1,67 @@
 package com.surofu.exporteru.core.model.product.packageOption;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
-
-import java.io.Serializable;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPackageOptionName implements Serializable {
 
-    @Column(name = "name", nullable = false)
-    private String value;
+  @Column(name = "name", nullable = false)
+  private String value;
 
-    // TODO: ProductPackageOptionName Translation. Hstore -> Jsonb
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "name_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "name_translations")
+  private Map<String, String> translations = new HashMap<>();
 
-    // TODO: Translation
-    private ProductPackageOptionName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название варианта упаковки товара не может быть пустым");
-        }
-
-        if (name.length() > 255) {
-            throw new IllegalArgumentException("Название варианта упаковки товара не может быть больше 255 символов");
-        }
-
-        this.value = name;
+  // TODO: Translation
+  private ProductPackageOptionName(String name) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("Название варианта упаковки товара не может быть пустым");
     }
 
-    public static ProductPackageOptionName of(String name) {
-        return new ProductPackageOptionName(name);
+    if (name.length() > 255) {
+      throw new IllegalArgumentException(
+          "Название варианта упаковки товара не может быть больше 255 символов");
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
+    this.value = name;
+  }
 
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
+  public static ProductPackageOptionName of(String name) {
+    return new ProductPackageOptionName(name);
+  }
 
-    @Override
-    public String toString() {
-        return value;
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (!(o instanceof ProductPackageOptionName productPackageOptionName)) {
+      return false;
+    }
+    return Objects.equals(value, productPackageOptionName.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
 }

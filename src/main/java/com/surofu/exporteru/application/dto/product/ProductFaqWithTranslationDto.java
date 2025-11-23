@@ -1,9 +1,8 @@
 package com.surofu.exporteru.application.dto.product;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import com.surofu.exporteru.infrastructure.persistence.product.faq.ProductFaqWithTranslationsView;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,7 +38,7 @@ public final class ProductFaqWithTranslationDto implements Serializable {
     )
     private String question;
 
-    private TranslationDto questionTranslations;
+    private Map<String, String> questionTranslations;
 
     @Schema(
             description = "The answer to the question",
@@ -50,7 +49,7 @@ public final class ProductFaqWithTranslationDto implements Serializable {
     )
     private String answer;
 
-    private TranslationDto answerTranslations;
+    private Map<String, String> answerTranslations;
 
     @Schema(
             description = "Timestamp when the FAQ was created",
@@ -75,9 +74,9 @@ public final class ProductFaqWithTranslationDto implements Serializable {
         return ProductFaqWithTranslationDto.builder()
                 .id(view.getId())
                 .question(view.getQuestion())
-                .questionTranslations(TranslationDto.of(HstoreParser.fromString(view.getQuestionTranslations())))
+                .questionTranslations(view.getQuestionTranslations())
                 .answer(view.getAnswer())
-                .answerTranslations(TranslationDto.of(HstoreParser.fromString(view.getAnswerTranslations())))
+                .answerTranslations(view.getAnswerTranslations())
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

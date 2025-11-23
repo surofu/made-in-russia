@@ -3,7 +3,6 @@ package com.surofu.exporteru.core.model.vendorDetails.email;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Generated;
 import lombok.NoArgsConstructor;

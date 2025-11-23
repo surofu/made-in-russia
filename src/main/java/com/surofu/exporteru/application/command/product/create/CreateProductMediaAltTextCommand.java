@@ -1,9 +1,9 @@
 package com.surofu.exporteru.application.command.product.create;
 
-import com.surofu.exporteru.application.dto.translation.TranslationDto;
+import java.util.Map;
 
 public record CreateProductMediaAltTextCommand(
-        String altText,
-        TranslationDto translations
-){
+    String altText,
+    Map<String, String> translations
+) {
 }

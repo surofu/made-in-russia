@@ -13,11 +13,11 @@ public interface SpringDataProductCharacteristicRepository extends JpaRepository
         select
         c.id,
         coalesce(
-            c.name_translations -> :lang,
+            c.name_translations::jsonb ->> :lang,
             c.name
         ) as name,
         coalesce(
-            c.value_translations -> :lang,
+            c.value_translations::jsonb ->> :lang,
             c.value
         ) as value,
         c.creation_date,
@@ -31,16 +31,16 @@ public interface SpringDataProductCharacteristicRepository extends JpaRepository
         select
         c.id,
         coalesce(
-            c.name_translations -> :lang,
+            c.name_translations::jsonb ->> :lang,
             c.name
         ) as name,
-        c.name_translations::text,
+        c.name_translations,
         c.value,
         coalesce(
-            c.value_translations -> :lang,
+            c.value_translations::jsonb ->> :lang,
             c.value
         ) as value,
-        c.value_translations::text,
+        c.value_translations,
         c.creation_date,
         c.last_modification_date
         from product_characteristics c

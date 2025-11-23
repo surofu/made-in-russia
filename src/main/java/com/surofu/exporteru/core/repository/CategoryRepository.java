@@ -8,15 +8,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository {
-    Optional<Category> getCategoryById(Long id);
+    List<Category> getAll();
+
+    Optional<Category> getById(Long id);
+
+    Optional<Category> getBySlug(CategorySlug slug);
 
     List<Long> getCategoriesIdsByIds(List<Long> ids);
 
-    List<String> getOkvedCategoryIdsBySlug(CategorySlug slug);
+    List<Category> getCategoryL1AndL2();
 
     void save(Category category);
 
-    Optional<Category> getCategoryBySlug(CategorySlug slug);
+    Optional<Category> getCategoryBySlugWithChildren(CategorySlug slug);
 
     Boolean existsBySlug(CategorySlug slug);
 
@@ -24,13 +28,5 @@ public interface CategoryRepository {
 
     // View
 
-    List<CategoryView> getAllCategoriesViewsByLang(String lang);
-
-    List<CategoryView> getCategoryViewsL1AndL2ByLang(String lang);
-
-    List<CategoryView> getCategoryViewWithChildrenByIdAndLang(Long id, String lang);
-
     List<CategoryView> getCategoryViewWithChildrenBySlugAndLang(String slug, String lang);
-
-    Optional<CategoryView> getCategoryViewByIdAndLang(Long id, String lang);
 }

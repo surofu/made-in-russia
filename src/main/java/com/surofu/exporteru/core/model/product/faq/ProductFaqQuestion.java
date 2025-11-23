@@ -1,17 +1,21 @@
 package com.surofu.exporteru.core.model.product.faq;
 
-import com.surofu.exporteru.application.dto.translation.HstoreTranslationDto;
-import com.surofu.exporteru.application.utils.HstoreParser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
+import lombok.Setter;
 
 import java.io.Serializable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductFaqQuestion implements Serializable {
@@ -19,10 +23,9 @@ public final class ProductFaqQuestion implements Serializable {
     @Column(name = "question", nullable = false, columnDefinition = "text")
     private String value;
 
-    // TODO: ProductFaqQuestion Translation. Hstore -> Jsonb
-    @ColumnTransformer(write = "?::hstore")
-    @Column(name = "question_translations", nullable = false, columnDefinition = "hstore")
-    private String translations = HstoreParser.toString(HstoreTranslationDto.empty());
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "question_translations")
+    private Map<String, String> translations = new HashMap<>();
 
     private ProductFaqQuestion(String question) {
         if (question == null || question.trim().isEmpty()) {
@@ -40,16 +43,20 @@ public final class ProductFaqQuestion implements Serializable {
         return new ProductFaqQuestion(question);
     }
 
-    public HstoreTranslationDto getTranslations() {
-        return HstoreParser.fromString(translations);
-    }
-
-    public void setTranslations(HstoreTranslationDto translations) {
-        this.translations = HstoreParser.toString(translations);
-    }
-
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductFaqQuestion productFaqQuestion)) return false;
+        return Objects.equals(value, productFaqQuestion.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }
