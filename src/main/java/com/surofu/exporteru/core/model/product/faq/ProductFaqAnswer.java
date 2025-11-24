@@ -15,19 +15,17 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductFaqAnswer implements Serializable {
 
     @Column(name = "answer", nullable = false, columnDefinition = "text")
-    private String value;
+    private final String value;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "answer_translations")
-    private Map<String, String> translations = new HashMap<>();
+    private final Map<String, String> translations;
 
-    private ProductFaqAnswer(String answer) {
+    public ProductFaqAnswer(String answer, Map<String, String> translations) {
         if (answer == null || answer.trim().isEmpty()) {
             throw new IllegalArgumentException("Ответ не может быть пустым");
         }
@@ -37,10 +35,11 @@ public final class ProductFaqAnswer implements Serializable {
         }
 
         this.value = answer;
+        this.translations = translations;
     }
 
-    public static ProductFaqAnswer of(String answer) {
-        return new ProductFaqAnswer(answer);
+    public ProductFaqAnswer() {
+        this("Answer", new HashMap<>());
     }
 
     @Override
@@ -57,6 +56,6 @@ public final class ProductFaqAnswer implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return getClass().hashCode();
     }
 }

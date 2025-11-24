@@ -3,6 +3,7 @@ package com.surofu.exporteru.core.model.product.faq;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -13,21 +14,20 @@ import lombok.Setter;
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductFaqQuestion implements Serializable {
 
     @Column(name = "question", nullable = false, columnDefinition = "text")
-    private String value;
+    private final String value;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "question_translations")
-    private Map<String, String> translations = new HashMap<>();
+    private final Map<String, String> translations;
 
-    private ProductFaqQuestion(String question) {
+    public ProductFaqQuestion(String question, Map<String, String> translations) {
         if (question == null || question.trim().isEmpty()) {
             throw new IllegalArgumentException("Вопрос не может быть пустым");
         }
@@ -37,15 +37,20 @@ public final class ProductFaqQuestion implements Serializable {
         }
 
         this.value = question;
+        this.translations = translations;
     }
 
-    public static ProductFaqQuestion of(String question) {
-        return new ProductFaqQuestion(question);
+    public ProductFaqQuestion() {
+        this("Question", new HashMap<>());
     }
 
-    @Override
-    public String toString() {
-        return value;
+    public String getLocalizedValue() {
+        if (translations == null || translations.isEmpty()) {
+            return Objects.requireNonNullElse(value, "");
+        }
+
+        Locale locale = LocaleContextHolder.getLocale();
+        return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
     }
 
     @Override
@@ -57,6 +62,6 @@ public final class ProductFaqQuestion implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return getClass().hashCode();
     }
 }

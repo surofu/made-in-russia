@@ -2,6 +2,7 @@ package com.surofu.exporteru.infrastructure.persistence.vendor.media;
 
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.exporteru.core.repository.VendorMediaRepository;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +26,7 @@ public class JpaVendorMediaRepository implements VendorMediaRepository {
     }
 
     @Override
-    public void saveAll(List<VendorMedia> vendorMediaList) {
+    public void saveAll(Collection<VendorMedia> vendorMediaList) {
         repository.saveAll(vendorMediaList);
     }
 
@@ -35,7 +36,7 @@ public class JpaVendorMediaRepository implements VendorMediaRepository {
     }
 
     @Override
-    public void deleteAll(List<VendorMedia> vendorMediaList) {
+    public void deleteAll(Collection<VendorMedia> vendorMediaList) {
         repository.deleteAll(vendorMediaList);
     }
 

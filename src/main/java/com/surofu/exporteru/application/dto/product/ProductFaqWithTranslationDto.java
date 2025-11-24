@@ -74,9 +74,9 @@ public final class ProductFaqWithTranslationDto implements Serializable {
         return ProductFaqWithTranslationDto.builder()
                 .id(view.getId())
                 .question(view.getQuestion())
-                .questionTranslations(view.getQuestionTranslations())
+                .questionTranslations(view.getQuestionTranslationsMap())
                 .answer(view.getAnswer())
-                .answerTranslations(view.getAnswerTranslations())
+                .answerTranslations(view.getAnswerTranslationsMap())
                 .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
                 .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
                 .build();

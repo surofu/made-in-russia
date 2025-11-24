@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.service.product;
 
+import com.surofu.exporteru.application.command.product.update.UpdateOldMediaDto;
 import com.surofu.exporteru.application.command.product.update.UpdateProductCharacteristicCommand;
 import com.surofu.exporteru.application.command.product.update.UpdateProductDeliveryMethodDetailsCommand;
 import com.surofu.exporteru.application.command.product.update.UpdateProductFaqCommand;
@@ -28,6 +29,7 @@ import com.surofu.exporteru.core.model.product.faq.ProductFaqQuestion;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
 import com.surofu.exporteru.core.model.product.media.ProductMediaAltText;
 import com.surofu.exporteru.core.model.product.media.ProductMediaMimeType;
+import com.surofu.exporteru.core.model.product.media.ProductMediaPosition;
 import com.surofu.exporteru.core.model.product.media.ProductMediaUrl;
 import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOption;
 import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOptionName;
@@ -36,7 +38,6 @@ import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOptio
 import com.surofu.exporteru.core.model.product.price.ProductPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceCurrency;
 import com.surofu.exporteru.core.model.product.price.ProductPriceDiscount;
-import com.surofu.exporteru.core.model.product.price.ProductPriceDiscountedPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
@@ -44,6 +45,7 @@ import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMediaMimeType;
+import com.surofu.exporteru.core.model.vendorDetails.media.VendorMediaPosition;
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMediaUrl;
 import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.ProductCharacteristicRepository;
@@ -58,12 +60,15 @@ import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import com.surofu.exporteru.infrastructure.persistence.category.JpaCategoryRepository;
 import com.surofu.exporteru.infrastructure.persistence.deliveryMethod.JpaDeliveryMethodRepository;
 import com.surofu.exporteru.infrastructure.persistence.user.JpaUserRepository;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import com.surofu.exporteru.infrastructure.persistence.vendor.media.JpaVendorMediaRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,60 +96,67 @@ public class ProductUpdatingService {
   private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
   private final ProductPackageOptionsRepository productPackageOptionsRepository;
   private final ProductMediaRepository productMediaRepository;
+  private final JpaVendorMediaRepository vendorMediaRepository;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Transactional(timeout = 30)
   public UpdateProduct.Result updateProduct(UpdateProduct operation) {
-    Optional<Product> productOptional = productRepository.getProductById(operation.getProductId());
-
-    if (productOptional.isEmpty()) {
-      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-      return UpdateProduct.Result.productNotFound(operation.getProductId());
-    }
-
-    Product product = productOptional.get();
-
-    UpdateProduct.Result validationResult = validateUpdateProductOperation(operation);
-    if (!(validationResult instanceof UpdateProduct.Result.Success)) {
-      return validationResult;
-    }
-
-    User user = userRepository.getUserById(operation.getSecurityUser().getUser().getId())
-        .orElseThrow(() -> new RuntimeException("User not found"));
-    VendorDetails vendorDetails = user.getVendorDetails();
-
-    Optional<Category> categoryOptional = categoryRepository.getById(operation.getCategoryId());
-    if (categoryOptional.isEmpty()) {
-      return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
-    }
-
-    Category category = categoryOptional.get();
-
-    Optional<Long> firstNotExistsDeliveryMethodIdOptional =
-        deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
-    if (firstNotExistsDeliveryMethodIdOptional.isPresent()) {
-      return UpdateProduct.Result.deliveryMethodNotFound(
-          firstNotExistsDeliveryMethodIdOptional.get());
-    }
-
-    List<DeliveryMethod> deliveryMethods =
-        deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
-
-    Optional<Long> firstNotExistsSimilarProductIdOptional =
-        productRepository.firstNotExists(operation.getSimilarProductIds());
-    if (firstNotExistsSimilarProductIdOptional.isPresent()) {
-      return UpdateProduct.Result.similarProductNotFound(
-          firstNotExistsSimilarProductIdOptional.get());
-    }
-
-    List<Long> limitedSimilarProductIds = operation.getSimilarProductIds().stream()
-        .limit(50)
-        .collect(Collectors.toList());
-    List<Product> similarProducts = productRepository.findAllByIds(limitedSimilarProductIds);
-
-    // Обновляем основные поля продукта
-    updateProductBasicFields(product, operation, category, deliveryMethods, similarProducts);
-
     try {
+      entityManager.setFlushMode(FlushModeType.COMMIT);
+
+      Optional<Product> productOptional =
+          productRepository.getProductById(operation.getProductId());
+
+      if (productOptional.isEmpty()) {
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return UpdateProduct.Result.productNotFound(operation.getProductId());
+      }
+
+      Product product = productOptional.get();
+
+      UpdateProduct.Result validationResult = validateUpdateProductOperation(operation);
+      if (!(validationResult instanceof UpdateProduct.Result.Success)) {
+        return validationResult;
+      }
+
+      User user = userRepository.getUserById(operation.getSecurityUser().getUser().getId())
+          .orElseThrow(() -> new RuntimeException("User not found"));
+      VendorDetails vendorDetails = user.getVendorDetails();
+
+      Optional<Category> categoryOptional = categoryRepository.getById(operation.getCategoryId());
+      if (categoryOptional.isEmpty()) {
+        return UpdateProduct.Result.categoryNotFound(operation.getCategoryId());
+      }
+
+      Category category = categoryOptional.get();
+
+      Optional<Long> firstNotExistsDeliveryMethodIdOptional =
+          deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
+      if (firstNotExistsDeliveryMethodIdOptional.isPresent()) {
+        return UpdateProduct.Result.deliveryMethodNotFound(
+            firstNotExistsDeliveryMethodIdOptional.get());
+      }
+
+      List<DeliveryMethod> deliveryMethods =
+          deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+
+      Optional<Long> firstNotExistsSimilarProductIdOptional =
+          productRepository.firstNotExists(operation.getSimilarProductIds());
+      if (firstNotExistsSimilarProductIdOptional.isPresent()) {
+        return UpdateProduct.Result.similarProductNotFound(
+            firstNotExistsSimilarProductIdOptional.get());
+      }
+
+      List<Long> limitedSimilarProductIds = operation.getSimilarProductIds().stream()
+          .limit(50)
+          .collect(Collectors.toList());
+      List<Product> similarProducts = productRepository.findAllByIds(limitedSimilarProductIds);
+
+      // Обновляем основные поля продукта
+      updateProductBasicFields(product, operation, category, deliveryMethods, similarProducts);
+
       // Обновляем связанные сущности с переводами через репозитории
       UpdateProduct.Result relatedEntitiesResult =
           updateRelatedEntitiesWithRepositories(product, operation);
@@ -164,6 +176,7 @@ public class ProductUpdatingService {
         return vendorMediaResult;
       }
 
+      return productSavingService.saveUpdate(product);
     } catch (EmptyTranslationException e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateProduct.Result.emptyTranslations(e.getMessage());
@@ -171,8 +184,6 @@ public class ProductUpdatingService {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateProduct.Result.translationError(e);
     }
-
-    return productSavingService.saveUpdate(product);
   }
 
   private void updateProductBasicFields(Product product, UpdateProduct operation,
@@ -235,8 +246,10 @@ public class ProductUpdatingService {
 
       return UpdateProduct.Result.success();
     } catch (EmptyTranslationException e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateProduct.Result.emptyTranslations(e.getMessage());
     } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateProduct.Result.errorSavingProduct(e);
     }
   }
@@ -260,40 +273,24 @@ public class ProductUpdatingService {
       price.setUnit(ProductPriceUnit.of(command.unit()));
       price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
       price.setDiscount(ProductPriceDiscount.of(command.discount()));
-      price.setDiscountedPrice(
-          ProductPriceDiscountedPrice.of(
-              command.price().subtract(
-                  command.price().multiply(command.discount())
-                      .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP)
-              )
-          )
-      );
-      // Устанавливаем переводы для unit сразу
       price.getUnit().setTranslations(translationRepository.expand(command.unit()));
       newPrices.add(price);
     }
 
     // Сохраняем новые цены через репозиторий
     productPriceRepository.saveAll(newPrices);
-
-    // Обновляем коллекцию в продукте
-    product.getPrices().clear();
-    product.getPrices().addAll(newPrices);
-
     return UpdateProduct.Result.success();
   }
 
   private UpdateProduct.Result updateCharacteristicsWithRepository(Product product,
                                                                    UpdateProduct operation)
       throws EmptyTranslationException {
-    // Получаем старые характеристики и удаляем их через репозиторий
     List<ProductCharacteristic> oldCharacteristics =
         productCharacteristicRepository.getAllByProductId(product.getId());
     if (!oldCharacteristics.isEmpty()) {
       productCharacteristicRepository.deleteAll(oldCharacteristics);
     }
 
-    // Создаем новые характеристики с переводами
     List<ProductCharacteristic> newCharacteristics = new ArrayList<>();
     for (UpdateProductCharacteristicCommand command : operation.getUpdateProductCharacteristicCommands()) {
       ProductCharacteristic characteristic = new ProductCharacteristic();
@@ -307,11 +304,6 @@ public class ProductUpdatingService {
 
     // Сохраняем новые характеристики через репозиторий
     productCharacteristicRepository.saveAll(newCharacteristics);
-
-    // Обновляем коллекцию в продукте
-    product.getCharacteristics().clear();
-    product.getCharacteristics().addAll(newCharacteristics);
-
     return UpdateProduct.Result.success();
   }
 
@@ -328,24 +320,15 @@ public class ProductUpdatingService {
     for (UpdateProductFaqCommand command : operation.getUpdateProductFaqCommands()) {
       ProductFaq faq = new ProductFaq();
       faq.setProduct(product);
-      faq.setQuestion(ProductFaqQuestion.of(command.question()));
-      faq.setAnswer(ProductFaqAnswer.of(command.answer()));
-
-      // Устанавливаем переводы сразу
-      faq.getQuestion()
-          .setTranslations(translationRepository.expand(command.questionTranslations()));
-      faq.getAnswer().setTranslations(translationRepository.expand(command.answerTranslations()));
-
+      faq.setQuestion(new ProductFaqQuestion(command.question(),
+          translationRepository.expand(command.questionTranslations())));
+      faq.setAnswer(new ProductFaqAnswer(command.answer(),
+          translationRepository.expand(command.answerTranslations())));
       newFaq.add(faq);
     }
 
     // Сохраняем новые FAQ через репозиторий
     productFaqRepository.saveAll(newFaq);
-
-    // Обновляем коллекцию в продукте
-    product.getFaq().clear();
-    product.getFaq().addAll(newFaq);
-
     return UpdateProduct.Result.success();
   }
 
@@ -376,11 +359,6 @@ public class ProductUpdatingService {
 
     // Сохраняем новые детали доставки через репозиторий
     productDeliveryMethodDetailsRepository.saveAll(newDetails);
-
-    // Обновляем коллекцию в продукте
-    product.getDeliveryMethodDetails().clear();
-    product.getDeliveryMethodDetails().addAll(newDetails);
-
     return UpdateProduct.Result.success();
   }
 
@@ -411,11 +389,6 @@ public class ProductUpdatingService {
 
     // Сохраняем новые опции упаковки через репозиторий
     productPackageOptionsRepository.saveAll(newOptions);
-
-    // Обновляем коллекцию в продукте
-    product.getPackageOptions().clear();
-    product.getPackageOptions().addAll(newOptions);
-
     return UpdateProduct.Result.success();
   }
 
@@ -425,20 +398,28 @@ public class ProductUpdatingService {
       // Получаем текущие медиа
       Set<ProductMedia> existingMedia = new HashSet<>(product.getMedia());
 
-      // Определяем медиа для сохранения и удаления
-      Set<ProductMedia> mediaToKeep = existingMedia.stream()
-          .filter(m -> operation.getOldProductMedia().stream()
-              .anyMatch(dto -> Objects.equals(dto.id(), m.getId())))
-          .collect(Collectors.toSet());
+      // Создаем Map для быстрого доступа к старым медиа по ID
+      Map<Long, ProductMedia> oldMediaMap = existingMedia.stream()
+          .collect(Collectors.toMap(ProductMedia::getId, m -> m));
 
-      Set<ProductMedia> mediaToDelete = existingMedia.stream()
-          .filter(m -> !mediaToKeep.contains(m))
-          .collect(Collectors.toSet());
+      // Определяем медиа для сохранения и удаления
+      Set<ProductMedia> mediaToKeep = new HashSet<>();
+      Set<ProductMedia> mediaToDelete = new HashSet<>(existingMedia);
+
+      // Обрабатываем старые медиа с новыми позициями
+      for (UpdateOldMediaDto oldMediaDto : operation.getOldProductMedia()) {
+        ProductMedia oldMedia = oldMediaMap.get(oldMediaDto.id());
+        if (oldMedia != null) {
+          // Обновляем позицию для старого медиа
+          oldMedia.setPosition(ProductMediaPosition.of(oldMediaDto.position()));
+          mediaToKeep.add(oldMedia);
+          mediaToDelete.remove(oldMedia);
+        }
+      }
 
       // Удаляем старые медиа через репозиторий
       if (!mediaToDelete.isEmpty()) {
         productMediaRepository.deleteAll(mediaToDelete);
-
         // Удаляем файлы старых медиа
         List<String> mediaUrlsToDelete = mediaToDelete.stream()
             .map(ProductMedia::getUrl)
@@ -447,7 +428,13 @@ public class ProductUpdatingService {
         fileStorageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));
       }
 
-      // Создаем новые медиа с переводами
+      // Определяем максимальную позицию среди оставшихся медиа для новых файлов
+      int maxPosition = mediaToKeep.stream()
+          .mapToInt(media -> media.getPosition().getValue())
+          .max()
+          .orElse(-1);
+
+      // Создаем новые медиа с переводами, начиная со следующей позиции
       List<ProductMedia> newMedia = new ArrayList<>(mediaToKeep);
 
       if (!operation.getProductMedia().isEmpty()) {
@@ -457,23 +444,23 @@ public class ProductUpdatingService {
 
         for (int i = 0; i < operation.getProductMedia().size(); i++) {
           MultipartFile file = operation.getProductMedia().get(i);
-          ProductMedia media = createProductMediaWithTranslations(file, product, i, operation);
+          int position = maxPosition + 1 + i;
+          ProductMedia media =
+              createProductMediaWithTranslations(file, product, position, operation);
           media.setUrl(ProductMediaUrl.of(urls.get(i)));
           newMedia.add(media);
         }
       }
 
-      // Сохраняем все медиа через репозиторий
       productMediaRepository.saveAll(newMedia);
 
-      // Обновляем коллекцию в продукте
-      product.getMedia().clear();
-      product.getMedia().addAll(newMedia);
+      // Обновляем preview image (берем медиа с минимальной позицией)
+      Optional<ProductMedia> firstMedia = newMedia.stream()
+          .min(Comparator.comparing(media -> media.getPosition().getValue()));
 
-      // Обновляем preview image
-      if (!product.getMedia().isEmpty()) {
+      if (firstMedia.isPresent()) {
         product.setPreviewImageUrl(
-            ProductPreviewImageUrl.of(product.getMedia().iterator().next().getUrl().toString()));
+            ProductPreviewImageUrl.of(firstMedia.get().getUrl().toString()));
       } else {
         return UpdateProduct.Result.errorSavingProduct(new RuntimeException("Empty result files"));
       }
@@ -485,32 +472,6 @@ public class ProductUpdatingService {
     }
   }
 
-  private ProductMedia createProductMediaWithTranslations(MultipartFile file, Product product,
-                                                          int index,
-                                                          UpdateProduct operation)
-      throws EmptyTranslationException {
-    ProductMedia media = new ProductMedia();
-    media.setProduct(product);
-    media.setMediaType(getMediaType(file));
-    media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-
-    // Устанавливаем alt text с переводами сразу
-    if (index < operation.getUpdateProductMediaAltTextCommands().size()) {
-      UpdateProductMediaAltTextCommand command =
-          operation.getUpdateProductMediaAltTextCommands().get(index);
-      media.setAltText(ProductMediaAltText.of(command.altText()));
-      // Устанавливаем переводы для alt text сразу
-      media.getAltText().setTranslations(translationRepository.expand(command.translations()));
-    } else {
-      String filename = file.getOriginalFilename();
-      media.setAltText(ProductMediaAltText.of(filename));
-      // Создаем базовые переводы для filename
-      media.getAltText().setTranslations(translationRepository.expand(filename));
-    }
-
-    return media;
-  }
-
   private UpdateProduct.Result updateVendorDetailsMedia(VendorDetails vendorDetails,
                                                         UpdateProduct operation) {
     try {
@@ -520,32 +481,47 @@ public class ProductUpdatingService {
 
       Set<VendorMedia> existingMedia = new HashSet<>(vendorDetails.getMedia());
 
+      // Создаем Map для быстрого доступа к старым медиа по ID
+      Map<Long, VendorMedia> oldMediaMap = existingMedia.stream()
+          .collect(Collectors.toMap(VendorMedia::getId, m -> m));
+
       // Определяем медиа для сохранения и удаления
-      Set<VendorMedia> mediaToKeep = existingMedia.stream()
-          .filter(m -> operation.getOldVendorDetailsMedia().stream()
-              .anyMatch(dto -> Objects.equals(dto.id(), m.getId())))
-          .collect(Collectors.toSet());
+      Set<VendorMedia> mediaToKeep = new HashSet<>();
+      Set<VendorMedia> mediaToDelete = new HashSet<>(existingMedia);
 
-      Set<VendorMedia> mediaToDelete = existingMedia.stream()
-          .filter(m -> !mediaToKeep.contains(m))
-          .collect(Collectors.toSet());
-
-      // Удаляем медиа из vendor details
-      for (VendorMedia media : mediaToDelete) {
-        vendorDetails.getMedia().remove(media);
+      // Обрабатываем старые медиа с новыми позициями
+      for (UpdateOldMediaDto oldMediaDto : operation.getOldVendorDetailsMedia()) {
+        VendorMedia oldMedia = oldMediaMap.get(oldMediaDto.id());
+        if (oldMedia != null) {
+          // Обновляем позицию для старого медиа
+          oldMedia.setPosition(VendorMediaPosition.of(oldMediaDto.position()));
+          mediaToKeep.add(oldMedia);
+          mediaToDelete.remove(oldMedia);
+        }
       }
 
-      // Добавляем новые медиа
+      // Удаляем медиа из vendor details
+      vendorMediaRepository.deleteAll(mediaToDelete);
+
+      // Определяем максимальную позицию среди оставшихся медиа для новых файлов
+      int maxPosition = mediaToKeep.stream()
+          .mapToInt(media -> media.getPosition().getValue())
+          .max()
+          .orElse(-1);
+
+      // Добавляем новые медиа, начиная со следующей позиции
       List<String> urls = fileStorageRepository.uploadManyImagesToFolder(
           FileStorageFolders.PRODUCT_IMAGES.getValue(),
           operation.getProductVendorDetailsMedia().toArray(new MultipartFile[] {}));
 
       for (int i = 0; i < operation.getProductVendorDetailsMedia().size(); i++) {
         MultipartFile file = operation.getProductVendorDetailsMedia().get(i);
+        int position = maxPosition + 1 + i;
         VendorMedia media = new VendorMedia();
         media.setVendorDetails(vendorDetails);
         media.setMediaType(getMediaType(file));
         media.setMimeType(VendorMediaMimeType.of(file.getContentType()));
+        media.setPosition(VendorMediaPosition.of(position));
         media.setUrl(VendorMediaUrl.of(urls.get(i)));
         vendorDetails.getMedia().add(media);
       }
@@ -564,6 +540,37 @@ public class ProductUpdatingService {
       log.error("Error updating vendor details media for vendor {}", vendorDetails.getId(), e);
       return UpdateProduct.Result.errorSavingFiles(e);
     }
+  }
+
+  // Обновленный метод создания медиа с учетом позиции
+  private ProductMedia createProductMediaWithTranslations(MultipartFile file, Product product,
+                                                          int position,
+                                                          UpdateProduct operation)
+      throws EmptyTranslationException {
+    ProductMedia media = new ProductMedia();
+    media.setProduct(product);
+    media.setMediaType(getMediaType(file));
+    media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+    media.setPosition(ProductMediaPosition.of(position));
+
+    // Устанавливаем alt text с переводами сразу
+    // Используем position для определения соответствующего alt text command
+    if (position < operation.getUpdateProductMediaAltTextCommands().size()) {
+      UpdateProductMediaAltTextCommand command =
+          operation.getUpdateProductMediaAltTextCommands().get(position);
+      media.setAltText(new ProductMediaAltText(
+          command.altText(),
+          translationRepository.expand(command.translations())
+      ));
+    } else {
+      String filename = file.getOriginalFilename();
+      media.setAltText(new ProductMediaAltText(
+          filename,
+          translationRepository.expand(filename)
+      ));
+    }
+
+    return media;
   }
 
   private UpdateProduct.Result validateUpdateProductOperation(UpdateProduct operation) {

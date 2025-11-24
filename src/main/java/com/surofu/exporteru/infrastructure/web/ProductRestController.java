@@ -1005,9 +1005,9 @@ public class ProductRestController {
         updateProductCommand.prices(),
         updateProductCommand.characteristics(),
         updateProductCommand.faq(),
-        updateProductCommand.deliveryMethodDetails(),
-        updateProductCommand.packageOptions(),
-        updateProductCommand.mediaAltTexts(),
+        Objects.requireNonNullElse(updateProductCommand.deliveryMethodDetails(), new ArrayList<>()),
+        Objects.requireNonNullElse(updateProductCommand.packageOptions(), new ArrayList<>()),
+        Objects.requireNonNullElse(updateProductCommand.mediaAltTexts(), new ArrayList<>()),
         ProductMinimumOrderQuantity.of(updateProductCommand.minimumOrderQuantity()),
         ProductDiscountExpirationDate.of(
             ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate())),

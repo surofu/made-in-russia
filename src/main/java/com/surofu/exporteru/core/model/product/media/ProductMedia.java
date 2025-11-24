@@ -72,7 +72,7 @@ public final class ProductMedia implements Serializable {
       if (!(o instanceof ProductMedia productMedia)) {
           return false;
       }
-    return Objects.equals(id, productMedia.id);
+    return Objects.equals(url, productMedia.url);
   }
 
   @Override
