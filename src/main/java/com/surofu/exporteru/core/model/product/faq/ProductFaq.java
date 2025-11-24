@@ -23,15 +23,7 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-    name = "product_faq",
-    indexes = {
-        @Index(
-            name = "idx_product_faq_product_id",
-            columnList = "product_id"
-        )
-    }
-)
+@Table(name = "product_faq")
 public final class ProductFaq implements Serializable {
 
   @Id
@@ -61,18 +53,17 @@ public final class ProductFaq implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductFaq productFaq)) {
-          return false;
-      }
-    return Objects.equals(question, productFaq.question) &&
-        Objects.equals(answer, productFaq.answer);
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ProductFaq productFaq)) {
+      return false;
+    }
+    return Objects.equals(id, productFaq.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(question, answer);
+    return getClass().hashCode();
   }
 }

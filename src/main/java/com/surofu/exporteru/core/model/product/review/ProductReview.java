@@ -5,6 +5,7 @@ import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.exporteru.core.model.user.User;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -86,8 +87,8 @@ public final class ProductReview implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductReview)) return false;
-        return id != null && id.equals(((ProductReview) o).id);
+        if (!(o instanceof ProductReview productReview)) return false;
+        return Objects.equals(id, productReview.id);
     }
 
     @Override

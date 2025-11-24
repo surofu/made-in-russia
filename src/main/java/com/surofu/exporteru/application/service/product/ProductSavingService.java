@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class ProductSavingService {
       productRepository.save(product);
       return CreateProduct.Result.success();
     } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateProduct.Result.errorSavingProduct(e);
     } finally {
       productSummaryCacheManager.clearAll();
@@ -36,6 +38,7 @@ public class ProductSavingService {
       productRepository.save(product);
       return UpdateProduct.Result.success();
     } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateProduct.Result.errorSavingProduct(e);
     } finally {
       productSummaryCacheManager.clearAll();

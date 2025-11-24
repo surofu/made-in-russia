@@ -2,74 +2,92 @@ package com.surofu.exporteru.core.model.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class ProductDescription implements Serializable {
+public class ProductDescription implements Serializable {
+  @Column(name = "main_description", nullable = false, columnDefinition = "text")
+  private String mainDescription;
 
-    @Column(name = "main_description", nullable = false, columnDefinition = "text")
-    private String mainDescription;
+  @Column(name = "further_description", columnDefinition = "text")
+  private String furtherDescription;
 
-    @Column(name = "further_description", columnDefinition = "text")
-    private String furtherDescription;
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "main_description_translations")
+  private Map<String, String> mainDescriptionTranslations;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "main_description_translations")
-    private Map<String, String> mainDescriptionTranslations = new HashMap<>();
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "further_description_translations")
+  private Map<String, String> furtherDescriptionTranslations;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "further_description_translations")
-    private Map<String, String> furtherDescriptionTranslations = new HashMap<>();
+  public ProductDescription() {
+    this.mainDescription = "";
+    this.furtherDescription = null;
+    this.mainDescriptionTranslations = new HashMap<>();
+    this.furtherDescriptionTranslations = new HashMap<>();
+  }
 
-    private ProductDescription(String mainDescription, String furtherDescription) {
-        if (mainDescription == null || mainDescription.trim().isEmpty()) {
-            throw new IllegalArgumentException("Главное описание не может быть пустым");
-        }
+  public ProductDescription(String mainDescription, String furtherDescription,
+                            Map<String, String> mainDescriptionTranslations,
+                            Map<String, String> furtherDescriptionTranslations) {
+    validateMainDescription(mainDescription);
+    validateFurtherDescription(furtherDescription);
 
-        if (mainDescription.length() >= 50_000) {
-            throw new IllegalArgumentException("Главное описание не может быть больше 50,000 символов");
-        }
+    this.mainDescription = mainDescription;
+    this.furtherDescription = furtherDescription;
+    this.mainDescriptionTranslations = mainDescriptionTranslations != null ?
+        mainDescriptionTranslations : new HashMap<>();
+    this.furtherDescriptionTranslations = furtherDescriptionTranslations != null ?
+        furtherDescriptionTranslations : new HashMap<>();
+  }
 
-        if (furtherDescription != null && furtherDescription.length() >= 20_000) {
-            throw new IllegalArgumentException("Второстепенное описание не может быть больше 20,000 символов");
-        }
+  // Convenience constructor
+  public ProductDescription(String mainDescription, String furtherDescription) {
+    this(mainDescription, furtherDescription, new HashMap<>(), new HashMap<>());
+  }
 
-        this.mainDescription = mainDescription;
-        this.furtherDescription = furtherDescription;
+  private void validateMainDescription(String mainDescription) {
+    if (mainDescription == null || mainDescription.trim().isEmpty()) {
+      throw new IllegalArgumentException("Главное описание не может быть пустым");
+    }
+    if (mainDescription.length() >= 50_000) {
+      throw new IllegalArgumentException("Главное описание не может быть больше 50,000 символов");
+    }
+  }
+
+  private void validateFurtherDescription(String furtherDescription) {
+    if (furtherDescription != null && furtherDescription.length() >= 20_000) {
+      throw new IllegalArgumentException(
+          "Второстепенное описание не может быть больше 20,000 символов");
+    }
+  }
+
+  public String getLocalizedMainDescription() {
+    if (mainDescriptionTranslations == null || mainDescriptionTranslations.isEmpty()) {
+      return Objects.requireNonNullElse(mainDescription, "");
     }
 
-    public static ProductDescription of(String mainDescription, String furtherDescription) {
-        return new ProductDescription(mainDescription, furtherDescription);
+    Locale locale = LocaleContextHolder.getLocale();
+    return mainDescriptionTranslations.getOrDefault(locale.getLanguage(),
+        Objects.requireNonNullElse(mainDescription, ""));
+  }
+
+  public String getLocalizedFurtherDescription() {
+    if (furtherDescription == null || furtherDescriptionTranslations.isEmpty()) {
+      return Objects.requireNonNullElse(furtherDescription, "");
     }
 
-    @Override
-    public String toString() {
-        return mainDescription + " - " + furtherDescription;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductDescription productDescription)) return false;
-        return Objects.equals(mainDescription, productDescription.mainDescription)
-            && Objects.equals(furtherDescription, productDescription.furtherDescription);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(mainDescription, furtherDescription);
-    }
+    Locale locale = LocaleContextHolder.getLocale();
+    return furtherDescriptionTranslations.getOrDefault(locale.getLanguage(),
+        Objects.requireNonNullElse(furtherDescription, ""));
+  }
 }

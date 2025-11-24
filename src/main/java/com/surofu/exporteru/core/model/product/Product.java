@@ -187,12 +187,11 @@ public final class Product implements Serializable {
     if (!(o instanceof Product product)) {
       return false;
     }
-    return Objects.equals(title, product.title)
-        && Objects.equals(description, product.description);
+    return Objects.equals(id, product.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(title, description);
+    return getClass().hashCode();
   }
 }

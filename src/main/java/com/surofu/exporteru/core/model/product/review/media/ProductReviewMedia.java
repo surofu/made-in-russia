@@ -65,11 +65,11 @@ public final class ProductReviewMedia implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ProductReviewMedia productReviewMedia)) return false;
-        return Objects.equals(url, productReviewMedia.url);
+        return Objects.equals(id, productReviewMedia.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url);
+        return getClass().hashCode();
     }
 }

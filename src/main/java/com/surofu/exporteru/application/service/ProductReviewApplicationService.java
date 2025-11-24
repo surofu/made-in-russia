@@ -79,7 +79,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
     ProductReviewDto dto = ProductReviewDto.of(productReview);
 
     String translatedProductTitle =
-        productReview.getProduct().getTitle().getLocalizedValue(locale);
+        productReview.getProduct().getTitle().getLocalizedValue();
 
     if (StringUtils.trimToNull(translatedProductTitle) != null) {
       dto.getProduct().setTitle(translatedProductTitle);
@@ -139,7 +139,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
         if (productForReviewViewMap.containsKey(p.getProductId())) {
           ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
           Product productReference = productRepository.getReferenceById(p.getProductId());
-          productReference.setTitle(ProductTitle.of(productForReviewView.getTitle()));
+          productReference.setTitle(new ProductTitle(productForReviewView.getTitle()));
           productReference.setPreviewImageUrl(
               ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
           p.setProduct(productReference);
@@ -191,7 +191,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
         if (productForReviewViewMap.containsKey(p.getProductId())) {
           ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
           Product productReference = productRepository.getReferenceById(p.getProductId());
-          productReference.setTitle(ProductTitle.of(productForReviewView.getTitle()));
+          productReference.setTitle(new ProductTitle(productForReviewView.getTitle()));
           productReference.setPreviewImageUrl(
               ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
           p.setProduct(productReference);

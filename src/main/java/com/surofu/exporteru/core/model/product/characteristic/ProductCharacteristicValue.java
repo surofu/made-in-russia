@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -12,21 +13,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductCharacteristicValue implements Serializable {
 
   @Column(name = "value", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "value_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private ProductCharacteristicValue(String value) {
+  public ProductCharacteristicValue(String value, Map<String, String> translations) {
     if (value == null || value.trim().isEmpty()) {
       throw new IllegalArgumentException("Значение характеристики не может быть пустой");
     }
@@ -37,15 +37,20 @@ public final class ProductCharacteristicValue implements Serializable {
     }
 
     this.value = value;
+    this.translations = translations;
   }
 
-  public static ProductCharacteristicValue of(String value) {
-    return new ProductCharacteristicValue(value);
+  public ProductCharacteristicValue() {
+    this("Value", new HashMap<>());
   }
 
-  @Override
-  public String toString() {
-    return value;
+  public String getLocalizedValue() {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
+    }
+
+    Locale locale = LocaleContextHolder.getLocale();
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
 
   @Override
@@ -57,6 +62,6 @@ public final class ProductCharacteristicValue implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(value);
+    return getClass().hashCode();
   }
 }

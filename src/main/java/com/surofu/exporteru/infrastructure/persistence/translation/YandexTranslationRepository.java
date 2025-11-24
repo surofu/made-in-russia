@@ -1,9 +1,9 @@
 package com.surofu.exporteru.infrastructure.persistence.translation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.core.repository.TranslationRepository;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -28,27 +28,26 @@ public class YandexTranslationRepository implements TranslationRepository {
   private String apiSecret;
 
   @Override
-  public TranslationResponse translateToEn(String... texts) throws IOException {
+  public TranslationResponse translateToEn(String... texts) {
     return translate("en", texts);
   }
 
   @Override
-  public TranslationResponse translateToRu(String... texts) throws IOException {
+  public TranslationResponse translateToRu(String... texts) {
     return translate("ru", texts);
   }
 
   @Override
-  public TranslationResponse translateToZh(String... texts) throws IOException {
+  public TranslationResponse translateToZh(String... texts) {
     return translate("zh", texts);
   }
 
   @Override
-  public TranslationResponse translateToIn(String... texts) throws IOException {
+  public TranslationResponse translateToIn(String... texts) {
     return translate("hi", texts);
   }
 
-  public Map<String, String> expand(Map<String, String> translations)
-      throws EmptyTranslationException, IOException {
+  public Map<String, String> expand(Map<String, String> translations) {
     String en = StringUtils.trimToNull(translations.get("en"));
     String ru = StringUtils.trimToNull(translations.get("ru"));
     String zh = StringUtils.trimToNull(translations.get("zh"));
@@ -90,7 +89,7 @@ public class YandexTranslationRepository implements TranslationRepository {
   }
 
   @Override
-  public Map<String, String> expand(String text) throws EmptyTranslationException, IOException {
+  public Map<String, String> expand(String text) {
     String en = translateToEn(text).getTranslations()[0].getText();
     String ru = translateToRu(text).getTranslations()[0].getText();
     String zh = translateToZh(text).getTranslations()[0].getText();
@@ -125,7 +124,7 @@ public class YandexTranslationRepository implements TranslationRepository {
     throw new EmptyTranslationException();
   }
 
-  private TranslationResponse translate(String language, String... texts) throws IOException {
+  private TranslationResponse translate(String language, String... texts) {
     if (texts == null || texts.length == 0) {
       return new YandexTranslationResponse(new YandexTranslation[] {});
     }
@@ -136,7 +135,12 @@ public class YandexTranslationRepository implements TranslationRepository {
         folderId
     );
 
-    String requestBody = objectMapper.writeValueAsString(translationRequest);
+    String requestBody;
+    try {
+      requestBody = objectMapper.writeValueAsString(translationRequest);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
 
     return yandexTranslatorRestClient.post()
         .header("Content-Type", "application/json")

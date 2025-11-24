@@ -14,8 +14,7 @@ public interface TranslationRepository {
 
   TranslationResponse translateToIn(String... texts) throws IOException;
 
-  Map<String, String> expand(Map<String, String> translations)
-      throws EmptyTranslationException, IOException;
+  Map<String, String> expand(Map<String, String> translations);
 
-  Map<String, String> expand(String text) throws EmptyTranslationException, IOException;
+  Map<String, String> expand(String text);
 }

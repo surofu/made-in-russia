@@ -71,8 +71,8 @@ public class ProductSummarySpecifications {
 
             List<Predicate> predicateList = new ArrayList<>(2);
 
-            predicateList.add(criteriaBuilder.like(criteriaBuilder.upper(root.get("title")), "%" + title.toUpperCase() + "%"));
-            predicateList.add(criteriaBuilder.like(criteriaBuilder.upper(criteriaBuilder.toString(root.get("titleTranslations"))), "%" + title.toUpperCase() + "%"));
+            predicateList.add(criteriaBuilder.like(criteriaBuilder.trim(criteriaBuilder.upper(root.get("title"))), "%" + title.trim().toUpperCase() + "%"));
+            predicateList.add(criteriaBuilder.like(criteriaBuilder.upper(criteriaBuilder.trim(criteriaBuilder.toString(root.get("titleTranslations")))), "%" + title.toUpperCase() + "%"));
 
             return criteriaBuilder.or(predicateList.toArray(new Predicate[0]));
         };

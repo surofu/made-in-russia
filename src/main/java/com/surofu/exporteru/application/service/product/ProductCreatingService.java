@@ -13,7 +13,9 @@ import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
+import com.surofu.exporteru.core.model.product.ProductDescription;
 import com.surofu.exporteru.core.model.product.ProductPreviewImageUrl;
+import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristicName;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristicValue;
@@ -35,6 +37,7 @@ import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOptio
 import com.surofu.exporteru.core.model.product.price.ProductPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceCurrency;
 import com.surofu.exporteru.core.model.product.price.ProductPriceDiscount;
+import com.surofu.exporteru.core.model.product.price.ProductPriceDiscountedPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
@@ -50,6 +53,8 @@ import com.surofu.exporteru.core.service.product.operation.CreateProduct;
 import com.surofu.exporteru.infrastructure.persistence.category.JpaCategoryRepository;
 import com.surofu.exporteru.infrastructure.persistence.deliveryMethod.JpaDeliveryMethodRepository;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +63,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -119,18 +125,22 @@ public class ProductCreatingService {
     product.setCategory(category);
     product.setDeliveryMethods(new HashSet<>(deliveryMethods));
     product.setSimilarProducts(new HashSet<>(similarProducts));
-    product.setTitle(operation.getProductTitle());
-    product.setDescription(operation.getProductDescription());
     product.setMinimumOrderQuantity(operation.getMinimumOrderQuantity());
     product.setDiscountExpirationDate(operation.getDiscountExpirationDate());
 
     try {
-      product.getTitle().setTranslations(
-          translationRepository.expand(operation.getProductTitle().getTranslations()));
-      product.getDescription().setMainDescriptionTranslations(translationRepository.expand(
-          operation.getProductDescription().getMainDescriptionTranslations()));
-      product.getDescription().setMainDescriptionTranslations(translationRepository.expand(
-          operation.getProductDescription().getFurtherDescriptionTranslations()));
+      product.setTitle(new ProductTitle(
+          operation.getProductTitle().getValue(),
+          translationRepository.expand(operation.getProductTitle().getTranslations())
+      ));
+      product.setDescription(new ProductDescription(
+          operation.getProductDescription().getMainDescription(),
+          operation.getProductDescription().getFurtherDescription(),
+          translationRepository.expand(
+              operation.getProductDescription().getMainDescriptionTranslations()),
+          translationRepository.expand(
+              operation.getProductDescription().getFurtherDescriptionTranslations())
+      ));
       settingPrices(product, operation);
       settingCharacteristics(product, operation);
       settingFaq(product, operation);
@@ -140,8 +150,10 @@ public class ProductCreatingService {
       settingVendorDetailsMedia(operation.getSecurityUser().getUser().getVendorDetails(),
           operation);
     } catch (EmptyTranslationException e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateProduct.Result.emptyTranslations(e.getMessage());
     } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateProduct.Result.translationError(e);
     }
 
@@ -162,6 +174,17 @@ public class ProductCreatingService {
       price.setUnit(ProductPriceUnit.of(command.unit()));
       price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
       price.setDiscount(ProductPriceDiscount.of(command.discount()));
+
+      // ИСПРАВЛЕНО: добавлен расчет discountedPrice
+      price.setDiscountedPrice(
+          ProductPriceDiscountedPrice.of(
+              command.price().subtract(
+                  command.price().multiply(command.discount())
+                      .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP)
+              )
+          )
+      );
+
       price.getUnit().setTranslations(translationRepository.expand(command.unit()));
       prices.add(price);
     }
@@ -176,12 +199,10 @@ public class ProductCreatingService {
     for (CreateProductCharacteristicCommand command : operation.getCreateProductCharacteristicCommands()) {
       ProductCharacteristic characteristic = new ProductCharacteristic();
       characteristic.setProduct(product);
-      characteristic.setName(ProductCharacteristicName.of(command.name()));
-      characteristic.setValue(ProductCharacteristicValue.of(command.value()));
-      characteristic.getName()
-          .setTranslations(translationRepository.expand(command.nameTranslations()));
-      characteristic.getValue()
-          .setTranslations(translationRepository.expand(command.valueTranslations()));
+      characteristic.setName(new ProductCharacteristicName(command.name(),
+          translationRepository.expand(command.nameTranslations())));
+      characteristic.setValue(new ProductCharacteristicValue(command.value(),
+          translationRepository.expand(command.valueTranslations())));
       characteristics.add(characteristic);
     }
 
@@ -243,9 +264,12 @@ public class ProductCreatingService {
   private void settingMedia(Product product, CreateProduct operation) throws Exception {
     List<ProductMedia> mediaList = new ArrayList<>();
 
+    // ИСПРАВЛЕНО: используем правильный список файлов для загрузки
     List<String> urls =
-        fileStorageRepository.uploadManyImagesToFolder(FileStorageFolders.PRODUCT_IMAGES.getValue(),
-            operation.getProductMedia().toArray(new MultipartFile[] {}));
+        fileStorageRepository.uploadManyImagesToFolder(
+            FileStorageFolders.PRODUCT_IMAGES.getValue(),
+            operation.getProductMedia().toArray(new MultipartFile[] {})
+        );
 
     List<MultipartFile> productMedia = operation.getProductMedia();
     for (int i = 0; i < productMedia.size(); i++) {
@@ -259,30 +283,42 @@ public class ProductCreatingService {
       mediaList.add(media);
     }
 
-    for (int i = 0; i < operation.getCreateProductMediaAltTextCommands().size(); i++) {
-      if (i >= mediaList.size()) {
-        break;
-      }
+    // ИСПРАВЛЕНО: добавлена проверка размера списка alt текстов
+    List<CreateProductMediaAltTextCommand> altTextCommands =
+        operation.getCreateProductMediaAltTextCommands();
 
-      CreateProductMediaAltTextCommand command =
-          operation.getCreateProductMediaAltTextCommands().get(i);
+    for (int i = 0; i < Math.min(altTextCommands.size(), mediaList.size()); i++) {
+      CreateProductMediaAltTextCommand command = altTextCommands.get(i);
       ProductMedia media = mediaList.get(i);
       media.setAltText(ProductMediaAltText.of(command.altText()));
       media.getAltText().setTranslations(translationRepository.expand(command.translations()));
     }
 
+    // ИСПРАВЛЕНО: добавлена проверка на пустой список
+    if (mediaList.isEmpty()) {
+      throw new RuntimeException("No media files uploaded");
+    }
+
     product.setPreviewImageUrl(
-        ProductPreviewImageUrl.of(mediaList.iterator().next().getUrl().toString()));
+        ProductPreviewImageUrl.of(mediaList.get(0).getUrl().toString()));
     product.setMedia(new HashSet<>(mediaList));
   }
 
   private void settingVendorDetailsMedia(VendorDetails vendorDetails, CreateProduct operation)
       throws Exception {
+    // ИСПРАВЛЕНО: проверка на пустой список
+    if (operation.getProductVendorDetailsMedia().isEmpty()) {
+      return;
+    }
+
     List<VendorMedia> mediaList = new ArrayList<>();
 
+    // ИСПРАВЛЕНО: используем правильный список файлов для загрузки
     List<String> urls =
-        fileStorageRepository.uploadManyImagesToFolder(FileStorageFolders.PRODUCT_IMAGES.getValue(),
-            operation.getProductMedia().toArray(new MultipartFile[] {}));
+        fileStorageRepository.uploadManyImagesToFolder(
+            FileStorageFolders.PRODUCT_IMAGES.getValue(),
+            operation.getProductVendorDetailsMedia().toArray(new MultipartFile[] {})
+        );
 
     List<MultipartFile> vendorDetailsMedia = operation.getProductVendorDetailsMedia();
     for (int i = 0; i < vendorDetailsMedia.size(); i++) {
@@ -296,7 +332,11 @@ public class ProductCreatingService {
       mediaList.add(media);
     }
 
-    vendorDetails.setMedia(new HashSet<>(mediaList));
+    // ИСПРАВЛЕНО: добавляем медиа к существующим, а не заменяем
+    if (vendorDetails.getMedia() == null) {
+      vendorDetails.setMedia(new HashSet<>());
+    }
+    vendorDetails.getMedia().addAll(mediaList);
   }
 
   // Validation

@@ -45,7 +45,6 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
         StringUtils.trimToNull(Objects.requireNonNullElse(user.getPhoneNumber(), "").toString()));
 
     if (user.getVendorDetails() != null) {
-      System.out.println("user.getVendorDetails(): " + user.getVendorDetails());
       vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails(), locale));
     }
 

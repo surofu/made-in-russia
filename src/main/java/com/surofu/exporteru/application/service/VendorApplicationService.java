@@ -524,11 +524,7 @@ public class VendorApplicationService implements VendorService {
           VendorCountry vendorCountry = new VendorCountry();
           vendorCountry.setVendorDetails(vendorDetails);
           vendorCountry.setName(name);
-          try {
-            vendorCountry.getName().setTranslations(translationRepository.expand(name.getTranslations()));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
+          vendorCountry.getName().setTranslations(translationRepository.expand(name.getTranslations()));
           return vendorCountry;
         })
         .collect(Collectors.toList());
@@ -538,11 +534,7 @@ public class VendorApplicationService implements VendorService {
           VendorProductCategory vendorProductCategory = new VendorProductCategory();
           vendorProductCategory.setVendorDetails(vendorDetails);
           vendorProductCategory.setName(name);
-          try {
-            vendorProductCategory.getName().setTranslations(translationRepository.expand(name.getTranslations()));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
+          vendorProductCategory.getName().setTranslations(translationRepository.expand(name.getTranslations()));
           return vendorProductCategory;
         })
         .collect(Collectors.toList());

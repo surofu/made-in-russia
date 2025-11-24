@@ -56,20 +56,20 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
             WHERE
                 -- Поиск по товарам (если они есть)
                 (p.id IS NOT NULL AND (
-                    p.title ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::jsonb ->> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::jsonb ->> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::jsonb ->> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (p.title_translations::jsonb ->> 'hi') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    p.article_code ILIKE CONCAT('%', :searchTerm, '%')
+                    p.title ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (p.title_translations::jsonb ->> 'en') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (p.title_translations::jsonb ->> 'ru') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (p.title_translations::jsonb ->> 'zh') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (p.title_translations::jsonb ->> 'hi') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    p.article_code ILIKE CONCAT('%', TRIM(:searchTerm), '%')
                 ))
                 OR
                 -- Поиск по категориям (всегда)
                 (
-                    (c.name_translations::jsonb ->> 'en') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (c.name_translations::jsonb ->> 'ru') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (c.name_translations::jsonb ->> 'zh') ILIKE CONCAT('%', :searchTerm, '%') OR
-                    (c.name_translations::jsonb ->> 'hi') ILIKE CONCAT('%', :searchTerm, '%')
+                    (c.name_translations::jsonb ->> 'en') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (c.name_translations::jsonb ->> 'ru') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (c.name_translations::jsonb ->> 'zh') ILIKE CONCAT('%', TRIM(:searchTerm), '%') OR
+                    (c.name_translations::jsonb ->> 'hi') ILIKE CONCAT('%', TRIM(:searchTerm), '%')
                 )
             ORDER BY
                 COALESCE(c.name_translations::jsonb ->> :lang, c.name),

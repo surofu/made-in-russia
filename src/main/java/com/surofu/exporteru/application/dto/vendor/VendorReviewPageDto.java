@@ -39,7 +39,7 @@ public final class VendorReviewPageDto implements Serializable {
     ProductReviewDto dto = ProductReviewDto.of(productReview);
 
     String translatedProductTitle =
-        productReview.getProduct().getTitle().getLocalizedValue(locale);
+        productReview.getProduct().getTitle().getLocalizedValue();
 
     if (StringUtils.trimToNull(translatedProductTitle) != null) {
       dto.getProduct().setTitle(translatedProductTitle);

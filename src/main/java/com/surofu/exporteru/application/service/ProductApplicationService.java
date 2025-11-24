@@ -134,12 +134,12 @@ public class ProductApplicationService implements ProductService {
   @Transactional(readOnly = true)
   public GetProductById.Result getProductById(GetProductById operation) {
     // Check cache
-//    ProductDto cachedProduct = productCacheManager.getProduct(operation.getProductId(),
-//        operation.getLocale().getLanguage());
-//
-//    if (cachedProduct != null) {
-//      return GetProductById.Result.success(cachedProduct);
-//    }
+    ProductDto cachedProduct = productCacheManager.getProduct(operation.getProductId(),
+        operation.getLocale().getLanguage());
+
+    if (cachedProduct != null) {
+      return GetProductById.Result.success(cachedProduct);
+    }
 
     // Process
     List<ApproveStatus> approveStatuses = new ArrayList<>();
@@ -319,6 +319,7 @@ public class ProductApplicationService implements ProductService {
   }
 
   @Override
+  @Transactional
   public CreateProduct.Result createProduct(CreateProduct operation) {
     return productCreatingService.createProduct(operation);
   }

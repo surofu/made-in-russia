@@ -352,10 +352,10 @@ public class MeApplicationService implements MeService {
 
   private ProductReview translateProductReview(ProductReview productReview, Locale locale) {
     String translatedProductTitle =
-        productReview.getProduct().getTitle().getLocalizedValue(locale);
+        productReview.getProduct().getTitle().getLocalizedValue();
 
     if (StringUtils.trimToNull(translatedProductTitle) != null) {
-      productReview.getProduct().setTitle(ProductTitle.of(translatedProductTitle));
+      productReview.getProduct().setTitle(new ProductTitle(translatedProductTitle));
     }
 
     if (productReview.getUser().getLogin().getTransliteration() != null) {

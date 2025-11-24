@@ -53,12 +53,11 @@ public final class ProductCharacteristic implements Serializable {
       if (!(o instanceof ProductCharacteristic productCharacteristic)) {
           return false;
       }
-    return Objects.equals(name, productCharacteristic.name)
-        && Objects.equals(value, productCharacteristic.value);
+    return Objects.equals(id, productCharacteristic.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, value);
+    return getClass().hashCode();
   }
 }

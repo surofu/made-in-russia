@@ -34,12 +34,12 @@ public final class DeliveryMethod implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof DeliveryMethod deliveryMethod)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DeliveryMethod deliveryMethod)) {
+      return false;
+    }
     return Objects.equals(name, deliveryMethod.name);
   }
 }

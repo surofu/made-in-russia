@@ -4,29 +4,26 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductCharacteristicName implements Serializable {
 
   @Column(name = "name", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "name_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private ProductCharacteristicName(String name) {
+  public ProductCharacteristicName(String name, Map<String, String> translations) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Название характеристики не может быть пустой");
     }
@@ -37,26 +34,35 @@ public final class ProductCharacteristicName implements Serializable {
     }
 
     this.value = name;
+    this.translations = translations;
   }
 
-  public static ProductCharacteristicName of(String name) {
-    return new ProductCharacteristicName(name);
+  public ProductCharacteristicName() {
+    this("Name", new HashMap<>());
   }
 
-  @Override
-  public String toString() {
-    return value;
+  public String getLocalizedValue() {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
+    }
+
+    Locale locale = LocaleContextHolder.getLocale();
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ProductCharacteristicName productCharacteristicName)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ProductCharacteristicName productCharacteristicName)) {
+      return false;
+    }
     return Objects.equals(value, productCharacteristicName.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(value);
+    return getClass().hashCode();
   }
 }

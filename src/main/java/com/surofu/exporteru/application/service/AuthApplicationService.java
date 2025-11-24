@@ -46,7 +46,6 @@ import com.surofu.exporteru.core.service.auth.operation.RegisterVendor;
 import com.surofu.exporteru.core.service.auth.operation.VerifyEmail;
 import com.surofu.exporteru.core.service.auth.operation.VerifyRecoverPassword;
 import com.surofu.exporteru.core.service.mail.MailService;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -327,13 +326,8 @@ public class AuthApplicationService implements AuthService {
 
       if (vendorDetails.getAddress() != null &&
           StringUtils.trimToNull(vendorDetails.getAddress().toString()) != null) {
-        try {
-          vendorDetails.getAddress().setTranslations(translationRepository
-              .expand(vendorDetails.getAddress().toString()));
-        } catch (IOException e) {
-          TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-          return VerifyEmail.Result.translationError(e);
-        }
+        vendorDetails.getAddress().setTranslations(translationRepository
+            .expand(vendorDetails.getAddress().toString()));
       }
 
 

@@ -825,17 +825,15 @@ public class ProductRestController {
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
-    ProductTitle productTitle = ProductTitle.of(createProductCommand.title());
-    productTitle.setTranslations(createProductCommand.titleTranslations());
+    ProductTitle productTitle =
+        new ProductTitle(createProductCommand.title(), createProductCommand.titleTranslations());
 
-    ProductDescription productDescription = ProductDescription.of(
+    ProductDescription productDescription = new ProductDescription(
         createProductCommand.mainDescription(),
-        createProductCommand.furtherDescription()
+        createProductCommand.furtherDescription(),
+        createProductCommand.mainDescriptionTranslations(),
+        createProductCommand.furtherDescriptionTranslations()
     );
-    productDescription.setMainDescriptionTranslations(
-        createProductCommand.mainDescriptionTranslations());
-    productDescription.setFurtherDescriptionTranslations(
-        createProductCommand.furtherDescriptionTranslations());
 
     CreateProduct operation = CreateProduct.of(
         securityUser,
@@ -985,18 +983,16 @@ public class ProductRestController {
 
     // Title
     ProductTitle productTitle =
-        ProductTitle.of(Objects.requireNonNullElse(updateProductCommand.title(), ""));
-    productTitle.setTranslations(updateProductCommand.titleTranslations());
+        new ProductTitle(Objects.requireNonNullElse(updateProductCommand.title(), ""),
+            updateProductCommand.titleTranslations());
 
     // Description
-    ProductDescription productDescription = ProductDescription.of(
-        Objects.requireNonNullElse(updateProductCommand.mainDescription(), ""),
-        Objects.requireNonNullElse(updateProductCommand.furtherDescription(), "")
+    ProductDescription productDescription = new ProductDescription(
+        updateProductCommand.mainDescription(),
+        updateProductCommand.furtherDescription(),
+        updateProductCommand.mainDescriptionTranslations(),
+        updateProductCommand.furtherDescriptionTranslations()
     );
-    productDescription.setMainDescriptionTranslations(
-        updateProductCommand.mainDescriptionTranslations());
-    productDescription.setFurtherDescriptionTranslations(
-        updateProductCommand.furtherDescriptionTranslations());
 
     UpdateProduct operation = UpdateProduct.of(
         productId,
