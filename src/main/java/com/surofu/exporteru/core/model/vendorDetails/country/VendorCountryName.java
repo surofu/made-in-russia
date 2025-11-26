@@ -11,6 +11,7 @@ import lombok.*;
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Setter
@@ -37,10 +38,11 @@ public final class VendorCountryName implements Serializable {
         this.value = name;
     }
 
-    public String getLocalizedValue(Locale locale) {
+    public String getLocalizedValue() {
         if (translations == null || translations.isEmpty()) {
             return Objects.requireNonNullElse(value, "");
         }
+        Locale locale = LocaleContextHolder.getLocale();
         return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
     }
 

@@ -20,7 +20,7 @@ public class JpaProductRepository implements ProductRepository {
     private final SpringDataProductRepository repository;
 
     @Override
-    public Optional<Product> getProductById(Long productId) {
+    public Optional<Product> getById(Long productId) {
         return repository.findById(productId);
     }
 
@@ -65,8 +65,8 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public void save(Product product) {
-        repository.save(product);
+    public Product save(Product product) {
+        return repository.save(product);
     }
 
     @Override
@@ -131,5 +131,10 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public void flush() {
         repository.flush();
+    }
+
+    @Override
+    public Optional<Product> findByIdWithPrices(Long id) {
+        return repository.findByIdWithPrices(id);
     }
 }

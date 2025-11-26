@@ -1,8 +1,8 @@
 package com.surofu.exporteru.core.repository;
 
-import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public interface TranslationRepository {
@@ -17,4 +17,6 @@ public interface TranslationRepository {
   Map<String, String> expand(Map<String, String> translations);
 
   Map<String, String> expand(String text);
+
+  List<Map<String, String>> expand(List<String> text);
 }

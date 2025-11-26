@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 
-// TODO: Ad and Ad with translations
 @Component
 public class AdvertisementCacheManager {
     @Value("${app.redis.ttl-duration}")
@@ -39,11 +38,11 @@ public class AdvertisementCacheManager {
         redisTemplate.expire(CACHE_NAME, ttl);
     }
 
-    // TODO: AdvertisementCacheManager. Fix translation
     public void remove(Long id) {
         hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("en")));
         hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("ru")));
         hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("zh")));
+        hashOperations.delete(CACHE_NAME, getHash(id, Locale.forLanguageTag("hi")));
     }
 
     private String getHash(Long id, Locale locale) {

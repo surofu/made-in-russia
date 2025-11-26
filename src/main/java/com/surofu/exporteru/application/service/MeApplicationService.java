@@ -991,7 +991,7 @@ public class MeApplicationService implements MeService {
     try {
       vendorMediaRepository.saveAll(resultMediaList);
       vendorMediaRepository.flush();
-      User newUser = userRepository.getUserById(user.getId()).orElseThrow();
+      User newUser = userRepository.getById(user.getId()).orElseThrow();
       VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(newUser, operation.getLocale()),
           "Saved user is null");
       List<VendorMedia> savedMediaList =
@@ -1042,7 +1042,7 @@ public class MeApplicationService implements MeService {
       return DeleteMeVendorMediaByIdList.Result.deleteMediaError(e);
     }
 
-    var newUser = userRepository.getUserById(user.getId()).orElseThrow();
+    var newUser = userRepository.getById(user.getId()).orElseThrow();
     var dto = vendorDetails != null ? VendorDto.of(newUser, operation.getLocale()) :
         UserDto.of(newUser, operation.getLocale());
     return DeleteMeVendorMediaByIdList.Result.success(dto);
@@ -1089,7 +1089,7 @@ public class MeApplicationService implements MeService {
   @Transactional
   public ToggleMeFavoriteProductById.Result toggleFavoriteProductById(
       ToggleMeFavoriteProductById operation) {
-    Optional<Product> productOptional = productRepository.getProductById(operation.getProductId());
+    Optional<Product> productOptional = productRepository.getById(operation.getProductId());
 
     if (productOptional.isEmpty()) {
       return ToggleMeFavoriteProductById.Result.productNotFound(operation.getProductId());
@@ -1097,7 +1097,7 @@ public class MeApplicationService implements MeService {
 
     Product product = productOptional.get();
     User user =
-        userRepository.getUserById(operation.getSecurityUser().getUser().getId()).orElseThrow();
+        userRepository.getById(operation.getSecurityUser().getUser().getId()).orElseThrow();
 
     boolean status = productRepository.existsInFavorite(user.getId(), product.getId());
 

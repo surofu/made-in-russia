@@ -24,6 +24,8 @@ public interface CategoryRepository {
 
     Boolean existsBySlug(CategorySlug slug);
 
+    Boolean existsById(Long categoryId);
+
     void delete(Category category);
 
     // View

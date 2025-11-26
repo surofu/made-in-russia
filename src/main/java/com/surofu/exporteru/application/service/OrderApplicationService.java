@@ -63,9 +63,9 @@ public class OrderApplicationService implements OrderService {
         CompletableFuture.runAsync(() -> {
             try {
                 mailService.sendProductOrder(
-                        product.getUser().getEmail().toString(),
+                        product.getUser().getEmail().getValue(),
                         productUrl,
-                        product.getTitle().toString(),
+                        product.getTitle().getLocalizedValue(),
                         finalOriginalPrice,
                         finalDiscountedPrice,
                         operation.getFirstName(),

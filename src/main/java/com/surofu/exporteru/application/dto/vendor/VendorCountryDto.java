@@ -3,7 +3,6 @@ package com.surofu.exporteru.application.dto.vendor;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.infrastructure.persistence.vendor.country.VendorCountryView;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -68,15 +67,15 @@ public final class VendorCountryDto implements Serializable {
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
-    public static VendorCountryDto of(VendorCountry vendorCountry, Locale locale) {
+    public static VendorCountryDto of(VendorCountry vendorCountry) {
         if (vendorCountry == null) {
             return null;
         }
 
         return VendorCountryDto.builder()
                 .id(vendorCountry.getId())
-                .name(vendorCountry.getName().getLocalizedValue(locale))
-                .value(vendorCountry.getName().getTranslations().getOrDefault("en", vendorCountry.getName().toString()))
+                .name(vendorCountry.getName().getLocalizedValue())
+                .value(vendorCountry.getName().getTranslations().getOrDefault("en", vendorCountry.getName().getLocalizedValue()))
                 .creationDate(vendorCountry.getCreationDate().getValue())
                 .lastModificationDate(vendorCountry.getLastModificationDate().getValue())
                 .build();

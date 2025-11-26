@@ -55,6 +55,11 @@ public class JpaCategoryRepository implements CategoryRepository {
   }
 
   @Override
+  public Boolean existsById(Long categoryId) {
+    return repository.existsById(categoryId);
+  }
+
+  @Override
   public void delete(Category category) {
     repository.delete(category);
   }

@@ -47,13 +47,14 @@ public final class ProductCharacteristic implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductCharacteristic productCharacteristic)) {
-          return false;
-      }
-    return Objects.equals(id, productCharacteristic.id);
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ProductCharacteristic productCharacteristic)) {
+      return false;
+    }
+    return Objects.equals(name, productCharacteristic.name)
+        && Objects.equals(value, productCharacteristic.value);
   }
 
   @Override

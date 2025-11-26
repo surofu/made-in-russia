@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 public interface ProductRepository {
-    Optional<Product> getProductById(Long productId);
+    Optional<Product> getById(Long productId);
 
     Optional<Product> getProductByIdApproved(Long productId);
 
@@ -27,7 +27,7 @@ public interface ProductRepository {
     Optional<List<ProductMedia>> getProductMediaByProductId(Long productId);
 
 
-    void save(Product product);
+    Product save(Product product);
 
     Optional<Long> firstNotExists(List<Long> productIds);
 
@@ -58,4 +58,6 @@ public interface ProductRepository {
     void flush();
 
     Optional<Product> getProductWithUserById(Long productId);
+
+  Optional<Product> findByIdWithPrices(Long id);
 }

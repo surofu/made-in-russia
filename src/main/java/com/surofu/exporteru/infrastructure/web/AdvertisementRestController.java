@@ -167,8 +167,7 @@ public class AdvertisementRestController {
         title.setTranslations(command.titleTranslations());
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(command.subtitleTranslations());
-        AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(command.thirdTextTranslations());
+        AdvertisementThirdText thirdText = new AdvertisementThirdText(command.thirdText(), command.thirdTextTranslations());
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
@@ -237,8 +236,7 @@ public class AdvertisementRestController {
         title.setTranslations(command.titleTranslations());
         AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
         subtitle.setTranslations(command.subtitleTranslations());
-        AdvertisementThirdText thirdText = AdvertisementThirdText.of(command.thirdText());
-        thirdText.setTranslations(command.thirdTextTranslations());
+        AdvertisementThirdText thirdText = new AdvertisementThirdText(command.thirdText(), command.thirdTextTranslations());
         AdvertisementLink link = AdvertisementLink.of(command.link());
         AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
         AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());

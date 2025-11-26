@@ -28,8 +28,8 @@ import com.surofu.exporteru.application.dto.vendor.VendorCountryDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.application.dto.vendor.VendorFaqDto;
 import com.surofu.exporteru.application.dto.vendor.VendorProductCategoryDto;
-import com.surofu.exporteru.application.service.product.ProductCreatingService;
-import com.surofu.exporteru.application.service.product.ProductUpdatingService;
+import com.surofu.exporteru.application.service.oldproduct.OldProductUpdatingService;
+import com.surofu.exporteru.application.service.product.ProductCreationService;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.category.CategorySlug;
@@ -124,8 +124,8 @@ public class ProductApplicationService implements ProductService {
   private final ProductPackageOptionsRepository productPackageOptionsRepository;
   private final ProductCacheManager productCacheManager;
   private final LocalizationManager localizationManager;
-  private final ProductCreatingService productCreatingService;
-  private final ProductUpdatingService productUpdatingService;
+  private final OldProductUpdatingService oldProductUpdatingService;
+  private final ProductCreationService productCreationService;
   private final ProductSummaryCacheManager productSummaryCacheManager;
   private final GeneralCacheService generalCacheService;
   private final CategoryCacheManager categoryCacheManager;
@@ -321,13 +321,13 @@ public class ProductApplicationService implements ProductService {
   @Override
   @Transactional
   public CreateProduct.Result createProduct(CreateProduct operation) {
-    return productCreatingService.createProduct(operation);
+    return productCreationService.create(operation);
   }
 
   @Override
   @Transactional
   public UpdateProduct.Result updateProduct(UpdateProduct operation) {
-    return productUpdatingService.updateProduct(operation);
+    return oldProductUpdatingService.updateProduct(operation);
   }
 
   @Override
@@ -421,7 +421,7 @@ public class ProductApplicationService implements ProductService {
   @Transactional(readOnly = true)
   protected ProductDto loadFullProduct(ProductDto productDto, ProductView view, Locale locale) {
     // Vendor
-    Optional<User> userOptional = userRepository.getUserById(view.getUserId());
+    Optional<User> userOptional = userRepository.getById(view.getUserId());
     if (userOptional.isPresent() && userOptional.get().getVendorDetails() != null) {
       VendorDto vendorDto = VendorDto.of(userOptional.get(), locale);
 

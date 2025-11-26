@@ -202,7 +202,7 @@ public class AuthApplicationService implements AuthService {
 
       try {
         vendorProductCategory.getName()
-            .setTranslations(translationRepository.expand(vendorProductCategory.toString()));
+            .setTranslations(translationRepository.expand(vendorProductCategoryName.getValue()));
       } catch (Exception e) {
         return RegisterVendor.Result.translationError(e);
       }

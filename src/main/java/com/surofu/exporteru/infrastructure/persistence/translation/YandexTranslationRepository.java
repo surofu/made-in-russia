@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.core.repository.TranslationRepository;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -148,6 +150,31 @@ public class YandexTranslationRepository implements TranslationRepository {
         .body(requestBody)
         .retrieve()
         .body(YandexTranslationResponse.class);
+  }
+
+  @Override
+  public List<Map<String, String>> expand(List<String> texts) {
+    if (texts.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    Translation[] enTranslations = translateToEn(texts.toArray(String[]::new)).getTranslations();
+    Translation[] ruTranslations = translateToRu(texts.toArray(String[]::new)).getTranslations();
+    Translation[] zhTranslations = translateToZh(texts.toArray(String[]::new)).getTranslations();
+    Translation[] hiTranslations = translateToIn(texts.toArray(String[]::new)).getTranslations();
+
+    List<Map<String, String>> result = new ArrayList<>();
+
+    for (int i = 0; i < texts.size(); i++) {
+      Map<String, String> translation = new HashMap<>();
+      translation.put("en", enTranslations[i].getText());
+      translation.put("ru", ruTranslations[i].getText());
+      translation.put("zh", zhTranslations[i].getText());
+      translation.put("hi", hiTranslations[i].getText());
+      result.add(translation);
+    }
+
+    return result;
   }
 
   @Data

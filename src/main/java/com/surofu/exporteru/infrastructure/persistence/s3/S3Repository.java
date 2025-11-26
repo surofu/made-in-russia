@@ -67,6 +67,10 @@ public class S3Repository implements FileStorageRepository {
 
     @Override
     public List<String> uploadManyImagesToFolder(String folderName, MultipartFile... files) throws Exception {
+        if (files.length == 0) {
+            return new ArrayList<>();
+        }
+
         List<String> links = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -94,6 +98,10 @@ public class S3Repository implements FileStorageRepository {
 
     @Override
     public List<String> uploadManyVideosToFolder(String folderName, MultipartFile... files) throws IOException {
+        if (files.length == 0) {
+            return new ArrayList<>();
+        }
+
         List<String> links = new ArrayList<>();
 
         for (MultipartFile file : files) {

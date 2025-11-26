@@ -65,11 +65,15 @@ public final class ProductPrice implements Serializable {
       if (!(o instanceof ProductPrice productPrice)) {
           return false;
       }
-    return Objects.equals(id, productPrice.id);
+    return Objects.equals(quantityRange, productPrice.quantityRange)
+        && Objects.equals(currency, productPrice.currency)
+        && Objects.equals(unit, productPrice.unit)
+        && Objects.equals(originalPrice, productPrice.originalPrice)
+        && Objects.equals(discount, productPrice.discount);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(quantityRange, currency, unit, originalPrice, discount);
   }
 }

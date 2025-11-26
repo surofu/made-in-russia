@@ -19,4 +19,6 @@ public interface ProductMediaRepository {
     void saveAll(Collection<ProductMedia> productMediaList);
 
     void flush();
+
+    void deleteAllById(List<Long> mediaIdsToDelete);
 }

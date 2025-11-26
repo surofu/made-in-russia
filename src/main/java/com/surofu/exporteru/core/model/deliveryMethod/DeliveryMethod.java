@@ -42,4 +42,9 @@ public final class DeliveryMethod implements Serializable {
     }
     return Objects.equals(name, deliveryMethod.name);
   }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

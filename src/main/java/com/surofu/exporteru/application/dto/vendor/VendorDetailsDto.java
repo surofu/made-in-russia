@@ -148,7 +148,7 @@ public final class VendorDetailsDto implements Serializable {
         .media(vendorDetails.getMedia().stream().map(VendorMediaDto::of).toList())
         .countries(
             vendorDetails.getVendorCountries().stream()
-                .map(d -> VendorCountryDto.of(d, locale))
+                .map(VendorCountryDto::of)
                 .toList())
         .productCategories(
             vendorDetails.getVendorProductCategories().stream().map(VendorProductCategoryDto::of)

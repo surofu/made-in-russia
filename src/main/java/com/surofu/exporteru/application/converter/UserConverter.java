@@ -10,12 +10,9 @@ import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
-
-import java.io.Serializable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Converter
@@ -69,33 +66,20 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
         }
     }
 
-    // TODO: extractAddressTranslation. Make dynamic translation
     private String extractAddressTranslation(JsonNode translationsNode, String lang) {
         try {
-            String hstoreString;
+            String address;
             if (translationsNode.isTextual()) {
-                hstoreString = translationsNode.asText();
+                address = translationsNode.asText();
             } else {
-                hstoreString = translationsNode.toString();
+                address = translationsNode.toString();
             }
 
             try {
-                TranslationJson json = mapper.readValue(hstoreString, TranslationJson.class);
-
-                return switch (lang) {
-                    case "en" -> json.en();
-                    case "ru" -> json.ru();
-                    case "zh" -> json.zh();
-                    default -> json.en();
-                };
+                Map<String, String> json = (Map<String, String>) mapper.readValue(address, Map.class);
+                return json.getOrDefault(lang, "");
             } catch (Exception e) {
                 log.warn("Error parsing translated address: {}", e.getMessage());
-            }
-
-            if (hstoreString != null && lang != null) {
-                Pattern pattern = Pattern.compile("\"" + lang + "\"=>\"([^\"]*)\"");
-                Matcher matcher = pattern.matcher(hstoreString);
-                return matcher.find() ? matcher.group(1) : null;
             }
         } catch (Exception e) {
             log.error("Error extracting address translation: {}", e.getMessage(), e);
@@ -106,6 +90,4 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
     private String getCurrentLanguage() {
         return LocaleContextHolder.getLocale().getLanguage();
     }
-
-    private record TranslationJson(String en, String ru, String zh) implements Serializable {}
 }

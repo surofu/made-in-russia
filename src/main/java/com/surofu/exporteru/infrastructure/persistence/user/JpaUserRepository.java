@@ -30,7 +30,7 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> getById(Long id) {
         return repository.findById(id);
     }
 

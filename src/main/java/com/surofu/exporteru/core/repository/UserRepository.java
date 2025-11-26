@@ -17,7 +17,7 @@ public interface UserRepository {
 
     List<User> getByIds(List<Long> ids);
 
-    Optional<User> getUserById(Long id);
+    Optional<User> getById(Long id);
 
     Optional<User> getUserByLogin(UserLogin userLogin);
 

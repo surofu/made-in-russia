@@ -115,7 +115,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public GetUserById.Result getUserById(GetUserById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getUserId());
+    Optional<User> user = userRepository.getById(operation.getUserId());
 
     if (user.isEmpty()) {
       return GetUserById.Result.notFound(operation.getUserId());
@@ -169,7 +169,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public ForceUpdateUserById.Result forceUpdateUserById(ForceUpdateUserById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return ForceUpdateUserById.Result.notFound(operation.getId());
@@ -207,7 +207,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public DeleteUserById.Result deleteUserById(DeleteUserById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return DeleteUserById.Result.notFound(operation.getId());
@@ -281,7 +281,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public BanUserById.Result banUserById(BanUserById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return BanUserById.Result.notFound(operation.getId());
@@ -301,7 +301,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public UnbanUserById.Result unbanUserById(UnbanUserById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return UnbanUserById.Result.notFound(operation.getId());
@@ -321,7 +321,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public ChangeUserRoleById.Result changeUserRoleById(ChangeUserRoleById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return ChangeUserRoleById.Result.notFound(operation.getId());
@@ -341,7 +341,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public SaveUserAvatarById.Result saveUserAvatarById(SaveUserAvatarById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return SaveUserAvatarById.Result.notFound(operation.getId());
@@ -370,7 +370,7 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public DeleteUserAvatarById.Result deleteUserAvatarById(DeleteUserAvatarById operation) {
-    Optional<User> user = userRepository.getUserById(operation.getId());
+    Optional<User> user = userRepository.getById(operation.getId());
 
     if (user.isEmpty()) {
       return DeleteUserAvatarById.Result.notFound(operation.getId());

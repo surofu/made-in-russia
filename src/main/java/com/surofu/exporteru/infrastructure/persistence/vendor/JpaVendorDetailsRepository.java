@@ -3,6 +3,7 @@ package com.surofu.exporteru.infrastructure.persistence.vendor;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.exporteru.core.repository.VendorDetailsRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,11 @@ public class JpaVendorDetailsRepository implements VendorDetailsRepository {
     @Override
     public Optional<VendorDetails> getById(Long id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public List<VendorDetails> getByProductId(Long productId) {
+        return repository.findByProductId(productId);
     }
 
     @Override

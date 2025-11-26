@@ -3,18 +3,18 @@ package com.surofu.exporteru.core.model.product.packageOption;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPackageOptionName implements Serializable {
@@ -24,11 +24,10 @@ public final class ProductPackageOptionName implements Serializable {
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "name_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private Map<String, String> translations;
 
-  // TODO: Translation
-  private ProductPackageOptionName(String name) {
-    if (name == null || name.trim().isEmpty()) {
+  public ProductPackageOptionName(String name, Map<String, String> translations) {
+    if (StringUtils.trimToNull(name) == null) {
       throw new IllegalArgumentException("Название варианта упаковки товара не может быть пустым");
     }
 
@@ -38,10 +37,16 @@ public final class ProductPackageOptionName implements Serializable {
     }
 
     this.value = name;
+    this.translations = translations;
   }
 
-  public static ProductPackageOptionName of(String name) {
-    return new ProductPackageOptionName(name);
+  public String getLocalizedValue() {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
+    }
+
+    Locale locale = LocaleContextHolder.getLocale();
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
 
   @Override
@@ -62,6 +67,6 @@ public final class ProductPackageOptionName implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(value);
+    return getClass().hashCode();
   }
 }

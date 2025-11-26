@@ -122,7 +122,7 @@ public class VendorApplicationService implements VendorService {
       if (!vendorViewRepository.existsByUserIdAndVendorDetailsId(
           operation.getSecurityUser().getUser().getId(), vendorDto.getVendorDetails().getId())) {
         User user =
-            userRepository.getUserById(operation.getSecurityUser().getUser().getId()).orElseThrow();
+            userRepository.getById(operation.getSecurityUser().getUser().getId()).orElseThrow();
         VendorDetails vendorDetails =
             vendorDetailsRepository.getById(vendorDto.getVendorDetails().getId()).orElseThrow();
 
@@ -337,7 +337,7 @@ public class VendorApplicationService implements VendorService {
   public ForceUpdateVendorById.Result forceUpdateVendorById(ForceUpdateVendorById operation) {
     try {
       // Validation
-      User user = userRepository.getUserById(operation.getId())
+      User user = userRepository.getById(operation.getId())
           .orElse(null);
 
       if (user == null) {

@@ -16,8 +16,8 @@ import java.util.List;
 @Value(staticConstructor = "of")
 public class CreateProduct {
     SecurityUser securityUser;
-    ProductTitle productTitle;
-    ProductDescription productDescription;
+    ProductTitle title;
+    ProductDescription description;
     Long categoryId;
     List<Long> deliveryMethodIds;
     List<Long> similarProductIds;
@@ -73,11 +73,6 @@ public class CreateProduct {
         static Result similarProductNotFound(Long similarProductId) {
             log.warn("Similar product with ID '{}' not found", similarProductId);
             return SimilarProductNotFound.of(similarProductId);
-        }
-
-        static Result emptyTranslations(String moduleName) {
-            log.warn("Empty translation: {}", moduleName);
-            return EmptyTranslation.INSTANCE;
         }
 
         static Result translationError(Exception e) {
@@ -161,15 +156,6 @@ public class CreateProduct {
             }
         }
 
-        enum EmptyTranslation implements Result {
-            INSTANCE;
-
-            @Override
-            public <T> T process(Processor<T> processor) {
-                return processor.processEmptyTranslation(this);
-            }
-        }
-
         enum TranslationError implements Result {
             INSTANCE;
 
@@ -188,7 +174,6 @@ public class CreateProduct {
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
             T processSimilarProductNotFound(SimilarProductNotFound result);
-            T processEmptyTranslation(EmptyTranslation result);
             T processTranslationError(TranslationError result);
         }
     }

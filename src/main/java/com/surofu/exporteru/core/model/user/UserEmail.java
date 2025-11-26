@@ -3,20 +3,16 @@ package com.surofu.exporteru.core.model.user;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Transient;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.regex.Pattern;
 
 @Getter
 @Embeddable
 @NoArgsConstructor
 public final class UserEmail implements Serializable {
-
-    @Transient
-    private final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     @Column(name = "email", nullable = false, unique = true)
     private String value;
@@ -30,7 +26,7 @@ public final class UserEmail implements Serializable {
             throw new LocalizedValidationException("validation.email.length");
         }
 
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
+        if (!email.contains("@") || !email.contains(".")) {
             throw new LocalizedValidationException("validation.email.format");
         }
 
@@ -41,10 +37,6 @@ public final class UserEmail implements Serializable {
         return new UserEmail(email);
     }
 
-    public String getValue() {
-        return value;
-    }
-
     @Override
     public String toString() {
         return value;
@@ -53,7 +45,12 @@ public final class UserEmail implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        return value != null && value.equals(((UserEmail) o).value);
+        if (!(o instanceof UserEmail userEmail)) return false;
+        return Objects.equals(value, userEmail.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

@@ -2,20 +2,19 @@ package com.surofu.exporteru.core.model.product.deliveryMethodDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDeliveryMethodDetailsValue implements Serializable {
@@ -25,18 +24,24 @@ public final class ProductDeliveryMethodDetailsValue implements Serializable {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "value_translations")
-    private Map<String, String> translations = new HashMap<>();
+    private Map<String, String> translations;
 
-    private ProductDeliveryMethodDetailsValue(String value) {
+    public ProductDeliveryMethodDetailsValue(String value, Map<String, String> translations) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException("Срок способа доставки товара не может быть пустым");
         }
 
         this.value = value;
+        this.translations = translations;
     }
 
-    public static ProductDeliveryMethodDetailsValue of(String value) {
-        return new ProductDeliveryMethodDetailsValue(value);
+    public String getLocalizedValue() {
+        if (translations == null || translations.isEmpty()) {
+            return Objects.requireNonNullElse(value, "");
+        }
+
+        Locale locale = LocaleContextHolder.getLocale();
+        return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
     }
 
     @Override
@@ -53,6 +58,6 @@ public final class ProductDeliveryMethodDetailsValue implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return getClass().hashCode();
     }
 }

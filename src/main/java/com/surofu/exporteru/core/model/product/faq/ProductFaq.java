@@ -8,7 +8,6 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -59,7 +58,8 @@ public final class ProductFaq implements Serializable {
     if (!(o instanceof ProductFaq productFaq)) {
       return false;
     }
-    return Objects.equals(id, productFaq.id);
+    return Objects.equals(question, productFaq.question)
+        && Objects.equals(answer, productFaq.answer);
   }
 
   @Override

@@ -72,11 +72,15 @@ public final class ProductMedia implements Serializable {
       if (!(o instanceof ProductMedia productMedia)) {
           return false;
       }
-    return Objects.equals(url, productMedia.url);
+    return Objects.equals(mediaType, productMedia.mediaType)
+        && Objects.equals(mimeType, productMedia.mimeType)
+        && Objects.equals(position, productMedia.position)
+        && Objects.equals(url, productMedia.url)
+        && Objects.equals(altText, productMedia.altText);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(mediaType, mimeType, position, url, altText);
   }
 }

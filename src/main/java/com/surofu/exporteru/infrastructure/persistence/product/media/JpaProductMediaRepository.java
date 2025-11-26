@@ -43,4 +43,9 @@ public class JpaProductMediaRepository implements ProductMediaRepository {
     public void flush() {
         repository.flush();
     }
+
+    @Override
+    public void deleteAllById(List<Long> mediaIdsToDelete) {
+        repository.deleteAllById(mediaIdsToDelete);
+    }
 }

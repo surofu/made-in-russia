@@ -6,14 +6,16 @@ import com.surofu.exporteru.application.dto.AbstractAccountDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.converter.DeliveryMethodsConverter;
-import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.currency.CurrencyCode;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import jakarta.persistence.*;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Subselect;
 import org.hibernate.annotations.Synchronize;
 
@@ -21,8 +23,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.hibernate.type.SqlTypes;
 
 @Data
 @Entity
@@ -44,8 +45,9 @@ public final class ProductSummaryView implements Serializable {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "title_translations", columnDefinition = "hstore")
-    private String titleTranslations;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "title_translations")
+    private Map<String, String> titleTranslations;
 
     @Column(name = "price_original_price")
     private BigDecimal originPrice;
@@ -85,13 +87,6 @@ public final class ProductSummaryView implements Serializable {
     private List<DeliveryMethodDto> deliveryMethods;
 
     public String getTitleByLang(String lang) {
-        if (titleTranslations == null || lang == null) {
-            return title;
-        }
-
-        Pattern pattern = Pattern.compile("\"" + lang + "\"=>\"([^\"]*)\"");
-        Matcher matcher = pattern.matcher(titleTranslations);
-
-        return matcher.find() ? matcher.group(1) : title;
+        return titleTranslations.getOrDefault(lang, Objects.requireNonNullElse(title, ""));
     }
 }

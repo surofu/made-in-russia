@@ -5,10 +5,7 @@ import jakarta.persistence.Embeddable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;

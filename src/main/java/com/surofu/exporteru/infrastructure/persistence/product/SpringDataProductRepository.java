@@ -4,8 +4,6 @@ import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
-import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
-import com.surofu.exporteru.core.model.product.faq.ProductFaq;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -270,4 +268,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
     @Query(value = "select count(f) > 0 from users_favorite_products f where f.user_id = :userId and f.product_id = :productId", nativeQuery = true)
     boolean existsByIdInUserFavorites(@Param("userId") Long userId, @Param("productId") Long productId);
+
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.prices WHERE p.id = :id")
+    Optional<Product> findByIdWithPrices(@Param("id") Long id);
 }
