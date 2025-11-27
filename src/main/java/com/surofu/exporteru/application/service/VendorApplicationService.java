@@ -438,7 +438,7 @@ public class VendorApplicationService implements VendorService {
   }
 
   private void updateVendorCollections(ForceUpdateVendorById operation,
-                                       VendorDetails vendorDetails) throws Exception {
+                                       VendorDetails vendorDetails) {
     updatePhoneNumbers(operation, vendorDetails);
     updateEmails(operation, vendorDetails);
     updateSites(operation, vendorDetails);

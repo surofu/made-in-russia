@@ -26,7 +26,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PricesProductCreationCreationConsumer implements ProductCreationConsumer {
+public class PricesProductCreatingConsumer implements ProductCreatingConsumer {
   private final ProductPriceRepository priceRepository;
   private final TranslationRepository translationRepository;
   private final ProductRepository productRepository;

@@ -60,4 +60,6 @@ public interface ProductRepository {
     Optional<Product> getProductWithUserById(Long productId);
 
   Optional<Product> findByIdWithPrices(Long id);
+
+  Optional<Product> getByIdWithDependencies(Long productId);
 }

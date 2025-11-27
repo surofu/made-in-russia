@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class VendorMediaProductCreationCreationLoader {
+public class VendorMediaProductCreatingLoader {
   private final VendorMediaRepository repository;
   private final FileStorageRepository storageRepository;
   private final VendorDetailsRepository vendorDetailsRepository;
@@ -31,7 +31,7 @@ public class VendorMediaProductCreationCreationLoader {
   public void uploadMedia(Long productId, CreateProduct operation) {
     try {
       VendorDetails vendorDetails = vendorDetailsRepository.getByProductId(productId).iterator().next();
-      List<MultipartFile> productMedia = operation.getProductVendorDetailsMedia();
+      List<MultipartFile> productMedia = operation.getVendorMedia();
       List<VendorMedia> mediaList = new ArrayList<>(productMedia.size());
       List<String> urls;
 
@@ -62,11 +62,11 @@ public class VendorMediaProductCreationCreationLoader {
 
   private List<String> uploadFiles(CreateProduct operation) throws Exception {
     List<String> urls = new ArrayList<>();
-    List<MultipartFile> images = operation.getProductVendorDetailsMedia().stream()
+    List<MultipartFile> images = operation.getVendorMedia().stream()
         .filter(f -> f.getContentType() != null)
         .filter(f -> f.getContentType().startsWith("image/"))
         .toList();
-    List<MultipartFile> videos = operation.getProductVendorDetailsMedia().stream()
+    List<MultipartFile> videos = operation.getVendorMedia().stream()
         .filter(f -> f.getContentType() != null)
         .filter(f -> f.getContentType().startsWith("video/"))
         .toList();
@@ -74,7 +74,7 @@ public class VendorMediaProductCreationCreationLoader {
         storageRepository.uploadManyImagesToFolder(FileStorageFolders.VENDOR_IMAGES.getValue(),
             images.toArray(MultipartFile[]::new));
     List<String> videoUrls =
-        storageRepository.uploadManyImagesToFolder(FileStorageFolders.VENDOR_VIDEOS.getValue(),
+        storageRepository.uploadManyVideosToFolder(FileStorageFolders.VENDOR_VIDEOS.getValue(),
             videos.toArray(MultipartFile[]::new));
     urls.addAll(imageUrls);
     urls.addAll(videoUrls);

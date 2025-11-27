@@ -22,7 +22,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FaqProductCreationCreationConsumer implements ProductCreationConsumer {
+public class FaqProductCreatingConsumer implements ProductCreatingConsumer {
   private final ProductFaqRepository faqRepository;
   private final TranslationRepository translationRepository;
   private final ProductRepository productRepository;

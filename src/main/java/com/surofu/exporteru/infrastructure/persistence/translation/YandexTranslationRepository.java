@@ -31,21 +31,25 @@ public class YandexTranslationRepository implements TranslationRepository {
 
   @Override
   public TranslationResponse translateToEn(String... texts) {
+    log.info("translateToEn: {} texts", texts.length);
     return translate("en", texts);
   }
 
   @Override
   public TranslationResponse translateToRu(String... texts) {
+    log.info("translateToRu: {} texts", texts.length);
     return translate("ru", texts);
   }
 
   @Override
   public TranslationResponse translateToZh(String... texts) {
+    log.info("translateToZh: {} texts", texts.length);
     return translate("zh", texts);
   }
 
   @Override
-  public TranslationResponse translateToIn(String... texts) {
+  public TranslationResponse translateToHi(String... texts) {
+    log.info("translateToHi: {} texts", texts.length);
     return translate("hi", texts);
   }
 
@@ -83,7 +87,7 @@ public class YandexTranslationRepository implements TranslationRepository {
     }
 
     if (hi == null) {
-      String translated = translateToIn(primary).getTranslations()[0].getText();
+      String translated = translateToHi(primary).getTranslations()[0].getText();
       result.put("hi", translated);
     }
 
@@ -95,7 +99,7 @@ public class YandexTranslationRepository implements TranslationRepository {
     String en = translateToEn(text).getTranslations()[0].getText();
     String ru = translateToRu(text).getTranslations()[0].getText();
     String zh = translateToZh(text).getTranslations()[0].getText();
-    String hi = translateToIn(text).getTranslations()[0].getText();
+    String hi = translateToHi(text).getTranslations()[0].getText();
     Map<String, String> result = new HashMap<>();
     result.put("en", en);
     result.put("ru", ru);
@@ -161,7 +165,7 @@ public class YandexTranslationRepository implements TranslationRepository {
     Translation[] enTranslations = translateToEn(texts.toArray(String[]::new)).getTranslations();
     Translation[] ruTranslations = translateToRu(texts.toArray(String[]::new)).getTranslations();
     Translation[] zhTranslations = translateToZh(texts.toArray(String[]::new)).getTranslations();
-    Translation[] hiTranslations = translateToIn(texts.toArray(String[]::new)).getTranslations();
+    Translation[] hiTranslations = translateToHi(texts.toArray(String[]::new)).getTranslations();
 
     List<Map<String, String>> result = new ArrayList<>();
 
@@ -172,6 +176,39 @@ public class YandexTranslationRepository implements TranslationRepository {
       translation.put("zh", zhTranslations[i].getText());
       translation.put("hi", hiTranslations[i].getText());
       result.add(translation);
+    }
+
+    return result;
+  }
+
+  @Override
+  public Map<String, Map<String, String>> expandMap(Map<String, String> texts) {
+    if (texts == null || texts.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    List<String> keys = new ArrayList<>(texts.size());
+    List<String> values = new ArrayList<>(texts.size());
+
+    texts.forEach((key, value) -> {
+      keys.add(key);
+      values.add(value);
+    });
+
+    Translation[] enTranslations = translateToEn(values.toArray(String[]::new)).getTranslations();
+    Translation[] ruTranslations = translateToRu(values.toArray(String[]::new)).getTranslations();
+    Translation[] zhTranslations = translateToZh(values.toArray(String[]::new)).getTranslations();
+    Translation[] hiTranslations = translateToHi(values.toArray(String[]::new)).getTranslations();
+
+    Map<String, Map<String, String>> result = new HashMap<>();
+    for (int i = 0; i < keys.size(); i++) {
+      String key = keys.get(i);
+      Map<String, String> translation = new HashMap<>();
+      translation.put("en", enTranslations[i].getText());
+      translation.put("ru", ruTranslations[i].getText());
+      translation.put("zh", zhTranslations[i].getText());
+      translation.put("hi", hiTranslations[i].getText());
+      result.put(key, translation);
     }
 
     return result;

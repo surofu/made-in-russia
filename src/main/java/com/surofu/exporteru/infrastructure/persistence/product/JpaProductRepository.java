@@ -25,6 +25,11 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
+    public Optional<Product> getByIdWithDependencies(Long productId) {
+        return repository.findAllById(productId);
+    }
+
+    @Override
     public Optional<Product> getProductWithUserById(Long productId) {
         return repository.findByIdWithUser(productId);
     }

@@ -18,8 +18,8 @@ import java.util.List;
 public class UpdateProduct {
     Long productId;
     SecurityUser securityUser;
-    ProductTitle productTitle;
-    ProductDescription productDescription;
+    ProductTitle title;
+    ProductDescription description;
     Long categoryId;
     List<Long> deliveryMethodIds;
     List<Long> similarProductIds;
@@ -34,7 +34,7 @@ public class UpdateProduct {
     List<UpdateOldMediaDto> oldProductMedia;
     List<UpdateOldMediaDto> oldVendorDetailsMedia;
     List<MultipartFile> productMedia;
-    List<MultipartFile> productVendorDetailsMedia;
+    List<MultipartFile> vendorMedia;
 
     public interface Result {
         <T> T process(Processor<T> processor);

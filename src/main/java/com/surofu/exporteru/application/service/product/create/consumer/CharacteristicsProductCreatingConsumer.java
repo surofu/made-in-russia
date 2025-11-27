@@ -22,7 +22,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CharacteristicsProductCreationCreationConsumer implements ProductCreationConsumer {
+public class CharacteristicsProductCreatingConsumer implements ProductCreatingConsumer {
   private final ProductCharacteristicRepository characteristicRepository;
   private final TranslationRepository translationRepository;
   private final JpaProductRepository productRepository;

@@ -1,6 +1,7 @@
-package com.surofu.exporteru.application.service.product.create;
+package com.surofu.exporteru.application.service.product.update;
 
-import com.surofu.exporteru.application.command.product.create.CreateProductMediaAltTextCommand;
+import com.surofu.exporteru.application.command.product.update.UpdateOldMediaDto;
+import com.surofu.exporteru.application.command.product.update.UpdateProductMediaAltTextCommand;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.product.Product;
@@ -14,14 +15,17 @@ import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.ProductMediaRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
-import com.surofu.exporteru.core.service.product.operation.CreateProduct;
+import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,57 +33,86 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MediaProductCreationCreationLoader {
-  private final ProductMediaRepository productMediaRepository;
+public class ProductMediaProductUpdatingLoader {
+  private final ProductMediaRepository mediaRepository;
   private final ProductRepository productRepository;
   private final FileStorageRepository storageRepository;
   private final TranslationRepository translationRepository;
 
-  public void uploadMedia(Long productId, CreateProduct operation) {
+  public void uploadMedia(Long productId, UpdateProduct operation) {
     try {
       Product product = productRepository.getById(productId).orElseThrow();
       List<Map<String, String>> translatedAltTexts = translateTexts(operation);
-      List<MultipartFile> productMedia = operation.getProductMedia();
-      List<ProductMedia> mediaList = new ArrayList<>(productMedia.size());
-      List<String> urls;
+      List<String> urls = uploadFiles(operation);
+      List<ProductMedia> resultMedia = new ArrayList<>(
+          operation.getOldProductMedia().size() + operation.getProductMedia().size());
 
-      try {
-        urls = uploadFiles(operation);
-      } catch (Exception e) {
-        log.error(e.getMessage(), e);
-        return;
-      }
+      for (ProductMedia media : product.getMedia()) {
+        Optional<UpdateOldMediaDto> dtoOptional = operation.getOldProductMedia().stream()
+            .filter(d -> Objects.equals(d.id(), media.getId()))
+            .findFirst();
 
-      for (int i = 0; i < productMedia.size(); i++) {
-        MultipartFile file = productMedia.get(i);
-        ProductMedia media = new ProductMedia();
-        media.setProduct(product);
-        media.setPosition(ProductMediaPosition.of(i));
-        media.setMediaType(getMediaType(file));
-        media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-        media.setUrl(ProductMediaUrl.of(urls.get(i)));
-        mediaList.add(media);
-
-        if (i < operation.getCreateProductMediaAltTextCommands().size() &&
-            i < translatedAltTexts.size()) {
-          CreateProductMediaAltTextCommand command =
-              operation.getCreateProductMediaAltTextCommands().get(i);
-          media.setAltText(new ProductMediaAltText(command.altText(), translatedAltTexts.get(i)));
-        } else {
-          media.setAltText(new ProductMediaAltText(file.getOriginalFilename(), new HashMap<>()));
+        if (dtoOptional.isPresent()) {
+          UpdateOldMediaDto dto = dtoOptional.get();
+          media.setPosition(ProductMediaPosition.of(dto.position()));
+          resultMedia.add(media);
         }
       }
 
-      product.setPreviewImageUrl(ProductPreviewImageUrl.of(urls.iterator().next()));
+      for (int i = 0; i < operation.getProductMedia().size(); i++) {
+        MultipartFile file = operation.getProductMedia().get(i);
+        ProductMedia media = new ProductMedia();
+        media.setProduct(product);
+        media.setPosition(ProductMediaPosition.of(getFreePosition(resultMedia)));
+        media.setMediaType(getMediaType(file));
+        media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
+        media.setUrl(ProductMediaUrl.of(urls.get(i)));
+        if (i < translatedAltTexts.size() && StringUtils.trimToNull(
+            operation.getUpdateProductMediaAltTextCommands().get(i).altText()) != null) {
+          media.setAltText(new ProductMediaAltText(
+              operation.getUpdateProductMediaAltTextCommands().get(i).altText(),
+              translatedAltTexts.get(i)
+          ));
+        } else {
+          media.setAltText(new ProductMediaAltText(
+              file.getOriginalFilename(),
+              new HashMap<>()
+          ));
+        }
+        resultMedia.add(media);
+      }
+
+      List<ProductMedia> mediaToDelete = product.getMedia().stream()
+          .filter(m -> !resultMedia.contains(m))
+          .toList();
+      List<String> mediaUrlsToDelete = mediaToDelete.stream()
+          .map(ProductMedia::getUrl)
+          .map(ProductMediaUrl::getValue)
+          .toList();
+      product.setPreviewImageUrl(ProductPreviewImageUrl.of(resultMedia.stream()
+          .sorted(Comparator.comparingInt(a -> a.getPosition().getValue()))
+          .toList().get(0).getUrl().getValue()));
+      storageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));
+      mediaRepository.saveAll(resultMedia);
+      mediaRepository.deleteAll(mediaToDelete);
       productRepository.save(product);
-      productMediaRepository.saveAll(mediaList);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);
     }
   }
 
-  private List<String> uploadFiles(CreateProduct operation) throws Exception {
+  private int getFreePosition(List<ProductMedia> mediaList) {
+    for (int i = 0; i < mediaList.size(); i++) {
+      int finalI = i;
+      if (mediaList.stream().noneMatch(m -> Objects.equals(m.getPosition().getValue(), finalI))) {
+        return finalI;
+      }
+    }
+    return mediaList.size();
+  }
+
+  private List<String> uploadFiles(UpdateProduct operation) throws Exception {
     List<String> urls = new ArrayList<>();
     List<MultipartFile> images = operation.getProductMedia().stream()
         .filter(f -> f.getContentType() != null)
@@ -93,17 +126,17 @@ public class MediaProductCreationCreationLoader {
         storageRepository.uploadManyImagesToFolder(FileStorageFolders.PRODUCT_IMAGES.getValue(),
             images.toArray(MultipartFile[]::new));
     List<String> videoUrls =
-        storageRepository.uploadManyImagesToFolder(FileStorageFolders.PRODUCT_VIDEOS.getValue(),
+        storageRepository.uploadManyVideosToFolder(FileStorageFolders.PRODUCT_VIDEOS.getValue(),
             videos.toArray(MultipartFile[]::new));
     urls.addAll(imageUrls);
     urls.addAll(videoUrls);
     return urls;
   }
 
-  private List<Map<String, String>> translateTexts(CreateProduct operation) {
+  private List<Map<String, String>> translateTexts(UpdateProduct operation) {
     List<String> questionsToTranslate =
-        operation.getCreateProductMediaAltTextCommands().stream()
-            .map(CreateProductMediaAltTextCommand::altText)
+        operation.getUpdateProductMediaAltTextCommands().stream()
+            .map(UpdateProductMediaAltTextCommand::altText)
             .filter(t -> !t.isBlank())
             .toList();
     return translationRepository.expand(questionsToTranslate);

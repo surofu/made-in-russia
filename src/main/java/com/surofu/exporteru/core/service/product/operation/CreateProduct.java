@@ -30,7 +30,7 @@ public class CreateProduct {
     ProductMinimumOrderQuantity minimumOrderQuantity;
     ProductDiscountExpirationDate discountExpirationDate;
     List<MultipartFile> productMedia;
-    List<MultipartFile> productVendorDetailsMedia;
+    List<MultipartFile> vendorMedia;
 
     public interface Result {
         <T> T process(Processor<T> processor);

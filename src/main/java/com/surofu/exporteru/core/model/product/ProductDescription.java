@@ -16,18 +16,18 @@ import org.springframework.context.i18n.LocaleContextHolder;
 @Embeddable
 public class ProductDescription implements Serializable {
   @Column(name = "main_description", nullable = false, columnDefinition = "text")
-  private String mainDescription;
+  private final String mainDescription;
 
   @Column(name = "further_description", columnDefinition = "text")
-  private String furtherDescription;
+  private final String furtherDescription;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "main_description_translations")
-  private Map<String, String> mainDescriptionTranslations;
+  private final Map<String, String> mainDescriptionTranslations;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "further_description_translations")
-  private Map<String, String> furtherDescriptionTranslations;
+  private final Map<String, String> furtherDescriptionTranslations;
 
   public ProductDescription() {
     this.mainDescription = "";
