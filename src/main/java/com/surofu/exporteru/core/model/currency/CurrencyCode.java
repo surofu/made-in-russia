@@ -3,7 +3,8 @@ package com.surofu.exporteru.core.model.currency;
 public enum CurrencyCode {
     RUB(Character.toString((char) 8381)),
     USD(Character.toString((char) 36)),
-    CNY(Character.toString((char) 165));
+    CNY(Character.toString((char) 165)),
+    INR(Character.toString('\u20B9'));
 
     private final String value;
 

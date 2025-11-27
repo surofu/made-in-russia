@@ -2,6 +2,7 @@ package com.surofu.exporteru.application.dto.product;
 
 import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
+import com.surofu.exporteru.application.dto.deliveryTerm.DeliveryTermDto;
 import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.product.Product;
@@ -95,6 +96,7 @@ public class ProductWithTranslationsDto implements Serializable {
           """
   )
   private List<DeliveryMethodDto> deliveryMethods;
+  private List<DeliveryTermDto> deliveryTerms;
   @Schema(
       description = "List of product media (images, videos)",
       type = "array",

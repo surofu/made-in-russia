@@ -136,6 +136,11 @@ public class ProductUpdatingService {
   }
 
   private void processConsumers(Long productId, UpdateProduct operation) {
+    try {
+      Thread.sleep(500);
+    } catch (InterruptedException e) {
+      log.error(e.getMessage(), e);
+    }
     transactionTemplate.execute(status -> {
       try {
         for (ProductUpdatingConsumer consumer : consumers) {

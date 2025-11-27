@@ -453,7 +453,8 @@ public class MeApplicationService implements MeService {
         vendorDetails.setAddress(operation.getAddress());
 
         try {
-          vendorDetails.getAddress().setTranslations(translationRepository.expand(operation.getAddress().toString()));
+          vendorDetails.getAddress()
+              .setTranslations(translationRepository.expand(operation.getAddress().toString()));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
@@ -465,31 +466,15 @@ public class MeApplicationService implements MeService {
 
 
         try {
-          vendorDetails.getDescription().setTranslations(translationRepository.expand(operation.getDescription().toString()));
+          vendorDetails.getDescription()
+              .setTranslations(translationRepository.expand(operation.getDescription().toString()));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
         }
       }
 
-      if (operation.getCountryNames() != null && !operation.getCountryNames().isEmpty()) {
-        Set<VendorCountry> vendorCountries = new HashSet<>();
-
-        for (VendorCountryName countryName : operation.getCountryNames()) {
-          VendorCountry vendorCountry = new VendorCountry();
-          vendorCountry.setVendorDetails(vendorDetails);
-          vendorCountry.setName(countryName);
-
-          try {
-            countryName.setTranslations(translationRepository.expand(countryName.toString()));
-          } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateMe.Result.translationError(e);
-          }
-
-          vendorCountries.add(vendorCountry);
-        }
-
+      if (operation.getCountryNames() != null) {
         List<VendorCountry> oldCountries =
             vendorCountryRepository.getByVendorId(vendorDetails.getId());
 
@@ -500,33 +485,34 @@ public class MeApplicationService implements MeService {
           return UpdateMe.Result.saveError(e);
         }
 
-        try {
-          vendorCountryRepository.saveAll(vendorCountries);
-        } catch (Exception e) {
-          TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-          return UpdateMe.Result.saveError(e);
+        if (!operation.getCountryNames().isEmpty()) {
+          Set<VendorCountry> vendorCountries = new HashSet<>();
+
+          for (VendorCountryName countryName : operation.getCountryNames()) {
+            VendorCountry vendorCountry = new VendorCountry();
+            vendorCountry.setVendorDetails(vendorDetails);
+            vendorCountry.setName(countryName);
+
+            try {
+              countryName.setTranslations(translationRepository.expand(countryName.toString()));
+            } catch (Exception e) {
+              TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+              return UpdateMe.Result.translationError(e);
+            }
+
+            vendorCountries.add(vendorCountry);
+          }
+
+          try {
+            vendorCountryRepository.saveAll(vendorCountries);
+          } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateMe.Result.saveError(e);
+          }
         }
       }
 
-      if (operation.getCategoryNames() != null && !operation.getCategoryNames().isEmpty()) {
-        Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
-
-        for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
-          VendorProductCategory vendorProductCategory = new VendorProductCategory();
-          vendorProductCategory.setVendorDetails(vendorDetails);
-          vendorProductCategory.setName(categoryName);
-
-          try {
-            vendorProductCategory.getName().setTranslations(translationRepository.expand(categoryName.toString()));
-
-          } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return UpdateMe.Result.translationError(e);
-          }
-
-          vendorProductCategories.add(vendorProductCategory);
-        }
-
+      if (operation.getCategoryNames() != null) {
         List<VendorProductCategory> oldProductCategories =
             vendorProductCategoryRepository.getAllByVendorDetailsId(vendorDetails.getId());
 
@@ -537,11 +523,32 @@ public class MeApplicationService implements MeService {
           return UpdateMe.Result.saveError(e);
         }
 
-        try {
-          vendorProductCategoryRepository.saveAll(vendorProductCategories);
-        } catch (Exception e) {
-          TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-          return UpdateMe.Result.saveError(e);
+        if (!operation.getCategoryNames().isEmpty()) {
+          Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
+
+          for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
+            VendorProductCategory vendorProductCategory = new VendorProductCategory();
+            vendorProductCategory.setVendorDetails(vendorDetails);
+            vendorProductCategory.setName(categoryName);
+
+            try {
+              vendorProductCategory.getName()
+                  .setTranslations(translationRepository.expand(categoryName.toString()));
+
+            } catch (Exception e) {
+              TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+              return UpdateMe.Result.translationError(e);
+            }
+
+            vendorProductCategories.add(vendorProductCategory);
+          }
+
+          try {
+            vendorProductCategoryRepository.saveAll(vendorProductCategories);
+          } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return UpdateMe.Result.saveError(e);
+          }
         }
       }
 

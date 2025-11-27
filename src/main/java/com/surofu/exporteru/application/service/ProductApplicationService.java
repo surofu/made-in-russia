@@ -8,6 +8,7 @@ import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.dto.SearchHintDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.category.CategoryHintDto;
+import com.surofu.exporteru.application.dto.deliveryTerm.DeliveryTermDto;
 import com.surofu.exporteru.application.dto.product.ProductCharacteristicDto;
 import com.surofu.exporteru.application.dto.product.ProductCharacteristicWithTranslationsDto;
 import com.surofu.exporteru.application.dto.product.ProductDeliveryMethodDetailsDto;
@@ -34,6 +35,7 @@ import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.category.CategorySlug;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
@@ -43,6 +45,7 @@ import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
+import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.ProductCharacteristicRepository;
 import com.surofu.exporteru.core.repository.ProductDeliveryMethodDetailsRepository;
 import com.surofu.exporteru.core.repository.ProductFaqRepository;
@@ -129,6 +132,7 @@ public class ProductApplicationService implements ProductService {
   private final ProductSummaryCacheManager productSummaryCacheManager;
   private final GeneralCacheService generalCacheService;
   private final CategoryCacheManager categoryCacheManager;
+  private final DeliveryTermRepository deliveryTermRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -238,7 +242,7 @@ public class ProductApplicationService implements ProductService {
       GetProductCategoryByProductId operation) {
     Long productId = operation.getProductId();
     Optional<Category> category = productRepository.getProductCategoryByProductId(productId);
-    Optional<CategoryDto> categoryDto = category.map(c -> CategoryDto.of(c));
+    Optional<CategoryDto> categoryDto = category.map(CategoryDto::of);
 
     if (categoryDto.isPresent()) {
       return GetProductCategoryByProductId.Result.success(categoryDto.get());
@@ -472,6 +476,12 @@ public class ProductApplicationService implements ProductService {
         deliveryMethodViewList.stream().map(DeliveryMethodDto::of).toList();
     productDto.setDeliveryMethods(deliveryMethodDtoList);
 
+    // Delivery Terms
+    List<DeliveryTerm> deliveryTerms = deliveryTermRepository.getAllByProductId(productDto.getId());
+    List<DeliveryTermDto> deliveryTermDtos =
+        deliveryTerms.stream().map(DeliveryTermDto::of).toList();
+    productDto.setDeliveryTerms(deliveryTermDtos);
+
     // Category
     CategoryDto categoryDtoFromCache =
         categoryCacheManager.getCategory(view.getCategoryId(), locale);
@@ -630,6 +640,12 @@ public class ProductApplicationService implements ProductService {
     List<DeliveryMethodDto> deliveryMethodDtoList =
         deliveryMethodViewList.stream().map(DeliveryMethodDto::of).toList();
     productDto.setDeliveryMethods(deliveryMethodDtoList);
+
+    // Delivery Terms
+    List<DeliveryTerm> deliveryTerms = deliveryTermRepository.getAllByProductId(productDto.getId());
+    List<DeliveryTermDto> deliveryTermDtos =
+        deliveryTerms.stream().map(DeliveryTermDto::of).toList();
+    productDto.setDeliveryTerms(deliveryTermDtos);
 
     // Category
     Optional<Category> category = categoryRepository.getById(view.getCategoryId());

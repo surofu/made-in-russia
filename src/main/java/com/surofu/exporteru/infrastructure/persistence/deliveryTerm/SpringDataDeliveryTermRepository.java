@@ -2,6 +2,7 @@ package com.surofu.exporteru.infrastructure.persistence.deliveryTerm;
 
 import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
 import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTermCode;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,4 +19,6 @@ public interface SpringDataDeliveryTermRepository extends JpaRepository<Delivery
   Optional<Long> firstNotExists(Long[] array);
 
   Boolean existsByCode(DeliveryTermCode code);
+
+  List<DeliveryTerm> findAllByProductsId(Long id);
 }

@@ -25,7 +25,6 @@ public class LocalizationManager {
 
     private final MessageSource messageSource;
     private final CurrencyConverterService currencyConverterService;
-    private final TransliterationManager transliterationManager;
 
     public String localize(String messageCode, Locale locale, Object... args) {
         String messageTemplate = messageSource.getMessage(messageCode, null, locale);
@@ -43,6 +42,7 @@ public class LocalizationManager {
             case ("en") -> CurrencyCode.USD;
             case ("ru") -> CurrencyCode.RUB;
             case ("zh") -> CurrencyCode.CNY;
+            case ("hi") -> CurrencyCode.INR;
             default -> CurrencyCode.USD;
         };
 
@@ -87,13 +87,13 @@ public class LocalizationManager {
         return view;
     }
 
-    // TODO: Make dynamic localize price
     public ProductDto localizePrice(ProductDto dto, Locale locale) {
         CurrencyCode from = CurrencyCode.USD;
         CurrencyCode to = switch (locale.getLanguage()) {
             case ("en") -> CurrencyCode.USD;
             case ("ru") -> CurrencyCode.RUB;
             case ("zh") -> CurrencyCode.CNY;
+            case ("hi") -> CurrencyCode.INR;
             default -> CurrencyCode.USD;
         };
 

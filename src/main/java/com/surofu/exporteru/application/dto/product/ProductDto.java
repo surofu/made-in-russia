@@ -1,7 +1,8 @@
 package com.surofu.exporteru.application.dto.product;
 
-import com.surofu.exporteru.application.dto.*;
+import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
+import com.surofu.exporteru.application.dto.deliveryTerm.DeliveryTermDto;
 import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.product.Product;
@@ -15,11 +16,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -27,387 +23,410 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
-        name = "Product",
-        description = "Represents a product DTO"
+    name = "Product",
+    description = "Represents a product DTO"
 )
 public class ProductDto implements Serializable {
 
-    @Schema(
-            description = "Unique identifier of the product",
-            example = "42",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private Long id;
+  @Schema(
+      description = "Unique identifier of the product",
+      example = "42",
+      accessMode = Schema.AccessMode.READ_ONLY
+  )
+  private Long id;
 
-    @Schema(
-            description = "Publisher of the product",
-            implementation = UserDto.class,
-            example = """
-                    {
-                      "id": 12345,
-                      "role": "User",
-                      "email": "user@example.com",
-                      "login": "john_doe",
-                      "phoneNumber": "+79123456789",
-                      "region": "Moscow, Russia",
-                      "registrationDate": "2025-05-04T09:17:20.767615Z",
-                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                    }
-                    """,
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private VendorDto user;
+  @Schema(
+      description = "Publisher of the product",
+      implementation = UserDto.class,
+      example = """
+          {
+            "id": 12345,
+            "role": "User",
+            "email": "user@example.com",
+            "login": "john_doe",
+            "phoneNumber": "+79123456789",
+            "region": "Moscow, Russia",
+            "registrationDate": "2025-05-04T09:17:20.767615Z",
+            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+          }
+          """,
+      accessMode = Schema.AccessMode.READ_ONLY
+  )
+  private VendorDto user;
 
-    private String approveStatus;
+  private String approveStatus;
 
-    @Schema(
-            description = "Category this product belongs to",
-            implementation = CategoryDto.class,
-            example = """
-                    {
-                      "id": 5,
-                      "name": "Electronics",
-                      "creationDate": "2025-05-04T09:17:20.767615Z",
-                      "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                    }
-                    """
-    )
-    private CategoryDto category;
+  @Schema(
+      description = "Category this product belongs to",
+      implementation = CategoryDto.class,
+      example = """
+          {
+            "id": 5,
+            "name": "Electronics",
+            "creationDate": "2025-05-04T09:17:20.767615Z",
+            "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+          }
+          """
+  )
+  private CategoryDto category;
 
-    @Schema(
-            description = "Delivery method list associated with this product",
-            type = "array",
-            implementation = DeliveryMethodDto[].class,
-            example = """
-                    [
-                      {
-                        "id": 1,
-                        "name": "Express Delivery",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 2,
-                        "name": "Standard Delivery",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      }
-                    ]
-                    """
-    )
-    private List<DeliveryMethodDto> deliveryMethods;
-
-    @Schema(
-            description = "List of product media (images, videos)",
-            type = "array",
-            implementation = ProductMediaDto[].class,
-            example = """
-                    [
-                      {
-                        "id": 1,
-                        "mediaType": "image",
-                        "mimeType": "image/jpeg",
-                        "url": "https://cdn.example.com/products/123/image1.jpg",
-                        "altText": "Front view of the product",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 2,
-                        "mediaType": "video",
-                        "mimeType": "video/mp4",
-                        "url": "https://cdn.example.com/products/123/video.mp4",
-                        "altText": "Product demonstration video",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      }
-                    ]
-                    """
-    )
-    private List<ProductMediaDto> media;
-
-    private List<SimilarProductDto> similarProducts;
-
-    @Schema(
-            description = "Technical specifications and product characteristics",
-            type = "array",
-            implementation = ProductCharacteristicDto[].class,
-            example = """
-                    [
-                      {
-                        "id": 101,
-                        "name": "Weight",
-                        "value": "1.2 kg",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 102,
-                        "name": "Dimensions",
-                        "value": "30 x 20 x 5 cm",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 103,
-                        "name": "Material",
-                        "value": "Aluminum alloy",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      },
-                      {
-                        "id": 104,
-                        "name": "Warranty",
-                        "value": "2 years",
-                        "creationDate": "2025-05-04T09:17:20.767615Z",
-                        "lastModificationDate": "2025-05-04T09:17:20.767615Z"
-                      }
-                    ]
-                    """
-    )
-    private List<ProductCharacteristicDto> characteristics;
-
-    @Schema(
-            description = "Represents a frequently asked question and answer for a product",
-            type = "array",
-            implementation = ProductFaqDto[].class,
-            example = """
-                    {
-                      "id": 42,
-                      "question": "What is the warranty period for this product?",
-                      "answer": "This product comes with a 2-year manufacturer warranty.",
-                      "creationDate": "2025-05-15T10:30:00Z",
-                      "lastModificationDate": "2025-06-20T14:15:00Z"
-                    }
-                    """
-    )
-    private List<ProductFaqDto> faq;
-
-    @Schema(
-            description = "Represents pricing information for a product including discounts and quantity ranges",
-            type = "array",
-            implementation = ProductPriceDto[].class,
-            example = """
-                    {
-                      "id": 123,
-                      "from": 1.0,
-                      "to": 10.0,
-                      "currency": "USD",
-                      "unit": "kg",
-                      "originalPrice": 99.99,
-                      "discount": 15.00,
-                      "discountedPrice": 84.99,
-                      "minimumOrderQuantity": 5,
-                      "discountExpirationDate": "2025-12-31T23:59:59Z",
-                      "creationDate": "2025-05-01T10:00:00Z",
-                      "lastModificationDate": "2025-05-15T14:30:00Z"
-                    }
-                    """
-    )
-    private List<ProductPriceDto> prices;
-
-    @Schema(
-            description = "Unique Article of the product",
-            example = "drJo-3286",
-            minLength = 9,
-            maxLength = 9,
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private String article;
-
-    @Schema(
-            description = "Title/name of the product",
-            example = "Premium Wireless Headphones",
-            maxLength = 255,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String title;
-
-    @Schema(
-            description = "Full product description with features, specifications and usage details. HTML supported.",
-            example = "<p>Flagship smartphone with 6.7\" AMOLED 120Hz display, Snapdragon 8 Gen 2 and 108MP triple camera.</p>",
-            maxLength = 20000,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String mainDescription;
-
-    @Schema(
-            description = "Additional technical specifications and compatibility details",
-            example = "- 5G/Wi-Fi 6 support\n- IP68 water resistance\n- Dolby Atmos stereo speakers",
-            maxLength = 5000,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String furtherDescription;
-
-    @Schema(
-            description = """
-                    Product's average rating based on customer reviews.
-                    Calculated as arithmetic mean of all review ratings.
-                    Minimum possible value: 1.0 (all 1-star reviews)
-                    Maximum possible value: 5.0 (all 5-star reviews)
-                    Returns null if product has no reviews.
-                    Automatically updated when new reviews are added.""",
-            example = "4.2",
-            type = "number",
-            format = "double",
-            minimum = "1.0",
-            maximum = "5.0",
-            multipleOf = 0.1,
-            nullable = true,
-            accessMode = Schema.AccessMode.READ_ONLY,
-            extensions = {
-                    @Extension(
-                            name = "x-validation",
-                            properties = {
-                                    @ExtensionProperty(name = "minRating", value = "1"),
-                                    @ExtensionProperty(name = "maxRating", value = "5"),
-                                    @ExtensionProperty(name = "rounding", value = "nearest 0.1")
-                            }
-                    )
+  @Schema(
+      description = "Delivery method list associated with this product",
+      type = "array",
+      implementation = DeliveryMethodDto[].class,
+      example = """
+          [
+            {
+              "id": 1,
+              "name": "Express Delivery",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            },
+            {
+              "id": 2,
+              "name": "Standard Delivery",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
             }
-    )
-    @DecimalMin("1.0")
-    @DecimalMax("5.0")
-    @Digits(integer = 1, fraction = 1)
-    private Double rating;
+          ]
+          """
+  )
+  private List<DeliveryMethodDto> deliveryMethods;
 
-    private Integer reviewsCount;
+  private List<DeliveryTermDto> deliveryTerms;
 
-    @Schema(
-            description = "URL of the product's preview image",
-            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
-            format = "uri",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String previewImageUrl;
+  @Schema(
+      description = "List of product media (images, videos)",
+      type = "array",
+      implementation = ProductMediaDto[].class,
+      example = """
+          [
+            {
+              "id": 1,
+              "mediaType": "image",
+              "mimeType": "image/jpeg",
+              "url": "https://cdn.example.com/products/123/image1.jpg",
+              "altText": "Front view of the product",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            },
+            {
+              "id": 2,
+              "mediaType": "video",
+              "mimeType": "video/mp4",
+              "url": "https://cdn.example.com/products/123/video.mp4",
+              "altText": "Product demonstration video",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            }
+          ]
+          """
+  )
+  private List<ProductMediaDto> media;
 
-    private List<ProductReviewMediaDto> reviewsMedia;
+  private List<SimilarProductDto> similarProducts;
 
-    private List<ProductDeliveryMethodDetailsDto> deliveryMethodsDetails;
+  @Schema(
+      description = "Technical specifications and product characteristics",
+      type = "array",
+      implementation = ProductCharacteristicDto[].class,
+      example = """
+          [
+            {
+              "id": 101,
+              "name": "Weight",
+              "value": "1.2 kg",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            },
+            {
+              "id": 102,
+              "name": "Dimensions",
+              "value": "30 x 20 x 5 cm",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            },
+            {
+              "id": 103,
+              "name": "Material",
+              "value": "Aluminum alloy",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            },
+            {
+              "id": 104,
+              "name": "Warranty",
+              "value": "2 years",
+              "creationDate": "2025-05-04T09:17:20.767615Z",
+              "lastModificationDate": "2025-05-04T09:17:20.767615Z"
+            }
+          ]
+          """
+  )
+  private List<ProductCharacteristicDto> characteristics;
 
-    private List<ProductPackageOptionDto> packagingOptions;
+  @Schema(
+      description = "Represents a frequently asked question and answer for a product",
+      type = "array",
+      implementation = ProductFaqDto[].class,
+      example = """
+          {
+            "id": 42,
+            "question": "What is the warranty period for this product?",
+            "answer": "This product comes with a 2-year manufacturer warranty.",
+            "creationDate": "2025-05-15T10:30:00Z",
+            "lastModificationDate": "2025-06-20T14:15:00Z"
+          }
+          """
+  )
+  private List<ProductFaqDto> faq;
 
-    @Schema(
-            description = "Minimum quantity that must be ordered",
-            example = "1-5",
-            type = "integer",
-            minimum = "1",
-            defaultValue = "1",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String minimumOrderQuantity;
+  @Schema(
+      description = "Represents pricing information for a product including discounts and quantity ranges",
+      type = "array",
+      implementation = ProductPriceDto[].class,
+      example = """
+          {
+            "id": 123,
+            "from": 1.0,
+            "to": 10.0,
+            "currency": "USD",
+            "unit": "kg",
+            "originalPrice": 99.99,
+            "discount": 15.00,
+            "discountedPrice": 84.99,
+            "minimumOrderQuantity": 5,
+            "discountExpirationDate": "2025-12-31T23:59:59Z",
+            "creationDate": "2025-05-01T10:00:00Z",
+            "lastModificationDate": "2025-05-15T14:30:00Z"
+          }
+          """
+  )
+  private List<ProductPriceDto> prices;
 
-    @Schema(
-            description = "Expiration date/time for the discount (if applicable)",
-            example = "2025-12-31T23:59:59Z",
-            type = "string",
-            format = "date-time",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private Long daysBeforeDiscountExpires;
+  @Schema(
+      description = "Unique Article of the product",
+      example = "drJo-3286",
+      minLength = 9,
+      maxLength = 9,
+      accessMode = Schema.AccessMode.READ_ONLY
+  )
+  private String article;
 
-    @Schema(
-            description = "Timestamp when the product was created",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime creationDate;
+  @Schema(
+      description = "Title/name of the product",
+      example = "Premium Wireless Headphones",
+      maxLength = 255,
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private String title;
 
-    @Schema(
-            description = "Timestamp when the product was last modified",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private ZonedDateTime lastModificationDate;
+  @Schema(
+      description = "Full product description with features, specifications and usage details. HTML supported.",
+      example = "<p>Flagship smartphone with 6.7\" AMOLED 120Hz display, Snapdragon 8 Gen 2 and 108MP triple camera.</p>",
+      maxLength = 20000,
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private String mainDescription;
 
-    @Schema(hidden = true)
-    public static ProductDto of(Product product, Locale locale) {
-        return ProductDto.builder()
-                .id(product.getId())
-                .user(VendorDto.of(product.getUser(), locale))
-                .approveStatus(product.getApproveStatus().toString())
-                .category(CategoryDto.ofWithoutChildren(product.getCategory()))
-                .deliveryMethods(product.getDeliveryMethods().stream()
-                        .map(DeliveryMethodDto::of)
-                        .collect(Collectors.toList())
-                )
-                .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
-                .similarProducts(product.getSimilarProducts().stream().map(SimilarProductDto::of).toList())
-                .characteristics(product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
-                .prices(product.getPrices().stream().map(p -> ProductPriceDto.of(normalizePrice(p, product.getDiscountExpirationDate()))).toList())
-                .article(product.getArticleCode().toString())
-                .title(product.getTitle().getLocalizedValue())
-                .mainDescription(product.getDescription().getLocalizedMainDescription())
-                .furtherDescription(product.getDescription().getLocalizedFurtherDescription())
-                .previewImageUrl(product.getPreviewImageUrl().getValue())
-                .creationDate(product.getCreationDate().getValue())
-                .lastModificationDate(product.getLastModificationDate().getValue())
-                .rating(product.getRating())
-                .reviewsCount(product.getReviewsCount())
-                .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
-                .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
-                .deliveryMethodsDetails(product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of).toList())
-                .packagingOptions(product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
-                .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null : product.getMinimumOrderQuantity().toString())
-                .daysBeforeDiscountExpires(getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
-                .build();
+  @Schema(
+      description = "Additional technical specifications and compatibility details",
+      example = "- 5G/Wi-Fi 6 support\n- IP68 water resistance\n- Dolby Atmos stereo speakers",
+      maxLength = 5000,
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private String furtherDescription;
+
+  @Schema(
+      description = """
+          Product's average rating based on customer reviews.
+          Calculated as arithmetic mean of all review ratings.
+          Minimum possible value: 1.0 (all 1-star reviews)
+          Maximum possible value: 5.0 (all 5-star reviews)
+          Returns null if product has no reviews.
+          Automatically updated when new reviews are added.""",
+      example = "4.2",
+      type = "number",
+      format = "double",
+      minimum = "1.0",
+      maximum = "5.0",
+      multipleOf = 0.1,
+      nullable = true,
+      accessMode = Schema.AccessMode.READ_ONLY,
+      extensions = {
+          @Extension(
+              name = "x-validation",
+              properties = {
+                  @ExtensionProperty(name = "minRating", value = "1"),
+                  @ExtensionProperty(name = "maxRating", value = "5"),
+                  @ExtensionProperty(name = "rounding", value = "nearest 0.1")
+              }
+          )
+      }
+  )
+  @DecimalMin("1.0")
+  @DecimalMax("5.0")
+  @Digits(integer = 1, fraction = 1)
+  private Double rating;
+
+  private Integer reviewsCount;
+
+  @Schema(
+      description = "URL of the product's preview image",
+      example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
+      format = "uri",
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private String previewImageUrl;
+
+  private List<ProductReviewMediaDto> reviewsMedia;
+
+  private List<ProductDeliveryMethodDetailsDto> deliveryMethodsDetails;
+
+  private List<ProductPackageOptionDto> packagingOptions;
+
+  @Schema(
+      description = "Minimum quantity that must be ordered",
+      example = "1-5",
+      type = "integer",
+      minimum = "1",
+      defaultValue = "1",
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private String minimumOrderQuantity;
+
+  @Schema(
+      description = "Expiration date/time for the discount (if applicable)",
+      example = "2025-12-31T23:59:59Z",
+      type = "string",
+      format = "date-time",
+      requiredMode = Schema.RequiredMode.REQUIRED
+  )
+  private Long daysBeforeDiscountExpires;
+
+  @Schema(
+      description = "Timestamp when the product was created",
+      example = "2025-05-04T09:17:20.767615Z",
+      type = "string",
+      format = "date-time",
+      accessMode = Schema.AccessMode.READ_ONLY
+  )
+  private ZonedDateTime creationDate;
+
+  @Schema(
+      description = "Timestamp when the product was last modified",
+      example = "2025-05-04T09:17:20.767615Z",
+      type = "string",
+      format = "date-time",
+      accessMode = Schema.AccessMode.READ_ONLY
+  )
+  private ZonedDateTime lastModificationDate;
+
+  @Schema(hidden = true)
+  public static ProductDto of(Product product, Locale locale) {
+    return ProductDto.builder()
+        .id(product.getId())
+        .user(VendorDto.of(product.getUser(), locale))
+        .approveStatus(product.getApproveStatus().toString())
+        .category(CategoryDto.ofWithoutChildren(product.getCategory()))
+        .deliveryMethods(product.getDeliveryMethods().stream()
+            .map(DeliveryMethodDto::of)
+            .collect(Collectors.toList())
+        )
+        .deliveryTerms(product.getDeliveryTerms().stream()
+            .map(DeliveryTermDto::of)
+            .collect(Collectors.toList())
+        )
+        .media(product.getMedia().stream().map(ProductMediaDto::of).toList())
+        .similarProducts(product.getSimilarProducts().stream().map(SimilarProductDto::of).toList())
+        .characteristics(
+            product.getCharacteristics().stream().map(ProductCharacteristicDto::of).toList())
+        .prices(product.getPrices().stream()
+            .map(p -> ProductPriceDto.of(normalizePrice(p, product.getDiscountExpirationDate())))
+            .toList())
+        .article(product.getArticleCode().toString())
+        .title(product.getTitle().getLocalizedValue())
+        .mainDescription(product.getDescription().getLocalizedMainDescription())
+        .furtherDescription(product.getDescription().getLocalizedFurtherDescription())
+        .previewImageUrl(product.getPreviewImageUrl().getValue())
+        .creationDate(product.getCreationDate().getValue())
+        .lastModificationDate(product.getLastModificationDate().getValue())
+        .rating(product.getRating())
+        .reviewsCount(product.getReviewsCount())
+        .reviewsMedia(product.getReviewsMedia().stream().map(ProductReviewMediaDto::of).toList())
+        .faq(product.getFaq().stream().map(ProductFaqDto::of).toList())
+        .deliveryMethodsDetails(
+            product.getDeliveryMethodDetails().stream().map(ProductDeliveryMethodDetailsDto::of)
+                .toList())
+        .packagingOptions(
+            product.getPackageOptions().stream().map(ProductPackageOptionDto::of).toList())
+        .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null :
+            product.getMinimumOrderQuantity().toString())
+        .daysBeforeDiscountExpires(
+            getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
+        .build();
+  }
+
+  @Schema(hidden = true)
+  public static ProductDto of(ProductView view) {
+    return ProductDto.builder()
+        .id(view.getId())
+        .approveStatus(view.getApproveStatus())
+        .article(view.getArticleCode())
+        .title(view.getTitle())
+        .mainDescription(view.getMainDescription())
+        .furtherDescription(view.getFurtherDescription())
+        .rating(view.getRating())
+        .reviewsCount(view.getReviewsCount())
+        .previewImageUrl(view.getPreviewImageUrl())
+        .minimumOrderQuantity(view.getMinimumOrderQuantity() == null ? null :
+            view.getMinimumOrderQuantity().toString())
+        .daysBeforeDiscountExpires(view.getDiscountExpirationDate() == null ? null :
+            getDaysBeforeDiscountExpires(
+                view.getDiscountExpirationDate().atZone(ZoneId.systemDefault())))
+        .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
+        .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
+        .build();
+  }
+
+  private static ProductPrice normalizePrice(ProductPrice price,
+                                             ProductDiscountExpirationDate discountExpirationDate) {
+    if (discountExpirationDate == null) {
+      return price;
     }
 
-    @Schema(hidden = true)
-    public static ProductDto of(ProductView view) {
-        return ProductDto.builder()
-                .id(view.getId())
-                .approveStatus(view.getApproveStatus())
-                .article(view.getArticleCode())
-                .title(view.getTitle())
-                .mainDescription(view.getMainDescription())
-                .furtherDescription(view.getFurtherDescription())
-                .rating(view.getRating())
-                .reviewsCount(view.getReviewsCount())
-                .previewImageUrl(view.getPreviewImageUrl())
-                .minimumOrderQuantity(view.getMinimumOrderQuantity() == null ? null : view.getMinimumOrderQuantity().toString())
-                .daysBeforeDiscountExpires(view.getDiscountExpirationDate() == null ? null : getDaysBeforeDiscountExpires(view.getDiscountExpirationDate().atZone(ZoneId.systemDefault())))
-                .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
-                .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
-                .build();
+    if (discountExpirationDate.getValue().isBefore(ZonedDateTime.now()) ||
+        discountExpirationDate.getValue().isEqual(ZonedDateTime.now())) {
+      price.setDiscountedPrice(ProductPriceDiscountedPrice.of(price.getOriginalPrice().getValue()));
+      return price;
     }
 
-    private static ProductPrice normalizePrice(ProductPrice price, ProductDiscountExpirationDate discountExpirationDate) {
-        if (discountExpirationDate == null) {
-            return price;
-        }
+    return price;
+  }
 
-        if (discountExpirationDate.getValue().isBefore(ZonedDateTime.now()) || discountExpirationDate.getValue().isEqual(ZonedDateTime.now())) {
-            price.setDiscountedPrice(ProductPriceDiscountedPrice.of(price.getOriginalPrice().getValue()));
-            return price;
-        }
-
-        return price;
+  private static Long getDaysBeforeDiscountExpires(ZonedDateTime discountExpirationDate) {
+    if (discountExpirationDate == null) {
+      return null;
     }
 
-    private static Long getDaysBeforeDiscountExpires(ZonedDateTime discountExpirationDate) {
-        if (discountExpirationDate == null) {
-            return null;
-        }
+    ZonedDateTime now = ZonedDateTime.now();
 
-        ZonedDateTime now = ZonedDateTime.now();
-
-        // Если дата истекла или равна текущей - возвращаем null
-        if (discountExpirationDate.isBefore(now) || discountExpirationDate.isEqual(now)) {
-            return null;
-        }
-
-        // Корректный расчет с учетом часовых поясов
-        return now.until(discountExpirationDate, ChronoUnit.DAYS);
+    // Если дата истекла или равна текущей - возвращаем null
+    if (discountExpirationDate.isBefore(now) || discountExpirationDate.isEqual(now)) {
+      return null;
     }
+
+    // Корректный расчет с учетом часовых поясов
+    return now.until(discountExpirationDate, ChronoUnit.DAYS);
+  }
 }

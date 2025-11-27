@@ -13,7 +13,6 @@ import com.surofu.exporteru.core.model.product.price.ProductPrice;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.exporteru.core.model.user.User;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -73,6 +72,16 @@ public final class Product implements Serializable {
       inverseJoinColumns = @JoinColumn(name = "delivery_method_id")
   )
   private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
+
+
+  @Fetch(FetchMode.SUBSELECT)
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "products_delivery_terms",
+      joinColumns = @JoinColumn(name = "product_id"),
+      inverseJoinColumns = @JoinColumn(name = "delivery_term_id")
+  )
+  private Set<DeliveryTerm> deliveryTerms = new HashSet<>();
 
   @OneToMany(
       mappedBy = "product",
@@ -142,15 +151,6 @@ public final class Product implements Serializable {
   )
   @OrderBy("creationDate")
   private Set<ProductPackageOption> packageOptions = new HashSet<>();
-
-  @Fetch(FetchMode.SUBSELECT)
-  @ManyToMany
-  @JoinTable(
-      name = "products_delivery_terms",
-      joinColumns = @JoinColumn(name = "product_id"),
-      inverseJoinColumns = @JoinColumn(name = "delivery_term_id")
-  )
-  private Set<DeliveryTerm> deliveryTerms = new HashSet<>();
 
   @Embedded
   private ProductArticleCode articleCode;

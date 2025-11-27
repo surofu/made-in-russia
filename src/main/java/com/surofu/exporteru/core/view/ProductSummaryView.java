@@ -59,7 +59,7 @@ public final class ProductSummaryView implements Serializable {
     private BigDecimal discountedPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "price_currency", nullable = false, columnDefinition = "currency")
+    @Column(name = "price_currency")
     private CurrencyCode priceCurrencyCode;
 
     @Column(name = "rating")

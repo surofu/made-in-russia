@@ -11,6 +11,8 @@ public interface DeliveryTermRepository {
 
   List<DeliveryTerm> getAllByIds(Collection<Long> deliveryTermIds);
 
+  List<DeliveryTerm> getAllByProductId(Long id);
+
   Optional<DeliveryTerm> findById(Long id);
 
   Optional<Long> firstNotExists(List<Long> deliveryTermIds);

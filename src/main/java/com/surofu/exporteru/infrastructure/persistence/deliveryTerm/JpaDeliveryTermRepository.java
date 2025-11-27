@@ -25,6 +25,11 @@ public class JpaDeliveryTermRepository implements DeliveryTermRepository {
   }
 
   @Override
+  public List<DeliveryTerm> getAllByProductId(Long id) {
+    return repository.findAllByProductsId(id);
+  }
+
+  @Override
   public Optional<DeliveryTerm> findById(Long id) {
     return repository.findById(id);
   }
