@@ -6,6 +6,7 @@ import com.surofu.exporteru.application.service.product.create.VendorMediaProduc
 import com.surofu.exporteru.application.service.product.create.consumer.ProductCreatingConsumer;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.ProductDescription;
@@ -14,6 +15,7 @@ import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
+import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.repository.UserRepository;
@@ -40,6 +42,7 @@ public class ProductCreatingService {
   private final UserRepository userRepository;
   private final CategoryRepository categoryRepository;
   private final DeliveryMethodRepository deliveryMethodRepository;
+  private final DeliveryTermRepository deliveryTermRepository;
   private final ProductRepository productRepository;
   private final List<ProductCreatingConsumer> consumers;
   private final TranslationRepository translationRepository;
@@ -52,7 +55,6 @@ public class ProductCreatingService {
   public CreateProduct.Result create(CreateProduct operation) {
     // Validate
     CreateProduct.Result validationResult = validationService.validate(operation);
-
     if (!(validationResult instanceof CreateProduct.Result.Success)) {
       return validationResult;
     }
@@ -64,6 +66,8 @@ public class ProductCreatingService {
       Category category = categoryRepository.getById(operation.getCategoryId()).orElseThrow();
       List<DeliveryMethod> deliveryMethods =
           deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+      List<DeliveryTerm> deliveryTerms =
+          deliveryTermRepository.getAllByIds(operation.getDeliveryTermIds());
       List<Product> similarProducts =
           productRepository.findAllByIds(operation.getSimilarProductIds());
 
@@ -71,11 +75,9 @@ public class ProductCreatingService {
       List<String> translationTexts = new ArrayList<>();
       translationTexts.add(operation.getTitle().getValue());
       translationTexts.add(operation.getDescription().getMainDescription());
-
       if (StringUtils.trimToNull(operation.getDescription().getFurtherDescription()) != null) {
         translationTexts.add(operation.getDescription().getFurtherDescription());
       }
-
       List<Map<String, String>> translationResults = translationRepository.expand(translationTexts);
 
       // Setting
@@ -95,13 +97,13 @@ public class ProductCreatingService {
       product.setUser(user);
       product.setCategory(category);
       product.setDeliveryMethods(new HashSet<>(deliveryMethods));
+      product.setDeliveryTerms(new HashSet<>(deliveryTerms));
       product.setSimilarProducts(new HashSet<>(similarProducts));
       product.setPreviewImageUrl(ProductPreviewImageUrl.of("TEMP"));
 
       // Save
       Product savedProduct = productRepository.save(product);
       productRepository.flush();
-
       productMediaProductCreatingLoader.uploadMedia(savedProduct.getId(), operation);
       vendorMediaProductCreatingLoader.uploadMedia(savedProduct.getId(), operation);
 
@@ -109,7 +111,6 @@ public class ProductCreatingService {
       CompletableFuture.runAsync(() ->
           processConsumers(savedProduct.getId(), operation)
       );
-
       return CreateProduct.Result.success();
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

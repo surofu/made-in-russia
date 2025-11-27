@@ -11,13 +11,13 @@ import java.util.Map;
 
 public class CategoryUtils {
 
-  public static List<CategoryDto> buildTree(List<Category> categories, Locale locale) {
+  public static List<CategoryDto> buildTree(List<Category> categories) {
     // Создаем Map для быстрого доступа к категориям по ID
     Map<Long, CategoryDto> dtoMap = new HashMap<>();
 
     // Сначала создаем все DTO без детей
     categories.forEach(c ->
-        dtoMap.put(c.getId(), CategoryDto.ofWithoutChildren(c, locale)));
+        dtoMap.put(c.getId(), CategoryDto.ofWithoutChildren(c)));
 
     // Теперь строим дерево
     List<CategoryDto> roots = new ArrayList<>();

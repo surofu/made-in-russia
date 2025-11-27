@@ -93,6 +93,11 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
+    public boolean existsWithUserId(Long productId, Long userId) {
+        return repository.existsWithUserId(productId, userId);
+    }
+
+    @Override
     public List<SearchHintView> findHintViews(String searchTerm, Long vendorId, Locale locale) {
         return repository.findHintViews(searchTerm, vendorId, locale.getLanguage());
     }

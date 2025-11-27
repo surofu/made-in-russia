@@ -67,6 +67,9 @@ public final class Category implements Serializable {
   private CategoryDescription description;
 
   @Embedded
+  private CategoryMetaDescription metaDescription;
+
+  @Embedded
   private CategoryImageUrl imageUrl;
 
   @Embedded

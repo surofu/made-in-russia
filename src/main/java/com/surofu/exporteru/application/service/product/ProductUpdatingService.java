@@ -6,6 +6,7 @@ import com.surofu.exporteru.application.service.product.update.VendorMediaProduc
 import com.surofu.exporteru.application.service.product.update.comsumer.ProductUpdatingConsumer;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.ProductDescription;
@@ -13,6 +14,7 @@ import com.surofu.exporteru.core.model.product.ProductPreviewImageUrl;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
+import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
@@ -40,6 +42,7 @@ public class ProductUpdatingService {
   private final TranslationRepository translationRepository;
   private final CategoryRepository categoryRepository;
   private final DeliveryMethodRepository deliveryMethodRepository;
+  private final DeliveryTermRepository deliveryTermRepository;
   private final ProductMediaProductUpdatingLoader productMediaProductUpdatingLoader;
   private final VendorMediaProductUpdatingLoader vendorMediaProductUpdatingLoader;
 
@@ -47,7 +50,6 @@ public class ProductUpdatingService {
   public UpdateProduct.Result update(UpdateProduct operation) {
     // Validate
     UpdateProduct.Result validationResult = validator.validate(operation);
-
     if (!(validationResult instanceof UpdateProduct.Result.Success)) {
       return validationResult;
     }
@@ -59,27 +61,25 @@ public class ProductUpdatingService {
       Category category = categoryRepository.getById(operation.getCategoryId()).orElseThrow();
       List<DeliveryMethod> deliveryMethods =
           deliveryMethodRepository.getAllDeliveryMethodsByIds(operation.getDeliveryMethodIds());
+      List<DeliveryTerm> deliveryTerms =
+          deliveryTermRepository.getAllByIds(operation.getDeliveryTermIds());
       List<Product> similarProducts =
           productRepository.findAllByIds(operation.getSimilarProductIds());
 
       // Translate
       Map<String, String> translateMap = new HashMap<>();
-
       if (!product.getTitle().equals(operation.getTitle())) {
         translateMap.put("title", operation.getTitle().getValue());
       }
-
       if (!product.getDescription().getMainDescription()
           .equals(operation.getDescription().getMainDescription())) {
         translateMap.put("mainDescription", operation.getDescription().getMainDescription());
       }
-
       if (StringUtils.trimToNull(operation.getDescription().getFurtherDescription()) != null &&
           !product.getDescription().getFurtherDescription()
               .equals(operation.getDescription().getFurtherDescription())) {
         translateMap.put("furtherDescription", operation.getDescription().getFurtherDescription());
       }
-
       Map<String, Map<String, String>> translationResults =
           translationRepository.expandMap(translateMap);
 
@@ -89,6 +89,7 @@ public class ProductUpdatingService {
       product.setDiscountExpirationDate(operation.getDiscountExpirationDate());
       product.setCategory(category);
       product.setDeliveryMethods(new HashSet<>(deliveryMethods));
+      product.setDeliveryTerms(new HashSet<>(deliveryTerms));
       product.setSimilarProducts(new HashSet<>(similarProducts));
       product.setPreviewImageUrl(ProductPreviewImageUrl.of("TEMP"));
 
@@ -98,7 +99,6 @@ public class ProductUpdatingService {
             translationResults.get("title")
         ));
       }
-
       if (translationResults.containsKey("mainDescription")) {
         product.setDescription(new ProductDescription(
             operation.getDescription().getMainDescription(),
@@ -107,7 +107,6 @@ public class ProductUpdatingService {
             product.getDescription().getFurtherDescriptionTranslations()
         ));
       }
-
       if (translationResults.containsKey("furtherDescription")) {
         product.setDescription(new ProductDescription(
             product.getDescription().getMainDescription(),
@@ -120,7 +119,6 @@ public class ProductUpdatingService {
       // Save
       Product savedProduct = productRepository.save(product);
       productRepository.flush();
-
       productMediaProductUpdatingLoader.uploadMedia(savedProduct.getId(), operation);
       vendorMediaProductUpdatingLoader.uploadMedia(savedProduct.getId(), operation);
 
@@ -130,7 +128,6 @@ public class ProductUpdatingService {
             processConsumers(savedProduct.getId(), operation)
         );
       }
-
       return UpdateProduct.Result.success();
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

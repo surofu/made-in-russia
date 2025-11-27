@@ -15,6 +15,8 @@ public interface CategoryView {
 
     String getDescription();
 
+    String getMetaDescription();
+
     String getSlug();
 
     String getImageUrl();

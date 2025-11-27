@@ -115,7 +115,11 @@ public class S3Repository implements FileStorageRepository {
     @Override
     public void deleteMediaByLink(String... links) {
         for (String link : links) {
-            deleteMediaByLink(link);
+            try {
+                deleteMediaByLink(link);
+            } catch (Exception e) {
+                log.warn("Error deleting media by link '{}': {}", link, e.getMessage());
+            }
         }
     }
 

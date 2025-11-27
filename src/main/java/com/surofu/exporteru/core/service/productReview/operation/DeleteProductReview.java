@@ -1,4 +1,4 @@
-package com.surofu.exporteru.core.service.product.review.operation;
+package com.surofu.exporteru.core.service.productReview.operation;
 
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.core.model.user.UserLogin;

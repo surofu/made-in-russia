@@ -30,8 +30,10 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
               c.label,
               c.title_translations,
               c.title,
-              c.description_translations,
               c.description,
+              c.description_translations,
+              c.meta_description,
+              c.meta_description_translations,
               c.slug,
               c.image_url,
               c.icon_url,
@@ -51,8 +53,10 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
               c.label,
               c.title_translations,
               c.title,
-              c.description_translations,
               c.description,
+              c.description_translations,
+              c.meta_description,
+              c.meta_description_translations,
               c.slug,
               c.image_url,
               c.icon_url,
@@ -79,6 +83,10 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
                             ct.description_translations::jsonb ->> :lang,
                             ct.description
                         ) as description,
+                        COALESCE(
+                            ct.meta_description_translations::jsonb ->> :lang,
+                            ct.meta_description
+                        ) as metaDescription,
                         ct.slug,
                         ct.parent_category_id,
                         (

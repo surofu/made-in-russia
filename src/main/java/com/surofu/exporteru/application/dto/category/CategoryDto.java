@@ -29,6 +29,7 @@ public final class CategoryDto implements Serializable {
   private String title;
   private String label;
   private String description;
+  private String metaDescription;
   private String imageUrl;
   private String iconUrl;
   @Builder.Default
@@ -40,20 +41,22 @@ public final class CategoryDto implements Serializable {
   private ZonedDateTime lastModificationDate;
 
   @Schema(hidden = true)
-  public static CategoryDto of(Category category, Locale locale) {
+  public static CategoryDto of(Category category) {
     return CategoryDto.builder()
         .id(category.getId())
         .slug(category.getSlug().getValue())
-        .name(category.getName() != null ? category.getName().getLocalizedValue(locale) : "")
-        .label(category.getLabel() != null ? category.getLabel().getLocalizedValue(locale) : "")
-        .title(category.getTitle() != null ? category.getTitle().getLocalizedValue(locale) : "")
+        .name(category.getName() != null ? category.getName().getLocalizedValue() : "")
+        .label(category.getLabel() != null ? category.getLabel().getLocalizedValue() : "")
+        .title(category.getTitle() != null ? category.getTitle().getLocalizedValue() : "")
         .description(category.getDescription() != null ?
-            category.getDescription().getLocalizedValue(locale) : "")
+            category.getDescription().getLocalizedValue() : "")
+        .metaDescription(category.getMetaDescription() != null ?
+            category.getMetaDescription().getLocalizedValue() : "")
         .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
         .iconUrl(category.getIconUrl() == null ? null : category.getIconUrl().getValue())
         .childrenCount(category.getChildrenCount())
         .children(category.getChildren().stream()
-            .map(c -> CategoryDto.of(c, locale))
+            .map(CategoryDto::of)
             .toList())
         .creationDate(category.getCreationDate().getValue())
         .lastModificationDate(category.getLastModificationDate().getValue())
@@ -61,15 +64,17 @@ public final class CategoryDto implements Serializable {
   }
 
   @Schema(hidden = true)
-  public static CategoryDto ofWithoutChildren(Category category, Locale locale) {
+  public static CategoryDto ofWithoutChildren(Category category) {
     return CategoryDto.builder()
         .id(category.getId())
         .slug(category.getSlug().getValue())
-        .name(category.getName() != null ? category.getName().getLocalizedValue(locale) : "")
-        .title(category.getTitle() != null ? category.getTitle().getLocalizedValue(locale) : "")
-        .label(category.getLabel() != null ? category.getLabel().getLocalizedValue(locale) : "")
+        .name(category.getName() != null ? category.getName().getLocalizedValue() : "")
+        .title(category.getTitle() != null ? category.getTitle().getLocalizedValue() : "")
+        .label(category.getLabel() != null ? category.getLabel().getLocalizedValue() : "")
         .description(category.getDescription() != null ?
-            category.getDescription().getLocalizedValue(locale) : "")
+            category.getDescription().getLocalizedValue() : "")
+        .metaDescription(category.getMetaDescription() != null ?
+            category.getMetaDescription().getLocalizedValue() : "")
         .imageUrl(category.getImageUrl() == null ? null : category.getImageUrl().getValue())
         .iconUrl(category.getIconUrl() == null ? null : category.getIconUrl().getValue())
         .childrenCount(category.getChildrenCount())
@@ -88,6 +93,7 @@ public final class CategoryDto implements Serializable {
         .title(view.getTitle())
         .label(view.getLabel())
         .description(view.getDescription())
+        .metaDescription(view.getMetaDescription())
         .imageUrl(view.getImageUrl())
         .iconUrl(view.getIconUrl())
         .childrenCount(view.getChildrenCount())
@@ -110,6 +116,7 @@ public final class CategoryDto implements Serializable {
           .title(this.getTitle())
           .label(this.getLabel())
           .description(this.getDescription())
+          .metaDescription(this.getMetaDescription())
           .imageUrl(this.getImageUrl())
           .iconUrl(this.getIconUrl())
           .okved(this.getOkved())
@@ -127,6 +134,7 @@ public final class CategoryDto implements Serializable {
         .label(this.getLabel())
         .title(this.getTitle())
         .description(this.getDescription())
+        .metaDescription(this.getMetaDescription())
         .imageUrl(this.getImageUrl())
         .iconUrl(this.getIconUrl())
         .okved(this.getOkved() == null ? null : new ArrayList<>(this.getOkved()))

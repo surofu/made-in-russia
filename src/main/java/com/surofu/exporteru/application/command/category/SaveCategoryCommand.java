@@ -18,6 +18,8 @@ public record SaveCategoryCommand(
     Map<String, String> labelTranslations,
     String description,
     Map<String, String> descriptionTranslations,
+    String metaDescription,
+    Map<String, String> metaDescriptionTranslations,
     String slug,
     Long parentId,
     List<String> okvedCategories

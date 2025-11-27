@@ -67,7 +67,14 @@ public class UpdateProductMapperResultToResponseEntity
 
     @Override
     public ResponseEntity<?> processDeliveryMethodNotFound(UpdateProduct.Result.DeliveryMethodNotFound result) {
-        String message = localizationManager.localize("delivery_method.not_found_by_id", result.getDeliveryMethodId());
+        String message = localizationManager.localize("delivery_method.not_found_by_id", result.getId());
+        SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
+    }
+
+    @Override
+    public ResponseEntity<?> processDeliveryTermNotFound(UpdateProduct.Result.DeliveryTermNotFound result) {
+        String message = localizationManager.localize("delivery_term.not_found_by_id", result.getId());
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorDto, HttpStatus.NOT_FOUND);
     }

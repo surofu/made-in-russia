@@ -3,7 +3,7 @@ package com.surofu.exporteru.infrastructure.web.mapper.product.review;
 import com.surofu.exporteru.application.dto.SimpleResponseMessageDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.exporteru.application.utils.LocalizationManager;
-import com.surofu.exporteru.core.service.product.review.operation.CreateProductReview;
+import com.surofu.exporteru.core.service.productReview.operation.CreateProductReview;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -20,6 +20,7 @@ public class CreateProduct {
     ProductDescription description;
     Long categoryId;
     List<Long> deliveryMethodIds;
+    List<Long> deliveryTermIds;
     List<Long> similarProductIds;
     List<CreateProductPriceCommand> createProductPriceCommands;
     List<CreateProductCharacteristicCommand> createProductCharacteristicCommands;
@@ -50,14 +51,19 @@ public class CreateProduct {
             return ErrorSavingProduct.INSTANCE;
         }
 
-        static Result categoryNotFound(Long categoryId) {
-            log.warn("Category with ID '{}' not found", categoryId);
-            return CategoryNotFound.of(categoryId);
+        static Result categoryNotFound(Long id) {
+            log.warn("Category with ID '{}' not found", id);
+            return CategoryNotFound.of(id);
         }
 
-        static Result deliveryMethodNotFound(Long deliveryMethodId) {
-            log.warn("Delivery Method with ID '{}' not found", deliveryMethodId);
-            return DeliveryMethodNotFound.of(deliveryMethodId);
+        static Result deliveryMethodNotFound(Long id) {
+            log.warn("Delivery Method with ID '{}' not found", id);
+            return DeliveryMethodNotFound.of(id);
+        }
+
+        static Result deliveryTermNotFound(Long id) {
+            log.warn("Delivery Term with ID '{}' not found", id);
+            return DeliveryTermNotFound.of(id);
         }
 
         static Result emptyFile() {
@@ -119,11 +125,21 @@ public class CreateProduct {
 
         @Value(staticConstructor = "of")
         class DeliveryMethodNotFound implements Result {
-            Long deliveryMethodId;
+            Long id;
 
             @Override
             public <T> T process(Processor<T> processor) {
                 return processor.processDeliveryMethodNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class DeliveryTermNotFound implements Result {
+            Long id;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeliveryTermNotFound(this);
             }
         }
 
@@ -171,6 +187,7 @@ public class CreateProduct {
             T processErrorSavingProduct(ErrorSavingProduct result);
             T processCategoryNotFound(CategoryNotFound result);
             T processDeliveryMethodNotFound(DeliveryMethodNotFound result);
+            T processDeliveryTermNotFound(DeliveryTermNotFound result);
             T processEmptyFile(EmptyFile result);
             T processInvalidMediaType(InvalidMediaType result);
             T processSimilarProductNotFound(SimilarProductNotFound result);

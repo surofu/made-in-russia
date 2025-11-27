@@ -2,6 +2,7 @@ package com.surofu.exporteru.core.model.product;
 
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
+import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
 import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetails;
@@ -76,7 +77,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("position")
@@ -94,7 +94,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -103,7 +102,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -115,7 +113,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -124,7 +121,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -133,7 +129,6 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -143,11 +138,19 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
   private Set<ProductPackageOption> packageOptions = new HashSet<>();
+
+  @Fetch(FetchMode.SUBSELECT)
+  @ManyToMany
+  @JoinTable(
+      name = "products_delivery_terms",
+      joinColumns = @JoinColumn(name = "product_id"),
+      inverseJoinColumns = @JoinColumn(name = "delivery_term_id")
+  )
+  private Set<DeliveryTerm> deliveryTerms = new HashSet<>();
 
   @Embedded
   private ProductArticleCode articleCode;

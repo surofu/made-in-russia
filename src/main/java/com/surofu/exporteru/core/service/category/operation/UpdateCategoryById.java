@@ -2,6 +2,7 @@ package com.surofu.exporteru.core.service.category.operation;
 
 import com.surofu.exporteru.core.model.category.CategoryDescription;
 import com.surofu.exporteru.core.model.category.CategoryLabel;
+import com.surofu.exporteru.core.model.category.CategoryMetaDescription;
 import com.surofu.exporteru.core.model.category.CategoryName;
 import com.surofu.exporteru.core.model.category.CategorySlug;
 import com.surofu.exporteru.core.model.category.CategoryTitle;
@@ -18,6 +19,7 @@ public class UpdateCategoryById {
   CategoryTitle title;
   CategoryLabel label;
   CategoryDescription description;
+  CategoryMetaDescription metaDescription;
   CategorySlug slug;
   Long parentId;
   List<String> okvedCategories;

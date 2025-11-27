@@ -4,32 +4,27 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryName implements Serializable {
 
   @Column(name = "name", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "name_translations", nullable = false)
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private CategoryName(String name) {
+  public CategoryName(String name, Map<String, String> translations) {
     if (StringUtils.trimToNull(name) == null) {
       throw new LocalizedValidationException("validation.category.name.empty");
     }
@@ -39,17 +34,21 @@ public final class CategoryName implements Serializable {
     }
 
     this.value = name;
+    this.translations = translations;
   }
 
-  public static CategoryName of(String name) {
-    return new CategoryName(name);
+  public CategoryName() {
+    this.value = null;
+    this.translations = null;
   }
 
-  public String getLocalizedValue(Locale locale) {
+  public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-    return Objects.requireNonNullElse(translations.get(locale.getLanguage()), Objects.requireNonNullElse(value, ""));
+    Locale locale = LocaleContextHolder.getLocale();
+    return Objects.requireNonNullElse(translations.get(locale.getLanguage()),
+        Objects.requireNonNullElse(value, ""));
   }
 
   @Override
@@ -59,13 +58,17 @@ public final class CategoryName implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof CategoryName categoryName)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CategoryName categoryName)) {
+      return false;
+    }
     return Objects.equals(value, categoryName.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(value);
+    return getClass().hashCode();
   }
 }

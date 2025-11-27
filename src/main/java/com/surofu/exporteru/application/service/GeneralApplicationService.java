@@ -57,7 +57,7 @@ public class GeneralApplicationService implements GeneralService {
 
     // Categories
     List<Category> categories = categoryRepository.getAll();
-    List<CategoryDto> categoryDtoList = CategoryUtils.buildTree(categories, operation.getLocale());
+    List<CategoryDto> categoryDtoList = CategoryUtils.buildTree(categories);
 
     List<CategoryDto> categoryL1L2DtoList = categoryDtoList.stream()
         .map(c -> {

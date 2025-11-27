@@ -3,44 +3,62 @@ package com.surofu.exporteru.core.model.category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryDescription implements Serializable {
 
   @Column(name = "description")
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "description_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private CategoryDescription(String description) {
-    this.value = description;
+  public CategoryDescription(String value, Map<String, String> translations) {
+    this.value = value;
+    this.translations = translations;
   }
 
-  public static CategoryDescription of(String description) {
-    return new CategoryDescription(description);
+  public CategoryDescription() {
+    this.value = null;
+    this.translations = null;
   }
 
-  public String getLocalizedValue(Locale locale) {
-    return Objects.requireNonNullElse(translations.get(locale.getLanguage()), Objects.requireNonNullElse(value, ""));
+  public String getLocalizedValue() {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
+    }
+
+    Locale locale = LocaleContextHolder.getLocale();
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
 
   @Override
   public String toString() {
     return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CategoryDescription categoryDescription)) {
+      return false;
+    }
+    return Objects.equals(value, categoryDescription.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 }

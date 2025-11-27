@@ -54,6 +54,10 @@ public class YandexTranslationRepository implements TranslationRepository {
   }
 
   public Map<String, String> expand(Map<String, String> translations) {
+    if (translations == null || translations.isEmpty()) {
+      return new HashMap<>();
+    }
+
     String en = StringUtils.trimToNull(translations.get("en"));
     String ru = StringUtils.trimToNull(translations.get("ru"));
     String zh = StringUtils.trimToNull(translations.get("zh"));
@@ -96,6 +100,10 @@ public class YandexTranslationRepository implements TranslationRepository {
 
   @Override
   public Map<String, String> expand(String text) {
+    if (StringUtils.trimToNull(text) == null) {
+      return new HashMap<>();
+    }
+
     String en = translateToEn(text).getTranslations()[0].getText();
     String ru = translateToRu(text).getTranslations()[0].getText();
     String zh = translateToZh(text).getTranslations()[0].getText();

@@ -1,4 +1,4 @@
-package com.surofu.exporteru.core.service.product.review.operation;
+package com.surofu.exporteru.core.service.productReview.operation;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

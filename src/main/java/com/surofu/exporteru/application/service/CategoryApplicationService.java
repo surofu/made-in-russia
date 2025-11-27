@@ -8,9 +8,14 @@ import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.application.utils.CategoryUtils;
 import com.surofu.exporteru.core.model.category.Category;
+import com.surofu.exporteru.core.model.category.CategoryDescription;
 import com.surofu.exporteru.core.model.category.CategoryIconUrl;
 import com.surofu.exporteru.core.model.category.CategoryImageUrl;
+import com.surofu.exporteru.core.model.category.CategoryLabel;
+import com.surofu.exporteru.core.model.category.CategoryMetaDescription;
+import com.surofu.exporteru.core.model.category.CategoryName;
 import com.surofu.exporteru.core.model.category.CategorySlug;
+import com.surofu.exporteru.core.model.category.CategoryTitle;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
@@ -59,7 +64,7 @@ public class CategoryApplicationService implements CategoryService {
 
     // Process
     List<Category> categories = categoryRepository.getAll();
-    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories, operation.getLocale());
+    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories);
 
     try {
       categoryListCacheManager.setAllByLocale("ALL_" + operation.getLocale().getLanguage(),
@@ -83,7 +88,7 @@ public class CategoryApplicationService implements CategoryService {
 
     // Process
     List<Category> categories = categoryRepository.getCategoryL1AndL2();
-    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories, operation.getLocale());
+    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories);
 
     try {
       categoryListCacheManager.setAllByLocale(operation.getLocale().getLanguage(), categoryDtos);
@@ -113,7 +118,7 @@ public class CategoryApplicationService implements CategoryService {
     }
 
     Category category = categoryOptional.get();
-    CategoryDto categoryDto = CategoryDto.of(category, operation.getLocale());
+    CategoryDto categoryDto = CategoryDto.of(category);
 
     try {
       categoryCacheManager.setCategory(operation.getCategoryId(), operation.getLocale(),
@@ -173,7 +178,7 @@ public class CategoryApplicationService implements CategoryService {
 
     CategoryLevelInfo levelInfo = levelInfoResult.data();
     CategorySlug slugWithLevel =
-        CategorySlug.of(operation.getSlug().toString(), levelInfo.parentCategoryLevel());
+        new CategorySlug(operation.getSlug().toString(), levelInfo.parentCategoryLevel());
 
     // Проверка уникальности slug
     if (categoryRepository.existsBySlug(slugWithLevel)) {
@@ -235,7 +240,7 @@ public class CategoryApplicationService implements CategoryService {
 
     CategoryLevelInfo levelInfo = levelInfoResult.data();
     CategorySlug slugWithLevel =
-        CategorySlug.of(operation.getSlug().toString(), levelInfo.parentCategoryLevel());
+        new CategorySlug(operation.getSlug().toString(), levelInfo.parentCategoryLevel());
 
     // Проверка уникальности slug (если изменился)
     if (!category.getSlug().getValue().equals(slugWithLevel.getValue()) &&
@@ -312,6 +317,7 @@ public class CategoryApplicationService implements CategoryService {
     category.setTitle(operation.getTitle());
     category.setLabel(operation.getLabel());
     category.setDescription(operation.getDescription());
+    category.setMetaDescription(operation.getMetaDescription());
     category.setSlug(slug);
     return category;
   }
@@ -326,6 +332,7 @@ public class CategoryApplicationService implements CategoryService {
     category.setTitle(operation.getTitle());
     category.setLabel(operation.getLabel());
     category.setDescription(operation.getDescription());
+    category.setMetaDescription(operation.getMetaDescription());
     category.setSlug(slug);
   }
 
@@ -338,14 +345,32 @@ public class CategoryApplicationService implements CategoryService {
       Map<String, String> titleTranslations = getTitleTranslations(operation);
       Map<String, String> labelTranslations = getLabelTranslations(operation);
       Map<String, String> descriptionTranslations = getDescriptionTranslations(operation);
+      Map<String, String> metaDescriptionTranslations = getMetaDescriptionTranslations(operation);
 
-      category.getName().setTranslations(translationRepository.expand(nameTranslations));
-      category.getTitle().setTranslations(translationRepository.expand(titleTranslations));
-      category.getLabel().setTranslations(translationRepository.expand(labelTranslations));
+      category.setName(new CategoryName(
+          category.getName().getValue(),
+          translationRepository.expand(nameTranslations)
+      ));
+      category.setTitle(new CategoryTitle(
+          category.getTitle().getValue(),
+          translationRepository.expand(titleTranslations)
+      ));
+      category.setLabel(new CategoryLabel(
+          category.getLabel().getValue(),
+          translationRepository.expand(labelTranslations)
+      ));
 
       if (descriptionTranslations != null && !descriptionTranslations.isEmpty()) {
-        category.getDescription()
-            .setTranslations(translationRepository.expand(descriptionTranslations));
+        category.setDescription(new CategoryDescription(
+            category.getDescription().getValue(),
+            translationRepository.expand(descriptionTranslations)
+        ));
+      }
+      if (metaDescriptionTranslations != null && !metaDescriptionTranslations.isEmpty()) {
+        category.setMetaDescription(new CategoryMetaDescription(
+            category.getMetaDescription().getValue(),
+            translationRepository.expand(metaDescriptionTranslations)
+        ));
       }
 
       return Result.success(category);
@@ -395,6 +420,15 @@ public class CategoryApplicationService implements CategoryService {
     throw new IllegalArgumentException("Unsupported operation type");
   }
 
+  private Map<String, String> getMetaDescriptionTranslations(Object operation) {
+    if (operation instanceof CreateCategory createOp) {
+      return createOp.getMetaDescription().getTranslations();
+    } else if (operation instanceof UpdateCategoryById updateOp) {
+      return updateOp.getMetaDescription().getTranslations();
+    }
+    throw new IllegalArgumentException("Unsupported operation type");
+  }
+
   /**
    * Обработка изображений категории
    */
@@ -406,7 +440,7 @@ public class CategoryApplicationService implements CategoryService {
         String url = fileStorageRepository.uploadImageToFolder(
             imageFile, FileStorageFolders.CATEGORY_IMAGES.getValue()
         );
-        category.setImageUrl(CategoryImageUrl.of(url));
+        category.setImageUrl(new CategoryImageUrl(url));
       }
 
       // Обработка иконки
@@ -415,7 +449,7 @@ public class CategoryApplicationService implements CategoryService {
         String url = fileStorageRepository.uploadImageToFolder(
             iconFile, FileStorageFolders.CATEGORY_ICONS.getValue()
         );
-        category.setIconUrl(CategoryIconUrl.of(url));
+        category.setIconUrl(new CategoryIconUrl(url));
       }
 
       return Result.success(category);
@@ -469,7 +503,7 @@ public class CategoryApplicationService implements CategoryService {
             operation.getImageFile(),
             FileStorageFolders.CATEGORY_IMAGES.getValue()
         );
-        category.setImageUrl(CategoryImageUrl.of(newUrl));
+        category.setImageUrl(new CategoryImageUrl(newUrl));
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return UpdateCategoryById.Result.uploadImageError(e);
@@ -513,7 +547,7 @@ public class CategoryApplicationService implements CategoryService {
             operation.getIconFile(),
             FileStorageFolders.CATEGORY_ICONS.getValue()
         );
-        category.setIconUrl(CategoryIconUrl.of(newUrl));
+        category.setIconUrl(new CategoryIconUrl(newUrl));
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return UpdateCategoryById.Result.uploadImageError(e);

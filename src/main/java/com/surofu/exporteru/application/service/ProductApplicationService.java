@@ -238,7 +238,7 @@ public class ProductApplicationService implements ProductService {
       GetProductCategoryByProductId operation) {
     Long productId = operation.getProductId();
     Optional<Category> category = productRepository.getProductCategoryByProductId(productId);
-    Optional<CategoryDto> categoryDto = category.map(c -> CategoryDto.of(c, operation.getLocale()));
+    Optional<CategoryDto> categoryDto = category.map(c -> CategoryDto.of(c));
 
     if (categoryDto.isPresent()) {
       return GetProductCategoryByProductId.Result.success(categoryDto.get());
@@ -378,7 +378,7 @@ public class ProductApplicationService implements ProductService {
 
     while (true) {
       Optional<Category> category =
-          categoryRepository.getCategoryBySlugWithChildren(CategorySlug.of(parentSlug));
+          categoryRepository.getCategoryBySlugWithChildren(new CategorySlug(parentSlug));
 
       if (category.isEmpty() || category.get().getParent() == null) {
         break;
@@ -481,7 +481,7 @@ public class ProductApplicationService implements ProductService {
     } else {
       Optional<Category> category = categoryRepository.getById(view.getCategoryId());
       if (category.isPresent()) {
-        CategoryDto categoryDto = CategoryDto.ofWithoutChildren(category.get(), locale);
+        CategoryDto categoryDto = CategoryDto.ofWithoutChildren(category.get());
         productDto.setCategory(categoryDto);
       }
     }
@@ -635,7 +635,7 @@ public class ProductApplicationService implements ProductService {
     Optional<Category> category = categoryRepository.getById(view.getCategoryId());
 
     if (category.isPresent()) {
-      CategoryDto categoryDto = CategoryDto.ofWithoutChildren(category.get(), locale);
+      CategoryDto categoryDto = CategoryDto.ofWithoutChildren(category.get());
       productDto.setCategory(categoryDto);
     }
 

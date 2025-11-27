@@ -39,11 +39,11 @@ import com.surofu.exporteru.core.service.product.operation.GetProductMediaByProd
 import com.surofu.exporteru.core.service.product.operation.GetProductWithTranslationsById;
 import com.surofu.exporteru.core.service.product.operation.GetSearchHints;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
-import com.surofu.exporteru.core.service.product.review.ProductReviewService;
-import com.surofu.exporteru.core.service.product.review.operation.CreateProductReview;
-import com.surofu.exporteru.core.service.product.review.operation.DeleteProductReview;
-import com.surofu.exporteru.core.service.product.review.operation.GetProductReviewPageByProductId;
-import com.surofu.exporteru.core.service.product.review.operation.UpdateProductReview;
+import com.surofu.exporteru.core.service.productReview.ProductReviewService;
+import com.surofu.exporteru.core.service.productReview.operation.CreateProductReview;
+import com.surofu.exporteru.core.service.productReview.operation.DeleteProductReview;
+import com.surofu.exporteru.core.service.productReview.operation.GetProductReviewPageByProductId;
+import com.surofu.exporteru.core.service.productReview.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.StringToClassMapItem;
@@ -91,7 +91,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("api/v1/products")
 @Tag(name = "Products", description = "API for managing product")
 public class ProductRestController {
-
   private final ProductService productService;
   private final ProductReviewService productReviewService;
   private final OrderService orderService;
@@ -841,22 +840,19 @@ public class ProductRestController {
         productDescription,
         createProductCommand.categoryId(),
         createProductCommand.deliveryMethodIds(),
-        createProductCommand.similarProducts() == null ? new ArrayList<>() :
-            createProductCommand.similarProducts(),
+        Objects.requireNonNullElse(createProductCommand.deliveryTermIds(), new ArrayList<>()),
+        Objects.requireNonNullElse(createProductCommand.similarProducts(), new ArrayList<>()),
         createProductCommand.prices(),
         createProductCommand.characteristics(),
-        createProductCommand.faq() == null ? new ArrayList<>() : createProductCommand.faq(),
-        createProductCommand.deliveryMethodDetails() == null ? new ArrayList<>() :
-            createProductCommand.deliveryMethodDetails(),
-        createProductCommand.packageOptions() == null ? new ArrayList<>() :
-            createProductCommand.packageOptions(),
-        createProductCommand.mediaAltTexts() == null ? new ArrayList<>() :
-            createProductCommand.mediaAltTexts(),
+        Objects.requireNonNullElse(createProductCommand.faq(), new ArrayList<>()),
+        Objects.requireNonNullElse(createProductCommand.deliveryMethodDetails(), new ArrayList<>()),
+        Objects.requireNonNullElse(createProductCommand.packageOptions(), new ArrayList<>()),
+        Objects.requireNonNullElse(createProductCommand.mediaAltTexts(), new ArrayList<>()),
         ProductMinimumOrderQuantity.of(createProductCommand.minimumOrderQuantity()),
         ProductDiscountExpirationDate.of(
             ZonedDateTime.now().plusDays(createProductCommand.discountExpirationDate())),
         productMedia,
-        productVendorDetailsMedia == null ? new ArrayList<>() : productVendorDetailsMedia
+        Objects.requireNonNullElse(productVendorDetailsMedia, new ArrayList<>())
     );
     return productService.createProduct(operation).process(createProductProcessor);
   }
@@ -1001,6 +997,7 @@ public class ProductRestController {
         productDescription,
         updateProductCommand.categoryId(),
         Objects.requireNonNullElse(updateProductCommand.deliveryMethodIds(), new ArrayList<>()),
+        Objects.requireNonNullElse(updateProductCommand.deliveryTermIds(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.similarProducts(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.prices(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.characteristics(), new ArrayList<>()),

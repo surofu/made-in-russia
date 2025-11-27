@@ -8,52 +8,68 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryTitle implements Serializable {
 
   @Column(name = "title", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "title_translations", nullable = false)
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private CategoryTitle(String title) {
-    if (StringUtils.trimToNull(title) == null) {
+  public CategoryTitle(String value, Map<String, String> translations) {
+    if (StringUtils.trimToNull(value) == null) {
       throw new LocalizedValidationException("validation.category.title.empty");
     }
 
-    if (title.length() > 255) {
+    if (value.length() > 255) {
       throw new LocalizedValidationException("validation.category.title.max_length");
     }
 
-    this.value = title;
+    this.value = value;
+    this.translations = translations;
   }
 
-  public static CategoryTitle of(String title) {
-    return new CategoryTitle(title);
+  public CategoryTitle() {
+    this.value = null;
+    this.translations = null;
   }
 
-  public String getLocalizedValue(Locale locale) {
+  public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-    return Objects.requireNonNullElse(translations.get(locale.getLanguage()), Objects.requireNonNullElse(value, ""));
+    Locale locale = LocaleContextHolder.getLocale();
+    return Objects.requireNonNullElse(translations.get(locale.getLanguage()),
+        Objects.requireNonNullElse(value, ""));
   }
 
   @Override
   public String toString() {
     return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CategoryTitle categoryTitle)) {
+      return false;
+    }
+    return Objects.equals(value, categoryTitle.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 }

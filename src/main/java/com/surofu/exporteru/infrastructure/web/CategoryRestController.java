@@ -6,6 +6,7 @@ import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
 import com.surofu.exporteru.core.model.category.CategoryDescription;
 import com.surofu.exporteru.core.model.category.CategoryLabel;
+import com.surofu.exporteru.core.model.category.CategoryMetaDescription;
 import com.surofu.exporteru.core.model.category.CategoryName;
 import com.surofu.exporteru.core.model.category.CategorySlug;
 import com.surofu.exporteru.core.model.category.CategoryTitle;
@@ -125,7 +126,8 @@ public class CategoryRestController {
       GetCategoryById operation = GetCategoryById.of(categoryId, locale);
       return service.getCategoryById(operation).process(getCategoryByIdProcessor);
     } catch (NumberFormatException e) {
-      GetCategoryBySlug operation = GetCategoryBySlug.of(CategorySlug.of(categoryIdOrSlug), locale);
+      GetCategoryBySlug operation =
+          GetCategoryBySlug.of(new CategorySlug(categoryIdOrSlug), locale);
       return service.getCategoryBySlug(operation).process(getCategoryBySlugProcessor);
     }
   }
@@ -184,20 +186,26 @@ public class CategoryRestController {
       @Parameter(description = "Optional category icon file")
       @RequestPart(value = "icon", required = false) MultipartFile iconFile
   ) {
-    CategoryName categoryName = CategoryName.of(command.name());
-    categoryName.setTranslations(command.nameTranslations());
-    CategoryTitle categoryTitle = CategoryTitle.of(Objects.requireNonNullElse(command.title(), command.name()));
-    categoryTitle.setTranslations(Objects.requireNonNullElse(command.titleTranslations(), command.nameTranslations()));
-    CategoryLabel categoryLabel = CategoryLabel.of(Objects.requireNonNullElse(command.label(), command.name()));
-    categoryLabel.setTranslations(Objects.requireNonNullElse(command.labelTranslations(), command.nameTranslations()));
-    CategoryDescription categoryDescription = CategoryDescription.of(command.description());
-    categoryDescription.setTranslations(command.descriptionTranslations());
+    CategoryName categoryName = new CategoryName(command.name(), command.nameTranslations());
+    CategoryTitle categoryTitle = new CategoryTitle(
+        Objects.requireNonNullElse(command.title(), command.name()),
+        Objects.requireNonNullElse(command.titleTranslations(), command.nameTranslations())
+    );
+    CategoryLabel categoryLabel = new CategoryLabel(
+        Objects.requireNonNullElse(command.label(), command.name()),
+        Objects.requireNonNullElse(command.labelTranslations(), command.nameTranslations())
+    );
+    CategoryDescription categoryDescription =
+        new CategoryDescription(command.description(), command.descriptionTranslations());
+    CategoryMetaDescription categoryMetaDescription =
+        new CategoryMetaDescription(command.metaDescription(), command.metaDescriptionTranslations());
     CreateCategory operation = CreateCategory.of(
         categoryName,
         categoryTitle,
         categoryLabel,
         categoryDescription,
-        CategorySlug.of(command.slug()),
+        categoryMetaDescription,
+        new CategorySlug(command.slug()),
         command.parentId(),
         Objects.requireNonNullElse(command.okvedCategories(), new ArrayList<>()),
         imageFile,
@@ -269,21 +277,27 @@ public class CategoryRestController {
       @Parameter(description = "New category icon file (optional)")
       @RequestPart(value = "icon", required = false) MultipartFile iconFile
   ) {
-    CategoryName categoryName = CategoryName.of(command.name());
-    categoryName.setTranslations(command.nameTranslations());
-    CategoryTitle categoryTitle = CategoryTitle.of(Objects.requireNonNullElse(command.title(), command.name()));
-    categoryTitle.setTranslations(Objects.requireNonNullElse(command.titleTranslations(), command.nameTranslations()));
-    CategoryLabel categoryLabel = CategoryLabel.of(Objects.requireNonNullElse(command.label(), command.name()));
-    categoryLabel.setTranslations(Objects.requireNonNullElse(command.labelTranslations(), command.nameTranslations()));
-    CategoryDescription categoryDescription = CategoryDescription.of(command.description());
-    categoryDescription.setTranslations(command.descriptionTranslations());
+    CategoryName categoryName = new CategoryName(command.name(), command.nameTranslations());
+    CategoryTitle categoryTitle = new CategoryTitle(
+        Objects.requireNonNullElse(command.title(), command.name()),
+        Objects.requireNonNullElse(command.titleTranslations(), command.nameTranslations())
+    );
+    CategoryLabel categoryLabel = new CategoryLabel(
+        Objects.requireNonNullElse(command.label(), command.name()),
+        Objects.requireNonNullElse(command.labelTranslations(), command.nameTranslations())
+    );
+    CategoryDescription categoryDescription =
+        new CategoryDescription(command.description(), command.descriptionTranslations());
+    CategoryMetaDescription categoryMetaDescription =
+        new CategoryMetaDescription(command.metaDescription(), command.metaDescriptionTranslations());
     UpdateCategoryById operation = UpdateCategoryById.of(
         id,
         categoryName,
         categoryTitle,
         categoryLabel,
         categoryDescription,
-        CategorySlug.of(command.slug()),
+        categoryMetaDescription,
+        new CategorySlug(command.slug()),
         command.parentId(),
         Objects.requireNonNullElse(command.okvedCategories(), new ArrayList<>()),
         imageFile,

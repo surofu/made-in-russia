@@ -26,6 +26,7 @@ import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
+import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.service.product.operation.CreateProduct;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ public class ProductCreatingValidator {
       Set.of("video/mp4", "video/avi", "video/mov", "video/mkv", "video/webm");
   private final CategoryRepository categoryRepository;
   private final DeliveryMethodRepository deliveryMethodRepository;
+  private final DeliveryTermRepository deliveryTermRepository;
   private final ProductRepository productRepository;
 
   @Transactional(readOnly = true)
@@ -56,7 +58,13 @@ public class ProductCreatingValidator {
     Optional<Long> notExistDeliveryMethod =
         deliveryMethodRepository.firstNotExists(operation.getDeliveryMethodIds());
     if (notExistDeliveryMethod.isPresent()) {
-      return CreateProduct.Result.deliveryMethodNotFound(notExistDeliveryMethod.get());
+      return CreateProduct.Result.deliveryTermNotFound(notExistDeliveryMethod.get());
+    }
+
+    Optional<Long> notExistDeliveryTerm =
+        deliveryTermRepository.firstNotExists(operation.getDeliveryTermIds());
+    if (notExistDeliveryTerm.isPresent()) {
+      return CreateProduct.Result.deliveryMethodNotFound(notExistDeliveryTerm.get());
     }
 
     Optional<Long> notExistSimilarProduct =

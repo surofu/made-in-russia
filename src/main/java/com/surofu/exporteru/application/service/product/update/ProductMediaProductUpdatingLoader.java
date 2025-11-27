@@ -92,10 +92,10 @@ public class ProductMediaProductUpdatingLoader {
       product.setPreviewImageUrl(ProductPreviewImageUrl.of(resultMedia.stream()
           .sorted(Comparator.comparingInt(a -> a.getPosition().getValue()))
           .toList().get(0).getUrl().getValue()));
+      productRepository.save(product);
       storageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));
       mediaRepository.saveAll(resultMedia);
       mediaRepository.deleteAll(mediaToDelete);
-      productRepository.save(product);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

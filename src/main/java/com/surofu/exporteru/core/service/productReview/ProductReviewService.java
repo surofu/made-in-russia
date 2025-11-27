@@ -1,6 +1,11 @@
-package com.surofu.exporteru.core.service.product.review;
+package com.surofu.exporteru.core.service.productReview;
 
-import com.surofu.exporteru.core.service.product.review.operation.*;
+import com.surofu.exporteru.core.service.productReview.operation.CreateProductReview;
+import com.surofu.exporteru.core.service.productReview.operation.DeleteProductReview;
+import com.surofu.exporteru.core.service.productReview.operation.DeleteProductReviewById;
+import com.surofu.exporteru.core.service.productReview.operation.GetProductReviewPage;
+import com.surofu.exporteru.core.service.productReview.operation.GetProductReviewPageByProductId;
+import com.surofu.exporteru.core.service.productReview.operation.UpdateProductReview;
 
 public interface ProductReviewService {
     GetProductReviewPage.Result getProductReviewPage(GetProductReviewPage operation);
