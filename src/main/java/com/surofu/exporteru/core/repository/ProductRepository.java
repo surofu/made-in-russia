@@ -37,6 +37,8 @@ public interface ProductRepository {
 
   boolean existsById(Long productId);
 
+  boolean existsByIdAndStatusApproved(Long productId);
+
   List<SearchHintView> findHintViews(String searchTerm, Long vendorId, Locale locale);
 
   void delete(Product product);

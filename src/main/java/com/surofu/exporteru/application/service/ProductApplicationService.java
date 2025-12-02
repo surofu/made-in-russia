@@ -102,6 +102,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -257,7 +258,7 @@ public class ProductApplicationService implements ProductService {
       GetProductDeliveryMethodsByProductId operation) {
     Long productId = operation.getProductId();
 
-    boolean productExists = productRepository.existsById(productId);
+    boolean productExists = productRepository.existsByIdAndStatusApproved(productId);
 
     if (!productExists) {
       return GetProductDeliveryMethodsByProductId.Result.notFound(productId);
@@ -294,7 +295,7 @@ public class ProductApplicationService implements ProductService {
       GetProductCharacteristicsByProductId operation) {
     Long productId = operation.getProductId();
 
-    if (!productRepository.existsById(productId)) {
+    if (!productRepository.existsByIdAndStatusApproved(productId)) {
       return GetProductCharacteristicsByProductId.Result.notFound(productId);
     }
 
@@ -312,7 +313,7 @@ public class ProductApplicationService implements ProductService {
       GetProductFaqByProductId operation) {
     Long productId = operation.getProductId();
 
-    if (!productRepository.existsById(productId)) {
+    if (!productRepository.existsByIdAndStatusApproved(productId)) {
       return GetProductFaqByProductId.Result.notFound(productId);
     }
 
@@ -402,24 +403,24 @@ public class ProductApplicationService implements ProductService {
   @Override
   @Transactional
   public DeleteProductById.Result deleteProductById(DeleteProductById operation) {
-    Optional<Product> product =
-        productRepository.getProductByIdWithAnyApproveStatus(operation.getProductId());
-
-    if (product.isEmpty()) {
-      return DeleteProductById.Result.notFound(operation.getProductId());
-    }
-
     try {
-      productRepository.delete(product.get());
+      Optional<Product> productOptional =
+          productRepository.getProductByIdWithAnyApproveStatus(operation.getProductId());
+
+      if (productOptional.isEmpty()) {
+        return DeleteProductById.Result.notFound(operation.getProductId());
+      }
+
+      Product product = productOptional.get();
+      productRepository.delete(product);
+      productSummaryCacheManager.clearAll();
+      productCacheManager.clearById(operation.getProductId());
+      generalCacheService.clear();
+      return DeleteProductById.Result.success(operation.getProductId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return DeleteProductById.Result.deleteError(e);
     }
-
-    productSummaryCacheManager.clearAll();
-    productCacheManager.clearById(operation.getProductId());
-    generalCacheService.clear();
-    return DeleteProductById.Result.success(operation.getProductId());
   }
 
   @Transactional(readOnly = true)

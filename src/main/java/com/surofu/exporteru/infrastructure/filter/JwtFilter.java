@@ -72,8 +72,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 Optional<Session> currentSession = sessionRepository.getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionInfo.getDeviceId());
 
-                // Todo: Just for testing
-                if (true) {
+                if (currentSession.isPresent()) {
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             securityUser,
                             null,

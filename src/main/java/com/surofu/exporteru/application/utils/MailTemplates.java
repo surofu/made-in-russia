@@ -23,10 +23,14 @@ public final class MailTemplates {
       return getEmailVerificationMessageZh(code, expirationDate);
     }
 
+    if (locale.getLanguage().equalsIgnoreCase("hi")) {
+      return getEmailVerificationMessageHi(code, expirationDate);
+    }
+
     return getEmailVerificationMessageEn(code, expirationDate);
   }
 
-  public static String getDeleteAccountMail(Locale locale) throws MailException {
+  public static String getDeleteAccountMail(Locale locale) {
     if (locale.getLanguage().equalsIgnoreCase("ru")) {
       return getDeleteAccountMailEn();
     }
@@ -39,11 +43,15 @@ public final class MailTemplates {
       return getDeleteAccountMailZh();
     }
 
+    if (locale.getLanguage().equalsIgnoreCase("hi")) {
+      return getDeleteAccountMailHi();
+    }
+
     return getDeleteAccountMailEn();
   }
 
   public static String getConfirmDeleteAccountMail(String code, String expirationDate,
-                                                   Locale locale) throws MailException {
+                                                   Locale locale) {
     if (locale.getLanguage().equalsIgnoreCase("en")) {
       return getConfirmDeleteAccountMailEn(code, expirationDate);
     }
@@ -56,7 +64,31 @@ public final class MailTemplates {
       return getConfirmDeleteAccountMailZh(code, expirationDate);
     }
 
+    if (locale.getLanguage().equalsIgnoreCase("hi")) {
+      return getConfirmDeleteAccountMailHi(code, expirationDate);
+    }
+
     return getConfirmDeleteAccountMailEn(code, expirationDate);
+  }
+
+  public static String getRecoverPasswordMail(String code, String expirationDate, Locale locale) {
+    if (locale.getLanguage().equalsIgnoreCase("en")) {
+      return getRecoverPasswordMailEn(code, expirationDate);
+    }
+
+    if (locale.getLanguage().equalsIgnoreCase("ru")) {
+      return getRecoverPasswordMailRu(code, expirationDate);
+    }
+
+    if (locale.getLanguage().equalsIgnoreCase("zh")) {
+      return getRecoverPasswordMailZh(code, expirationDate);
+    }
+
+    if (locale.getLanguage().equalsIgnoreCase("hi")) {
+      return getRecoverPasswordMailHi(code, expirationDate);
+    }
+
+    return getRecoverPasswordMailEn(code, expirationDate);
   }
 
   public static String getOrderMail(String productUrl, String productTitle,
@@ -453,6 +485,65 @@ public final class MailTemplates {
         """.formatted(code, expirationDate);
   }
 
+  private static String getEmailVerificationMessageHi(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+        <html lang="hi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ईमेल पुष्टिकरण</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    color: #333;
+                    padding: 20px;
+                }
+        
+                .container {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+        
+                h1 {
+                    font-size: 72px;
+                    color: #4CAF50;
+                    text-align: center;
+                }
+        
+                .footer {
+                    margin-top: 20px;
+                    font-size: 14px;
+                    text-align: center;
+                }
+        
+                img {
+                    display: block;
+                    margin: 0 auto 20px;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="container">
+            <h2>नमस्ते!</h2>
+            <p>Exporteru में पंजीकरण के लिए धन्यवाद! अपना पंजीकरण पूरा करने के लिए, कृपया नीचे दिए गए कोड का उपयोग करके अपने ईमेल की पुष्टि करें:</p>
+            <strong>आपका पुष्टिकरण कोड:</strong>
+            <h1>%s</h1>
+            <p>कृपया इस कोड को हमारी वेबसाइट पर संबंधित क्षेत्र में दर्ज करें। यदि आपने Exporteru.com पर पंजीकरण नहीं किया है, तो कृपया इस संदेश को अनदेखा करें।</p>
+            <p>कोड इस तिथि तक वैध है: %s</p>
+            <p>Exporteru को चुनने के लिए धन्यवाद!</p>
+            <div class="footer">
+                <p>सादर, <br>exporteru.com टीम</p>
+            </div>
+        </div>
+        </body>
+        </html>
+        """.formatted(code, expirationDate);
+  }
+
   private static String getDeleteAccountMailEn() {
     return """
         <!DOCTYPE html>
@@ -604,6 +695,59 @@ public final class MailTemplates {
                 <p>请重新完成注册程序。如果您没有在 Exporteru.com 上注册，请忽略此消息。</p>
                 <div class="footer">
                     <p>此致敬礼，<br>exporteru.com 团队</p>
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>
+        """;
+  }
+
+  private static String getDeleteAccountMailHi() {
+    return """
+        <!DOCTYPE html>
+        <html lang="hi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>खाता हटाना</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    color: #333;
+                    padding: 20px;
+                }
+        
+                .container {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+        
+                h2 {
+                    color: #d9534f;
+                }
+        
+                .footer {
+                    margin-top: 20px;
+                    font-size: 14px;
+                    text-align: center;
+                    color: #666;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="container">
+            <div>
+                <h2>नमस्ते!</h2>
+                <p>exporteru.com पर आपका खाता हटा दिया गया है।</p>
+                <p>कृपया पंजीकरण प्रक्रिया को फिर से पूरा करें। यदि आपने Exporteru.com पर पंजीकरण नहीं किया है, तो कृपया इस संदेश को अनदेखा करें।</p>
+                <div class="footer">
+                    <p>सादर, <br>exporteru.com टीम</p>
                 </div>
             </div>
         </div>
@@ -786,6 +930,345 @@ public final class MailTemplates {
                         <p>此致，<br>exporteru.com 团队</p>
                     </div>
                 </div>
+                </body>
+                </html>
+        """.formatted(code, expirationDate);
+  }
+
+  private static String getConfirmDeleteAccountMailHi(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+        <html lang="hi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>खाता हटाने की पुष्टि</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    color: #333;
+                    padding: 20px;
+                }
+        
+                .container {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+        
+                h1 {
+                    font-size: 72px;
+                    color: #4CAF50;
+                    text-align: center;
+                }
+        
+                .footer {
+                    margin-top: 20px;
+                    font-size: 14px;
+                    text-align: center;
+                }
+        
+                img {
+                    display: block;
+                    margin: 0 auto 20px;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="container">
+            <h2>नमस्ते!</h2>
+            <p>अपना खाता हटाने की प्रक्रिया पूरी करने के लिए, कृपया नीचे दिए गए कोड का उपयोग करके हटाने की पुष्टि करें:</p>
+            <strong>आपका पुष्टिकरण कोड:</strong>
+            <h1>%s</h1>
+            <p>कृपया इस कोड को हमारी वेबसाइट पर संबंधित क्षेत्र में दर्ज करें। यदि आपने Exporteru.com पर पंजीकरण नहीं किया है, तो कृपया इस संदेश को अनदेखा करें।</p>
+            <p>कोड इस तिथि तक वैध है: %s</p>
+            <p>Exporteru को चुनने के लिए धन्यवाद!</p>
+            <div class="footer">
+                <p>सादर, <br>exporteru.com टीम</p>
+            </div>
+        </div>
+        </body>
+        </html>
+        """.formatted(code, expirationDate);
+  }
+
+  public static String getRecoverPasswordMailRu(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Восстановление пароля</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            font-size: 72px;
+                            color: #4CAF50;
+                            text-align: center;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                        }
+                        img {
+                            display: block;
+                            margin: 0 auto 20px;
+                        }
+                        .button {
+                            display: inline-block;
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 12px 24px;
+                            text-align: center;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Восстановление пароля</h2>
+                        <p>Вы получили это письмо, потому что был запрошен сброс пароля для вашей учетной записи в Exporteru.</p>
+        
+                        <strong>Ваш код для восстановления:</strong>
+                        <h1>%s</h1>
+        
+                        <p>Пожалуйста, введите этот код на странице восстановления пароля. Если вы не запрашивали сброс пароля, проигнорируйте это письмо или свяжитесь с нашей поддержкой.</p>
+        
+                        <p>Код действителен до: %s</p>
+        
+                        <p>Если у вас возникли проблемы, пожалуйста, свяжитесь с нашей службой поддержки.</p>
+        
+                        <div class="footer">
+                            <p>С уважением,<br>Команда exporteru.com</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+        """.formatted(code, expirationDate);
+  }
+
+  public static String getRecoverPasswordMailEn(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Recovery</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            font-size: 72px;
+                            color: #4CAF50;
+                            text-align: center;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                        }
+                        img {
+                            display: block;
+                            margin: 0 auto 20px;
+                        }
+                        .button {
+                            display: inline-block;
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 12px 24px;
+                            text-align: center;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Password Recovery</h2>
+                        <p>You are receiving this email because a password reset was requested for your Exporteru account.</p>
+
+                        <strong>Your recovery code:</strong>
+                        <h1>%s</h1>
+
+                        <p>Please enter this code on the password recovery page. If you did not request a password reset, please ignore this email or contact our support team.</p>
+
+                        <p>This code is valid until: %s</p>
+
+                        <p>If you encounter any issues, please contact our support team.</p>
+
+                        <div class="footer">
+                            <p>Best regards,<br>The exporteru.com Team</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+        """.formatted(code, expirationDate);
+  }
+
+  public static String getRecoverPasswordMailZh(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+                <html lang="zh">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>密码恢复</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            font-size: 72px;
+                            color: #4CAF50;
+                            text-align: center;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                        }
+                        img {
+                            display: block;
+                            margin: 0 auto 20px;
+                        }
+                        .button {
+                            display: inline-block;
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 12px 24px;
+                            text-align: center;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>密码恢复</h2>
+                        <p>您收到此邮件是因为您的 Exporteru 账户请求了密码重置。</p>
+
+                        <strong>您的恢复代码：</strong>
+                        <h1>%s</h1>
+
+                        <p>请在密码恢复页面输入此代码。如果您未请求密码重置，请忽略此邮件或联系我们的支持团队。</p>
+
+                        <p>此代码有效期至：%s</p>
+
+                        <p>如果您遇到任何问题，请联系我们的支持团队。</p>
+
+                        <div class="footer">
+                            <p>此致，<br>exporteru.com 团队</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+        """.formatted(code, expirationDate);
+  }
+
+  public static String getRecoverPasswordMailHi(String code, String expirationDate) {
+    return """
+        <!DOCTYPE html>
+                <html lang="hi">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>पासवर्ड पुनर्प्राप्ति</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            color: #333;
+                            padding: 20px;
+                        }
+                        .container {
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            font-size: 72px;
+                            color: #4CAF50;
+                            text-align: center;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            text-align: center;
+                        }
+                        img {
+                            display: block;
+                            margin: 0 auto 20px;
+                        }
+                        .button {
+                            display: inline-block;
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 12px 24px;
+                            text-align: center;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>पासवर्ड पुनर्प्राप्ति</h2>
+                        <p>आपको यह ईमेल प्राप्त हुआ है क्योंकि आपके Exporteru खाते के लिए पासवर्ड रीसेट का अनुरोध किया गया था।</p>
+
+                        <strong>आपका पुनर्प्राप्ति कोड:</strong>
+                        <h1>%s</h1>
+
+                        <p>कृपया पासवर्ड पुनर्प्राप्ति पृष्ठ पर इस कोड को दर्ज करें। यदि आपने पासवर्ड रीसेट का अनुरोध नहीं किया है, तो कृपया इस ईमेल को अनदेखा करें या हमारी सहायता टीम से संपर्क करें।</p>
+
+                        <p>यह कोड इस तारीख तक वैध है: %s</p>
+
+                        <p>यदि आपको कोई समस्या आती है, तो कृपया हमारी सहायता टीम से संपर्क करें।</p>
+
+                        <div class="footer">
+                            <p>सादर,<br>exporteru.com टीम</p>
+                        </div>
+                    </div>
                 </body>
                 </html>
         """.formatted(code, expirationDate);

@@ -24,12 +24,14 @@ import com.surofu.exporteru.core.model.product.price.ProductPriceDiscount;
 import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
+import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
 import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -49,11 +51,11 @@ public class ProductUpdatingValidator {
   private final ProductRepository productRepository;
 
   public UpdateProduct.Result validate(UpdateProduct operation) {
-    if (productRepository.existsById(operation.getProductId())) {
+    if (!productRepository.existsById(operation.getProductId())) {
       return UpdateProduct.Result.productNotFound(operation.getProductId());
     }
-    if (!productRepository.existsWithUserId(
-        operation.getProductId(),
+    if (!Objects.equals(UserRole.ROLE_ADMIN, operation.getSecurityUser().getUser().getRole())
+        && !productRepository.existsWithUserId(operation.getProductId(),
         operation.getSecurityUser().getUser().getId())
     ) {
       return UpdateProduct.Result.invalidOwner(operation.getProductId(),
@@ -72,10 +74,12 @@ public class ProductUpdatingValidator {
     if (notExistDeliveryTerm.isPresent()) {
       return UpdateProduct.Result.deliveryTermNotFound(notExistDeliveryTerm.get());
     }
-    Optional<Long> notExistSimilarProduct =
-        productRepository.firstNotExists(operation.getSimilarProductIds());
-    if (notExistSimilarProduct.isPresent()) {
-      return UpdateProduct.Result.similarProductNotFound(notExistSimilarProduct.get());
+    if (!operation.getSimilarProductIds().isEmpty()) {
+      Optional<Long> notExistSimilarProduct =
+          productRepository.firstNotExists(operation.getSimilarProductIds());
+      if (notExistSimilarProduct.isPresent()) {
+        return UpdateProduct.Result.similarProductNotFound(notExistSimilarProduct.get());
+      }
     }
 
     for (MultipartFile file : operation.getProductMedia()) {

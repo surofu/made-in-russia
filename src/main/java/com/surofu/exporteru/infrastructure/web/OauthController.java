@@ -115,6 +115,10 @@ public class OauthController {
       return chinaTelegramBot;
     }
 
+    if (englishTelegramBotConfig.getEnable()) {
+      return englishTelegramBot;
+    }
+
     return null;
   }
 }

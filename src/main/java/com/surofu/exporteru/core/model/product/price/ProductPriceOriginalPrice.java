@@ -29,8 +29,7 @@ public final class ProductPriceOriginalPrice implements Serializable {
         }
 
         if (integerDigits(originalPrice) > 15) {
-            // Todo: Correct message
-            throw new LocalizedValidationException("validation.product.price.original.negative");
+            throw new LocalizedValidationException("validation.product.price.original.too_long");
         }
 
         this.value = originalPrice;

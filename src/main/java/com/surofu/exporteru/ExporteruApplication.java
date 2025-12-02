@@ -13,14 +13,6 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-/**
- * TODO: Fix Open Api Documentation
- * TODO: Simplify Open APi Documentation
- * TODO: Make IN messages responses
- * TODO: Make Jsonb translation object
- * TODO: Make Sql migration hstore to jsonb
- */
-
 @EnableAsync
 @EnableCaching
 @SpringBootApplication

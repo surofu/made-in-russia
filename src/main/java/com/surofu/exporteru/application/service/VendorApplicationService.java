@@ -331,18 +331,18 @@ public class VendorApplicationService implements VendorService {
     return UpdateVendorFaq.Result.success(VendorFaqDto.of(savedFaq));
   }
 
-  // TODO: forceUpdateVendorById. Make dynamic translation
   @Override
   @Transactional
   public ForceUpdateVendorById.Result forceUpdateVendorById(ForceUpdateVendorById operation) {
     try {
       // Validation
-      User user = userRepository.getById(operation.getId())
-          .orElse(null);
+      Optional<User> userOptional = userRepository.getById(operation.getId());
 
-      if (user == null) {
+      if (userOptional.isEmpty()) {
         return ForceUpdateVendorById.Result.notFound(operation.getId());
       }
+
+      User user = userOptional.get();
 
       // Validate unique fields
       ForceUpdateVendorById.Result validationResult = validateUniqueFields(operation, user);

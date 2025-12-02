@@ -13,6 +13,7 @@ import com.surofu.exporteru.core.model.product.price.ProductPrice;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.exporteru.core.model.user.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -86,6 +87,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("position")
@@ -103,6 +105,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -111,6 +114,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -122,6 +126,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -130,6 +135,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -138,6 +144,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -147,6 +154,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
+      cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -190,11 +198,12 @@ public final class Product implements Serializable {
     if (!(o instanceof Product product)) {
       return false;
     }
-    return Objects.equals(id, product.id);
+    return Objects.equals(title, product.title)
+        && Objects.equals(description, product.description);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return getClass().hashCode();
   }
 }

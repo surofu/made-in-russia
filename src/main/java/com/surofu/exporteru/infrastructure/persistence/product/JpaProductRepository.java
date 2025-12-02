@@ -89,6 +89,11 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public boolean existsById(Long productId) {
+        return repository.existsById(productId);
+    }
+
+    @Override
+    public boolean existsByIdAndStatusApproved(Long productId) {
         return repository.existsByIdAndApproveStatus(productId, ApproveStatus.APPROVED);
     }
 

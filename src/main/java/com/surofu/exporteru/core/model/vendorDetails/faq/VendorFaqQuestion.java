@@ -1,5 +1,6 @@
 package com.surofu.exporteru.core.model.vendorDetails.faq;
 
+import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
@@ -27,14 +28,13 @@ public final class VendorFaqQuestion implements Serializable {
   @Column(name = "question_translations")
   private Map<String, String> translations = new HashMap<>();
 
-  // TODO: Translate
   private VendorFaqQuestion(String question) {
     if (question == null || question.trim().isEmpty()) {
-      throw new IllegalArgumentException("Вопрос не может быть пустым");
+      throw new LocalizedValidationException("validation.faq.question.empty");
     }
 
     if (question.length() >= 20_000) {
-      throw new IllegalArgumentException("Вопрос не может быть больше 20,000 символов");
+      throw new LocalizedValidationException("validation.faq.question.max_length");
     }
 
     this.value = question;
