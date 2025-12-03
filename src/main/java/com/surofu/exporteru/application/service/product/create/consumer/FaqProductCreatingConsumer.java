@@ -6,7 +6,6 @@ import com.surofu.exporteru.core.model.product.faq.ProductFaq;
 import com.surofu.exporteru.core.model.product.faq.ProductFaqAnswer;
 import com.surofu.exporteru.core.model.product.faq.ProductFaqQuestion;
 import com.surofu.exporteru.core.repository.ProductFaqRepository;
-import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.CreateProduct;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -25,14 +23,11 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 public class FaqProductCreatingConsumer implements ProductCreatingConsumer {
   private final ProductFaqRepository faqRepository;
   private final TranslationRepository translationRepository;
-  private final ProductRepository productRepository;
 
-  @Async
   @Override
   @Transactional
-  public void accept(Long productId, CreateProduct operation) {
+  public void accept(Product product, CreateProduct operation) {
     try {
-      Product product = productRepository.getById(productId).orElseThrow();
       List<ProductFaq> faqs = new ArrayList<>();
       List<Map<String, String>> translatedTexts = translateTexts(operation);
 

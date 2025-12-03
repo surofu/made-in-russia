@@ -44,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class CategoryApplicationService implements CategoryService {
-
   private final CategoryRepository categoryRepository;
   private final TranslationRepository translationRepository;
   private final FileStorageRepository fileStorageRepository;

@@ -1,48 +1,45 @@
 package com.surofu.exporteru.application.cache;
 
 import com.surofu.exporteru.application.dto.GeneralDto;
+import java.time.Duration;
+import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.Locale;
-
 @Component
 public class GeneralCacheService {
-    @Value("${app.redis.ttl-duration}")
-    private Duration ttl;
+  private final String CACHE_NAME = "GENERAL";
+  private final RedisTemplate<String, Object> redisTemplate;
+  private final HashOperations<String, String, GeneralDto> hashOperations;
+  @Value("${app.redis.ttl-duration}")
+  private Duration ttl;
 
-    private final String CACHE_NAME = "GENERAL";
+  public GeneralCacheService(RedisTemplate<String, Object> redisTemplate) {
+    this.redisTemplate = redisTemplate;
+    this.hashOperations = this.redisTemplate.opsForHash();
+  }
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final HashOperations<String, String, GeneralDto> hashOperations;
+  public GeneralDto get(Locale locale) {
+    return hashOperations.get(CACHE_NAME, createHash(locale));
+  }
 
-    public GeneralCacheService(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-        this.hashOperations = this.redisTemplate.opsForHash();
-    }
+  public void set(Locale locale, GeneralDto generalDto) {
+    hashOperations.put(CACHE_NAME, createHash(locale), generalDto);
+    redisTemplate.expire(CACHE_NAME, ttl);
+  }
 
-    public GeneralDto get(Locale locale) {
-        return hashOperations.get(CACHE_NAME, createHash(locale));
-    }
+  public void clear() {
+    redisTemplate.delete(CACHE_NAME);
+  }
 
-    public void set(Locale locale, GeneralDto generalDto) {
-        hashOperations.put(CACHE_NAME, createHash(locale), generalDto);
-        redisTemplate.expire(CACHE_NAME, ttl);
-    }
+  public boolean exists(Locale locale) {
+    return hashOperations.hasKey(CACHE_NAME, createHash(locale));
+  }
 
-    public void clear() {
-        redisTemplate.delete(CACHE_NAME);
-    }
-
-    public boolean exists(Locale locale) {
-        return hashOperations.hasKey(CACHE_NAME, createHash(locale));
-    }
-
-    private String createHash(Locale locale) {
-        String ALL_CACHE_NAME = "ALL";
-        return ALL_CACHE_NAME + "_" + locale.getLanguage();
-    }
+  private String createHash(Locale locale) {
+    String ALL_CACHE_NAME = "ALL";
+    return ALL_CACHE_NAME + "_" + locale.getLanguage();
+  }
 }

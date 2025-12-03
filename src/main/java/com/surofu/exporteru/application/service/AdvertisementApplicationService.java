@@ -39,7 +39,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Service
 @RequiredArgsConstructor
 public class AdvertisementApplicationService implements AdvertisementService {
-
   private final AdvertisementRepository advertisementRepository;
   private final TranslationRepository translationRepository;
   private final FileStorageRepository fileStorageRepository;

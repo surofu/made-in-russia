@@ -6,7 +6,6 @@ import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeli
 import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsName;
 import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsValue;
 import com.surofu.exporteru.core.repository.ProductDeliveryMethodDetailsRepository;
-import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.CreateProduct;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -26,14 +24,11 @@ public class DeliveryMethodDetailsProductCreatingConsumer
     implements ProductCreatingConsumer {
   private final ProductDeliveryMethodDetailsRepository deliveryMethodDetailsRepository;
   private final TranslationRepository translationRepository;
-  private final ProductRepository productRepository;
 
-  @Async
   @Override
   @Transactional
-  public void accept(Long productId, CreateProduct operation) {
+  public void accept(Product product, CreateProduct operation) {
     try {
-      Product product = productRepository.getById(productId).orElseThrow();
       List<ProductDeliveryMethodDetails> deliveryMethodDetailsList = new ArrayList<>();
       List<Map<String, String>> translatedTexts = translateTexts(operation);
 

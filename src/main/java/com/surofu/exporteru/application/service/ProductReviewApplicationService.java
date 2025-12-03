@@ -21,7 +21,6 @@ import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.ProductReviewRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
-import com.surofu.exporteru.core.repository.UserRepository;
 import com.surofu.exporteru.core.repository.VendorViewRepository;
 import com.surofu.exporteru.core.repository.specification.ProductReviewSpecifications;
 import com.surofu.exporteru.core.service.productReview.ProductReviewService;
@@ -64,10 +63,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class ProductReviewApplicationService implements ProductReviewService {
-
   private final ProductReviewRepository productReviewRepository;
   private final ProductRepository productRepository;
-  private final UserRepository userRepository;
   private final VendorViewRepository vendorViewRepository;
   private final TranslationRepository translationRepository;
   private final FileStorageRepository fileStorageRepository;

@@ -87,10 +87,8 @@ public class AuthApplicationService implements AuthService {
   private final PasswordEncoder passwordEncoder;
   private final MailService mailService;
   private final SessionRepository sessionRepository;
-
   @Value("${app.redis.verification-ttl-duration}")
   private Duration verificationTtl;
-
   @Value("${app.redis.recover-password-ttl-duration}")
   private Duration recoverPasswordTtl;
 

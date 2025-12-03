@@ -9,7 +9,6 @@ import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
 import com.surofu.exporteru.core.repository.ProductPriceRepository;
-import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,15 +26,12 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @RequiredArgsConstructor
 public class PricesProductUpdatingConsumer implements ProductUpdatingConsumer {
   private final ProductPriceRepository priceRepository;
-  private final ProductRepository productRepository;
   private final TranslationRepository translationRepository;
 
-  @Async
   @Override
   @Transactional
-  public void accept(Long productId, UpdateProduct operation) {
+  public void accept(Product product, UpdateProduct operation) {
     try {
-      Product product = productRepository.getById(productId).orElseThrow();
       List<ProductPrice> newPrices = new ArrayList<>();
       List<ProductPrice> oldPrices = new ArrayList<>();
 
@@ -45,7 +40,8 @@ public class PricesProductUpdatingConsumer implements ProductUpdatingConsumer {
         price.setProduct(product);
         price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
         price.setDiscount(ProductPriceDiscount.of(command.discount()));
-        price.setQuantityRange(ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
+        price.setQuantityRange(
+            ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
         price.setCurrency(ProductPriceCurrency.of(command.currency()));
         price.setUnit(new ProductPriceUnit(command.unit(), new HashMap<>()));
 

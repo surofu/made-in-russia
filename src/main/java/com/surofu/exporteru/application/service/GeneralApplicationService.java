@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class GeneralApplicationService implements GeneralService {
-
   private final ProductSummaryViewRepository productSummaryViewRepository;
   private final CategoryRepository categoryRepository;
   private final AdvertisementRepository advertisementRepository;

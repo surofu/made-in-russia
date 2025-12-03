@@ -143,7 +143,6 @@ public class MeApplicationService implements MeService {
   private final FileStorageRepository fileStorageRepository;
   private final TranslationRepository translationRepository;
   private final ProductRepository productRepository;
-
   private final MailService mailService;
   private final DeleteAccountCache deleteAccountCache;
   private final JpaVendorViewRepository vendorViewRepository;

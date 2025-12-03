@@ -2,8 +2,6 @@ package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.application.cache.CategoryCacheManager;
 import com.surofu.exporteru.application.cache.GeneralCacheService;
-import com.surofu.exporteru.application.cache.ProductCacheManager;
-import com.surofu.exporteru.application.cache.ProductSummaryCacheManager;
 import com.surofu.exporteru.application.dto.DeliveryMethodDto;
 import com.surofu.exporteru.application.dto.SearchHintDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
@@ -102,7 +100,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,11 +123,9 @@ public class ProductApplicationService implements ProductService {
   private final ProductReviewMediaRepository productReviewMediaRepository;
   private final ProductDeliveryMethodDetailsRepository productDeliveryMethodDetailsRepository;
   private final ProductPackageOptionsRepository productPackageOptionsRepository;
-  private final ProductCacheManager productCacheManager;
   private final LocalizationManager localizationManager;
   private final ProductCreatingService productCreatingService;
   private final ProductUpdatingService productUpdatingService;
-  private final ProductSummaryCacheManager productSummaryCacheManager;
   private final GeneralCacheService generalCacheService;
   private final CategoryCacheManager categoryCacheManager;
   private final DeliveryTermRepository deliveryTermRepository;
@@ -138,14 +133,6 @@ public class ProductApplicationService implements ProductService {
   @Override
   @Transactional(readOnly = true)
   public GetProductById.Result getProductById(GetProductById operation) {
-    // Check cache
-    ProductDto cachedProduct = productCacheManager.getProduct(operation.getProductId(),
-        operation.getLocale().getLanguage());
-
-    if (cachedProduct != null) {
-      return GetProductById.Result.success(cachedProduct);
-    }
-
     // Process
     List<ApproveStatus> approveStatuses = new ArrayList<>();
     approveStatuses.add(ApproveStatus.APPROVED);
@@ -413,8 +400,6 @@ public class ProductApplicationService implements ProductService {
 
       Product product = productOptional.get();
       productRepository.delete(product);
-      productSummaryCacheManager.clearAll();
-      productCacheManager.clearById(operation.getProductId());
       generalCacheService.clear();
       return DeleteProductById.Result.success(operation.getProductId());
     } catch (Exception e) {

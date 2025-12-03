@@ -8,13 +8,11 @@ import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteris
 import com.surofu.exporteru.core.repository.ProductCharacteristicRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.CreateProduct;
-import com.surofu.exporteru.infrastructure.persistence.product.JpaProductRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -25,14 +23,11 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 public class CharacteristicsProductCreatingConsumer implements ProductCreatingConsumer {
   private final ProductCharacteristicRepository characteristicRepository;
   private final TranslationRepository translationRepository;
-  private final JpaProductRepository productRepository;
 
-  @Async
   @Override
   @Transactional
-  public void accept(Long productId, CreateProduct operation) {
+  public void accept(Product product, CreateProduct operation) {
     try {
-      Product product = productRepository.getById(productId).orElseThrow();
       List<ProductCharacteristic> productCharacteristics = new ArrayList<>();
       List<Map<String, String>> translatedTexts = translateTexts(operation);
 

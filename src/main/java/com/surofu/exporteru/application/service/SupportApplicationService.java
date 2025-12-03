@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SupportApplicationService implements SupportService {
-
   private final MailService mailService;
   private final TranslationRepository translationRepository;
 

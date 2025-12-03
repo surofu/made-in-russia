@@ -1,48 +1,40 @@
 package com.surofu.exporteru.application.cache;
 
 import com.surofu.exporteru.application.dto.WebLocalizationDto;
+import java.time.Duration;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.Map;
-
 @Component
 public class WebLocalizationCacheManager {
+  private final String CACHE_NAME = "WEB_LOCALIZATION";
+  private final RedisTemplate<String, Object> redisTemplate;
+  private final HashOperations<String, String, WebLocalizationDto> hashOperations;
+  @Value("${app.redis.ttl-duration}")
+  private Duration ttl;
 
-    @Value("${app.redis.ttl-duration}")
-    private Duration ttl;
+  public WebLocalizationCacheManager(RedisTemplate<String, Object> redisTemplate) {
+    this.redisTemplate = redisTemplate;
+    this.hashOperations = redisTemplate.opsForHash();
+  }
 
-    private final String CACHE_NAME = "WEB_LOCALIZATION";
+  public Map<String, WebLocalizationDto> getAll() {
+    return hashOperations.entries(CACHE_NAME);
+  }
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final HashOperations<String, String, WebLocalizationDto> hashOperations;
+  public WebLocalizationDto getWebLocalization(String languageCode) {
+    return hashOperations.get(CACHE_NAME, languageCode);
+  }
 
-    public WebLocalizationCacheManager(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-        this.hashOperations = redisTemplate.opsForHash();
-    }
+  public void setWebLocalization(String languageCode, WebLocalizationDto webLocalization) {
+    hashOperations.put(CACHE_NAME, languageCode, webLocalization);
+    redisTemplate.expire(CACHE_NAME, ttl);
+  }
 
-    public Map<String, WebLocalizationDto> getAll() {
-        return hashOperations.entries(CACHE_NAME);
-    }
-
-    public WebLocalizationDto getWebLocalization(String languageCode) {
-        return hashOperations.get(CACHE_NAME, languageCode);
-    }
-
-    public void setWebLocalization(String languageCode, WebLocalizationDto webLocalization) {
-        hashOperations.put(CACHE_NAME, languageCode, webLocalization);
-        redisTemplate.expire(CACHE_NAME, ttl);
-    }
-
-    public void removeWebLocalization(String languageCode) {
-        hashOperations.delete(CACHE_NAME, languageCode);
-    }
-
-    public void clearAll() {
-        redisTemplate.delete(CACHE_NAME);
-    }
+  public void removeWebLocalization(String languageCode) {
+    hashOperations.delete(CACHE_NAME, languageCode);
+  }
 }

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,12 +27,10 @@ public class PackageOptionsProductCreatingConsumer implements ProductCreatingCon
   private final TranslationRepository translationRepository;
   private final ProductRepository productRepository;
 
-  @Async
   @Override
   @Transactional
-  public void accept(Long productId, CreateProduct operation) {
+  public void accept(Product product, CreateProduct operation) {
     try {
-      Product product = productRepository.getById(productId).orElseThrow();
       List<ProductPackageOption> packageOptions = new ArrayList<>();
       List<Map<String, String>> translatedNames = translateTexts(operation);
 

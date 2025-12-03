@@ -1,8 +1,6 @@
 package com.surofu.exporteru.application.service.product;
 
-import com.surofu.exporteru.application.service.product.create.ProductMediaProductCreatingLoader;
 import com.surofu.exporteru.application.service.product.create.ProductCreatingValidator;
-import com.surofu.exporteru.application.service.product.create.VendorMediaProductCreatingLoader;
 import com.surofu.exporteru.application.service.product.create.consumer.ProductCreatingConsumer;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
@@ -25,14 +23,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -46,10 +42,6 @@ public class ProductCreatingService {
   private final ProductRepository productRepository;
   private final List<ProductCreatingConsumer> consumers;
   private final TranslationRepository translationRepository;
-  private final ProductMediaProductCreatingLoader productMediaProductCreatingLoader;
-  private final VendorMediaProductCreatingLoader
-      vendorMediaProductCreatingLoader;
-  private final TransactionTemplate transactionTemplate;
 
   @Transactional
   public CreateProduct.Result create(CreateProduct operation) {
@@ -103,38 +95,15 @@ public class ProductCreatingService {
 
       // Save
       Product savedProduct = productRepository.save(product);
-      productRepository.flush();
-      productMediaProductCreatingLoader.uploadMedia(savedProduct.getId(), operation);
-      vendorMediaProductCreatingLoader.uploadMedia(savedProduct.getId(), operation);
 
       // Produce
-      CompletableFuture.runAsync(() ->
-          processConsumers(savedProduct.getId(), operation)
-      );
+      for (ProductCreatingConsumer consumer : consumers) {
+        consumer.accept(savedProduct, operation);
+      }
       return CreateProduct.Result.success();
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateProduct.Result.errorSavingProduct(e);
     }
-  }
-
-  private void processConsumers(Long productId, CreateProduct operation) {
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      log.error(e.getMessage(), e);
-    }
-    transactionTemplate.execute(status -> {
-      try {
-        for (ProductCreatingConsumer consumer : consumers) {
-          consumer.accept(productId, operation);
-        }
-        return null;
-      } catch (Exception e) {
-        status.setRollbackOnly();
-        log.error("Failed to process consumers: {}", e.getMessage(), e);
-        throw e;
-      }
-    });
   }
 }

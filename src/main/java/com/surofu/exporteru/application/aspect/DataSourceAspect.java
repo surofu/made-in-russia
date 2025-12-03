@@ -15,20 +15,19 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Profile("prod")
 @Slf4j
 public class DataSourceAspect {
-
-    @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
-    public void setDataSource(JoinPoint ignoredJoinPoint) {
-        log.info("Use datasource: {}", TransactionSynchronizationManager.isCurrentTransactionReadOnly() ? "slave" : "master");
-
-        if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
-            DatabaseContextHolder.setReadDataSource();
-        } else {
-            DatabaseContextHolder.setWriteDataSource();
-        }
+  @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
+  public void setDataSource(JoinPoint ignoredJoinPoint) {
+    log.debug("Use datasource: {}",
+        TransactionSynchronizationManager.isCurrentTransactionReadOnly() ? "slave" : "master");
+    if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+      DatabaseContextHolder.setReadDataSource();
+    } else {
+      DatabaseContextHolder.setWriteDataSource();
     }
+  }
 
-    @AfterReturning("within(@org.springframework.stereotype.Repository *)")
-    public void clearDataSource() {
-        DatabaseContextHolder.clear();
-    }
+  @AfterReturning("within(@org.springframework.stereotype.Repository *)")
+  public void clearDataSource() {
+    DatabaseContextHolder.clear();
+  }
 }

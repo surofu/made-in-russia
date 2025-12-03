@@ -73,7 +73,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Service
 @RequiredArgsConstructor
 public class VendorApplicationService implements VendorService {
-
   private final UserRepository userRepository;
   private final VendorDetailsRepository vendorDetailsRepository;
   private final VendorViewRepository vendorViewRepository;
@@ -254,8 +253,10 @@ public class VendorApplicationService implements VendorService {
     faq.setAnswer(operation.getAnswer());
 
     try {
-      faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestion().toString()));
-      faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswer().toString()));
+      faq.getQuestion()
+          .setTranslations(translationRepository.expand(operation.getQuestion().toString()));
+      faq.getAnswer()
+          .setTranslations(translationRepository.expand(operation.getAnswer().toString()));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateVendorFaq.Result.translationError(e);
@@ -312,8 +313,10 @@ public class VendorApplicationService implements VendorService {
     faq.setAnswer(operation.getAnswer());
 
     try {
-      faq.getQuestion().setTranslations(translationRepository.expand(operation.getQuestion().toString()));
-      faq.getAnswer().setTranslations(translationRepository.expand(operation.getAnswer().toString()));
+      faq.getQuestion()
+          .setTranslations(translationRepository.expand(operation.getQuestion().toString()));
+      faq.getAnswer()
+          .setTranslations(translationRepository.expand(operation.getAnswer().toString()));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateVendorFaq.Result.translationError(operation.getId(), e);
@@ -430,7 +433,8 @@ public class VendorApplicationService implements VendorService {
     String descriptionText = StringUtils.trimToNull(operation.getDescription().toString());
     if (descriptionText != null) {
       try {
-        vendorDetails.getDescription().setTranslations(translationRepository.expand(descriptionText));
+        vendorDetails.getDescription()
+            .setTranslations(translationRepository.expand(descriptionText));
       } catch (Exception e) {
         throw new RuntimeException("Translation error for description", e);
       }
@@ -524,7 +528,8 @@ public class VendorApplicationService implements VendorService {
           VendorCountry vendorCountry = new VendorCountry();
           vendorCountry.setVendorDetails(vendorDetails);
           vendorCountry.setName(name);
-          vendorCountry.getName().setTranslations(translationRepository.expand(name.getTranslations()));
+          vendorCountry.getName()
+              .setTranslations(translationRepository.expand(name.getTranslations()));
           return vendorCountry;
         })
         .collect(Collectors.toList());
@@ -534,7 +539,8 @@ public class VendorApplicationService implements VendorService {
           VendorProductCategory vendorProductCategory = new VendorProductCategory();
           vendorProductCategory.setVendorDetails(vendorDetails);
           vendorProductCategory.setName(name);
-          vendorProductCategory.getName().setTranslations(translationRepository.expand(name.getTranslations()));
+          vendorProductCategory.getName()
+              .setTranslations(translationRepository.expand(name.getTranslations()));
           return vendorProductCategory;
         })
         .collect(Collectors.toList());
