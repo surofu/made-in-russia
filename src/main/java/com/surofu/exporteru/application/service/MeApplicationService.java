@@ -98,7 +98,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -171,11 +170,11 @@ public class MeApplicationService implements MeService {
     UserView userView = userRepository.getViewById(securityUser.getUser().getId()).orElseThrow();
 
     if (userView.getVendorDetails() == null) {
-      UserDto userDto = UserDto.of(userView, operation.getLocale());
+      UserDto userDto = UserDto.of(userView);
       return GetMe.Result.success(userDto);
     }
 
-    VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
+    VendorDto vendorDto = VendorDto.of(userView);
 
     if (!operation.getLocale().getLanguage().equals("ru")) {
       String login = vendorDto.getLogin();
@@ -319,15 +318,11 @@ public class MeApplicationService implements MeService {
   @Transactional(readOnly = true)
   public GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation) {
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-
     Specification<ProductReview> specification = Specification
         .where(ProductReviewSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()));
-
-    Page<ProductReviewDto> productReviewDtoPage =
-        getProductReviewsBy(specification, pageable, operation.getLocale());
-
+    Page<ProductReviewDto> productReviewDtoPage = getProductReviewsBy(specification, pageable);
     return GetMeReviewPage.Result.success(productReviewDtoPage);
   }
 
@@ -336,20 +331,16 @@ public class MeApplicationService implements MeService {
   public GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(
       GetMeVendorProductReviewPage operation) {
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-
     Specification<ProductReview> specification = Specification
         .where(ProductReviewSpecifications.byProductUserId(
             operation.getSecurityUser().getUser().getId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()));
-
-    Page<ProductReviewDto> productReviewDtoPage =
-        getProductReviewsBy(specification, pageable, operation.getLocale());
-
+    Page<ProductReviewDto> productReviewDtoPage = getProductReviewsBy(specification, pageable);
     return GetMeVendorProductReviewPage.Result.success(productReviewDtoPage);
   }
 
-  private ProductReview translateProductReview(ProductReview productReview, Locale locale) {
+  private ProductReview translateProductReview(ProductReview productReview) {
     String translatedProductTitle =
         productReview.getProduct().getTitle().getLocalizedValue();
 
@@ -359,11 +350,12 @@ public class MeApplicationService implements MeService {
 
     if (productReview.getUser().getLogin().getTransliteration() != null) {
       String translatedUserLogin =
-          productReview.getUser().getLogin().getLocalizedValue(locale);
-      productReview.getUser().setLogin(UserLogin.of(translatedUserLogin));
+          productReview.getUser().getLogin().getLocalizedValue();
+      productReview.getUser().setLogin(new UserLogin(translatedUserLogin,
+          productReview.getUser().getLogin().getTransliteration()));
     }
 
-    String translatedText = productReview.getContent().getLocalizedValue(locale);
+    String translatedText = productReview.getContent().getLocalizedValue();
 
     if (StringUtils.trimToNull(translatedText) != null) {
       productReview.setContent(ProductReviewContent.of(translatedText));
@@ -526,20 +518,16 @@ public class MeApplicationService implements MeService {
           Set<VendorProductCategory> vendorProductCategories = new HashSet<>();
 
           for (VendorProductCategoryName categoryName : operation.getCategoryNames()) {
-            VendorProductCategory vendorProductCategory = new VendorProductCategory();
-            vendorProductCategory.setVendorDetails(vendorDetails);
-            vendorProductCategory.setName(categoryName);
-
             try {
-              vendorProductCategory.getName()
-                  .setTranslations(translationRepository.expand(categoryName.toString()));
-
+              VendorProductCategory vendorProductCategory = new VendorProductCategory();
+              vendorProductCategory.setVendorDetails(vendorDetails);
+              vendorProductCategory.setName(new VendorProductCategoryName(categoryName.getValue(),
+                  translationRepository.expand(categoryName.getValue())));
+              vendorProductCategories.add(vendorProductCategory);
             } catch (Exception e) {
               TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
               return UpdateMe.Result.translationError(e);
             }
-
-            vendorProductCategories.add(vendorProductCategory);
           }
 
           try {
@@ -643,7 +631,8 @@ public class MeApplicationService implements MeService {
     }
 
     if (operation.getUserLogin() != null) {
-      user.setLogin(operation.getUserLogin());
+      user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+          operation.getLocale()));
     }
 
     User savedUser = userRepository.save(user);
@@ -661,7 +650,7 @@ public class MeApplicationService implements MeService {
       List<VendorProductCategoryDto> vendorProductCategoryDtos =
           vendorProductCategoryViews.stream().map(VendorProductCategoryDto::of).toList();
 
-      VendorDto vendorDto = VendorDto.of(savedUser, operation.getLocale());
+      VendorDto vendorDto = VendorDto.of(savedUser);
 
       vendorDto.getVendorDetails().setCountries(vendorCountryDtos);
       vendorDto.getVendorDetails().setProductCategories(vendorProductCategoryDtos);
@@ -669,7 +658,7 @@ public class MeApplicationService implements MeService {
       return UpdateMe.Result.success(vendorDto);
     }
 
-    return UpdateMe.Result.success(UserDto.of(savedUser, operation.getLocale()));
+    return UpdateMe.Result.success(UserDto.of(savedUser));
   }
 
   @Override
@@ -943,7 +932,7 @@ public class MeApplicationService implements MeService {
       vendorMediaRepository.saveAll(vendorMediaImageList);
       vendorMediaRepository.saveAll(vendorMediaVideoList);
       User savedUser = userRepository.save(user);
-      VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(savedUser, operation.getLocale()),
+      VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(savedUser),
           "Saved user is null");
       List<VendorMedia> savedMediaList =
           vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
@@ -998,7 +987,7 @@ public class MeApplicationService implements MeService {
       vendorMediaRepository.saveAll(resultMediaList);
       vendorMediaRepository.flush();
       User newUser = userRepository.getById(user.getId()).orElseThrow();
-      VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(newUser, operation.getLocale()),
+      VendorDto vendorDto = Objects.requireNonNull(VendorDto.of(newUser),
           "Saved user is null");
       List<VendorMedia> savedMediaList =
           vendorMediaRepository.getAllByVendorDetailsId(vendorDetails.getId());
@@ -1049,8 +1038,7 @@ public class MeApplicationService implements MeService {
     }
 
     var newUser = userRepository.getById(user.getId()).orElseThrow();
-    var dto = vendorDetails != null ? VendorDto.of(newUser, operation.getLocale()) :
-        UserDto.of(newUser, operation.getLocale());
+    var dto = vendorDetails != null ? VendorDto.of(newUser) : UserDto.of(newUser);
     return DeleteMeVendorMediaByIdList.Result.success(dto);
   }
 
@@ -1136,7 +1124,7 @@ public class MeApplicationService implements MeService {
 
   @Transactional(readOnly = true)
   protected Page<ProductReviewDto> getProductReviewsBy(Specification<ProductReview> specification,
-                                                       Pageable pageable, Locale locale) {
+                                                       Pageable pageable) {
     Page<ProductReview> productReviewPageWithoutMedia =
         productReviewRepository.getPage(specification, pageable);
 
@@ -1158,8 +1146,8 @@ public class MeApplicationService implements MeService {
 
             return r;
           })
-          .map(r -> translateProductReview(r, locale))
-          .map(r -> ProductReviewDto.of(r, locale));
+          .map(this::translateProductReview)
+          .map(ProductReviewDto::of);
     }
 
     return Page.empty(pageable);

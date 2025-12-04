@@ -1,8 +1,10 @@
 package com.surofu.exporteru.core.model.product.faq;
 
+import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.Getter;
@@ -10,6 +12,7 @@ import lombok.Getter;
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
@@ -24,11 +27,11 @@ public final class ProductFaqAnswer implements Serializable {
 
     public ProductFaqAnswer(String answer, Map<String, String> translations) {
         if (answer == null || answer.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ответ не может быть пустым");
+            throw new LocalizedValidationException("validation.faq.answer.empty");
         }
 
         if (answer.length() >= 20_000) {
-            throw new IllegalArgumentException("Ответ не может быть больше 20,000 символов");
+            throw new LocalizedValidationException("validation.faq.answer.max_length");
         }
 
         this.value = answer;
@@ -36,7 +39,8 @@ public final class ProductFaqAnswer implements Serializable {
     }
 
     public ProductFaqAnswer() {
-        this("Answer", new HashMap<>());
+        this.value = null;
+        this.translations = new HashMap<>();
     }
 
     @Override
@@ -44,15 +48,25 @@ public final class ProductFaqAnswer implements Serializable {
         return value;
     }
 
+    public String getLocalizedValue() {
+        if (translations == null || translations.isEmpty()) {
+            return Objects.requireNonNullElse(value, "");
+        }
+
+        Locale locale = LocaleContextHolder.getLocale();
+        return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductFaqAnswer productFaqAnswer)) return false;
-        return Objects.equals(value, productFaqAnswer.value);
+        if (!(o instanceof ProductFaqAnswer that)) {
+            return false;
+        }
+      return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hashCode(value);
     }
 }

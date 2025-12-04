@@ -51,7 +51,6 @@ import java.util.Objects;
 )
 public class AuthRestController {
     private final AuthService authService;
-
     private final Register.Result.Processor<ResponseEntity<?>> registerProcessor;
     private final RegisterVendor.Result.Processor<ResponseEntity<?>> registerVendorProcessor;
     private final LoginWithEmail.Result.Processor<ResponseEntity<?>> loginWithEmailProcessor;
@@ -108,7 +107,7 @@ public class AuthRestController {
         Locale locale = LocaleContextHolder.getLocale();
         Register operation = Register.of(
                 UserEmail.of(command.email()),
-                UserLogin.of(command.login()),
+                new UserLogin(command.login()),
                 UserPasswordPassword.of(command.password()),
                 UserRegion.of(command.region()),
                 UserPhoneNumber.of(command.phoneNumber()),
@@ -168,7 +167,7 @@ public class AuthRestController {
 
         RegisterVendor operation = RegisterVendor.of(
                 UserEmail.of(command.email()),
-                UserLogin.of(command.login()),
+                new UserLogin(command.login()),
                 UserPasswordPassword.of(command.password()),
                 UserRegion.of(region),
                 UserPhoneNumber.of(command.phoneNumber()),
@@ -176,7 +175,7 @@ public class AuthRestController {
                 VendorDetailsInn.of(command.inn()),
                 VendorDetailsAddress.of(command.address()),
                 vendorCountryList.stream().map(VendorCountryName::of).toList(),
-                vendorProductCategoryList.stream().map(VendorProductCategoryName::of).toList(),
+                vendorProductCategoryList.stream().map(VendorProductCategoryName::new).toList(),
                 locale
         );
 
@@ -450,7 +449,7 @@ public class AuthRestController {
         Locale locale = LocaleContextHolder.getLocale();
         ForceRegister operation = ForceRegister.of(
                 UserEmail.of(command.email()),
-                UserLogin.of(command.login()),
+                new UserLogin(command.login()),
                 UserPasswordPassword.of(command.password()),
                 UserRegion.of(command.region()),
                 UserPhoneNumber.of(command.phoneNumber()),
@@ -502,13 +501,13 @@ public class AuthRestController {
         Locale locale = LocaleContextHolder.getLocale();
         ForceRegisterVendor operation = ForceRegisterVendor.of(
                 UserEmail.of(StringUtils.trimToNull(command.email())),
-                UserLogin.of(StringUtils.trimToNull(command.login())),
+                new UserLogin(StringUtils.trimToNull(command.login())),
                 UserPasswordPassword.of(StringUtils.trimToNull(command.password())),
                 UserPhoneNumber.of(StringUtils.trimToNull(command.phoneNumber())),
                 VendorDetailsInn.of(StringUtils.trimToNull(command.inn())),
                 VendorDetailsAddress.of(StringUtils.trimToNull(command.address())),
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
-                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::of).toList() : new ArrayList<>(),
+                command.productCategories() != null ? command.productCategories().stream().map(VendorProductCategoryName::new).toList() : new ArrayList<>(),
                 UserAvatar.of(StringUtils.trimToNull(command.avatarUrl())),
                 locale
         );

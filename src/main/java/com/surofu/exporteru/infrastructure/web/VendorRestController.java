@@ -460,7 +460,7 @@ public class VendorRestController {
     ForceUpdateVendorById operation = ForceUpdateVendorById.of(
         id,
         UserEmail.of(command.email()),
-        UserLogin.of(command.login()),
+        new UserLogin(command.login()),
         UserPhoneNumber.of(command.phoneNumber()),
         VendorDetailsInn.of(command.inn()),
         VendorDetailsDescription.of(command.description()),
@@ -468,7 +468,7 @@ public class VendorRestController {
         command.countries() != null ?
             command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),
         command.productCategories() != null ?
-            command.productCategories().stream().map(VendorProductCategoryName::of).toList() :
+            command.productCategories().stream().map(VendorProductCategoryName::new).toList() :
             new ArrayList<>(),
         command.phoneNumbers() != null ?
             command.phoneNumbers().stream().map(VendorPhoneNumberPhoneNumber::of).toList() :

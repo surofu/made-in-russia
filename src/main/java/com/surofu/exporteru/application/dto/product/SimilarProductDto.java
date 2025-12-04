@@ -2,52 +2,36 @@ package com.surofu.exporteru.application.dto.product;
 
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.infrastructure.persistence.product.SimilarProductView;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "DTO representing a product similar to the current one")
+@Schema(description = "SimilarProduct")
 public final class SimilarProductDto implements Serializable {
+  private Long id;
+  private String title;
+  private String imageUrl;
 
-    @Schema(description = "Unique identifier of the similar product",
-            example = "12345",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-    private Long id;
+  public static SimilarProductDto of(Product product) {
+    return SimilarProductDto.builder()
+        .id(product.getId())
+        .title(product.getTitle().getLocalizedValue())
+        .imageUrl(product.getPreviewImageUrl().getValue())
+        .build();
+  }
 
-    @Schema(description = "Title/name of the similar product",
-            example = "iPhone 14 Pro",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-    private String title;
-
-    @Schema(description = "URL of the product's preview image",
-            example = "https://media.tenor.com/x8v1oNUOmg4AAAAM/rickroll-roll.gif",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-    private String imageUrl;
-
-    @Schema(hidden = true)
-    public static SimilarProductDto of(Product product) {
-        return SimilarProductDto.builder()
-                .id(product.getId())
-                .title(product.getTitle().toString())
-                .imageUrl(product.getPreviewImageUrl().toString())
-                .build();
-    }
-
-    @Schema(hidden = true)
-    public static SimilarProductDto of(SimilarProductView view) {
-        return SimilarProductDto.builder()
-                .id(view.getId())
-                .title(view.getTitle())
-                .imageUrl(view.getPreviewImageUrl())
-                .build();
-    }
+  public static SimilarProductDto of(SimilarProductView view) {
+    return SimilarProductDto.builder()
+        .id(view.getId())
+        .title(view.getTitle())
+        .imageUrl(view.getPreviewImageUrl())
+        .build();
+  }
 }

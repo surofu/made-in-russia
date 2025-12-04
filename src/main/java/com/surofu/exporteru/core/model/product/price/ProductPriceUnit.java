@@ -4,6 +4,8 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -11,18 +13,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceUnit implements Serializable {
-
   @Column(name = "quantity_unit", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "unit_translations")
-  private Map<String, String> translations;
+  private final Map<String, String> translations;
 
   public ProductPriceUnit(String unit, Map<String, String> translations) {
     if (unit == null || unit.trim().isEmpty()) {
@@ -37,6 +38,24 @@ public final class ProductPriceUnit implements Serializable {
     this.translations = translations;
   }
 
+  public ProductPriceUnit(String unit) {
+    this(unit, null);
+  }
+
+  public ProductPriceUnit() {
+    this.value = null;
+    this.translations = new HashMap<>();
+  }
+
+  public String getLocalizedValue() {
+    if (translations == null || translations.isEmpty()) {
+      return Objects.requireNonNullElse(value, "");
+    }
+
+    Locale locale = LocaleContextHolder.getLocale();
+    return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
+
   @Override
   public String toString() {
     return value;
@@ -44,17 +63,14 @@ public final class ProductPriceUnit implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductPriceUnit productPriceUnit)) {
-          return false;
-      }
-    return Objects.equals(value, productPriceUnit.value);
+    if (!(o instanceof ProductPriceUnit that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

@@ -16,60 +16,16 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(
-        name = "ProductFaq with translations",
-        description = "Represents a frequently asked question and answer for a product with localization fields"
-)
+@Schema(name = "ProductFAQ with translations")
 public final class ProductFaqWithTranslationDto implements Serializable {
-
-    @Schema(
-            description = "Unique identifier of the FAQ entry",
-            example = "42",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
     private Long id;
-
-    @Schema(
-            description = "The question being asked about the product",
-            example = "Is this product waterproof?",
-            minLength = 10,
-            maxLength = 500,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
     private String question;
-
     private Map<String, String> questionTranslations;
-
-    @Schema(
-            description = "The answer to the question",
-            example = "Yes, this product has an IP68 waterproof rating.",
-            minLength = 10,
-            maxLength = 2000,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
     private String answer;
-
     private Map<String, String> answerTranslations;
-
-    @Schema(
-            description = "Timestamp when the FAQ was created",
-            example = "2025-05-15T10:30:00Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
     private ZonedDateTime creationDate;
-
-    @Schema(
-            description = "Timestamp when the FAQ was last modified",
-            example = "2025-06-20T14:15:00Z",
-            type = "string",
-            format = "date-time",
-            accessMode = Schema.AccessMode.READ_ONLY
-    )
     private ZonedDateTime lastModificationDate;
 
-    @Schema(hidden = true)
     public static ProductFaqWithTranslationDto of(ProductFaqWithTranslationsView view) {
         return ProductFaqWithTranslationDto.builder()
                 .id(view.getId())

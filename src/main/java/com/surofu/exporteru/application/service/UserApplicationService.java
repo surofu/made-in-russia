@@ -1,5 +1,6 @@
 package com.surofu.exporteru.application.service;
 
+import com.surofu.exporteru.application.components.TransliterationManager;
 import com.surofu.exporteru.application.dto.AbstractAccountDto;
 import com.surofu.exporteru.application.dto.user.UserDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -81,13 +83,13 @@ public class UserApplicationService implements UserService {
           .orElse(null);
 
       if (fullUser == null) {
-        return UserDto.of(user, operation.getLocale());
+        return UserDto.of(user);
       }
 
       if (fullUser.getVendorDetails() != null) {
-        return VendorDto.of(fullUser, operation.getLocale());
+        return VendorDto.of(fullUser);
       }
-      return UserDto.of(fullUser, operation.getLocale());
+      return UserDto.of(fullUser);
     });
     return GetUserPage.Result.success(dtoPage);
   }
@@ -122,11 +124,11 @@ public class UserApplicationService implements UserService {
     }
 
     if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get(), operation.getLocale());
+      VendorDto dto = VendorDto.of(user.get());
       return GetUserById.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get(), operation.getLocale());
+    UserDto dto = UserDto.of(user.get());
     return GetUserById.Result.success(dto);
   }
 
@@ -140,11 +142,11 @@ public class UserApplicationService implements UserService {
     }
 
     if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get(), operation.getLocale());
+      VendorDto dto = VendorDto.of(user.get());
       return GetUserByLogin.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get(), operation.getLocale());
+    UserDto dto = UserDto.of(user.get());
     return GetUserByLogin.Result.success(dto);
   }
 
@@ -158,11 +160,11 @@ public class UserApplicationService implements UserService {
     }
 
     if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get(), operation.getLocale());
+      VendorDto dto = VendorDto.of(user.get());
       return GetUserByEmail.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get(), operation.getLocale());
+    UserDto dto = UserDto.of(user.get());
     return GetUserByEmail.Result.success(dto);
   }
 
@@ -191,7 +193,9 @@ public class UserApplicationService implements UserService {
     }
 
     user.get().setEmail(operation.getEmail());
-    user.get().setLogin(operation.getLogin());
+    user.get().setLogin(
+        TransliterationManager.transliterateUserLogin(operation.getLogin(),
+            LocaleContextHolder.getLocale()));
     user.get().setPhoneNumber(operation.getPhoneNumber());
     user.get().setRegion(operation.getRegion());
 
@@ -371,13 +375,10 @@ public class UserApplicationService implements UserService {
   @Transactional
   public DeleteUserAvatarById.Result deleteUserAvatarById(DeleteUserAvatarById operation) {
     Optional<User> user = userRepository.getById(operation.getId());
-
     if (user.isEmpty()) {
       return DeleteUserAvatarById.Result.notFound(operation.getId());
     }
-
     user.get().setAvatar(null);
-
     try {
       userRepository.save(user.get());
       return DeleteUserAvatarById.Result.success();

@@ -17,23 +17,18 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class ProductDeliveryMethodDetailsDto implements Serializable {
-
     private Long id;
-
     private String name;
-
     private String value;
-
     private ZonedDateTime creationDate;
-
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)
     public static ProductDeliveryMethodDetailsDto of(ProductDeliveryMethodDetails productDeliveryMethodDetails) {
         return ProductDeliveryMethodDetailsDto.builder()
                 .id(productDeliveryMethodDetails.getId())
-                .name(productDeliveryMethodDetails.getName().toString())
-                .value(productDeliveryMethodDetails.getValue().toString())
+                .name(productDeliveryMethodDetails.getName().getLocalizedValue())
+                .value(productDeliveryMethodDetails.getValue().getLocalizedValue())
                 .creationDate(productDeliveryMethodDetails.getCreationDate().getValue())
                 .lastModificationDate(productDeliveryMethodDetails.getLastModificationDate().getValue())
                 .build();

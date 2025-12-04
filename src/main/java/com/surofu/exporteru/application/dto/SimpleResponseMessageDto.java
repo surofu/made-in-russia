@@ -1,34 +1,23 @@
 package com.surofu.exporteru.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(
-        name = "SimpleMessageResponse",
-        description = "Basic success response containing a single message"
-)
+@Schema(name = "ResponseMessage")
 public final class SimpleResponseMessageDto implements Serializable {
+  private String message;
 
-    @Schema(
-            description = "Human-readable success message",
-            example = "Operation completed successfully",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String message;
-
-    @Schema(hidden = true)
-    public static SimpleResponseMessageDto of(String message) {
-        return SimpleResponseMessageDto.builder()
-                .message(message)
-                .build();
-    }
+  public static SimpleResponseMessageDto of(String message) {
+    return SimpleResponseMessageDto.builder()
+        .message(message)
+        .build();
+  }
 }

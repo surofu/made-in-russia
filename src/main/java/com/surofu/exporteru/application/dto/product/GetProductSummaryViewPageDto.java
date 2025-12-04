@@ -7,10 +7,7 @@ import org.springframework.data.domain.Pageable;
 import java.io.Serializable;
 import java.util.List;
 
-@Schema(
-        name = "ProductSummaryPage",
-        description = "Represents a page of product summaries"
-)
+@Schema(name = "ProductSummaryPage")
 public final class GetProductSummaryViewPageDto extends PageImpl<ProductSummaryViewDto> implements Serializable {
     public GetProductSummaryViewPageDto(List<ProductSummaryViewDto> content, Pageable pageable, Long total) {
         super(content, pageable, total);

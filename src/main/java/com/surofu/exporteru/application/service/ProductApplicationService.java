@@ -68,6 +68,7 @@ import com.surofu.exporteru.core.service.product.operation.GetProductFaqByProduc
 import com.surofu.exporteru.core.service.product.operation.GetProductMediaByProductId;
 import com.surofu.exporteru.core.service.product.operation.GetProductWithTranslationsById;
 import com.surofu.exporteru.core.service.product.operation.GetSearchHints;
+import com.surofu.exporteru.core.service.product.operation.GetSimilarProducts;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import com.surofu.exporteru.core.service.product.operation.UpdateProductOwner;
 import com.surofu.exporteru.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
@@ -92,12 +93,14 @@ import com.surofu.exporteru.infrastructure.persistence.vendor.country.VendorCoun
 import com.surofu.exporteru.infrastructure.persistence.vendor.faq.VendorFaqView;
 import com.surofu.exporteru.infrastructure.persistence.vendor.productCategory.VendorProductCategoryView;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -426,8 +429,40 @@ public class ProductApplicationService implements ProductService {
       return UpdateProductOwner.Result.success(operation.getProductId(), operation.getOwnerId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-      return UpdateProductOwner.Result.saveError(operation.getProductId(), operation.getOwnerId(), e);
+      return UpdateProductOwner.Result.saveError(operation.getProductId(), operation.getOwnerId(),
+          e);
     }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public GetSimilarProducts.Result getSimilarProducts(GetSimilarProducts operation) {
+    Optional<Product> productOptional =
+        operation.getSecurityUser() != null
+            && operation.getSecurityUser().getUser() != null
+            && UserRole.ROLE_ADMIN.equals(operation.getSecurityUser().getUser().getRole())
+            ? productRepository.getById(operation.getProductId())
+            : productRepository.getProductByIdApproved(operation.getProductId());
+    if (productOptional.isEmpty()) {
+      return GetSimilarProducts.Result.notFound(operation.getProductId());
+    }
+    Product product = productOptional.get();
+    Category category;
+    if (product.getCategory().getSlug().getValue().startsWith("l1") ||
+        product.getCategory().getSlug().getValue().startsWith("l2")) {
+      category = product.getCategory();
+    } else {
+      category = product.getCategory().getParent();
+    }
+    List<Product> vendorProducts =
+        productRepository.getByUserAndCategory(product.getUser(), category);
+    Set<Product> result = new HashSet<>(vendorProducts);
+    if (result.size() < 10) {
+      List<Product> otherProducts = productRepository.getByCategory(category, 10 - result.size());
+      result.addAll(otherProducts);
+    }
+    List<SimilarProductDto> dtos = result.stream().map(SimilarProductDto::of).toList();
+    return GetSimilarProducts.Result.success(dtos);
   }
 
   @Transactional(readOnly = true)
@@ -435,7 +470,7 @@ public class ProductApplicationService implements ProductService {
     // Vendor
     Optional<User> userOptional = userRepository.getById(view.getUserId());
     if (userOptional.isPresent() && userOptional.get().getVendorDetails() != null) {
-      VendorDto vendorDto = VendorDto.of(userOptional.get(), locale);
+      VendorDto vendorDto = VendorDto.of(userOptional.get());
 
       // Vendor Countries
       List<VendorCountryView> vendorCountryViewList =
@@ -600,7 +635,7 @@ public class ProductApplicationService implements ProductService {
     Optional<UserView> userView = userRepository.getViewById(view.getUserId());
 
     if (userView.isPresent()) {
-      VendorDto vendorDto = VendorDto.of(userView.get(), locale);
+      VendorDto vendorDto = VendorDto.of(userView.get());
 
       // Vendor Countries
       List<VendorCountryView> vendorCountryViewList =

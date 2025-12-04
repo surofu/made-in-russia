@@ -16,24 +16,14 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(
-        name = "ProductDeliveryMethodDetails with translations",
-        description = "Dto for product delivery method details with localization fields"
-)
+@Schema(name = "ProductDeliveryMethodDetails with translations")
 public final class ProductDeliveryMethodDetailsWithTranslationsDto implements Serializable {
-
     private Long id;
-
     private String name;
-
     private Map<String, String> nameTranslations;
-
     private String value;
-
     private Map<String, String> valueTranslations;
-
     private ZonedDateTime creationDate;
-
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)

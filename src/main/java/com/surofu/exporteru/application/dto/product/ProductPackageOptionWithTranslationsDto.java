@@ -16,23 +16,16 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "PackageOption with translations")
 public final class ProductPackageOptionWithTranslationsDto implements Serializable {
-
   private Long id;
-
   private String name;
-
   private Map<String, String> nameTranslations;
-
   private BigDecimal price;
-
   private String priceUnit;
-
   private ZonedDateTime creationDate;
-
   private ZonedDateTime lastModificationDate;
 
-  @Schema(hidden = true)
   public static ProductPackageOptionWithTranslationsDto of(
       ProductPackageOptionWithTranslationsView view) {
     return ProductPackageOptionWithTranslationsDto.builder()

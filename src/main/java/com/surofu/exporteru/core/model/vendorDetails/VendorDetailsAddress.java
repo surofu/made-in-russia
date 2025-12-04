@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Setter
@@ -31,11 +33,12 @@ public final class VendorDetailsAddress implements Serializable {
         this.value = address;
     }
 
-    public String getLocalizedValue(Locale locale) {
+    public String getLocalizedValue() {
         if (translations == null || translations.isEmpty()) {
-            return value;
+            return Objects.requireNonNullElse(value, "");
         }
-        return translations.getOrDefault(locale.getLanguage(), value);
+        Locale locale = LocaleContextHolder.getLocale();
+        return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
     }
 
     public static VendorDetailsAddress of(String address) {

@@ -44,6 +44,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
@@ -351,14 +352,14 @@ public class MeRestController {
         Locale locale = LocaleContextHolder.getLocale();
         UpdateMe operation = UpdateMe.of(
                 securityUser,
-                command.login() != null ? UserLogin.of(command.login()) : null,
+                command.login() != null ? new UserLogin(command.login()) : null,
                 command.phoneNumber() != null ? UserPhoneNumber.of(command.phoneNumber()) : null,
                 command.region() != null ? UserRegion.of(command.region()) : null,
                 command.inn() != null ? VendorDetailsInn.of(command.inn()) : null,
                 command.address() != null ? VendorDetailsAddress.of(command.address()) : null,
                 command.description() != null ? VendorDetailsDescription.of(command.description()) : null,
                 command.countries() != null ? command.countries().stream().map(VendorCountryName::of).toList() : null,
-                command.categories() != null ? command.categories().stream().map(VendorProductCategoryName::of).toList() : null,
+                command.categories() != null ? command.categories().stream().map(VendorProductCategoryName::new).toList() : null,
                 command.phoneNumbers() != null ? command.phoneNumbers().stream().map(VendorPhoneNumberPhoneNumber::of).toList() : null,
                 command.emails() != null ? command.emails().stream().map(VendorEmailEmail::of).toList() : null,
                 command.sites() != null ? command.sites().stream().map(VendorSiteUrl::of).toList() : null,

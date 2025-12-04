@@ -16,50 +16,12 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(
-        description = "Data Transfer Object for product characteristics/specifications",
-        name = "ProductCharacteristic"
-)
+@Schema(name = "ProductCharacteristic")
 public final class ProductCharacteristicDto implements Serializable {
-
-    @Schema(
-            description = "Unique identifier of the characteristic",
-            example = "105",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
     private Long id;
-
-    @Schema(
-            description = "Name of the characteristic (e.g., 'Weight', 'Color')",
-            example = "Battery Capacity",
-            maxLength = 100,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
     private String name;
-
-    @Schema(
-            description = "Value of the characteristic with appropriate units",
-            example = "5000 mAh",
-            maxLength = 255,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
     private String value;
-
-    @Schema(
-            description = "Timestamp when the characteristic was created",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time"
-    )
     private ZonedDateTime creationDate;
-
-    @Schema(
-            description = "Timestamp when the characteristic was last modified",
-            example = "2025-05-04T09:17:20.767615Z",
-            type = "string",
-            format = "date-time",
-            nullable = true
-    )
     private ZonedDateTime lastModificationDate;
 
     @Schema(hidden = true)

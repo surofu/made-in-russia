@@ -30,7 +30,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
   private VendorDetailsDto vendorDetails;
 
   @Schema(hidden = true)
-  public static VendorDto of(User user, Locale locale) {
+  public static VendorDto of(User user) {
     if (user == null) {
       return null;
     }
@@ -39,13 +39,13 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
     vendorDto.setId(user.getId());
     vendorDto.setIsEnabled(user.getIsEnabled().getValue());
     vendorDto.setRole(user.getRole().getName());
-    vendorDto.setLogin(user.getLogin().getLocalizedValue(locale));
+    vendorDto.setLogin(user.getLogin().getLocalizedValue());
     vendorDto.setEmail(user.getEmail().getValue());
     vendorDto.setPhoneNumber(
         StringUtils.trimToNull(Objects.requireNonNullElse(user.getPhoneNumber(), "").toString()));
 
     if (user.getVendorDetails() != null) {
-      vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails(), locale));
+      vendorDto.setVendorDetails(VendorDetailsDto.of(user.getVendorDetails()));
     }
 
     vendorDto.setAvatarUrl(user.getAvatar() == null ? null : user.getAvatar().getUrl());
@@ -56,7 +56,7 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
   }
 
   @Schema(hidden = true)
-  public static VendorDto of(UserView view, Locale locale) {
+  public static VendorDto of(UserView view) {
     if (view == null) {
       return null;
     }
@@ -65,14 +65,14 @@ public final class VendorDto extends AbstractAccountDto implements Serializable 
     vendorDto.setId(view.getId());
     vendorDto.setIsEnabled(view.getIsEnabled().getValue());
     vendorDto.setEmail(view.getEmail().toString());
-    vendorDto.setLogin(view.getLogin().getLocalizedValue(locale));
+    vendorDto.setLogin(view.getLogin().getLocalizedValue());
     vendorDto.setPhoneNumber(
         StringUtils.trimToNull(Objects.requireNonNullElse(view.getPhoneNumber(), "").toString()));
     vendorDto.setRole(view.getRole().getName());
     vendorDto.setAvatarUrl(view.getAvatar() == null ? null : view.getAvatar().toString());
     vendorDto.setRegistrationDate(view.getRegistrationDate().getValue());
     vendorDto.setLastModificationDate(view.getLastModificationDate().getValue());
-    vendorDto.setVendorDetails(VendorDetailsDto.of(view.getVendorDetails(), locale));
+    vendorDto.setVendorDetails(VendorDetailsDto.of(view.getVendorDetails()));
     return vendorDto;
   }
 }

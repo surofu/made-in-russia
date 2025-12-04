@@ -5,8 +5,10 @@ import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
+import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -151,5 +153,15 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public Optional<Product> findByIdWithPrices(Long id) {
         return repository.findByIdWithPrices(id);
+    }
+
+    @Override
+    public List<Product> getByUserAndCategory(User user, Category category) {
+        return repository.findByUserAndCategory(user, category);
+    }
+
+    @Override
+    public List<Product> getByCategory(Category category, int maxResults) {
+        return repository.findByCategory(category, Limit.of(maxResults));
     }
 }

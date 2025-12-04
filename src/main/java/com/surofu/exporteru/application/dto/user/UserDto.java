@@ -29,7 +29,7 @@ public class UserDto extends AbstractAccountDto implements Serializable {
   private String region;
 
   @Schema(hidden = true)
-  public static UserDto of(User user, Locale locale) {
+  public static UserDto of(User user) {
     if (user == null) {
       return null;
     }
@@ -38,7 +38,7 @@ public class UserDto extends AbstractAccountDto implements Serializable {
     userDto.setId(user.getId());
     userDto.setIsEnabled(user.getIsEnabled().getValue());
     userDto.setRole(user.getRole().getName());
-    userDto.setLogin(user.getLogin().getLocalizedValue(locale));
+    userDto.setLogin(user.getLogin().getLocalizedValue());
     userDto.setEmail(user.getEmail().getValue());
     userDto.setPhoneNumber(user.getPhoneNumber() != null ? user.getPhoneNumber().getValue() : null);
     userDto.setRegion(user.getRegion().getValue());
@@ -50,7 +50,7 @@ public class UserDto extends AbstractAccountDto implements Serializable {
   }
 
   @Schema(hidden = true)
-  public static UserDto of(UserView view, Locale locale) {
+  public static UserDto of(UserView view) {
     if (view == null) {
       return null;
     }
@@ -59,7 +59,7 @@ public class UserDto extends AbstractAccountDto implements Serializable {
     userDto.setId(view.getId());
     userDto.setIsEnabled(view.getIsEnabled().getValue());
     userDto.setRole(view.getRole().getName());
-    userDto.setLogin(view.getLogin().getLocalizedValue(locale));
+    userDto.setLogin(view.getLogin().getLocalizedValue());
     userDto.setEmail(view.getEmail().getValue());
     userDto.setPhoneNumber(view.getPhoneNumber() != null ? view.getPhoneNumber().getValue() : null);
     userDto.setRegion(view.getRegion().getValue());

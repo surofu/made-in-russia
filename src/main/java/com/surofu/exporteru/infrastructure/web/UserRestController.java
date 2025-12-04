@@ -212,8 +212,7 @@ public class UserRestController {
             return service.getUserByEmail(operation).process(getUserByEmailProcessor);
         } catch (Exception ignored) {
         }
-
-        UserLogin login = UserLogin.of(identifier);
+        UserLogin login = new UserLogin(identifier);
         GetUserByLogin operation = GetUserByLogin.of(login, locale);
         return service.getUserByLogin(operation).process(getUserByLoginProcessor);
     }
@@ -272,7 +271,7 @@ public class UserRestController {
         ForceUpdateUserById operation = ForceUpdateUserById.of(
                 id,
                 UserEmail.of(command.email()),
-                UserLogin.of(command.login()),
+                new UserLogin(command.login()),
                 UserPhoneNumber.of(command.phoneNumber()),
                 UserRegion.of(command.region())
         );
@@ -328,7 +327,7 @@ public class UserRestController {
         } catch (Exception ignored) {
         }
 
-        UserLogin login = UserLogin.of(identifier);
+        UserLogin login = new UserLogin(identifier);
         DeleteUserByLogin operation = DeleteUserByLogin.of(login, locale);
         return service.deleteUserByLogin(operation).process(deleteUserByLoginProcessor);
     }

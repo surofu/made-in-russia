@@ -5,10 +5,12 @@ import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
+import com.surofu.exporteru.core.model.user.User;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -296,4 +298,8 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
 
   @Query("select count(p) > 0 from Product p where p.id = :productId and p.user.id = :userId")
   boolean existsWithUserId(@Param("productId") Long productId, @Param("userId") Long userId);
+
+  List<Product> findByUserAndCategory(User user, Category category);
+
+  List<Product> findByCategory(Category category, Limit limit);
 }

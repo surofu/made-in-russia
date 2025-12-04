@@ -20,6 +20,7 @@ import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
 import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategory;
+import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategoryName;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSite;
 import com.surofu.exporteru.core.model.vendorDetails.site.VendorSiteUrl;
 import com.surofu.exporteru.core.model.vendorDetails.view.VendorView;
@@ -97,14 +98,14 @@ public class VendorApplicationService implements VendorService {
     }
 
     UserView userView = userOptional.get();
-    UserDto userDto = UserDto.of(userView, operation.getLocale());
+    UserDto userDto = UserDto.of(userView);
     VendorDetailsView vendorDetailsView = userView.getVendorDetails();
 
     if (vendorDetailsView == null) {
       return GetVendorById.Result.success(userDto);
     }
 
-    VendorDto vendorDto = VendorDto.of(userView, operation.getLocale());
+    VendorDto vendorDto = VendorDto.of(userView);
 
     if (!operation.getLocale().getLanguage().equals("ru")) {
       String login = vendorDto.getLogin();
@@ -214,7 +215,7 @@ public class VendorApplicationService implements VendorService {
 
     if (productReviewPage.getContent().isEmpty()) {
       VendorReviewPageDto vendorReviewPageDto =
-          VendorReviewPageDto.of(productReviewPage, 0.0, operation.getLocale());
+          VendorReviewPageDto.of(productReviewPage, 0.0);
       return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
     }
 
@@ -238,7 +239,7 @@ public class VendorApplicationService implements VendorService {
     Double ratingAverage =
         productReviewRepository.findAverageRatingByVendorId(operation.getVendorId());
     VendorReviewPageDto vendorReviewPageDto =
-        VendorReviewPageDto.of(productReviewPageWithMedia, ratingAverage, operation.getLocale());
+        VendorReviewPageDto.of(productReviewPageWithMedia, ratingAverage);
     return GetVendorReviewPageById.Result.success(vendorReviewPageDto);
   }
 
@@ -538,9 +539,7 @@ public class VendorApplicationService implements VendorService {
         .map(name -> {
           VendorProductCategory vendorProductCategory = new VendorProductCategory();
           vendorProductCategory.setVendorDetails(vendorDetails);
-          vendorProductCategory.setName(name);
-          vendorProductCategory.getName()
-              .setTranslations(translationRepository.expand(name.getTranslations()));
+          vendorProductCategory.setName(new VendorProductCategoryName(name.getValue(), translationRepository.expand(name.getTranslations())));
           return vendorProductCategory;
         })
         .collect(Collectors.toList());

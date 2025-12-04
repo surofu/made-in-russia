@@ -52,18 +52,15 @@ public final class ProductFaq implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ProductFaq productFaq)) {
+    if (!(o instanceof ProductFaq faq)) {
       return false;
     }
-    return Objects.equals(question, productFaq.question)
-        && Objects.equals(answer, productFaq.answer);
+    return Objects.equals(question, faq.question) &&
+        Objects.equals(answer, faq.answer);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(question, answer);
   }
 }

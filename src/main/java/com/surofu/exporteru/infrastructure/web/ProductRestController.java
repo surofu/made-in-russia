@@ -29,6 +29,7 @@ import com.surofu.exporteru.core.service.product.operation.GetProductFaqByProduc
 import com.surofu.exporteru.core.service.product.operation.GetProductMediaByProductId;
 import com.surofu.exporteru.core.service.product.operation.GetProductWithTranslationsById;
 import com.surofu.exporteru.core.service.product.operation.GetSearchHints;
+import com.surofu.exporteru.core.service.product.operation.GetSimilarProducts;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import com.surofu.exporteru.core.service.product.operation.UpdateProductOwner;
 import com.surofu.exporteru.core.service.productReview.ProductReviewService;
@@ -108,6 +109,7 @@ public class ProductRestController {
   private final DeleteProductById.Result.Processor<ResponseEntity<?>> deleteProductByIdProcessor;
   private final CreateOrder.Result.Processor<ResponseEntity<?>> createOrderProcessor;
   private final UpdateProductOwner.Result.Processor<ResponseEntity<?>> updateProductOwnerProcessor;
+  private final GetSimilarProducts.Result.Processor<ResponseEntity<?>> getSimilarProductsProcessor;
 
   @GetMapping("{productId}")
   @Operation(summary = "Get product by ID")
@@ -429,5 +431,12 @@ public class ProductRestController {
   ) {
     UpdateProductOwner operation = UpdateProductOwner.of(productId, ownerId);
     return productService.updateProductOwner(operation).process(updateProductOwnerProcessor);
+  }
+
+  @GetMapping("{id}/similar")
+  @Operation(summary = "Get similar products")
+  public ResponseEntity<?> getSimilar(@PathVariable Long id, @AuthenticationPrincipal SecurityUser securityUser) {
+    GetSimilarProducts operation = GetSimilarProducts.of(id , securityUser);
+    return productService.getSimilarProducts(operation).process(getSimilarProductsProcessor);
   }
 }

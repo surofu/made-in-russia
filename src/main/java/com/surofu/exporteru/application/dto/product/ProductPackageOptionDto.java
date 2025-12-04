@@ -17,25 +17,19 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "PackageOption")
 public final class ProductPackageOptionDto implements Serializable {
-
     private Long id;
-
     private String name;
-
     private BigDecimal price;
-
     private String priceUnit;
-
     private ZonedDateTime creationDate;
-
     private ZonedDateTime lastModificationDate;
 
-    @Schema(hidden = true)
     public static ProductPackageOptionDto of(ProductPackageOption productPackageOption) {
         return ProductPackageOptionDto.builder()
                 .id(productPackageOption.getId())
-                .name(productPackageOption.getName().toString())
+                .name(productPackageOption.getName().getLocalizedValue())
                 .price(productPackageOption.getPrice().getValue())
                 .priceUnit(productPackageOption.getPriceUnit().toString())
                 .creationDate(productPackageOption.getCreationDate().getValue())
@@ -43,7 +37,6 @@ public final class ProductPackageOptionDto implements Serializable {
                 .build();
     }
 
-    @Schema(hidden = true)
     public static ProductPackageOptionDto of(ProductPackageOptionView view) {
         return ProductPackageOptionDto.builder()
                 .id(view.getId())

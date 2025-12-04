@@ -115,7 +115,7 @@ public final class VendorDetailsDto implements Serializable {
   private ZonedDateTime lastModificationDate;
 
   @Schema(hidden = true)
-  public static VendorDetailsDto of(VendorDetails vendorDetails, Locale locale) {
+  public static VendorDetailsDto of(VendorDetails vendorDetails) {
     if (vendorDetails == null) {
       return null;
     }
@@ -123,13 +123,13 @@ public final class VendorDetailsDto implements Serializable {
     String address = null;
 
     if (vendorDetails.getAddress() != null) {
-      address = vendorDetails.getAddress().getLocalizedValue(locale);
+      address = vendorDetails.getAddress().getLocalizedValue();
     }
 
     String description = null;
 
     if (vendorDetails.getDescription() != null) {
-      description = vendorDetails.getDescription().getLocalizedValue(locale);
+      description = vendorDetails.getDescription().getLocalizedValue();
     }
 
     return VendorDetailsDto.builder()
@@ -161,7 +161,7 @@ public final class VendorDetailsDto implements Serializable {
   }
 
   @Schema(hidden = true)
-  public static VendorDetailsDto of(VendorDetailsView view, Locale locale) {
+  public static VendorDetailsDto of(VendorDetailsView view) {
     if (view == null) {
       return null;
     }
@@ -169,13 +169,13 @@ public final class VendorDetailsDto implements Serializable {
     String address = null;
 
     if (view.getAddress() != null) {
-      address = view.getAddress().getLocalizedValue(locale);
+      address = view.getAddress().getLocalizedValue();
     }
 
     String description = null;
 
     if (view.getDescription() != null && view.getDescription().getTranslations() != null) {
-      description = view.getDescription().getLocalizedValue(locale);
+      description = view.getDescription().getLocalizedValue();
     }
 
     return VendorDetailsDto.builder()

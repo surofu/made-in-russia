@@ -28,4 +28,6 @@ public interface ProductService {
     DeleteProductById.Result deleteProductById(DeleteProductById operation);
 
     UpdateProductOwner.Result updateProductOwner(UpdateProductOwner operation);
+
+    GetSimilarProducts.Result getSimilarProducts(GetSimilarProducts operation);
 }

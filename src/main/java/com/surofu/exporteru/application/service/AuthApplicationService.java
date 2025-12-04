@@ -18,7 +18,6 @@ import com.surofu.exporteru.core.model.session.SessionDeviceId;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserEmail;
 import com.surofu.exporteru.core.model.user.UserIsEnabled;
-import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.user.UserPhoneNumber;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.model.user.password.UserPassword;
@@ -52,8 +51,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +105,8 @@ public class AuthApplicationService implements AuthService {
     user.setIsEnabled(UserIsEnabled.of(true));
     user.setRole(UserRole.ROLE_USER);
     user.setEmail(operation.getUserEmail());
-    user.setLogin(setupUserLogin(operation.getUserLogin(), operation.getLocale()));
+    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+        operation.getLocale()));
     user.setPhoneNumber(UserPhoneNumber.of(StringUtils.trimToNull(
         Objects.requireNonNullElse(operation.getUserPhoneNumber(), "").toString())));
     user.setRegion(operation.getUserRegion());
@@ -164,7 +162,8 @@ public class AuthApplicationService implements AuthService {
     user.setRole(UserRole.ROLE_VENDOR);
     user.setIsEnabled(UserIsEnabled.of(true));
     user.setEmail(operation.getUserEmail());
-    user.setLogin(setupUserLogin(operation.getUserLogin(), operation.getLocale()));
+    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+        operation.getLocale()));
     user.setPhoneNumber(operation.getUserPhoneNumber());
     user.setRegion(operation.getUserRegion());
     user.setAvatar(operation.getAvatar());
@@ -194,18 +193,16 @@ public class AuthApplicationService implements AuthService {
 
     List<VendorProductCategory> vendorProductCategories = new ArrayList<>();
     for (VendorProductCategoryName vendorProductCategoryName : operation.getVendorProductCategoryNames()) {
-      VendorProductCategory vendorProductCategory = new VendorProductCategory();
-      vendorProductCategory.setVendorDetails(vendorDetails);
-      vendorProductCategory.setName(vendorProductCategoryName);
-
       try {
-        vendorProductCategory.getName()
-            .setTranslations(translationRepository.expand(vendorProductCategoryName.getValue()));
+        VendorProductCategory vendorProductCategory = new VendorProductCategory();
+        vendorProductCategory.setVendorDetails(vendorDetails);
+        vendorProductCategory.setName(
+            new VendorProductCategoryName(vendorProductCategoryName.getValue(),
+                translationRepository.expand(vendorProductCategoryName.getValue())));
+        vendorProductCategories.add(vendorProductCategory);
       } catch (Exception e) {
         return RegisterVendor.Result.translationError(e);
       }
-
-      vendorProductCategories.add(vendorProductCategory);
     }
 
     vendorDetails.setVendorCountries(new HashSet<>(vendorCountries));
@@ -485,7 +482,8 @@ public class AuthApplicationService implements AuthService {
     user.setRole(UserRole.ROLE_USER);
     user.setIsEnabled(UserIsEnabled.of(true));
     user.setEmail(operation.getEmail());
-    user.setLogin(setupUserLogin(operation.getLogin(), operation.getLocale()));
+    user.setLogin(
+        TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setRegion(operation.getRegion());
     user.setAvatar(operation.getAvatar());
@@ -540,7 +538,8 @@ public class AuthApplicationService implements AuthService {
     user.setRole(UserRole.ROLE_VENDOR);
     user.setIsEnabled(UserIsEnabled.of(true));
     user.setEmail(operation.getEmail());
-    user.setLogin(setupUserLogin(operation.getLogin(), operation.getLocale()));
+    user.setLogin(
+        TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setAvatar(operation.getAvatar());
 
@@ -576,18 +575,16 @@ public class AuthApplicationService implements AuthService {
     List<VendorProductCategory> vendorProductCategoryList = new ArrayList<>();
 
     for (VendorProductCategoryName name : operation.getProductCategoryNames()) {
-      VendorProductCategory productCategory = new VendorProductCategory();
-      productCategory.setVendorDetails(vendorDetails);
-      productCategory.setName(name);
-
       try {
-        productCategory.getName().setTranslations(translationRepository.expand(name.toString()));
+        VendorProductCategory productCategory = new VendorProductCategory();
+        productCategory.setVendorDetails(vendorDetails);
+        productCategory.setName(new VendorProductCategoryName(name.getValue(),
+            translationRepository.expand(name.getValue())));
+        vendorProductCategoryList.add(productCategory);
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return ForceRegisterVendor.Result.translationError(e);
       }
-
-      vendorProductCategoryList.add(productCategory);
     }
 
     // Setting Translated
@@ -672,39 +669,5 @@ public class AuthApplicationService implements AuthService {
 
     LoginSuccessDto dto = LoginSuccessDto.of(accessToken, refreshToken);
     return LoginWithTelegram.Result.success(dto, operation.getTelegramUser().firstName());
-  }
-
-  private UserLogin setupUserLogin(UserLogin userLogin, Locale locale) {
-    String rawUserLogin = userLogin.toString();
-    String transliterationLogin = TransliterationManager.transliterate(rawUserLogin);
-
-    switch (locale.getLanguage()) {
-      case "ru" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", rawUserLogin,
-          "zh", transliterationLogin,
-          "hi", transliterationLogin
-      ));
-      case "zh" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", rawUserLogin,
-          "hi", transliterationLogin
-      ));
-      case "hi" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", transliterationLogin,
-          "hi", rawUserLogin
-      ));
-      default -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", transliterationLogin,
-          "hi", transliterationLogin
-      ));
-    }
-
-    return userLogin;
   }
 }

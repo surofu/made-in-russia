@@ -5,6 +5,7 @@ import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.media.ProductMedia;
+import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.infrastructure.persistence.product.ProductForReviewView;
 import com.surofu.exporteru.infrastructure.persistence.product.ProductView;
 import com.surofu.exporteru.infrastructure.persistence.product.ProductWithTranslationsView;
@@ -49,6 +50,12 @@ public interface ProductRepository {
 
   boolean existsWithUserId(Long productId, Long userid);
 
+  List<Product> getByUserAndCategory(User user, Category category);
+
+  List<Product> getByCategory(Category category, int maxResults);
+
+  void flush();
+
   // View
 
   Optional<ProductView> getProductViewByIdAndLangAndApproveStatuses(Long productId, String lang,
@@ -62,8 +69,6 @@ public interface ProductRepository {
                                                                                      String lang);
 
   List<ProductForReviewView> getProductForReviewViewsByLang(String lang);
-
-  void flush();
 
   Optional<Product> getProductWithUserById(Long productId);
 

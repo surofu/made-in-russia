@@ -1063,7 +1063,7 @@ public class TelegramBotRegisterHandler {
 
     user.setRole(request.userRole);
     user.setTelegramUserId(chatId);
-    user.setLogin(setupUserLogin(UserLogin.of(request.login), registerObject.locale));
+    user.setLogin(TransliterationManager.transliterateUserLogin(new UserLogin(request.login), registerObject.locale));
     user.setEmail(userEmail);
     user.setAvatar(UserAvatar.of(StringUtils.trimToNull(request.avatarUrl)));
     user.setPhoneNumber(userPhoneNumber);
@@ -1215,40 +1215,6 @@ public class TelegramBotRegisterHandler {
 
     messageSender.sendMessage(chatId, greeting, markup);
     return null;
-  }
-
-  private UserLogin setupUserLogin(UserLogin userLogin, Locale locale) {
-    String rawUserLogin = userLogin.toString();
-    String transliterationLogin = TransliterationManager.transliterate(rawUserLogin);
-
-    switch (locale.getLanguage()) {
-      case "ru" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", rawUserLogin,
-          "zh", transliterationLogin,
-          "hi", transliterationLogin
-      ));
-      case "zh" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", rawUserLogin,
-          "hi", transliterationLogin
-      ));
-      case "hi" -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", transliterationLogin,
-          "hi", rawUserLogin
-      ));
-      default -> userLogin.setTransliteration(Map.of(
-          "en", transliterationLogin,
-          "ru", transliterationLogin,
-          "zh", transliterationLogin,
-          "hi", transliterationLogin
-      ));
-    }
-
-    return userLogin;
   }
 
   private enum RegisterStep {

@@ -3,6 +3,7 @@ package com.surofu.exporteru.application.dto;
 import com.surofu.exporteru.application.dto.advertisement.AdvertisementDto;
 import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +15,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "General")
 public class GeneralDto implements Serializable {
-    Page<ProductSummaryViewDto> products;
-    List<CategoryDto> categories;
-    List<CategoryDto> allCategories;
-    List<AdvertisementDto> advertisements;
+    private Page<ProductSummaryViewDto> products;
+    private List<CategoryDto> categories;
+    private List<CategoryDto> allCategories;
+    private List<AdvertisementDto> advertisements;
 }

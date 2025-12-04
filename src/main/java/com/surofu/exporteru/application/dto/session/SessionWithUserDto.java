@@ -92,7 +92,7 @@ public final class SessionWithUserDto implements Serializable {
     public static SessionWithUserDto of(Session session) {
         return SessionWithUserDto.builder()
                 .id(session.getId())
-                .user(UserDto.of(session.getUser(), Locale.getDefault()))
+                .user(UserDto.of(session.getUser()))
                 .deviceId(session.getDeviceId().getValue())
                 .deviceType(session.getDeviceType().getValue())
                 .browser(session.getBrowser().getValue())

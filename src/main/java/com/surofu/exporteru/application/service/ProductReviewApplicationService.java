@@ -35,7 +35,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,25 +70,19 @@ public class ProductReviewApplicationService implements ProductReviewService {
   private final TaskExecutor appTaskExecutor;
   private final TransactionTemplate transactionTemplate;
 
-  private static ProductReviewDto translateProductReview(ProductReview productReview,
-                                                         Locale locale) {
+  private static ProductReviewDto translateProductReview(ProductReview productReview) {
     ProductReviewDto dto = ProductReviewDto.of(productReview);
-
     String translatedProductTitle =
         productReview.getProduct().getTitle().getLocalizedValue();
-
     if (StringUtils.trimToNull(translatedProductTitle) != null) {
       dto.getProduct().setTitle(translatedProductTitle);
     }
-
     if (productReview.getUser().getLogin().getTransliteration() != null) {
       String translatedUserLogin =
-          productReview.getUser().getLogin().getLocalizedValue(locale);
+          productReview.getUser().getLogin().getLocalizedValue();
       dto.getAuthor().setLogin(translatedUserLogin);
     }
-
-    String translatedText = productReview.getContent().getLocalizedValue(locale);
-
+    String translatedText = productReview.getContent().getLocalizedValue();
     if (StringUtils.trimToNull(translatedText) != null) {
       dto.setText(translatedText);
     }
@@ -146,7 +139,7 @@ public class ProductReviewApplicationService implements ProductReviewService {
       });
 
       Page<ProductReviewDto> dtoPage = productReviewPageWithMedia
-          .map(r -> ProductReviewDto.of(r, operation.getLocale()))
+          .map(ProductReviewDto::of)
           .map(this::transliterateUserLogin);
       return GetProductReviewPage.Result.success(dtoPage);
     }
@@ -196,12 +189,12 @@ public class ProductReviewApplicationService implements ProductReviewService {
         return p;
       });
       Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithMedia
-          .map(r -> ProductReviewDto.of(r, operation.getLocale()))
+          .map(ProductReviewDto::of)
           .map(this::transliterateUserLogin);
       return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
     }
     Page<ProductReviewDto> productReviewDtoPage = productReviewPage
-        .map(r -> translateProductReview(r, operation.getLocale()))
+        .map(ProductReviewApplicationService::translateProductReview)
         .map(this::transliterateUserLogin);
     return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
   }
