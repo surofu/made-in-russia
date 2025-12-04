@@ -5,16 +5,7 @@ import com.surofu.exporteru.application.command.product.create.CreateProductComm
 import com.surofu.exporteru.application.command.product.review.CreateProductReviewCommand;
 import com.surofu.exporteru.application.command.product.review.UpdateProductReviewCommand;
 import com.surofu.exporteru.application.command.product.update.UpdateProductCommand;
-import com.surofu.exporteru.application.dto.DeliveryMethodDto;
-import com.surofu.exporteru.application.dto.SearchHintDto;
-import com.surofu.exporteru.application.dto.SimpleResponseMessageDto;
-import com.surofu.exporteru.application.dto.category.CategoryDto;
 import com.surofu.exporteru.application.dto.error.SimpleResponseErrorDto;
-import com.surofu.exporteru.application.dto.error.ValidationExceptionDto;
-import com.surofu.exporteru.application.dto.product.GetProductReviewPageDto;
-import com.surofu.exporteru.application.dto.product.ProductCharacteristicDto;
-import com.surofu.exporteru.application.dto.product.ProductDto;
-import com.surofu.exporteru.application.dto.product.ProductMediaDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.product.ProductArticleCode;
@@ -39,20 +30,13 @@ import com.surofu.exporteru.core.service.product.operation.GetProductMediaByProd
 import com.surofu.exporteru.core.service.product.operation.GetProductWithTranslationsById;
 import com.surofu.exporteru.core.service.product.operation.GetSearchHints;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
+import com.surofu.exporteru.core.service.product.operation.UpdateProductOwner;
 import com.surofu.exporteru.core.service.productReview.ProductReviewService;
 import com.surofu.exporteru.core.service.productReview.operation.CreateProductReview;
 import com.surofu.exporteru.core.service.productReview.operation.DeleteProductReview;
 import com.surofu.exporteru.core.service.productReview.operation.GetProductReviewPageByProductId;
 import com.surofu.exporteru.core.service.productReview.operation.UpdateProductReview;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.StringToClassMapItem;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -95,7 +79,6 @@ public class ProductRestController {
   private final ProductReviewService productReviewService;
   private final OrderService orderService;
   private final LocalizationManager localizationManager;
-
   private final GetProductById.Result.Processor<ResponseEntity<?>> getProductByIdProcessor;
   private final GetProductWithTranslationsById.Result.Processor<ResponseEntity<?>>
       getProductWithTranslationsByIdProcessor;
@@ -123,153 +106,40 @@ public class ProductRestController {
   private final UpdateProduct.Result.Processor<ResponseEntity<?>> updateProductProcessor;
   private final GetSearchHints.Result.Processor<ResponseEntity<?>> getSearchHintsProcessor;
   private final DeleteProductById.Result.Processor<ResponseEntity<?>> deleteProductByIdProcessor;
-
   private final CreateOrder.Result.Processor<ResponseEntity<?>> createOrderProcessor;
+  private final UpdateProductOwner.Result.Processor<ResponseEntity<?>> updateProductOwnerProcessor;
 
   @GetMapping("{productId}")
-  @Operation(
-      summary = "Get product by ID",
-      description = "Retrieves a single product by its unique identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ProductDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Get product by ID")
   public ResponseEntity<?> getProductById(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable
       Long productId,
-
       @RequestParam(name = "hasTranslations", required = false, defaultValue = "false")
       Boolean hasTranslations,
-
       @AuthenticationPrincipal SecurityUser securityUser
   ) {
     Locale locale = LocaleContextHolder.getLocale();
-
     if (hasTranslations) {
       GetProductWithTranslationsById operation =
           GetProductWithTranslationsById.of(productId, locale, securityUser);
       return productService.getProductWithTranslationsByProductId(operation)
           .process(getProductWithTranslationsByIdProcessor);
     }
-
     GetProductById operation = GetProductById.of(locale, productId, securityUser);
     return productService.getProductById(operation).process(getProductByIdProcessor);
   }
 
   @GetMapping("article/{article}")
-  @Operation(
-      summary = "Get product by article code",
-      description = "Retrieves a single product by its unique article code/SKU identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ProductDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid article code format",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = ValidationExceptionDto.class
-                  )
-              )
-          )
-      }
-  )
-  public ResponseEntity<?> getProductByArticle(
-      @Parameter(
-          name = "article",
-          description = "Article code/SKU of the product to be retrieved",
-          required = true,
-          example = "ABCD-1234",
-          schema = @Schema(
-              type = "string",
-              pattern = "^[A-Za-z]{4}-[0-9]{4}$",
-              minLength = 1,
-              maxLength = 50
-          )
-      )
-      @PathVariable String article
-  ) {
+  @Operation(summary = "Get product by article code")
+  public ResponseEntity<?> getProductByArticle(@PathVariable String article) {
     Locale locale = LocaleContextHolder.getLocale();
     GetProductByArticle operation = GetProductByArticle.of(locale, ProductArticleCode.of(article));
     return productService.getProductByArticle(operation).process(getProductByArticleProcessor);
   }
 
   @GetMapping("{productId}/category")
-  @Operation(
-      summary = "Get product category by product ID",
-      description = "Retrieves a single category by product's unique identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product category found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = CategoryDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
-  public ResponseEntity<?> getProductCategoryByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
-      @PathVariable Long productId
-  ) {
+  @Operation(summary = "Get product category by product ID")
+  public ResponseEntity<?> getProductCategoryByProductId(@PathVariable Long productId) {
     Locale locale = LocaleContextHolder.getLocale();
     GetProductCategoryByProductId operation = GetProductCategoryByProductId.of(productId, locale);
     return productService.getProductCategoryByProductId(operation)
@@ -277,40 +147,8 @@ public class ProductRestController {
   }
 
   @GetMapping("{productId}/delivery-methods")
-  @Operation(
-      summary = "Get product delivery methods by product ID",
-      description = "Retrieves a delivery methods by product's unique identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product delivery methods found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = DeliveryMethodDto.class))
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
-  public ResponseEntity<?> getProductDeliveryMethodsByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
-      @PathVariable Long productId
-  ) {
+  @Operation(summary = "Get product delivery methods by product ID")
+  public ResponseEntity<?> getProductDeliveryMethodsByProductId(@PathVariable Long productId) {
     GetProductDeliveryMethodsByProductId operation =
         GetProductDeliveryMethodsByProductId.of(productId);
     return productService.getProductDeliveryMethodsByProductId(operation)
@@ -318,79 +156,16 @@ public class ProductRestController {
   }
 
   @GetMapping("{productId}/media")
-  @Operation(
-      summary = "Get product media by product ID",
-      description = "Retrieves a array of images and videos by product's unique identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product media found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ProductMediaDto.class))
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
-  public ResponseEntity<?> getProductMediaByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
-      @PathVariable Long productId) {
+  @Operation(summary = "Get product media by product ID")
+  public ResponseEntity<?> getProductMediaByProductId(@PathVariable Long productId) {
     GetProductMediaByProductId operation = GetProductMediaByProductId.of(productId);
     return productService.getProductMediaByProductId(operation)
         .process(getProductMediaByProductIdProcessor);
   }
 
   @GetMapping("{productId}/characteristics")
-  @Operation(
-      summary = "Get product characteristics by product ID",
-      description = "Retrieves a characteristics by product's unique identifier",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product characteristics found and returned",
-              content = @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ProductCharacteristicDto.class))
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
-  public ResponseEntity<?> getProductCharacteristicsByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
-      @PathVariable Long productId
-  ) {
+  @Operation(summary = "Get product characteristics by product ID")
+  public ResponseEntity<?> getProductCharacteristicsByProductId(@PathVariable Long productId) {
     GetProductCharacteristicsByProductId operation =
         GetProductCharacteristicsByProductId.of(productId);
     return productService.getProductCharacteristicsByProductId(operation)
@@ -398,75 +173,18 @@ public class ProductRestController {
   }
 
   @GetMapping("{productId}/reviews")
-  @Operation(
-      summary = "Get filtered and paginated list of product reviews",
-      description = "Retrieves a page of product reviews with optional filtering by rating range",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully retrieved page of product reviews",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = GetProductReviewPageDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid request parameters",
-              content = @Content(
-                  schema = @Schema(
-                      implementation = ValidationExceptionDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Get filtered and paginated list of product reviews")
   public ResponseEntity<?> getProductReviewPageByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productId,
-
-      @Parameter(
-          name = "page",
-          description = "Zero-based page index (0..N)",
-          in = ParameterIn.QUERY,
-          schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
-      )
       @RequestParam(defaultValue = "0")
       @Min(0)
       int page,
-
-      @Parameter(
-          name = "size",
-          description = "Number of product reviews per page",
-          in = ParameterIn.QUERY,
-          schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
-      )
       @RequestParam(defaultValue = "10")
       @Min(1)
       @Max(100)
       int size,
-
-      @Parameter(
-          name = "minRating",
-          description = "Minimum product review rating filter (inclusive)",
-          in = ParameterIn.QUERY,
-          schema = @Schema(type = "number", example = "1")
-      )
       @RequestParam(required = false)
       Integer minRating,
-
-      @Parameter(
-          name = "maxRating",
-          description = "Maximum product review rating filter (inclusive)",
-          in = ParameterIn.QUERY,
-          schema = @Schema(type = "number", example = "10000")
-      )
       @RequestParam(required = false)
       Integer maxRating
   ) {
@@ -480,59 +198,12 @@ public class ProductRestController {
   @PostMapping(value = "{productId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("isAuthenticated()")
   @SecurityRequirement(name = "Bearer Authentication")
-  @Operation(
-      summary = "Create product review",
-      description = "Create product review",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully created product review",
-              content = @Content
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid request parameters",
-              content = @Content(
-                  schema = @Schema(
-                      implementation = ValidationExceptionDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product or review not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Create product review")
   public ResponseEntity<?> createProductReview(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productId,
-      @Parameter(hidden = true)
-      @AuthenticationPrincipal SecurityUser securityUser,
       @RequestPart("data") CreateProductReviewCommand command,
-      @RequestPart(value = "media", required = false) List<MultipartFile> media
+      @RequestPart(value = "media", required = false) List<MultipartFile> media,
+      @AuthenticationPrincipal SecurityUser securityUser
   ) {
     CreateProductReview operation = CreateProductReview.of(
         productId,
@@ -548,68 +219,12 @@ public class ProductRestController {
   @PatchMapping("{productId}/reviews/{productReviewId}")
   @PreAuthorize("isAuthenticated()")
   @SecurityRequirement(name = "Bearer Authentication")
-  @Operation(
-      summary = "Update product review by id",
-      description = "Update product review by id",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully updated product review",
-              content = @Content
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid request parameters",
-              content = @Content(
-                  schema = @Schema(
-                      implementation = ValidationExceptionDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product or review not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Update product review by id")
   public ResponseEntity<?> updateProductReviewById(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productId,
-
-      @Parameter(
-          name = "productReviewId",
-          description = "ID of the product review to be updated",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productReviewId,
-
-      @Parameter(hidden = true)
-      @AuthenticationPrincipal SecurityUser securityUser,
-      @RequestBody @Valid UpdateProductReviewCommand updateProductReviewCommand
+      @RequestBody @Valid UpdateProductReviewCommand updateProductReviewCommand,
+      @AuthenticationPrincipal SecurityUser securityUser
   ) {
     UpdateProductReview operation = UpdateProductReview.of(
         productId,
@@ -625,66 +240,10 @@ public class ProductRestController {
   @DeleteMapping("{productId}/reviews/{productReviewId}")
   @PreAuthorize("isAuthenticated()")
   @SecurityRequirement(name = "Bearer Authentication")
-  @Operation(
-      summary = "Delete product review by id",
-      description = "Delete product review by id",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully deleted product review",
-              content = @Content
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid request parameters",
-              content = @Content(
-                  schema = @Schema(
-                      implementation = ValidationExceptionDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product or review not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Delete product review by id")
   public ResponseEntity<?> deleteProductReviewById(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productId,
-
-      @Parameter(
-          name = "productReviewId",
-          description = "ID of the product review to be updated",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productReviewId,
-
-      @Parameter(hidden = true)
       @AuthenticationPrincipal SecurityUser securityUser
   ) {
     DeleteProductReview operation = DeleteProductReview.of(
@@ -697,38 +256,8 @@ public class ProductRestController {
   }
 
   @GetMapping("{productId}/faq")
-  @Operation(
-      summary = "Get list of product faq (question and answer)",
-      description = "Retrieves a list of product faq by product ID",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully retrieved list of product faq",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = GetProductReviewPageDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseErrorDto.class
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Get list of product faq (question and answer)")
   public ResponseEntity<?> getProductFaqByProductId(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable Long productId) {
     GetProductFaqByProductId operation = GetProductFaqByProductId.of(productId);
     return productService.getProductFaqByProductId(operation)
@@ -737,70 +266,12 @@ public class ProductRestController {
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
-  @Operation(
-      summary = "Create new product",
-      description = "Creates a new product with media files, prices, characteristics and FAQ",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product created successfully",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseMessageDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid product data or validation error",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized - authentication required",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden - ROLE_VENDOR required",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          )
-      }
-  )
+  @Operation(summary = "Create new product")
   public ResponseEntity<?> createProduct(
-      @Parameter(
-          description = "Product data in JSON format",
-          required = true,
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = CreateProductCommand.class)
-          )
-      )
       @RequestPart("data") @Valid CreateProductCommand createProductCommand,
-
-      @Parameter(
-          description = "Media files for the product (images, videos)",
-          required = true,
-          content = @Content(mediaType = "multipart/form-data")
-      )
       @RequestPart("productMedia") List<MultipartFile> productMedia,
-
-      @Parameter(
-          description = "Media files for the product (images, videos)",
-          content = @Content(mediaType = "multipart/form-data")
-      )
       @RequestPart(value = "aboutVendorMedia", required = false)
       List<MultipartFile> productVendorDetailsMedia,
-
-      @Parameter(hidden = true)
       @AuthenticationPrincipal SecurityUser securityUser
   ) {
     if (createProductCommand.prices() == null || createProductCommand.prices().isEmpty()) {
@@ -808,7 +279,6 @@ public class ProductRestController {
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
     if (createProductCommand.characteristics() == null ||
         createProductCommand.characteristics().isEmpty()) {
       String message =
@@ -816,24 +286,20 @@ public class ProductRestController {
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
     if (productMedia == null || productMedia.isEmpty()) {
       String message =
           localizationManager.localize("validation.product.create.empty_product_media");
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
     ProductTitle productTitle =
         new ProductTitle(createProductCommand.title(), createProductCommand.titleTranslations());
-
     ProductDescription productDescription = new ProductDescription(
         createProductCommand.mainDescription(),
         createProductCommand.furtherDescription(),
         createProductCommand.mainDescriptionTranslations(),
         createProductCommand.furtherDescriptionTranslations()
     );
-
     CreateProduct operation = CreateProduct.of(
         securityUser,
         productTitle,
@@ -859,101 +325,14 @@ public class ProductRestController {
 
   @PutMapping(value = "{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAnyRole('ROLE_VENDOR', 'ROLE_ADMIN')")
-  @Operation(
-      summary = "Update product by ID",
-      description = "Update the product with media files, prices, characteristics and FAQ",
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product updated successfully",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseMessageDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid product data or validation error",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized - authentication required",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden - ROLE_VENDOR required",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          )
-      },
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          content = @Content(
-              mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-              schema = @Schema(
-                  type = "object",
-                  properties = {
-                      @StringToClassMapItem(
-                          key = "data",
-                          value = UpdateProductCommand.class
-                      ),
-                      @StringToClassMapItem(
-                          key = "productMedia",
-                          value = MultipartFile[].class
-                      ),
-                      @StringToClassMapItem(
-                          key = "aboutVendorMedia",
-                          value = MultipartFile[].class
-                      )
-                  }
-              )
-          )
-      )
-  )
+  @Operation(summary = "Update product by ID")
   public ResponseEntity<?> updateProductById(
-      @Parameter(
-          name = "productId",
-          description = "ID of the product to be retrieved",
-          required = true,
-          example = "20",
-          schema = @Schema(type = "integer", format = "int64", minimum = "1")
-      )
       @PathVariable
       Long productId,
-
-      @Parameter(
-          description = "Product data in JSON format",
-          required = true,
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = UpdateProductCommand.class)
-          )
-      )
       @RequestPart("data") @Valid UpdateProductCommand updateProductCommand,
-
-      @Parameter(
-          description = "Media files for the product (images, videos)",
-          content = @Content(mediaType = "multipart/form-data")
-      )
       @RequestPart(value = "productMedia", required = false) List<MultipartFile> productMedia,
-
-      @Parameter(
-          description = "Media files for the product (images, videos)",
-          content = @Content(mediaType = "multipart/form-data")
-      )
       @RequestPart(value = "aboutVendorMedia", required = false)
       List<MultipartFile> productVendorDetailsMedia,
-
-      @Parameter(hidden = true)
       @AuthenticationPrincipal SecurityUser securityUser
   ) {
     if (updateProductCommand.prices() == null || updateProductCommand.prices().isEmpty()) {
@@ -961,7 +340,6 @@ public class ProductRestController {
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
     if (updateProductCommand.characteristics() == null ||
         updateProductCommand.characteristics().isEmpty()) {
       String message =
@@ -969,27 +347,21 @@ public class ProductRestController {
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
     if ((productMedia == null || productMedia.isEmpty()) &&
         updateProductCommand.oldProductMedia().isEmpty()) {
       String message = localizationManager.localize("validation.product.update.empty_media");
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
-
-    // Title
     ProductTitle productTitle =
         new ProductTitle(Objects.requireNonNullElse(updateProductCommand.title(), ""),
             updateProductCommand.titleTranslations());
-
-    // Description
     ProductDescription productDescription = new ProductDescription(
         updateProductCommand.mainDescription(),
         updateProductCommand.furtherDescription(),
         updateProductCommand.mainDescriptionTranslations(),
         updateProductCommand.furtherDescriptionTranslations()
     );
-
     UpdateProduct operation = UpdateProduct.of(
         productId,
         securityUser,
@@ -1018,73 +390,7 @@ public class ProductRestController {
   }
 
   @GetMapping("hints")
-  @Operation(
-      summary = "Get product search hints",
-      description = "Retrieve product search hints grouped by category based on the search text. " +
-          "Returns a list of categories with their matching products for autocomplete functionality.",
-      parameters = {
-          @Parameter(
-              name = "text",
-              description = "Search text to find matching products. If not provided or empty, " +
-                  "default value '$$$' is used which may return no results.",
-              example = "смартфон",
-              schema = @Schema(type = "string", minLength = 1, maxLength = 100)
-          )
-      },
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Search hints retrieved successfully",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      type = "array",
-                      implementation = SearchHintDto.class,
-                      description = "List of categories with their matching products"
-                  ),
-                  examples = @ExampleObject(
-                      name = "search_hints_example",
-                      summary = "Example search hints response",
-                      value = """
-                          [
-                              {
-                                  "category": "Электроника",
-                                  "products": [
-                                      {
-                                          "id": 1,
-                                          "title": "Смартфон Apple iPhone 14"
-                                      },
-                                      {
-                                          "id": 2,
-                                          "title": "Смартфон Samsung Galaxy S23"
-                                      }
-                                  ]
-                              },
-                              {
-                                  "category": "Аксессуары",
-                                  "products": [
-                                      {
-                                          "id": 15,
-                                          "title": "Чехол для смартфона"
-                                      }
-                                  ]
-                              }
-                          ]
-                          """
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid search parameters",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class)
-              )
-          )
-      },
-      tags = {"Products", "Search"}
-  )
+  @Operation(summary = "Get product search hints")
   public ResponseEntity<?> getSearchHints(
       @RequestParam(required = false, defaultValue = "$$$") String text,
       @RequestParam(required = false) Long vendorId
@@ -1097,101 +403,7 @@ public class ProductRestController {
   @DeleteMapping("{id}")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  @Operation(
-      summary = "Delete product by ID",
-      description =
-          "Permanently deletes a product and all its associated media files from the system. " +
-              "Operation sequence: 1) Delete all media files 2) Delete product record. " +
-              "This operation is irreversible and requires ADMIN privileges.",
-      parameters = {
-          @Parameter(
-              name = "id",
-              description = "Unique identifier of the product to delete",
-              required = true,
-              example = "123",
-              schema = @Schema(type = "integer", format = "int64", minimum = "1")
-          )
-      },
-      responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Product deleted successfully",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(
-                      implementation = SimpleResponseMessageDto.class,
-                      description = "Success confirmation message"
-                  ),
-                  examples = @ExampleObject(
-                      name = "success_response",
-                      summary = "Success response example",
-                      value = """
-                          {
-                              "message": "Product deleted successfully"
-                          }
-                          """
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Product not found",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class),
-                  examples = @ExampleObject(
-                      name = "not_found_response",
-                      summary = "Not found response example",
-                      value = """
-                          {
-                              "error": "Not Found",
-                              "message": "Product with ID '123' not found",
-                              "status": 404
-                          }
-                          """
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden - insufficient permissions",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class),
-                  examples = @ExampleObject(
-                      name = "forbidden_response",
-                      summary = "Forbidden response example",
-                      value = """
-                          {
-                              "error": "Forbidden",
-                              "message": "Access denied",
-                              "status": 403
-                          }
-                          """
-                  )
-              )
-          ),
-          @ApiResponse(
-              responseCode = "500",
-              description = "Internal server error during deletion",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SimpleResponseErrorDto.class),
-                  examples = @ExampleObject(
-                      name = "error_response",
-                      summary = "Error response example",
-                      value = """
-                          {
-                              "error": "Internal Server Error",
-                              "message": "Failed to delete product media files",
-                              "status": 500
-                          }
-                          """
-                  )
-              )
-          )
-      }
-  )
+  @Operation(summary = "Delete product by ID")
   public ResponseEntity<?> deleteProductById(@PathVariable Long id) {
     DeleteProductById operation = DeleteProductById.of(id);
     return productService.deleteProductById(operation).process(deleteProductByIdProcessor);
@@ -1205,5 +417,17 @@ public class ProductRestController {
     CreateOrder operation = CreateOrder.of(id, command.firstName(), command.email().toLowerCase(),
         command.phoneNumber(), command.quantity());
     return orderService.createOrder(operation).process(createOrderProcessor);
+  }
+
+  @PatchMapping("{productId}/owner/{ownerId}")
+  @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+  @SecurityRequirement(name = "Bearer Authentication")
+  @Operation(summary = "Update product owner")
+  public ResponseEntity<?> updateOwner(
+      @PathVariable Long productId,
+      @PathVariable Long ownerId
+  ) {
+    UpdateProductOwner operation = UpdateProductOwner.of(productId, ownerId);
+    return productService.updateProductOwner(operation).process(updateProductOwnerProcessor);
   }
 }

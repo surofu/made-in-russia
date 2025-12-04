@@ -69,6 +69,7 @@ import com.surofu.exporteru.core.service.product.operation.GetProductMediaByProd
 import com.surofu.exporteru.core.service.product.operation.GetProductWithTranslationsById;
 import com.surofu.exporteru.core.service.product.operation.GetSearchHints;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
+import com.surofu.exporteru.core.service.product.operation.UpdateProductOwner;
 import com.surofu.exporteru.infrastructure.persistence.deliveryMethod.DeliveryMethodView;
 import com.surofu.exporteru.infrastructure.persistence.product.ProductView;
 import com.surofu.exporteru.infrastructure.persistence.product.ProductWithTranslationsView;
@@ -405,6 +406,27 @@ public class ProductApplicationService implements ProductService {
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return DeleteProductById.Result.deleteError(e);
+    }
+  }
+
+  @Override
+  @Transactional
+  public UpdateProductOwner.Result updateProductOwner(UpdateProductOwner operation) {
+    try {
+      Optional<Product> productOptional = productRepository.getById(operation.getProductId());
+      if (productOptional.isEmpty()) {
+        return UpdateProductOwner.Result.productNotFound(operation.getProductId());
+      }
+      Optional<User> userOptional = userRepository.getById(operation.getOwnerId());
+      if (userOptional.isEmpty()) {
+        return UpdateProductOwner.Result.userNotFound(operation.getOwnerId());
+      }
+      productOptional.get().setUser(userOptional.get());
+      productRepository.save(productOptional.get());
+      return UpdateProductOwner.Result.success(operation.getProductId(), operation.getOwnerId());
+    } catch (Exception e) {
+      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      return UpdateProductOwner.Result.saveError(operation.getProductId(), operation.getOwnerId(), e);
     }
   }
 

@@ -74,7 +74,6 @@ public final class Product implements Serializable {
   )
   private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
 
-
   @Fetch(FetchMode.SUBSELECT)
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
@@ -87,7 +86,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("position")
@@ -105,7 +104,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -114,7 +113,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -126,7 +125,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -135,7 +134,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -144,7 +143,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -154,7 +153,7 @@ public final class Product implements Serializable {
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
       orphanRemoval = true
   )
   @OrderBy("creationDate")
@@ -192,18 +191,20 @@ public final class Product implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
     if (!(o instanceof Product product)) {
       return false;
     }
-    return Objects.equals(title, product.title)
-        && Objects.equals(description, product.description);
+    return approveStatus == product.approveStatus &&
+        Objects.equals(articleCode, product.articleCode) &&
+        Objects.equals(title, product.title) &&
+        Objects.equals(description, product.description) &&
+        Objects.equals(minimumOrderQuantity, product.minimumOrderQuantity) &&
+        Objects.equals(discountExpirationDate, product.discountExpirationDate);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(approveStatus, articleCode, title, description, minimumOrderQuantity,
+        discountExpirationDate);
   }
 }
