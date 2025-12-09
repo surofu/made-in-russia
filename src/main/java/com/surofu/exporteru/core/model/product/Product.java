@@ -36,11 +36,13 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Formula;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -188,17 +190,11 @@ public final class Product implements Serializable {
     if (!(o instanceof Product product)) {
       return false;
     }
-    return approveStatus == product.approveStatus &&
-        Objects.equals(articleCode, product.articleCode) &&
-        Objects.equals(title, product.title) &&
-        Objects.equals(description, product.description) &&
-        Objects.equals(minimumOrderQuantity, product.minimumOrderQuantity) &&
-        Objects.equals(discountExpirationDate, product.discountExpirationDate);
+    return Objects.equals(id, product.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(approveStatus, articleCode, title, description, minimumOrderQuantity,
-        discountExpirationDate);
+    return Objects.hashCode(id);
   }
 }

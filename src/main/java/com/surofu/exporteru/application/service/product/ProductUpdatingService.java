@@ -111,6 +111,7 @@ public class ProductUpdatingService {
 
       // Save
       Product savedProduct = productRepository.save(product);
+      productRepository.flush();
 
       // Produce
       for (ProductUpdatingConsumer consumer : consumers) {

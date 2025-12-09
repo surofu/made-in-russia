@@ -30,7 +30,7 @@ public class DeliveryMethodDetailsProductUpdatingConsumer
   @Transactional
   public void accept(Product product, UpdateProduct operation) {
     try {
-      List<ProductDeliveryMethodDetails> newDetails = new ArrayList<>();
+      List<ProductDeliveryMethodDetails> newDeliveryMethods = new ArrayList<>();
       List<ProductDeliveryMethodDetails> oldDetails = new ArrayList<>();
 
       for (UpdateProductDeliveryMethodDetailsCommand command : operation.getUpdateProductDeliveryMethodDetailsCommands()) {
@@ -40,17 +40,17 @@ public class DeliveryMethodDetailsProductUpdatingConsumer
         details.setValue(new ProductDeliveryMethodDetailsValue(command.value(), new HashMap<>()));
 
         if (!product.getDeliveryMethodDetails().contains(details)) {
-          newDetails.add(details);
+          newDeliveryMethods.add(details);
         } else {
           oldDetails.add(details);
         }
       }
 
-      List<String> namesToTranslate = newDetails.stream()
+      List<String> namesToTranslate = newDeliveryMethods.stream()
           .map(ProductDeliveryMethodDetails::getName)
           .map(ProductDeliveryMethodDetailsName::getValue)
           .toList();
-      List<String> valuesToTranslate = newDetails.stream()
+      List<String> valuesToTranslate = newDeliveryMethods.stream()
           .map(ProductDeliveryMethodDetails::getValue)
           .map(ProductDeliveryMethodDetailsValue::getValue)
           .toList();
@@ -60,20 +60,20 @@ public class DeliveryMethodDetailsProductUpdatingConsumer
       textsToTranslate.addAll(valuesToTranslate);
 
       List<Map<String, String>> translatedTexts = translationRepository.expand(textsToTranslate);
-      for (int i = 0; i < newDetails.size(); i++) {
-        ProductDeliveryMethodDetails details = newDetails.get(i);
+      for (int i = 0; i < newDeliveryMethods.size(); i++) {
+        ProductDeliveryMethodDetails details = newDeliveryMethods.get(i);
         details.setName(new ProductDeliveryMethodDetailsName(details.getName().getValue(),
             translatedTexts.get(i)));
         details.setValue(new ProductDeliveryMethodDetailsValue(details.getValue().getValue(),
-            translatedTexts.get(i + newDetails.size())));
+            translatedTexts.get(i + newDeliveryMethods.size())));
       }
 
-      List<ProductDeliveryMethodDetails> detailsToDelete =
+      List<ProductDeliveryMethodDetails> deliveryMethodsToDelete =
           product.getDeliveryMethodDetails().stream()
               .filter(d -> !oldDetails.contains(d)).toList();
 
-      deliveryMethodDetailsRepository.deleteAll(detailsToDelete);
-      deliveryMethodDetailsRepository.saveAll(newDetails);
+      deliveryMethodsToDelete.forEach(product.getDeliveryMethodDetails()::remove);
+      newDeliveryMethods.forEach(product.getDeliveryMethodDetails()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

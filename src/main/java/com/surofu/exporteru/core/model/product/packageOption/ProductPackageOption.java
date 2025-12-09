@@ -50,19 +50,15 @@ public final class ProductPackageOption implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ProductPackageOption packageOption)) {
+    if (!(o instanceof ProductPackageOption that)) {
       return false;
     }
-    return Objects.equals(name, packageOption.name)
-        && Objects.equals(price, packageOption.price)
-        && Objects.equals(priceUnit, packageOption.priceUnit);
+    return Objects.equals(name, that.name) && Objects.equals(price, that.price) &&
+        Objects.equals(priceUnit, that.priceUnit);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(name, price, priceUnit);
   }
 }

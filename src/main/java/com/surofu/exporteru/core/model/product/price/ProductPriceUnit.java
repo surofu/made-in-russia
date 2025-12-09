@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,6 +16,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 public final class ProductPriceUnit implements Serializable {
   @Column(name = "quantity_unit", nullable = false)
   private final String value;
@@ -57,18 +59,5 @@ public final class ProductPriceUnit implements Serializable {
   @Override
   public String toString() {
     return value;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof ProductPriceUnit that)) {
-      return false;
-    }
-    return Objects.equals(value, that.value);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(value);
   }
 }

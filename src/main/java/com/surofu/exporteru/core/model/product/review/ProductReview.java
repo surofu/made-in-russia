@@ -19,19 +19,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "product_reviews",
-        indexes = {
-                @Index(
-                        name = "idx_product_reviews_product_id",
-                        columnList = "product_id"
-                ),
-                @Index(
-                        name = "idx_product_reviews_user_id",
-                        columnList = "user_id"
-                )
-        }
-)
+@Table(name = "product_reviews")
 public final class ProductReview implements Serializable {
 
     @Id
@@ -86,13 +74,15 @@ public final class ProductReview implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductReview productReview)) return false;
-        return Objects.equals(id, productReview.id);
+        if (!(o instanceof ProductReview that)) {
+            return false;
+        }
+      return approveStatus == that.approveStatus && Objects.equals(content, that.content) &&
+            Objects.equals(rating, that.rating);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(approveStatus, content, rating);
     }
 }

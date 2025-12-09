@@ -68,11 +68,11 @@ public class FaqProductUpdatingConsumer
             translatedTexts.get(i + newFaq.size())));
       }
 
-      List<ProductFaq> detailsToDelete = product.getFaq().stream()
+      List<ProductFaq> faqToDelete = product.getFaq().stream()
           .filter(d -> !oldFaq.contains(d)).toList();
 
-      faqRepository.deleteAll(detailsToDelete);
-      faqRepository.saveAll(newFaq);
+      faqToDelete.forEach(product.getFaq()::remove);
+      newFaq.forEach(product.getFaq()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

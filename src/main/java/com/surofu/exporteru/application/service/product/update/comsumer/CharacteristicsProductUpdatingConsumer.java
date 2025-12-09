@@ -70,8 +70,8 @@ public class CharacteristicsProductUpdatingConsumer implements ProductUpdatingCo
       List<ProductCharacteristic> characteristicsToDelete = product.getCharacteristics().stream()
           .filter(c -> !oldCharacteristics.contains(c)).toList();
 
-      characteristicRepository.deleteAll(characteristicsToDelete);
-      characteristicRepository.saveAll(newCharacteristics);
+      characteristicsToDelete.forEach(product.getCharacteristics()::remove);
+      newCharacteristics.forEach(product.getCharacteristics()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

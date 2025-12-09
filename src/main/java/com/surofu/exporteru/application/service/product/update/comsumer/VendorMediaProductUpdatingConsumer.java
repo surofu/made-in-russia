@@ -74,8 +74,8 @@ public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsum
           .toList();
 
       storageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));
-      mediaRepository.saveAll(resultMedia);
-      mediaRepository.deleteAll(mediaToDelete);
+      mediaToDelete.forEach(vendorDetails.getMedia()::remove);
+      resultMedia.forEach(vendorDetails.getMedia()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

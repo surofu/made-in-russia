@@ -62,8 +62,8 @@ public class PackageOptonsProductUpdatingConsumer implements ProductUpdatingCons
       List<ProductPackageOption> packageOptionsToDelete = product.getPackageOptions().stream()
           .filter(c -> !oldPackageOptions.contains(c)).toList();
 
-      packageOptionsRepository.deleteAll(packageOptionsToDelete);
-      packageOptionsRepository.saveAll(newPackageOptions);
+      packageOptionsToDelete.forEach(product.getPackageOptions()::remove);
+      newPackageOptions.forEach(product.getPackageOptions()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

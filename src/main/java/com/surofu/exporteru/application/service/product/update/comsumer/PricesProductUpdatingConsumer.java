@@ -64,11 +64,11 @@ public class PricesProductUpdatingConsumer implements ProductUpdatingConsumer {
             translatedTexts.get(i)));
       }
 
-      List<ProductPrice> packageOptionsToDelete = product.getPrices().stream()
+      List<ProductPrice> pricesToDelete = product.getPrices().stream()
           .filter(c -> !oldPrices.contains(c)).toList();
 
-      priceRepository.deleteAll(packageOptionsToDelete);
-      priceRepository.saveAll(newPrices);
+      pricesToDelete.forEach(product.getPrices()::remove);
+      newPrices.forEach(product.getPrices()::add);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       log.error(e.getMessage(), e);

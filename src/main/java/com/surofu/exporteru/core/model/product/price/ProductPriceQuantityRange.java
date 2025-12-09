@@ -6,11 +6,13 @@ import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceQuantityRange implements Serializable {
 
@@ -108,22 +110,5 @@ public final class ProductPriceQuantityRange implements Serializable {
   @Override
   public String toString() {
     return String.format("ProductPriceQuantityRange{from=%s, to=%s}", from, to);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ProductPriceQuantityRange productPriceQuantityRange)) {
-      return false;
-    }
-    return Objects.equals(from, productPriceQuantityRange.from) &&
-        Objects.equals(to, productPriceQuantityRange.to);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(from, to);
   }
 }
