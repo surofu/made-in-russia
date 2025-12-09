@@ -171,36 +171,35 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public ForceUpdateUserById.Result forceUpdateUserById(ForceUpdateUserById operation) {
-    Optional<User> user = userRepository.getById(operation.getId());
-
-    if (user.isEmpty()) {
-      return ForceUpdateUserById.Result.notFound(operation.getId());
-    }
-
-    if (!user.get().getEmail().equals(operation.getEmail()) &&
-        userRepository.existsUserByEmail(operation.getEmail())) {
-      return ForceUpdateUserById.Result.emailAlreadyExists(operation.getEmail());
-    }
-
-    if (!user.get().getLogin().equals(operation.getLogin()) &&
-        userRepository.existsUserByLogin(operation.getLogin())) {
-      return ForceUpdateUserById.Result.loginAlreadyExists(operation.getLogin());
-    }
-
-    if (!user.get().getPhoneNumber().equals(operation.getPhoneNumber()) &&
-        userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
-      return ForceUpdateUserById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
-    }
-
-    user.get().setEmail(operation.getEmail());
-    user.get().setLogin(
-        TransliterationManager.transliterateUserLogin(operation.getLogin(),
-            LocaleContextHolder.getLocale()));
-    user.get().setPhoneNumber(operation.getPhoneNumber());
-    user.get().setRegion(operation.getRegion());
-
     try {
-      userRepository.save(user.get());
+      Optional<User> userOptional = userRepository.getById(operation.getId());
+      if (userOptional.isEmpty()) {
+        return ForceUpdateUserById.Result.notFound(operation.getId());
+      }
+
+      User user = userOptional.get();
+
+      if (!user.getEmail().equals(operation.getEmail()) &&
+          userRepository.existsUserByEmail(operation.getEmail())) {
+        return ForceUpdateUserById.Result.emailAlreadyExists(operation.getEmail());
+      }
+      if (!user.getLogin().equals(operation.getLogin()) &&
+          userRepository.existsUserByLogin(operation.getLogin())) {
+        return ForceUpdateUserById.Result.loginAlreadyExists(operation.getLogin());
+      }
+      if (user.getPhoneNumber() != null && !user.getPhoneNumber().equals(operation.getPhoneNumber()) &&
+          userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
+        return ForceUpdateUserById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
+      }
+
+      user.setEmail(operation.getEmail());
+      user.setLogin(
+          TransliterationManager.transliterateUserLogin(operation.getLogin(),
+              LocaleContextHolder.getLocale()));
+      user.setPhoneNumber(operation.getPhoneNumber());
+      user.setRegion(operation.getRegion());
+
+      userRepository.save(user);
       return ForceUpdateUserById.Result.success(operation.getId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

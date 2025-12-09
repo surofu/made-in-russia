@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.Locale;
 
 @Data
 @Builder

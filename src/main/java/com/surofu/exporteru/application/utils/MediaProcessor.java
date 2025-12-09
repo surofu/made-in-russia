@@ -430,7 +430,7 @@ public class MediaProcessor {
 
 
     private void silentlyDelete(File file) {
-        if (file != null && file.exists()) {
+        if (file.exists()) {
             try {
                 Files.delete(file.toPath());
             } catch (IOException e) {

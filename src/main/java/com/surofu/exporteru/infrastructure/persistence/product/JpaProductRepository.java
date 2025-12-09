@@ -151,17 +151,12 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public Optional<Product> findByIdWithPrices(Long id) {
-        return repository.findByIdWithPrices(id);
-    }
-
-    @Override
     public List<Product> getByUserAndCategory(User user, Category category) {
-        return repository.findByUserAndCategory(user, category);
+        return repository.findFirst10ByUserAndCategoryOrCategoryParentOrCategoryParentParent(user, category, category, category);
     }
 
     @Override
     public List<Product> getByCategory(Category category, int maxResults) {
-        return repository.findByCategory(category, Limit.of(maxResults));
+        return repository.findByCategoryOrCategoryParentOrCategoryParentParent(category, category, category, Limit.of(maxResults));
     }
 }

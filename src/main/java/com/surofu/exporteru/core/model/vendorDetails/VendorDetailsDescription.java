@@ -17,25 +17,31 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorDetailsDescription implements Serializable {
-
-  @Getter(AccessLevel.NONE)
   @Column(name = "description", nullable = false)
-  private String value;
+  private final String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "description_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private final Map<String, String> translations;
 
-  private VendorDetailsDescription(String text) {
+  public VendorDetailsDescription(String text, Map<String, String> translations) {
     if (text != null && text.length() > 20_000) {
       throw new LocalizedValidationException("validation.vendor.description.max_length");
     }
 
     this.value = Objects.requireNonNullElse(text, "");
+    this.translations = translations;
+  }
+
+  public VendorDetailsDescription(String text) {
+    this(text, new HashMap<>());
+  }
+
+  public VendorDetailsDescription() {
+    this.value = null;
+    this.translations = new HashMap<>();
   }
 
   public String getLocalizedValue() {
@@ -46,12 +52,21 @@ public final class VendorDetailsDescription implements Serializable {
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
 
-  public static VendorDetailsDescription of(String text) {
-    return new VendorDetailsDescription(text);
-  }
-
   @Override
   public String toString() {
     return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof VendorDetailsDescription that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
   }
 }

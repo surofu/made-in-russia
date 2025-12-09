@@ -463,7 +463,7 @@ public class VendorRestController {
         new UserLogin(command.login()),
         UserPhoneNumber.of(command.phoneNumber()),
         VendorDetailsInn.of(command.inn()),
-        VendorDetailsDescription.of(command.description()),
+        new VendorDetailsDescription(command.description()),
         VendorDetailsAddress.of(command.address()),
         command.countries() != null ?
             command.countries().stream().map(VendorCountryName::of).toList() : new ArrayList<>(),

@@ -88,6 +88,6 @@ public class ProductDescription implements Serializable {
 
     Locale locale = LocaleContextHolder.getLocale();
     return furtherDescriptionTranslations.getOrDefault(locale.getLanguage(),
-        Objects.requireNonNullElse(furtherDescription, ""));
+        furtherDescription);
   }
 }

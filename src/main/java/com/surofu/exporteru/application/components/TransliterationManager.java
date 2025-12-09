@@ -1,7 +1,6 @@
 package com.surofu.exporteru.application.components;
 
 import com.surofu.exporteru.core.model.user.UserLogin;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import me.saitov.libs.transliteration.Transliteration;

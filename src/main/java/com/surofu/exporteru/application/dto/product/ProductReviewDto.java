@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Data
 @Builder
@@ -28,6 +29,9 @@ public final class ProductReviewDto implements Serializable {
   private ZonedDateTime lastModificationDate;
 
   public static ProductReviewDto of(ProductReview productReview) {
+    System.out.println("Locale: " + LocaleContextHolder.getLocale().getLanguage());
+    System.out.println("login: " + UserDto.of(productReview.getUser()).getLogin());
+
     return ProductReviewDto.builder()
         .id(productReview.getId())
         .product(ProductForReviewDto.of(productReview.getProduct()))

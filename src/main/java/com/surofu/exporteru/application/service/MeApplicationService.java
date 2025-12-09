@@ -20,17 +20,15 @@ import com.surofu.exporteru.application.utils.JwtUtils;
 import com.surofu.exporteru.application.utils.LocalizationManager;
 import com.surofu.exporteru.core.model.media.MediaType;
 import com.surofu.exporteru.core.model.product.Product;
-import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
-import com.surofu.exporteru.core.model.product.review.ProductReviewContent;
 import com.surofu.exporteru.core.model.session.Session;
 import com.surofu.exporteru.core.model.session.SessionDeviceId;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.model.user.UserAvatar;
 import com.surofu.exporteru.core.model.user.UserEmail;
-import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
@@ -175,18 +173,6 @@ public class MeApplicationService implements MeService {
     }
 
     VendorDto vendorDto = VendorDto.of(userView);
-
-    if (!operation.getLocale().getLanguage().equals("ru")) {
-      String login = vendorDto.getLogin();
-      String address = vendorDto.getVendorDetails().getAddress();
-
-      String translitLogin = TransliterationManager.transliterate(login);
-      String translitAddress = TransliterationManager.transliterate(address);
-
-      vendorDto.setLogin(translitLogin);
-      vendorDto.getVendorDetails().setAddress(translitAddress);
-    }
-
     Long viewsCount =
         vendorViewRepository.getCountByVendorDetailsId(userView.getVendorDetails().getId());
     vendorDto.getVendorDetails().setViewsCount(viewsCount);
@@ -340,29 +326,6 @@ public class MeApplicationService implements MeService {
     return GetMeVendorProductReviewPage.Result.success(productReviewDtoPage);
   }
 
-  private ProductReview translateProductReview(ProductReview productReview) {
-    String translatedProductTitle =
-        productReview.getProduct().getTitle().getLocalizedValue();
-
-    if (StringUtils.trimToNull(translatedProductTitle) != null) {
-      productReview.getProduct().setTitle(new ProductTitle(translatedProductTitle));
-    }
-
-    if (productReview.getUser().getLogin().getTransliteration() != null) {
-      String translatedUserLogin =
-          productReview.getUser().getLogin().getLocalizedValue();
-      productReview.getUser().setLogin(new UserLogin(translatedUserLogin,
-          productReview.getUser().getLogin().getTransliteration()));
-    }
-
-    String translatedText = productReview.getContent().getLocalizedValue();
-
-    if (StringUtils.trimToNull(translatedText) != null) {
-      productReview.setContent(ProductReviewContent.of(translatedText));
-    }
-    return productReview;
-  }
-
   @Override
   @Transactional
   public RefreshMeCurrentSession.Result refreshMeCurrentSession(RefreshMeCurrentSession operation) {
@@ -453,12 +416,11 @@ public class MeApplicationService implements MeService {
       }
 
       if (operation.getDescription() != null) {
-        vendorDetails.setDescription(operation.getDescription());
-
-
         try {
-          vendorDetails.getDescription()
-              .setTranslations(translationRepository.expand(operation.getDescription().toString()));
+          vendorDetails.setDescription(new VendorDetailsDescription(
+              operation.getDescription().getValue(),
+              translationRepository.expand(operation.getDescription().toString())
+          ));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
@@ -1146,7 +1108,6 @@ public class MeApplicationService implements MeService {
 
             return r;
           })
-          .map(this::translateProductReview)
           .map(ProductReviewDto::of);
     }
 

@@ -38,8 +38,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Formula;
 
 @Data
@@ -61,12 +59,11 @@ public final class Product implements Serializable {
   @Column(name = "approve_status", nullable = false)
   private ApproveStatus approveStatus = ApproveStatus.PENDING;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id", nullable = false)
   private Category category;
 
-  @Fetch(FetchMode.SUBSELECT)
-  @ManyToMany(fetch = FetchType.EAGER)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "products_delivery_methods",
       joinColumns = @JoinColumn(name = "product_id"),
@@ -74,8 +71,7 @@ public final class Product implements Serializable {
   )
   private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
 
-  @Fetch(FetchMode.SUBSELECT)
-  @ManyToMany(fetch = FetchType.EAGER)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "products_delivery_terms",
       joinColumns = @JoinColumn(name = "product_id"),
@@ -92,8 +88,7 @@ public final class Product implements Serializable {
   @OrderBy("position")
   private Set<ProductMedia> media = new HashSet<>();
 
-  @Fetch(FetchMode.SUBSELECT)
-  @ManyToMany(fetch = FetchType.EAGER)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "similar_products",
       joinColumns = @JoinColumn(name = "parent_product_id"),
@@ -149,7 +144,6 @@ public final class Product implements Serializable {
   @OrderBy("creationDate")
   private Set<ProductDeliveryMethodDetails> deliveryMethodDetails = new HashSet<>();
 
-  @Fetch(FetchMode.JOIN)
   @OneToMany(
       mappedBy = "product",
       fetch = FetchType.LAZY,

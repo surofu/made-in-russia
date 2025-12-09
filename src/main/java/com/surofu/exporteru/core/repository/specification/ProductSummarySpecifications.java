@@ -157,8 +157,11 @@ public class ProductSummarySpecifications {
 
     public static Specification<ProductSummaryView> inUserFavorite(Long userId) {
         return (root, query, cb) -> {
-            Subquery<Long> favoriteSubquery = query.subquery(Long.class);
-            Root<User> userRoot = favoriteSubquery.from(User.class);
+          Subquery<Long> favoriteSubquery = null;
+          if (query != null) {
+            favoriteSubquery = query.subquery(Long.class);
+          }
+          Root<User> userRoot = favoriteSubquery.from(User.class);
             Join<User, ProductSummaryView> favoriteProductsJoin = userRoot.join("favoriteProducts", JoinType.INNER);
             favoriteSubquery.select(favoriteProductsJoin.get("id"))
                     .where(cb.equal(userRoot.get("id"), userId));

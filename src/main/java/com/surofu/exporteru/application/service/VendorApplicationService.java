@@ -11,7 +11,9 @@ import com.surofu.exporteru.application.dto.vendor.VendorReviewPageDto;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.user.User;
+import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmailEmail;
@@ -62,6 +64,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -106,17 +109,6 @@ public class VendorApplicationService implements VendorService {
     }
 
     VendorDto vendorDto = VendorDto.of(userView);
-
-    if (!operation.getLocale().getLanguage().equals("ru")) {
-      String login = vendorDto.getLogin();
-      String address = vendorDto.getVendorDetails().getAddress();
-
-      String translitLogin = TransliterationManager.transliterate(login);
-      String translitAddress = TransliterationManager.transliterate(address);
-
-      vendorDto.setLogin(translitLogin);
-      vendorDto.getVendorDetails().setAddress(translitAddress);
-    }
 
     if (operation.getSecurityUser() != null) {
       if (!vendorViewRepository.existsByUserIdAndVendorDetailsId(
@@ -422,7 +414,7 @@ public class VendorApplicationService implements VendorService {
       ForceUpdateVendorById operation, User user, VendorDetails vendorDetails
   ) {
     user.setEmail(operation.getEmail());
-    user.setLogin(operation.getLogin());
+    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getLogin(), LocaleContextHolder.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     vendorDetails.setInn(operation.getInn());
     vendorDetails.setDescription(operation.getDescription());
@@ -434,8 +426,10 @@ public class VendorApplicationService implements VendorService {
     String descriptionText = StringUtils.trimToNull(operation.getDescription().toString());
     if (descriptionText != null) {
       try {
-        vendorDetails.getDescription()
-            .setTranslations(translationRepository.expand(descriptionText));
+        vendorDetails.setDescription(new VendorDetailsDescription(
+            vendorDetails.getDescription().getValue(),
+            translationRepository.expand(descriptionText)
+        ));
       } catch (Exception e) {
         throw new RuntimeException("Translation error for description", e);
       }
@@ -539,7 +533,8 @@ public class VendorApplicationService implements VendorService {
         .map(name -> {
           VendorProductCategory vendorProductCategory = new VendorProductCategory();
           vendorProductCategory.setVendorDetails(vendorDetails);
-          vendorProductCategory.setName(new VendorProductCategoryName(name.getValue(), translationRepository.expand(name.getTranslations())));
+          vendorProductCategory.setName(new VendorProductCategoryName(name.getValue(),
+              translationRepository.expand(name.getTranslations())));
           return vendorProductCategory;
         })
         .collect(Collectors.toList());

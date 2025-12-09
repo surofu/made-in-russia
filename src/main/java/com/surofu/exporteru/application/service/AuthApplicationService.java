@@ -23,7 +23,9 @@ import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.model.user.password.UserPassword;
 import com.surofu.exporteru.core.model.user.password.UserPasswordPassword;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsInn;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.productCategory.VendorProductCategory;
@@ -53,6 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -115,6 +118,11 @@ public class AuthApplicationService implements AuthService {
     UserPassword userPassword = new UserPassword();
     userPassword.setUser(user);
 
+    VendorDetails vendorDetails = new VendorDetails();
+    vendorDetails.setInn(VendorDetailsInn.of(UUID.randomUUID().toString()));
+    vendorDetails.setAddress(VendorDetailsAddress.of(UUID.randomUUID().toString()));
+    vendorDetails.setDescription(new VendorDetailsDescription(""));
+
     String rawHashedPassword =
         passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
     UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
@@ -171,9 +179,7 @@ public class AuthApplicationService implements AuthService {
     VendorDetails vendorDetails = new VendorDetails();
     vendorDetails.setInn(operation.getVendorDetailsInn());
     vendorDetails.setAddress(operation.getVendorDetailsAddress());
-    VendorDetailsDescription description = VendorDetailsDescription.of("");
-    description.setTranslations(new HashMap<>());
-    vendorDetails.setDescription(description);
+    vendorDetails.setDescription(new VendorDetailsDescription(""));
 
     List<VendorCountry> vendorCountries = new ArrayList<>();
     for (VendorCountryName vendorCountryName : operation.getVendorCountryNames()) {
@@ -312,11 +318,11 @@ public class AuthApplicationService implements AuthService {
       VendorDetailsDescription description = vendorDetails.getDescription();
 
       if (description == null) {
-        vendorDetails.setDescription(VendorDetailsDescription.of(""));
+        vendorDetails.setDescription(new VendorDetailsDescription(""));
       }
 
       if (description != null && description.getTranslations() == null) {
-        description.setTranslations(new HashMap<>());
+        vendorDetails.setDescription(new VendorDetailsDescription("", new HashMap<>()));
       }
 
       if (vendorDetails.getAddress() != null &&

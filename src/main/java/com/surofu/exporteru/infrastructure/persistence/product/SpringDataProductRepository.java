@@ -299,7 +299,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
   @Query("select count(p) > 0 from Product p where p.id = :productId and p.user.id = :userId")
   boolean existsWithUserId(@Param("productId") Long productId, @Param("userId") Long userId);
 
-  List<Product> findByUserAndCategory(User user, Category category);
+  List<Product> findFirst10ByUserAndCategoryOrCategoryParentOrCategoryParentParent(User user, Category category, Category parent, Category parent2);
 
-  List<Product> findByCategory(Category category, Limit limit);
+  List<Product> findByCategoryOrCategoryParentOrCategoryParentParent(Category category, Category parent, Category parent2, Limit limit);
 }

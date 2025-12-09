@@ -4,6 +4,7 @@ import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.category.CategorySlug;
 import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +18,8 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
   @Override
   @Query("select c from Category c where c.id = :id")
   @EntityGraph(attributePaths = "children")
-  Optional<Category> findById(@Param("id") Long id);
+  @NotNull
+  Optional<Category> findById(@Param("id") @NotNull Long id);
 
   @Query(value = """
       WITH RECURSIVE category_tree AS (

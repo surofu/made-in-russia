@@ -21,6 +21,7 @@ import com.surofu.exporteru.application.dto.product.ProductPackageOptionDto;
 import com.surofu.exporteru.application.dto.product.ProductPackageOptionWithTranslationsDto;
 import com.surofu.exporteru.application.dto.product.ProductPriceDto;
 import com.surofu.exporteru.application.dto.product.ProductReviewMediaDto;
+import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
 import com.surofu.exporteru.application.dto.product.ProductWithTranslationsDto;
 import com.surofu.exporteru.application.dto.product.SimilarProductDto;
 import com.surofu.exporteru.application.dto.vendor.VendorCountryDto;
@@ -104,6 +105,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -461,7 +463,12 @@ public class ProductApplicationService implements ProductService {
       List<Product> otherProducts = productRepository.getByCategory(category, 10 - result.size());
       result.addAll(otherProducts);
     }
-    List<SimilarProductDto> dtos = result.stream().map(SimilarProductDto::of).toList();
+    List<ProductSummaryViewDto> dtos = result.stream()
+        .filter(p -> !Objects.equals(p, product))
+        .map(p -> ProductSummaryViewDto.of(
+            localizationManager.localizePrice(p, LocaleContextHolder.getLocale())
+        ))
+        .toList();
     return GetSimilarProducts.Result.success(dtos);
   }
 

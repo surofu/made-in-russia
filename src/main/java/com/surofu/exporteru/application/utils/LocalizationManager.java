@@ -6,12 +6,22 @@ import com.surofu.exporteru.application.dto.product.ProductPackageOptionDto;
 import com.surofu.exporteru.application.dto.product.ProductPriceDto;
 import com.surofu.exporteru.application.dto.vendor.VendorDto;
 import com.surofu.exporteru.core.model.currency.CurrencyCode;
+import com.surofu.exporteru.core.model.product.Product;
+import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOption;
+import com.surofu.exporteru.core.model.product.packageOption.ProductPackageOptionPrice;
+import com.surofu.exporteru.core.model.product.price.ProductPrice;
+import com.surofu.exporteru.core.model.product.price.ProductPriceCurrency;
+import com.surofu.exporteru.core.model.product.price.ProductPriceDiscountedPrice;
+import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.service.currency.CurrencyConverterService;
 import com.surofu.exporteru.core.view.ProductSummaryView;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -51,8 +61,10 @@ public class LocalizationManager {
         }
 
         try {
-            BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, view.getOriginPrice());
-            BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, view.getDiscountedPrice());
+            BigDecimal localizedOriginalPrice =
+                currencyConverterService.convert(from, to, view.getOriginPrice());
+            BigDecimal localizedDiscountedPrice =
+                currencyConverterService.convert(from, to, view.getDiscountedPrice());
 
             view.setOriginPrice(localizedOriginalPrice.setScale(0, RoundingMode.DOWN));
 
@@ -103,7 +115,8 @@ public class LocalizationManager {
 
         for (ProductPackageOptionDto packagingOption : dto.getPackagingOptions()) {
             try {
-                BigDecimal convertedPrice = currencyConverterService.convert(from, to, packagingOption.getPrice());
+                BigDecimal convertedPrice =
+                    currencyConverterService.convert(from, to, packagingOption.getPrice());
                 packagingOption.setPrice(convertedPrice);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -112,8 +125,10 @@ public class LocalizationManager {
 
         for (ProductPriceDto price : dto.getPrices()) {
             try {
-                BigDecimal localizedOriginalPrice = currencyConverterService.convert(from, to, price.getOriginalPrice());
-                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to, price.getDiscountedPrice());
+                BigDecimal localizedOriginalPrice =
+                    currencyConverterService.convert(from, to, price.getOriginalPrice());
+                BigDecimal localizedDiscountedPrice =
+                    currencyConverterService.convert(from, to, price.getDiscountedPrice());
 
                 price.setOriginalPrice(localizedOriginalPrice.setScale(0, RoundingMode.DOWN));
 
@@ -127,7 +142,8 @@ public class LocalizationManager {
                             price.setOriginalPrice(BigDecimal.valueOf(2));
                         }
                     } else {
-                        price.setDiscountedPrice(localizedDiscountedPrice.setScale(0, RoundingMode.DOWN));
+                        price.setDiscountedPrice(
+                            localizedDiscountedPrice.setScale(0, RoundingMode.DOWN));
                     }
                 }
 
@@ -150,5 +166,80 @@ public class LocalizationManager {
         }
 
         return dto;
+    }
+
+    public Product localizePrice(Product product, Locale locale) {
+        CurrencyCode from = CurrencyCode.USD;
+        CurrencyCode to = switch (locale.getLanguage()) {
+            case ("en") -> CurrencyCode.USD;
+            case ("ru") -> CurrencyCode.RUB;
+            case ("zh") -> CurrencyCode.CNY;
+            case ("hi") -> CurrencyCode.INR;
+            default -> CurrencyCode.USD;
+        };
+
+        if (!product.getPrices().isEmpty()) {
+            from = CurrencyCode.valueOf(
+                product.getPrices().iterator().next().getCurrency().getValue().name());
+        }
+
+        for (ProductPackageOption packagingOption : product.getPackageOptions()) {
+            try {
+                BigDecimal convertedPrice = currencyConverterService.convert(from, to,
+                    packagingOption.getPrice().getValue());
+                packagingOption.setPrice(ProductPackageOptionPrice.of(convertedPrice));
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        for (ProductPrice price : product.getPrices()) {
+            try {
+                BigDecimal localizedOriginalPrice =
+                    currencyConverterService.convert(from, to, price.getOriginalPrice().getValue());
+                BigDecimal localizedDiscountedPrice = currencyConverterService.convert(from, to,
+                    price.getDiscountedPrice().getValue());
+
+                price.setOriginalPrice(ProductPriceOriginalPrice.of(
+                    localizedOriginalPrice.setScale(0, RoundingMode.DOWN)));
+
+                if (getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()) == null) {
+                    price.setDiscountedPrice(ProductPriceDiscountedPrice.of(localizedOriginalPrice));
+                } else {
+                    if (Math.abs(localizedDiscountedPrice.compareTo(BigDecimal.ZERO)) < 1) {
+                        price.setDiscountedPrice(ProductPriceDiscountedPrice.of(BigDecimal.ONE));
+
+                        if (localizedOriginalPrice.compareTo(BigDecimal.ZERO) < 1) {
+                            price.setOriginalPrice(ProductPriceOriginalPrice.of(BigDecimal.valueOf(2)));
+                        }
+                    } else {
+                        price.setDiscountedPrice(ProductPriceDiscountedPrice.of(localizedDiscountedPrice.setScale(0, RoundingMode.DOWN)));
+                    }
+                }
+
+                price.setCurrency(ProductPriceCurrency.of(to.name()));
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        return product;
+    }
+
+    @Nullable
+    private static Long getDaysBeforeDiscountExpires(@Nullable ZonedDateTime discountExpirationDate) {
+        if (discountExpirationDate == null) {
+            return null;
+        }
+
+        ZonedDateTime now = ZonedDateTime.now();
+
+        // Если дата истекла или равна текущей - возвращаем null
+        if (discountExpirationDate.isBefore(now) || discountExpirationDate.isEqual(now)) {
+            return null;
+        }
+
+        // Корректный расчет с учетом часовых поясов
+        return now.until(discountExpirationDate, ChronoUnit.DAYS);
     }
 }

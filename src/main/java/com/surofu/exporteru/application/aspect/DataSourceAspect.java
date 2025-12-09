@@ -12,7 +12,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Aspect
 @Component
-@Profile("prod")
+@Profile({"prod", "prod-test"})
 @Slf4j
 public class DataSourceAspect {
   @Before("@annotation(org.springframework.transaction.annotation.Transactional)")

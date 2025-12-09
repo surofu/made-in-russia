@@ -1,6 +1,5 @@
 package com.surofu.exporteru.application.service;
 
-import com.surofu.exporteru.application.components.TransliterationManager;
 import com.surofu.exporteru.application.dto.product.ProductReviewDto;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.core.model.media.MediaType;
@@ -45,7 +44,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,62 +68,34 @@ public class ProductReviewApplicationService implements ProductReviewService {
   private final TaskExecutor appTaskExecutor;
   private final TransactionTemplate transactionTemplate;
 
-  private static ProductReviewDto translateProductReview(ProductReview productReview) {
-    ProductReviewDto dto = ProductReviewDto.of(productReview);
-    String translatedProductTitle =
-        productReview.getProduct().getTitle().getLocalizedValue();
-    if (StringUtils.trimToNull(translatedProductTitle) != null) {
-      dto.getProduct().setTitle(translatedProductTitle);
-    }
-    if (productReview.getUser().getLogin().getTransliteration() != null) {
-      String translatedUserLogin =
-          productReview.getUser().getLogin().getLocalizedValue();
-      dto.getAuthor().setLogin(translatedUserLogin);
-    }
-    String translatedText = productReview.getContent().getLocalizedValue();
-    if (StringUtils.trimToNull(translatedText) != null) {
-      dto.setText(translatedText);
-    }
-
-    return dto;
-  }
-
   @Override
   @Transactional(readOnly = true)
   public GetProductReviewPage.Result getProductReviewPage(GetProductReviewPage operation) {
     String[] sortStrings = operation.getSort().split(",");
     Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
-
     Specification<ProductReview> specification = Specification
         .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()))
         .and(ProductReviewSpecifications.byContent(operation.getContent()))
         .and(ProductReviewSpecifications.approveStatusIn(operation.getApproveStatuses()));
-
     Page<ProductReview> page = productReviewRepository.getPage(specification, pageable);
 
     if (!page.getContent().isEmpty()) {
       List<Long> reviewIds = page.getContent().stream()
           .map(ProductReview::getId)
           .toList();
-
       List<ProductReview> reviewsWithMedia = productReviewRepository.getByIdInWithMedia(reviewIds);
-
       List<ProductForReviewView> productForReviewViewList =
           productRepository.getProductForReviewViewsByLang(operation.getLocale().getLanguage());
-
       Map<Long, ProductReview> reviewMap = reviewsWithMedia.stream()
           .collect(Collectors.toMap(ProductReview::getId, Function.identity()));
-
       Map<Long, ProductForReviewView> productForReviewViewMap = productForReviewViewList.stream()
           .collect(Collectors.toMap(ProductForReviewView::getId, Function.identity()));
-
       Page<ProductReview> productReviewPageWithMedia = page.map(p -> {
         if (reviewMap.containsKey(p.getId())) {
           p.setMedia(reviewMap.get(p.getId()).getMedia());
         }
-
         if (productForReviewViewMap.containsKey(p.getProductId())) {
           ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
           Product productReference = productRepository.getReferenceById(p.getProductId());
@@ -134,19 +104,12 @@ public class ProductReviewApplicationService implements ProductReviewService {
               ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
           p.setProduct(productReference);
         }
-
         return p;
       });
-
-      Page<ProductReviewDto> dtoPage = productReviewPageWithMedia
-          .map(ProductReviewDto::of)
-          .map(this::transliterateUserLogin);
+      Page<ProductReviewDto> dtoPage = productReviewPageWithMedia.map(ProductReviewDto::of);
       return GetProductReviewPage.Result.success(dtoPage);
     }
-
-    Page<ProductReviewDto> productReviewDtoPage = page
-        .map(ProductReviewDto::of)
-        .map(this::transliterateUserLogin);
+    Page<ProductReviewDto> productReviewDtoPage = page.map(ProductReviewDto::of);
     return GetProductReviewPage.Result.success(productReviewDtoPage);
   }
 
@@ -188,20 +151,12 @@ public class ProductReviewApplicationService implements ProductReviewService {
         }
         return p;
       });
-      Page<ProductReviewDto> productReviewDtoPage = productReviewPageWithMedia
-          .map(ProductReviewDto::of)
-          .map(this::transliterateUserLogin);
+      Page<ProductReviewDto> productReviewDtoPage =
+          productReviewPageWithMedia.map(ProductReviewDto::of);
       return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
     }
-    Page<ProductReviewDto> productReviewDtoPage = productReviewPage
-        .map(ProductReviewApplicationService::translateProductReview)
-        .map(this::transliterateUserLogin);
+    Page<ProductReviewDto> productReviewDtoPage = productReviewPage.map(ProductReviewDto::of);
     return GetProductReviewPageByProductId.Result.success(productReviewDtoPage);
-  }
-
-  private ProductReviewDto transliterateUserLogin(ProductReviewDto dto) {
-    dto.getAuthor().setLogin(TransliterationManager.transliterate(dto.getAuthor().getLogin()));
-    return dto;
   }
 
   @Override

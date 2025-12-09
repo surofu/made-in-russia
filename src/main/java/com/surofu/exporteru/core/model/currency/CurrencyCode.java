@@ -4,7 +4,7 @@ public enum CurrencyCode {
     RUB(Character.toString((char) 8381)),
     USD(Character.toString((char) 36)),
     CNY(Character.toString((char) 165)),
-    INR(Character.toString('\u20B9'));
+    INR(Character.toString('₹'));
 
     private final String value;
 

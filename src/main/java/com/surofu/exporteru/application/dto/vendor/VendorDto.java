@@ -5,7 +5,6 @@ import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.infrastructure.persistence.user.UserView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import java.util.Locale;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;

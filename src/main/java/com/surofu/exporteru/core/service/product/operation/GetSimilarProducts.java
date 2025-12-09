@@ -1,5 +1,6 @@
 package com.surofu.exporteru.core.service.product.operation;
 
+import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
 import com.surofu.exporteru.application.dto.product.SimilarProductDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import java.util.List;
@@ -15,7 +16,7 @@ public class GetSimilarProducts {
   public interface Result {
     <T> T process(Processor<T> processor);
 
-    static Result success(List<SimilarProductDto> products) {
+    static Result success(List<ProductSummaryViewDto> products) {
       log.info("Successfully processed similar products: {}", products.size());
       return Success.of(products);
     }
@@ -27,7 +28,7 @@ public class GetSimilarProducts {
 
     @Value(staticConstructor = "of")
     class Success implements Result {
-      List<SimilarProductDto> products;
+      List<ProductSummaryViewDto> products;
 
       @Override
       public <T> T process(Processor<T> processor) {

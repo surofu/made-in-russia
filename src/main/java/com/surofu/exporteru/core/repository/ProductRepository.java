@@ -67,12 +67,9 @@ public interface ProductRepository {
 
   Optional<ProductWithTranslationsView> getProductWithTranslationsByProductIdAndLang(Long id,
                                                                                      String lang);
-
   List<ProductForReviewView> getProductForReviewViewsByLang(String lang);
 
   Optional<Product> getProductWithUserById(Long productId);
-
-  Optional<Product> findByIdWithPrices(Long id);
 
   Optional<Product> getByIdWithDependencies(Long productId);
 }

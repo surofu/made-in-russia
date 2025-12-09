@@ -132,7 +132,7 @@ public final class VendorDetails implements Serializable {
   private VendorDetailsAddress address;
 
   @Embedded
-  private VendorDetailsDescription description = VendorDetailsDescription.of("");
+  private VendorDetailsDescription description = new VendorDetailsDescription("");
 
   @Transient
   private Long vendorViewsCount = 0L;
