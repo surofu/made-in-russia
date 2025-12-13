@@ -1,0 +1,51 @@
+package com.surofu.exporteru.infrastructure.persistence.session;
+
+import com.surofu.exporteru.core.model.session.Session;
+import com.surofu.exporteru.core.model.session.SessionDeviceId;
+import com.surofu.exporteru.core.repository.SessionRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+@RequiredArgsConstructor
+public class JpaSessionRepository implements SessionRepository {
+    private final SpringDataSessionRepository repository;
+
+    @Override
+    public Optional<Session> getSessionById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<Session> getSessionsByUserId(Long userId) {
+        return repository.getAllByUserId(userId);
+    }
+
+    @Override
+    public Optional<Session> getSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId) {
+        return repository.getSessionByUserIdAndDeviceId(userId, deviceId);
+    }
+
+    @Override
+    public void deleteSessionByUserIdAndDeviceId(Long userId, SessionDeviceId deviceId) {
+        repository.deleteByUserIdAndDeviceId(userId, deviceId);
+    }
+
+    @Override
+    public void save(Session session) {
+        repository.save(session);
+    }
+
+    @Override
+    public void deleteSessionById(Long id) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    public void deleteByUserId(Long userId) {
+        repository.deleteByUserId(userId);
+    }
+}

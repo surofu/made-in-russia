@@ -1,0 +1,21 @@
+package com.surofu.exporteru.core.repository;
+
+import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+public interface VendorMediaRepository {
+    List<VendorMedia> getAllByVendorDetailsId(Long vendorId);
+
+    Optional<VendorMedia> getById(Long id);
+
+    void saveAll(Collection<VendorMedia> vendorMediaList);
+
+    void delete(VendorMedia vendorMedia);
+
+    void deleteAll(Collection<VendorMedia> vendorMediaList);
+
+    void flush();
+}

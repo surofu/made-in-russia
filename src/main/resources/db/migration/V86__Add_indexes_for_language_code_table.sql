@@ -1,0 +1,1 @@
+create unique index if not exists idx_language_code_language on web_localization (language_code);

@@ -1,0 +1,64 @@
+package com.surofu.exporteru.core.model.product.packageOption;
+
+import com.surofu.exporteru.core.model.product.Product;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "product_package_options")
+public final class ProductPackageOption implements Serializable {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @ToString.Exclude
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
+
+  @Embedded
+  private ProductPackageOptionName name;
+
+  @Embedded
+  private ProductPackageOptionPrice price;
+
+  @Embedded
+  private ProductPackageOptionPriceUnit priceUnit;
+
+  @Embedded
+  private ProductPackageOptionCreationDate creationDate;
+
+  @Embedded
+  private ProductPackageOptionLastModificationDate lastModificationDate;
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof ProductPackageOption that)) {
+      return false;
+    }
+    return Objects.equals(name, that.name) && Objects.equals(price, that.price) &&
+        Objects.equals(priceUnit, that.priceUnit);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, price, priceUnit);
+  }
+}

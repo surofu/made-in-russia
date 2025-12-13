@@ -1,0 +1,1 @@
+create index if not exists idx_products_title_lower on products (lower(title));

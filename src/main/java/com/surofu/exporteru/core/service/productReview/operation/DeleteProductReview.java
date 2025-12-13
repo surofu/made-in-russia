@@ -1,0 +1,122 @@
+package com.surofu.exporteru.core.service.productReview.operation;
+
+import com.surofu.exporteru.application.model.security.SecurityUser;
+import com.surofu.exporteru.core.model.user.UserLogin;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Value(staticConstructor = "of")
+public class DeleteProductReview {
+    Long productId;
+    Long productReviewId;
+    SecurityUser securityUser;
+
+    public interface Result {
+        <T> T process(Processor<T> processor);
+
+        static Result success(Long productReviewId) {
+            log.info("Successfully processed update product review with ID '{}'", productReviewId);
+            return Success.INSTANCE;
+        }
+
+        static Result productReviewNotFound(Long productReviewId, Long productId) {
+            log.warn("Product review with ID '{}' is product with ID '{}' not found", productReviewId, productId);
+            return ProductReviewNotFound.of(productReviewId, productId);
+        }
+
+        static Result forbidden(Long productId, Long productReviewId, UserLogin currentUserLogin, UserLogin ownerUserLogin) {
+            log.warn("""
+                    Forbidden.
+                    For product review with ID '{}' in product with ID '{}'
+                    Current user with login '{}' is not owner with login '{}'
+                    """, productReviewId, productId, currentUserLogin, ownerUserLogin);
+            return Forbidden.INSTANCE;
+        }
+
+        static Result unauthorized() {
+            log.warn("Unauthorized when processing update product review");
+            return Unauthorized.INSTANCE;
+        }
+
+        static Result deleteError(Exception e) {
+            log.error("Error deleting product review", e);
+            return DeleteError.INSTANCE;
+        }
+
+        static Result deleteMediaError(Exception e) {
+            log.error("Error deleting product review", e);
+            return DeleteMediaError.INSTANCE;
+        }
+
+        enum Success implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSuccess(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class ProductReviewNotFound implements Result {
+            Long productReviewId;
+            Long productId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processProductReviewNotFound(this);
+            }
+        }
+
+        enum Unauthorized implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processUnauthorized(this);
+            }
+        }
+
+        enum Forbidden implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processForbidden(this);
+            }
+        }
+
+        enum DeleteError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteError(this);
+            }
+        }
+
+        enum DeleteMediaError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeleteMediaError(this);
+            }
+        }
+
+        interface Processor<T> {
+            T processSuccess(Success result);
+
+            T processProductReviewNotFound(ProductReviewNotFound result);
+
+            T processForbidden(Forbidden result);
+
+            T processUnauthorized(Unauthorized result);
+
+            T processDeleteError(DeleteError result);
+
+            T processDeleteMediaError(DeleteMediaError result);
+        }
+    }
+}

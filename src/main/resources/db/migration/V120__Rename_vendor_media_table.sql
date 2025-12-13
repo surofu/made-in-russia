@@ -1,0 +1,1 @@
+alter table vendor_media rename to vendor_details_media;

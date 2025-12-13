@@ -1,0 +1,197 @@
+package com.surofu.exporteru.core.service.product.operation;
+
+import com.surofu.exporteru.application.command.product.create.*;
+import com.surofu.exporteru.application.model.security.SecurityUser;
+import com.surofu.exporteru.core.model.product.ProductDescription;
+import com.surofu.exporteru.core.model.product.ProductDiscountExpirationDate;
+import com.surofu.exporteru.core.model.product.ProductMinimumOrderQuantity;
+import com.surofu.exporteru.core.model.product.ProductTitle;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Slf4j
+@Value(staticConstructor = "of")
+public class CreateProduct {
+    SecurityUser securityUser;
+    ProductTitle title;
+    ProductDescription description;
+    Long categoryId;
+    List<Long> deliveryMethodIds;
+    List<Long> deliveryTermIds;
+    List<Long> similarProductIds;
+    List<CreateProductPriceCommand> createProductPriceCommands;
+    List<CreateProductCharacteristicCommand> createProductCharacteristicCommands;
+    List<CreateProductFaqCommand> createProductFaqCommands;
+    List<CreateProductDeliveryMethodDetailsCommand> createProductDeliveryMethodDetailsCommands;
+    List<CreateProductPackageOptionCommand> createProductPackageOptionCommands;
+    List<CreateProductMediaAltTextCommand> createProductMediaAltTextCommands;
+    ProductMinimumOrderQuantity minimumOrderQuantity;
+    ProductDiscountExpirationDate discountExpirationDate;
+    List<MultipartFile> productMedia;
+    List<MultipartFile> vendorMedia;
+
+    public interface Result {
+        <T> T process(Processor<T> processor);
+
+        static Result success() {
+            log.info("Successfully processed product creation");
+            return Success.INSTANCE;
+        }
+
+        static Result errorSavingFiles(Exception e) {
+            log.warn("Error saving product files: {}", e.getMessage());
+            return ErrorSavingFiles.INSTANCE;
+        }
+
+        static Result errorSavingProduct(Exception e) {
+            log.warn("Error saving product: {}", e.getMessage());
+            return ErrorSavingProduct.INSTANCE;
+        }
+
+        static Result categoryNotFound(Long id) {
+            log.warn("Category with ID '{}' not found", id);
+            return CategoryNotFound.of(id);
+        }
+
+        static Result deliveryMethodNotFound(Long id) {
+            log.warn("Delivery Method with ID '{}' not found", id);
+            return DeliveryMethodNotFound.of(id);
+        }
+
+        static Result deliveryTermNotFound(Long id) {
+            log.warn("Delivery Term with ID '{}' not found", id);
+            return DeliveryTermNotFound.of(id);
+        }
+
+        static Result emptyFile() {
+            log.warn("Empty file");
+            return EmptyFile.INSTANCE;
+        }
+
+        static Result invalidMediaType(String mediaType) {
+            log.warn("Invalid media type '{}'", mediaType);
+            return InvalidMediaType.of(mediaType);
+        }
+
+        static Result similarProductNotFound(Long similarProductId) {
+            log.warn("Similar product with ID '{}' not found", similarProductId);
+            return SimilarProductNotFound.of(similarProductId);
+        }
+
+        static Result translationError(Exception e) {
+            log.warn("Translation error", e);
+            return TranslationError.INSTANCE;
+        }
+
+        enum Success implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSuccess(this);
+            }
+        }
+
+        enum ErrorSavingFiles implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processErrorSavingFiles(this);
+            }
+        }
+
+        enum ErrorSavingProduct implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processErrorSavingProduct(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class CategoryNotFound implements Result {
+            Long categoryId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processCategoryNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class DeliveryMethodNotFound implements Result {
+            Long id;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeliveryMethodNotFound(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class DeliveryTermNotFound implements Result {
+            Long id;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processDeliveryTermNotFound(this);
+            }
+        }
+
+        enum EmptyFile implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processEmptyFile(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class InvalidMediaType implements Result {
+            String mediaType;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processInvalidMediaType(this);
+            }
+        }
+
+        @Value(staticConstructor = "of")
+        class SimilarProductNotFound implements Result {
+            Long productId;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processSimilarProductNotFound(this);
+            }
+        }
+
+        enum TranslationError implements Result {
+            INSTANCE;
+
+            @Override
+            public <T> T process(Processor<T> processor) {
+                return processor.processTranslationError(this);
+            }
+        }
+
+        interface Processor<T> {
+            T processSuccess(Success result);
+            T processErrorSavingFiles(ErrorSavingFiles result);
+            T processErrorSavingProduct(ErrorSavingProduct result);
+            T processCategoryNotFound(CategoryNotFound result);
+            T processDeliveryMethodNotFound(DeliveryMethodNotFound result);
+            T processDeliveryTermNotFound(DeliveryTermNotFound result);
+            T processEmptyFile(EmptyFile result);
+            T processInvalidMediaType(InvalidMediaType result);
+            T processSimilarProductNotFound(SimilarProductNotFound result);
+            T processTranslationError(TranslationError result);
+        }
+    }
+}

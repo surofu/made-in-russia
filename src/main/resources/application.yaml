@@ -1,5 +1,226 @@
+server:
+  port: ${PORT}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript,application/javascript
+    min-response-size: 1KB
+    excluded-user-agents: MSIE 6.0,UCBrowser
+  undertow:
+    threads:
+      io: 4                         # Рекомендуется = число ядер CPU
+      worker: 100                    # 20-25 на ядро (4 ядра * 25 = 100)
+    buffer-size: 32KB               # Увеличим для больших ответов
+    direct-buffers: true
+    no-request-timeout: 30s         # Уменьшим таймаут
+
+#========= Spring =========#
 spring:
   application:
-    name: MadeInRussia
-  profiles:
-    active: dev
+    name: Exporteru
+  servlet:
+    multipart:
+      max-file-size: ${UPLOADING_MAX_FILE_SIZE}
+      max-request-size: ${UPLOADING_MAX_REQUEST_SIZE}
+      enabled: true
+  mvc:
+
+    #========= Cors =========#
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}
+      allowed-methods: ${CORS_ALLOWED_METHODS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS}
+      max-age: ${CORS_MAX_AGE}
+
+  jpa:
+    open-in-view: ${JPA_OPEN_IN_VIEW}
+    properties:
+      hibernate:
+        connection.provider_disables_autocommit: true
+        generate_statistics: false # Для мониторинга
+        order_inserts: true       # Оптимизация batch-операций
+        order_updates: true
+        jdbc:
+          time_zone: Europe/Moscow
+          batch_size: 20          # Размер batch-операций
+          fetch_size: 100         # Размер выборки для ResultSet
+        query:
+          in_clause_parameter_padding: true # Оптимизация IN-условий
+  flyway:
+    url: ${POSTGRES_URL}
+    user: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  data:
+  #========= Redis =========#
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      database: 0
+      repositories:
+        enabled: false
+
+  #========= OAuth 2.0 =========#
+  security:
+    oauth2:
+      client:
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-name-attribute: sub
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+             - email
+             - profile
+            client-name: Google
+
+  #========= Mail =========#
+  mail:
+    from: ${MAIL_FROM}
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        transport:
+          protocol: smtps
+        smtp:
+          port: 25
+          auth: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+          starttls:
+            enable: true
+            required: true
+
+  #========== Localization ==========#
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+  jackson:
+    time-zone: Europe/Moscow
+
+#========= Management =========#
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, ratelimit
+      base-path: /actuator
+
+#========= Logging =========#
+logging:
+  level:
+    root: ${LOG_LEVEL}
+
+#========= JWT =========#
+jwt:
+  access-token:
+    secret: ${JWT_ACCESS_TOKEN_SECRET}
+    lifetime: ${JWT_ACCESS_TOKEN_LIFETIME}
+  refresh-token:
+    secret: ${JWT_REFRESH_TOKEN_SECRET}
+    lifetime: ${JWT_REFRESH_TOKEN_LIFETIME}
+
+#========== App environments ==========#
+app:
+  rate:
+    limit:
+      capacity: ${RATE_LIMIT_CAPACITY}
+      whitelist: ${RATE_LIMIT_WHITE_LIST}
+      refill:
+        tokens: ${RATE_LIMIT_REFILL_TOKENS}
+        seconds: ${RATE_LIMIT_REFILL_SECONDS}
+  session:
+    secret: ${INTERNAL_REQUEST_SECRET}
+  redis:
+    ttl-duration: ${REDIS_TTL_DURATION}
+    currency-ttl-duration: ${REDIS_CURRENCY_TTL_DURATION}
+    verification-ttl-duration: ${REDIS_VERIFICATION_DURATION}
+    recover-password-ttl-duration: ${REDIS_RECOVER_PASSWORD_DURATION}
+  compress:
+    image:
+      max-width: ${IMAGE_COMPRESS_MAX_WIDTH}
+      max-height: ${IMAGE_COMPRESS_MAX_HEIGHT}
+      quality: ${IMAGE_COMPRESS_QUALITY}
+    video:
+      max-width: ${VIDEO_COMPRESS_MAX_WIDTH}
+      max-height: ${VIDEO_COMPRESS_MAX_HEIGHT}
+      quality: ${VIDEO_COMPRESS_QUALITY}
+    ad:
+      image:
+        max-width: ${AD_IMAGE_COMPRESS_MAX_WIDTH}
+        max-height: ${AD_IMAGE_COMPRESS_MAX_HEIGHT}
+        quality: ${AD_IMAGE_COMPRESS_QUALITY}
+  yandex:
+    translate:
+      uri: https://translate.api.cloud.yandex.net/translate/v2/translate
+      folder-id: ${YANDEX_TRANSLATE_FOLDER_ID}
+      secret: ${YANDEX_TRANSLATE_SECRET}
+  mail:
+    support: ${MAIL_SUPPORT}
+  frontend:
+    product: ${FRONT_END_HOST}/card
+    oauth:
+      google:
+        redirect:
+          success: ${FRONT_END_HOST}
+          error: ${FRONT_END_HOST}/register
+      telegram:
+        redirect:
+          success: ${FRONT_END_HOST}
+
+telegram:
+  bot:
+    russian:
+      enable: ${BOT_RUSSIAN_ENABLE}
+      username: ${BOT_RUSSIAN_USERNAME}
+      token: ${BOT_RUSSIAN_TOKEN}
+    english:
+      enable: ${BOT_ENGLISH_ENABLE}
+      username: ${BOT_ENGLISH_USERNAME}
+      token: ${BOT_ENGLISH_TOKEN}
+    china:
+      enable: ${BOT_CHINA_ENABLE}
+      username: ${BOT_CHINA_USERNAME}
+      token: ${BOT_CHINA_TOKEN}
+
+springdoc:
+  swagger-ui:
+    path: /api/swagger-ui/index.html
+    config-url: /api/v3/api-docs/swagger-config
+    url: /api/v3/api-docs
+  api-docs:
+    path: /api/v3/api-docs
+
+s3:
+  accessKey: ${S3_ACCESS_KEY}
+  secretKey: ${S3_SECRET_KEY}
+  endpoint: ${S3_ENDPOINT}
+  region: ${S3_REGION}
+  bucket: ${S3_BUCKET}
+  domain: ${S3_DOMAIN}
+
+#========== CDN ==========#
+bunny:
+  cdn:
+    host: ${BUNNY_CDN_HOST}
