@@ -37,10 +37,7 @@ public class GlobalExceptionHandler {
             org.hibernate.LazyInitializationException.class,
             org.hibernate.HibernateException.class,
             org.hibernate.exception.ConstraintViolationException.class,
-            org.hibernate.exception.SQLGrammarException.class,
-
-            // Undertow
-            io.undertow.server.RequestTooBigException.class,
+            org.hibernate.exception.SQLGrammarException.class
     })
     public ResponseEntity<InternalServerErrorDto> handleValidationException(Exception exception) {
         String message = localizationManager.localize("internal_server_error.unknown");

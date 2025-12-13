@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth ->
                         auth
+                                .requestMatchers("/ws/**", "/ws/chat/**").permitAll()
                                 .anyRequest().permitAll()
                 )
                 .addFilterBefore(oAuth2AuthenticationFilter, OAuth2LoginAuthenticationFilter.class)

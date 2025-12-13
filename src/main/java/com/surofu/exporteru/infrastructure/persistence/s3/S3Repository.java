@@ -46,7 +46,7 @@ public class S3Repository implements FileStorageRepository {
     @Override
     public String uploadImageToFolder(MultipartFile file, String folderName, UploadOptions options) throws Exception {
         String fileExtension = getFileExtension(file.getOriginalFilename());
-        RequestBody request = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
+        RequestBody request = RequestBody.fromBytes(file.getBytes());
         String resultExtension = fileExtension;
 
         String key = createImageKey(folderName, resultExtension);
@@ -84,7 +84,7 @@ public class S3Repository implements FileStorageRepository {
     @Override
     public String uploadVideoToFolder(MultipartFile file, String folderName) throws IOException {
         String key = createVideoKey(folderName);
-        RequestBody request = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
+        RequestBody request = RequestBody.fromBytes(file.getBytes());
 
         client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)

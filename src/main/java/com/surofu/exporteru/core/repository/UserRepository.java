@@ -43,6 +43,8 @@ public interface UserRepository {
 
     void delete(User user);
 
+    Optional<User> getFirstAdminUser();
+
     // View
     Optional<UserView> getViewById(Long id);
 }

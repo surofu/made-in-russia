@@ -54,6 +54,14 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
             """)
     boolean existsVendorOrAdminById(@Param("vendorId") Long vendorId);
 
+    @Query("""
+            select u from User u
+            where u.role = 'ROLE_ADMIN'
+            order by u.id asc
+            limit 1
+            """)
+    Optional<User> findFirstAdminUser();
+
     // View
     Optional<UserView> findViewById(Long id);
 

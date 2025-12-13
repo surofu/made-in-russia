@@ -94,6 +94,11 @@ public class JpaUserRepository implements UserRepository {
         repository.delete(user);
     }
 
+    @Override
+    public Optional<User> getFirstAdminUser() {
+        return repository.findFirstAdminUser();
+    }
+
     // View
     @Override
     public Optional<UserView> getViewById(Long id) {
