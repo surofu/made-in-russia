@@ -34,7 +34,7 @@ public class ChatRestController {
     private final ChatMessageService messageService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Create or get chat for product")
     public ChatDTO createChat(
@@ -46,7 +46,7 @@ public class ChatRestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Get user chats")
     public ChatListResponse getUserChats(
@@ -58,7 +58,7 @@ public class ChatRestController {
     }
 
     @GetMapping("/product/{productId}")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Get all chats for seller's product")
     public ChatListResponse getProductChats(
@@ -71,7 +71,7 @@ public class ChatRestController {
     }
 
     @GetMapping("/{chatId}")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Get chat details")
     public ChatDTO getChatDetails(
@@ -83,7 +83,7 @@ public class ChatRestController {
     }
 
     @GetMapping("/{chatId}/messages")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Get chat messages")
     public MessageListResponse getChatMessages(
@@ -96,7 +96,7 @@ public class ChatRestController {
     }
 
     @PostMapping(value = "/messages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Send message")
     public ChatMessageDTO sendMessage(
@@ -112,7 +112,7 @@ public class ChatRestController {
 
     @PostMapping("/messages/{messageId}/read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Mark message as read")
     public void markMessageAsRead(
@@ -124,7 +124,7 @@ public class ChatRestController {
     }
 
     @GetMapping("/{chatId}/unread-count")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Get unread message count")
     public Map<String, Long> getUnreadCount(

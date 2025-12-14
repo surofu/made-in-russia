@@ -99,6 +99,11 @@ public class JpaUserRepository implements UserRepository {
         return repository.findFirstAdminUser();
     }
 
+    @Override
+    public List<User> getAllAdminUsers() {
+        return repository.findAllAdminUsers();
+    }
+
     // View
     @Override
     public Optional<UserView> getViewById(Long id) {

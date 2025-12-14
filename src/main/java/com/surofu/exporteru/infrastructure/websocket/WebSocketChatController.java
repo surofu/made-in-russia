@@ -3,6 +3,7 @@ package com.surofu.exporteru.infrastructure.websocket;
 import com.surofu.exporteru.application.dto.chat.ChatMessageDTO;
 import com.surofu.exporteru.application.dto.chat.SendMessageRequest;
 import com.surofu.exporteru.application.service.chat.ChatMessageService;
+import com.surofu.exporteru.infrastructure.persistence.chat.ChatRepository;
 import com.surofu.exporteru.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class WebSocketChatController {
     private final ChatMessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
     private final UserRepository userRepository;
+    private final ChatRepository chatRepository;
 
     /**
      * WebSocket endpoint для отправки сообщений
@@ -47,35 +49,45 @@ public class WebSocketChatController {
     }
 
     @MessageMapping("/chat/{chatId}/typing")
-    @SendTo("/topic/chat/{chatId}/typing")
-    public Map<String, Object> handleTyping(
+    public void handleTyping(
             @DestinationVariable Long chatId,
             Principal principal
     ) {
         if (principal == null) {
             log.error("TYPING EVENT FAILED: Principal is null for chat {}", chatId);
-            return Map.of(
-                    "error", "Not authenticated",
-                    "timestamp", System.currentTimeMillis()
-            );
+            return;
         }
-        
-        Long userId = Long.parseLong(principal.getName());
-        log.info(" TYPING EVENT: User {} is typing in chat {}", userId, chatId);
 
-        String userName = userRepository.getById(userId)
+        Long senderId = Long.parseLong(principal.getName());
+        log.info("TYPING EVENT: User {} is typing in chat {}", senderId, chatId);
+
+        String userName = userRepository.getById(senderId)
                 .map(user -> user.getLogin() != null ? user.getLogin().getValue() : "User")
                 .orElse("User");
 
-        Map<String, Object> response = Map.of(
-                "userId", userId,
+        Map<String, Object> typingData = Map.of(
+                "userId", senderId,
                 "userName", userName,
+                "chatId", chatId,
                 "isTyping", true,
                 "timestamp", System.currentTimeMillis()
         );
 
-        log.info("Sending typing indicator to /topic/chat/{}/typing: {}", chatId, response);
-        return response;
+        chatRepository.findByIdWithParticipants(chatId).ifPresent(chat -> {
+            chat.getParticipants().stream()
+                    .map(p -> p.getUser().getId())
+                    .filter(participantId -> !participantId.equals(senderId))
+                    .forEach(participantId -> {
+                        messagingTemplate.convertAndSendToUser(
+                                participantId.toString(),
+                                "/queue/typing",
+                                typingData
+                        );
+                        log.debug("Sent typing indicator to user {} for chat {}", participantId, chatId);
+                    });
+        });
+
+        log.info("Sent typing indicator for chat {} from user {} to other participants", chatId, senderId);
     }
 
     /**
