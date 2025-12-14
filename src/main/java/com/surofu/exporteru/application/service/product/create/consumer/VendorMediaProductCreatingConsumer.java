@@ -50,10 +50,10 @@ public class VendorMediaProductCreatingConsumer implements ProductCreatingConsum
         MultipartFile file = productMedia.get(i);
         VendorMedia media = new VendorMedia();
         media.setVendorDetails(vendorDetails);
-        media.setPosition(VendorMediaPosition.of(i));
+        media.setPosition(new VendorMediaPosition(i));
         media.setMediaType(getMediaType(file));
-        media.setMimeType(VendorMediaMimeType.of(file.getContentType()));
-        media.setUrl(VendorMediaUrl.of(urls.get(i)));
+        media.setMimeType(new VendorMediaMimeType(file.getContentType()));
+        media.setUrl(new VendorMediaUrl(urls.get(i)));
         mediaList.add(media);
       }
 

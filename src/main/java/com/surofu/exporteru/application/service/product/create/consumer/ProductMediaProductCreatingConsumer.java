@@ -49,10 +49,10 @@ public class ProductMediaProductCreatingConsumer implements ProductCreatingConsu
         MultipartFile file = productMedia.get(i);
         ProductMedia media = new ProductMedia();
         media.setProduct(product);
-        media.setPosition(ProductMediaPosition.of(i));
+        media.setPosition(new ProductMediaPosition(i));
         media.setMediaType(getMediaType(file));
-        media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-        media.setUrl(ProductMediaUrl.of(urls.get(i)));
+        media.setMimeType(new ProductMediaMimeType(file.getContentType()));
+        media.setUrl(new ProductMediaUrl(urls.get(i)));
         mediaList.add(media);
 
         if (i < operation.getCreateProductMediaAltTextCommands().size() &&
@@ -65,7 +65,7 @@ public class ProductMediaProductCreatingConsumer implements ProductCreatingConsu
         }
       }
 
-      product.setPreviewImageUrl(ProductPreviewImageUrl.of(urls.iterator().next()));
+      product.setPreviewImageUrl(new ProductPreviewImageUrl(urls.iterator().next()));
       productRepository.save(product);
       productMediaRepository.saveAll(mediaList);
     } catch (Exception e) {

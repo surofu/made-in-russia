@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 @Profile("dev")
 @Configuration
 public class HikariDataSourceConfig {
-
     @Bean
     @ConfigurationProperties("spring.datasource.hikari")
     public HikariDataSource hikariDataSource(DataSourceProperties properties) {

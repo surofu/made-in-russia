@@ -24,8 +24,6 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationFilter extends OncePerRequestFilter {
-
-    private final UserService userService;
     private final JwtUtils jwtUtils;
     private final OAuth2ToSecurityUserConverter oauth2UserConverter;
 

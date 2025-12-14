@@ -4,6 +4,7 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -11,48 +12,63 @@ import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
-@Setter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorFaqAnswer implements Serializable {
-
   @Column(name = "answer", nullable = false)
   private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "answer_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private Map<String, String> translations;
 
-  private VendorFaqAnswer(String answer) {
+  public VendorFaqAnswer(String answer, Map<String, String> translations) {
     if (answer == null || answer.trim().isEmpty()) {
       throw new LocalizedValidationException("validation.faq.answer.empty");
     }
-
     if (answer.length() >= 20_000) {
       throw new LocalizedValidationException("validation.faq.answer.max_length");
     }
-
     this.value = answer;
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
-  public static VendorFaqAnswer of(String answer) {
-    return new VendorFaqAnswer(answer);
-  }
-
-  public String getLocalizedValue(Locale locale) {
+  public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
+    Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override
   public String toString() {
     return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof VendorFaqAnswer that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
   }
 }

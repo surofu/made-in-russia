@@ -4,37 +4,38 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.Objects;
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
-import java.util.Objects;
-
 @Getter
 @Embeddable
-@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductLastModificationDate implements Serializable {
+  @UpdateTimestamp
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
+  private ZonedDateTime value = ZonedDateTime.now();
 
-    @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "last_modification_date", nullable = false, columnDefinition = "timestamptz default now()")
-    private ZonedDateTime value = ZonedDateTime.now();
+  @Override
+  public String toString() {
+    return value.toString();
+  }
 
-    private ProductLastModificationDate(ZonedDateTime date) {
-        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof ProductLastModificationDate that)) {
+      return false;
     }
+    return Objects.equals(value, that.value);
+  }
 
-    public static ProductLastModificationDate of(ZonedDateTime date) {
-        return new ProductLastModificationDate(date);
-    }
-
-    @Override
-    public String toString() {
-        return value.toString();
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
+  }
 }

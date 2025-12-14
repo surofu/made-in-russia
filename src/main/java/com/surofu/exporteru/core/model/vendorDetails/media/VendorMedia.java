@@ -27,7 +27,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "vendor_details_media")
 public class VendorMedia implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -43,35 +42,28 @@ public class VendorMedia implements Serializable {
 
   @Embedded
   private VendorMediaMimeType mimeType;
-
   @Embedded
   private VendorMediaUrl url;
-
   @Embedded
   private VendorMediaPosition position;
-
   @Embedded
   private VendorMediaCreationDate creationDate;
-
   @Embedded
   private VendorMediaLastModificationDate lastModificationDate;
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof VendorMedia vendorMedia)) {
+    if (!(o instanceof VendorMedia that)) {
       return false;
     }
-    return Objects.equals(mediaType, vendorMedia.mediaType)
-        && Objects.equals(mimeType, vendorMedia.mimeType)
-        && Objects.equals(url, vendorMedia.url)
-        && Objects.equals(position, vendorMedia.position);
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mediaType, mimeType, url, position);
+    return getClass().hashCode();
   }
 }

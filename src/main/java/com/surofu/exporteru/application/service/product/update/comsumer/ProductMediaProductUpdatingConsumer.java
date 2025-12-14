@@ -56,7 +56,7 @@ public class ProductMediaProductUpdatingConsumer implements ProductUpdatingConsu
 
         if (dtoOptional.isPresent()) {
           UpdateOldMediaDto dto = dtoOptional.get();
-          media.setPosition(ProductMediaPosition.of(dto.position()));
+          media.setPosition(new ProductMediaPosition(dto.position()));
           resultMedia.add(media);
         }
       }
@@ -65,10 +65,10 @@ public class ProductMediaProductUpdatingConsumer implements ProductUpdatingConsu
         MultipartFile file = operation.getProductMedia().get(i);
         ProductMedia media = new ProductMedia();
         media.setProduct(product);
-        media.setPosition(ProductMediaPosition.of(getFreePosition(resultMedia)));
+        media.setPosition(new ProductMediaPosition(getFreePosition(resultMedia)));
         media.setMediaType(getMediaType(file));
-        media.setMimeType(ProductMediaMimeType.of(file.getContentType()));
-        media.setUrl(ProductMediaUrl.of(urls.get(i)));
+        media.setMimeType(new ProductMediaMimeType(file.getContentType()));
+        media.setUrl(new ProductMediaUrl(urls.get(i)));
         if (i < translatedAltTexts.size() && StringUtils.trimToNull(
             operation.getUpdateProductMediaAltTextCommands().get(i).altText()) != null) {
           media.setAltText(new ProductMediaAltText(
@@ -91,7 +91,7 @@ public class ProductMediaProductUpdatingConsumer implements ProductUpdatingConsu
           .map(ProductMedia::getUrl)
           .map(ProductMediaUrl::getValue)
           .toList();
-      product.setPreviewImageUrl(ProductPreviewImageUrl.of(resultMedia.stream()
+      product.setPreviewImageUrl(new ProductPreviewImageUrl(resultMedia.stream()
           .sorted(Comparator.comparingInt(a -> a.getPosition().getValue()))
           .toList().get(0).getUrl().getValue()));
       storageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));

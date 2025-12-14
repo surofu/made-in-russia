@@ -91,7 +91,7 @@ public class ProductCreatingService {
       product.setDeliveryMethods(new HashSet<>(deliveryMethods));
       product.setDeliveryTerms(new HashSet<>(deliveryTerms));
       product.setSimilarProducts(new HashSet<>(similarProducts));
-      product.setPreviewImageUrl(ProductPreviewImageUrl.of("TEMP"));
+      product.setPreviewImageUrl(new ProductPreviewImageUrl("TEMP"));
 
       // Save
       Product savedProduct = productRepository.save(product);

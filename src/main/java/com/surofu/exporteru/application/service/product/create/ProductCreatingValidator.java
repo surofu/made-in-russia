@@ -133,19 +133,19 @@ public class ProductCreatingValidator {
           operation.getCreateProductPackageOptionCommands().get(i);
       ProductPackageOption productPackageOption = new ProductPackageOption();
       productPackageOption.setName(new ProductPackageOptionName(command.name(), new HashMap<>()));
-      productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
-      productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+      productPackageOption.setPrice(new ProductPackageOptionPrice(command.price()));
+      productPackageOption.setPriceUnit(new ProductPackageOptionPriceUnit(command.priceUnit()));
     }
 
     for (int i = 0; i < operation.getCreateProductPriceCommands().size(); i++) {
       CreateProductPriceCommand command = operation.getCreateProductPriceCommands().get(i);
       ProductPrice price = new ProductPrice();
-      price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
-      price.setDiscount(ProductPriceDiscount.of(command.discount()));
-      price.setCurrency(ProductPriceCurrency.of(command.currency()));
+      price.setOriginalPrice(new ProductPriceOriginalPrice(command.price()));
+      price.setDiscount(new ProductPriceDiscount(command.discount()));
+      price.setCurrency(new ProductPriceCurrency(command.currency()));
       price.setUnit(new ProductPriceUnit(command.unit(), new HashMap<>()));
-      price.setQuantityRange(
-          ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
+      price.setQuantityRange(ProductPriceQuantityRange.of(
+          command.quantityFrom(), command.quantityTo()));
     }
 
     return CreateProduct.Result.success();

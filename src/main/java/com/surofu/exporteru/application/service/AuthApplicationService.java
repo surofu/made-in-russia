@@ -105,12 +105,12 @@ public class AuthApplicationService implements AuthService {
     }
 
     User user = new User();
-    user.setIsEnabled(UserIsEnabled.of(true));
+    user.setIsEnabled(new UserIsEnabled(true));
     user.setRole(UserRole.ROLE_USER);
     user.setEmail(operation.getUserEmail());
     user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
         operation.getLocale()));
-    user.setPhoneNumber(UserPhoneNumber.of(StringUtils.trimToNull(
+    user.setPhoneNumber(new UserPhoneNumber(StringUtils.trimToNull(
         Objects.requireNonNullElse(operation.getUserPhoneNumber(), "").toString())));
     user.setRegion(operation.getUserRegion());
     user.setAvatar(operation.getAvatar());
@@ -119,13 +119,14 @@ public class AuthApplicationService implements AuthService {
     userPassword.setUser(user);
 
     VendorDetails vendorDetails = new VendorDetails();
-    vendorDetails.setInn(VendorDetailsInn.of(UUID.randomUUID().toString()));
-    vendorDetails.setAddress(VendorDetailsAddress.of(UUID.randomUUID().toString()));
-    vendorDetails.setDescription(new VendorDetailsDescription(""));
+    vendorDetails.setInn(new VendorDetailsInn(UUID.randomUUID().toString()));
+    vendorDetails.setAddress(
+        new VendorDetailsAddress(UUID.randomUUID().toString(), new HashMap<>()));
+    vendorDetails.setDescription(new VendorDetailsDescription("", new HashMap<>()));
 
     String rawHashedPassword =
         passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
-    UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
+    UserPasswordPassword hashedUserPasswordPassword = new UserPasswordPassword(rawHashedPassword);
     userPassword.setPassword(hashedUserPasswordPassword);
 
     String verificationCode = AuthUtils.generateVerificationCode();
@@ -168,28 +169,28 @@ public class AuthApplicationService implements AuthService {
 
     User user = new User();
     user.setRole(UserRole.ROLE_VENDOR);
-    user.setIsEnabled(UserIsEnabled.of(true));
+    user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getUserEmail());
     user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
         operation.getLocale()));
     user.setPhoneNumber(operation.getUserPhoneNumber());
     user.setRegion(operation.getUserRegion());
     user.setAvatar(operation.getAvatar());
-
     VendorDetails vendorDetails = new VendorDetails();
     vendorDetails.setInn(operation.getVendorDetailsInn());
     vendorDetails.setAddress(operation.getVendorDetailsAddress());
-    vendorDetails.setDescription(new VendorDetailsDescription(""));
+    vendorDetails.setDescription(new VendorDetailsDescription("", new HashMap<>()));
 
     List<VendorCountry> vendorCountries = new ArrayList<>();
     for (VendorCountryName vendorCountryName : operation.getVendorCountryNames()) {
       VendorCountry vendorCountry = new VendorCountry();
       vendorCountry.setVendorDetails(vendorDetails);
-      vendorCountry.setName(vendorCountryName);
 
       try {
-        vendorCountry.getName()
-            .setTranslations(translationRepository.expand(vendorCountryName.toString()));
+        vendorCountry.setName(new VendorCountryName(
+            vendorCountryName.getValue(),
+            translationRepository.expand(vendorCountryName.toString())
+        ));
       } catch (Exception e) {
         return RegisterVendor.Result.translationError(e);
       }
@@ -213,13 +214,12 @@ public class AuthApplicationService implements AuthService {
 
     vendorDetails.setVendorCountries(new HashSet<>(vendorCountries));
     vendorDetails.setVendorProductCategories(new HashSet<>(vendorProductCategories));
-
     UserPassword userPassword = new UserPassword();
     userPassword.setUser(user);
 
     String rawHashedPassword =
         passwordEncoder.encode(operation.getUserPasswordPassword().getValue());
-    UserPasswordPassword hashedUserPasswordPassword = UserPasswordPassword.of(rawHashedPassword);
+    UserPasswordPassword hashedUserPasswordPassword = new UserPasswordPassword(rawHashedPassword);
 
     userPassword.setPassword(hashedUserPasswordPassword);
 
@@ -314,11 +314,10 @@ public class AuthApplicationService implements AuthService {
 
     if (user.getVendorDetails() != null) {
       VendorDetails vendorDetails = user.getVendorDetails();
-
       VendorDetailsDescription description = vendorDetails.getDescription();
 
       if (description == null) {
-        vendorDetails.setDescription(new VendorDetailsDescription(""));
+        vendorDetails.setDescription(new VendorDetailsDescription("", new HashMap<>()));
       }
 
       if (description != null && description.getTranslations() == null) {
@@ -327,18 +326,16 @@ public class AuthApplicationService implements AuthService {
 
       if (vendorDetails.getAddress() != null &&
           StringUtils.trimToNull(vendorDetails.getAddress().toString()) != null) {
-        vendorDetails.getAddress().setTranslations(translationRepository
-            .expand(vendorDetails.getAddress().toString()));
+        vendorDetails.setAddress(new VendorDetailsAddress(
+            vendorDetails.getAddress().getValue(),
+            translationRepository.expand(vendorDetails.getAddress().toString())
+        ));
       }
-
-
     }
 
     SecurityUser securityUser = new SecurityUser(user, userPassword, operation.getSessionInfo());
-
     String accessToken = jwtUtils.generateAccessToken(securityUser);
     String refreshToken = jwtUtils.generateRefreshToken(securityUser);
-
     VerifyEmailSuccessDto verifyEmailSuccessDto =
         VerifyEmailSuccessDto.of(accessToken, refreshToken);
 
@@ -390,7 +387,6 @@ public class AuthApplicationService implements AuthService {
 
     String recoverCode = AuthUtils.generateVerificationCode();
     ZonedDateTime expiration = ZonedDateTime.now().plus(recoverPasswordTtl);
-
     RecoverPasswordDto recoverPasswordDto =
         new RecoverPasswordDto(recoverCode, operation.getNewUserPassword());
     recoverPasswordRedisCacheManager.set(operation.getUserEmail(), recoverPasswordDto);
@@ -414,7 +410,6 @@ public class AuthApplicationService implements AuthService {
     if (recoverPasswordDto == null) {
       return VerifyRecoverPassword.Result.emailNotFound(operation.getUserEmail());
     }
-
     if (!recoverPasswordDto.recoverCode().equals(operation.getRecoverCode().toString())) {
       return VerifyRecoverPassword.Result.invalidRecoverCode(operation.getUserEmail(),
           recoverPasswordDto.recoverCode());
@@ -429,18 +424,15 @@ public class AuthApplicationService implements AuthService {
 
     String hashedRawPassword =
         passwordEncoder.encode(recoverPasswordDto.newUserPassword().getValue());
-    UserPasswordPassword hashedUserPassword = UserPasswordPassword.of(hashedRawPassword);
+    UserPasswordPassword hashedUserPassword = new UserPasswordPassword(hashedRawPassword);
     userPassword.get().setPassword(hashedUserPassword);
-
     SecurityUser securityUser = new SecurityUser(
         userPassword.get().getUser(),
         userPassword.get(),
         operation.getSessionInfo()
     );
-
     String accessToken = jwtUtils.generateAccessToken(securityUser);
     String refreshToken = jwtUtils.generateRefreshToken(securityUser);
-
     RecoverPasswordSuccessDto recoverPasswordSuccessDto =
         RecoverPasswordSuccessDto.of(accessToken, refreshToken);
 
@@ -475,31 +467,27 @@ public class AuthApplicationService implements AuthService {
     if (userRepository.existsUserByEmail(operation.getEmail())) {
       return ForceRegister.Result.userWithEmailAlreadyExists(operation.getEmail());
     }
-
     if (userRepository.existsUserByLogin(operation.getLogin())) {
       return ForceRegister.Result.userWithLoginAlreadyExists(operation.getLogin());
     }
-
     if (userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
       return ForceRegister.Result.userWithPhoneNumberAlreadyExists(operation.getPhoneNumber());
     }
 
     User user = new User();
     user.setRole(UserRole.ROLE_USER);
-    user.setIsEnabled(UserIsEnabled.of(true));
+    user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getEmail());
     user.setLogin(
         TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setRegion(operation.getRegion());
     user.setAvatar(operation.getAvatar());
-
     UserPassword userPassword = new UserPassword();
     userPassword.setUser(user);
     user.setPassword(userPassword);
-
     String passwordHash = passwordEncoder.encode(operation.getPassword().toString());
-    userPassword.setPassword(UserPasswordPassword.of(passwordHash));
+    userPassword.setPassword(new UserPasswordPassword(passwordHash));
 
     try {
       userRepository.save(user);
@@ -517,24 +505,19 @@ public class AuthApplicationService implements AuthService {
     if (operation.getCountryNames().isEmpty()) {
       return ForceRegisterVendor.Result.emptyVendorCountries();
     }
-
     if (operation.getProductCategoryNames().isEmpty()) {
       return ForceRegisterVendor.Result.emptyVendorProductCategories();
     }
-
     if (userRepository.existsUserByEmail(operation.getEmail())) {
       return ForceRegisterVendor.Result.vendorWithEmailAlreadyExists(operation.getEmail());
     }
-
     if (userRepository.existsUserByLogin(operation.getLogin())) {
       return ForceRegisterVendor.Result.vendorWithLoginAlreadyExists(operation.getLogin());
     }
-
     if (userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
       return ForceRegisterVendor.Result.vendorWithPhoneNumberAlreadyExists(
           operation.getPhoneNumber());
     }
-
     if (vendorDetailsRepository.existsByInn(operation.getInn())) {
       return ForceRegisterVendor.Result.vendorWithInnAlreadyExists(operation.getInn());
     }
@@ -542,19 +525,17 @@ public class AuthApplicationService implements AuthService {
     // Setting
     User user = new User();
     user.setRole(UserRole.ROLE_VENDOR);
-    user.setIsEnabled(UserIsEnabled.of(true));
+    user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getEmail());
     user.setLogin(
         TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setAvatar(operation.getAvatar());
-
     UserPassword userPassword = new UserPassword();
     userPassword.setUser(user);
     user.setPassword(userPassword);
     String passwordHash = passwordEncoder.encode(operation.getPassword().toString());
-    userPassword.setPassword(UserPasswordPassword.of(passwordHash));
-
+    userPassword.setPassword(new UserPasswordPassword(passwordHash));
     VendorDetails vendorDetails = new VendorDetails();
     vendorDetails.setUser(user);
     user.setVendorDetails(vendorDetails);
@@ -566,10 +547,12 @@ public class AuthApplicationService implements AuthService {
     for (VendorCountryName name : operation.getCountryNames()) {
       VendorCountry country = new VendorCountry();
       country.setVendorDetails(vendorDetails);
-      country.setName(name);
 
       try {
-        country.getName().setTranslations(translationRepository.expand(name.toString()));
+        country.setName(new VendorCountryName(
+            name.getValue(),
+            translationRepository.expand(name.toString())
+        ));
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return ForceRegisterVendor.Result.translationError(e);
@@ -615,13 +598,10 @@ public class AuthApplicationService implements AuthService {
             userPasswordPassword.toString());
     Authentication authenticationResponse =
         authenticationManager.authenticate(authenticationRequest);
-
     SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
     SecurityUser securityUser = (SecurityUser) authenticationResponse.getPrincipal();
-
     String accessToken = jwtUtils.generateAccessToken(securityUser);
     String refreshToken = jwtUtils.generateRefreshToken(securityUser);
-
     SessionDeviceId sessionDeviceId = securityUser.getSessionInfo().getDeviceId();
     Session oldSession = sessionRepository
         .getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionDeviceId)
@@ -669,10 +649,8 @@ public class AuthApplicationService implements AuthService {
 
     SecurityUser securityUser =
         new SecurityUser(user, user.getPassword(), operation.getSessionInfo());
-
     String accessToken = jwtUtils.generateAccessToken(securityUser);
     String refreshToken = jwtUtils.generateRefreshToken(securityUser);
-
     LoginSuccessDto dto = LoginSuccessDto.of(accessToken, refreshToken);
     return LoginWithTelegram.Result.success(dto, operation.getTelegramUser().firstName());
   }

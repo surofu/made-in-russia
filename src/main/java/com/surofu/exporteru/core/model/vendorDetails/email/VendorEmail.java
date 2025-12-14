@@ -1,10 +1,20 @@
 package com.surofu.exporteru.core.model.vendorDetails.email;
 
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
@@ -12,33 +22,37 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Table(name = "vendor_details_emails")
 public final class VendorEmail implements Serializable {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "vendor_details_id")
+  private VendorDetails vendorDetails;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vendor_details_id")
-    private VendorDetails vendorDetails;
+  @Embedded
+  private VendorEmailEmail email;
+  @Embedded
+  private VendorEmailCreationDate creationDate;
+  @Embedded
+  private VendorEmailLastModificationDate lastModificationDate;
 
-    @Embedded
-    private VendorEmailEmail email;
-
-    @Embedded
-    private VendorEmailCreationDate creationDate;
-
-    @Embedded
-    private VendorEmailLastModificationDate lastModificationDate;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof VendorEmail)) return false;
-        return id != null && id.equals(((VendorEmail) o).id);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    if (!(o instanceof VendorEmail that)) {
+      return false;
     }
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

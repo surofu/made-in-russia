@@ -5,33 +5,29 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategorySlug implements Serializable {
-
   @Column(name = "slug", unique = true, nullable = false)
-  private final String value;
+  private String value;
 
   public CategorySlug(String slug) {
     if (slug == null || slug.trim().isEmpty()) {
       throw new LocalizedValidationException("validation.category.slug.empty");
     }
-
     if (slug.length() > 255) {
       throw new LocalizedValidationException("validation.category.slug.max_length");
     }
-
     this.value = slug;
   }
 
   public CategorySlug(String slug, int level) {
     this("l%d_%s".formatted(level, slug));
-  }
-
-  public CategorySlug() {
-    this.value = null;
   }
 
   @Override
@@ -41,17 +37,14 @@ public final class CategorySlug implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CategorySlug categorySlug)) {
+    if (!(o instanceof CategorySlug that)) {
       return false;
     }
-    return Objects.equals(value, categorySlug.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

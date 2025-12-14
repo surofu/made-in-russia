@@ -23,7 +23,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "product_delivery_method_details")
 public final class ProductDeliveryMethodDetails implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -35,30 +34,26 @@ public final class ProductDeliveryMethodDetails implements Serializable {
 
   @Embedded
   private ProductDeliveryMethodDetailsName name;
-
   @Embedded
   private ProductDeliveryMethodDetailsValue value;
-
   @Embedded
   private ProductDeliveryMethodDetailsCreationDate creationDate;
-
   @Embedded
   private ProductDeliveryMethodDetailsLastModificationDate lastModificationDate;
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductDeliveryMethodDetails productDeliveryMethodDetails)) {
-          return false;
-      }
-    return Objects.equals(name, productDeliveryMethodDetails.name)
-        && Objects.equals(value, productDeliveryMethodDetails.value);
+    if (!(o instanceof ProductDeliveryMethodDetails that)) {
+      return false;
+    }
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, value);
+    return getClass().hashCode();
   }
 }

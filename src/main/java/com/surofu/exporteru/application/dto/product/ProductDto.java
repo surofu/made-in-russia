@@ -128,7 +128,7 @@ public class ProductDto implements Serializable {
 
     if (discountExpirationDate.getValue().isBefore(ZonedDateTime.now()) ||
         discountExpirationDate.getValue().isEqual(ZonedDateTime.now())) {
-      price.setDiscountedPrice(ProductPriceDiscountedPrice.of(price.getOriginalPrice().getValue()));
+      price.setDiscountedPrice(new ProductPriceDiscountedPrice(price.getOriginalPrice().getValue()));
       return price;
     }
 

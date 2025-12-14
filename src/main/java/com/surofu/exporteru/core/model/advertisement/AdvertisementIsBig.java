@@ -2,30 +2,38 @@ package com.surofu.exporteru.core.model.advertisement;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class AdvertisementIsBig implements Serializable {
+  @Column(name = "is_big", nullable = false, columnDefinition = "boolean default false")
+  private Boolean value = Boolean.FALSE;
 
-    @Column(name = "is_big", nullable = false, columnDefinition = "boolean default false")
-    private Boolean value = false;
+  public AdvertisementIsBig(Boolean state) {
+    this.value = Objects.requireNonNullElse(state, Boolean.FALSE);
+  }
 
-    private AdvertisementIsBig(Boolean state) {
-        this.value = state != null && state;
+  @Override
+  public String toString() {
+    return value.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof AdvertisementIsBig that)) {
+      return false;
     }
+    return Objects.equals(value, that.value);
+  }
 
-    public static AdvertisementIsBig of(Boolean state) {
-        return new AdvertisementIsBig(state);
-    }
-
-    @Override
-    public String toString() {
-        return value.toString();
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
+  }
 }

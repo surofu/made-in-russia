@@ -4,7 +4,6 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,10 +14,8 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceQuantityRange implements Serializable {
-
   @Column(name = "quantity_from", nullable = false, columnDefinition = "int")
   private Integer from;
-
   @Column(name = "quantity_to", nullable = false, columnDefinition = "int")
   private Integer to;
 
@@ -26,25 +23,17 @@ public final class ProductPriceQuantityRange implements Serializable {
     if (from == null) {
       throw new LocalizedValidationException("validation.product.price.quantity.from.empty");
     }
-
     if (to == null) {
       throw new LocalizedValidationException("validation.product.price.quantity.to.empty");
     }
-
     if (from < 0) {
       throw new LocalizedValidationException("validation.product.price.quantity.from.negative");
     }
-
     if (to < 0) {
       throw new LocalizedValidationException("validation.product.price.quantity.to.negative");
     }
-
     this.from = from;
     this.to = to;
-  }
-
-  public static ProductPriceQuantityRange of(Integer from, Integer to) {
-    return new ProductPriceQuantityRange(from, to);
   }
 
   public static ProductPriceQuantityRange of(String from, String to) {
@@ -62,7 +51,6 @@ public final class ProductPriceQuantityRange implements Serializable {
 
       String fromString = split[0].trim();
       String toString = split[1].trim();
-
       int fromInt;
       int toInt;
 
@@ -79,7 +67,6 @@ public final class ProductPriceQuantityRange implements Serializable {
         throw new IllegalArgumentException(
             String.format("Неверный формат конечной цены товара: '%s'", from));
       }
-
       return new ProductPriceQuantityRange(fromInt, toInt);
     }
 
@@ -99,16 +86,13 @@ public final class ProductPriceQuantityRange implements Serializable {
         throw new IllegalArgumentException(
             String.format("Неверный формат цены товара: '%s'", from));
       }
-
       return new ProductPriceQuantityRange(fromInt, toInt);
-
     }
-
     return new ProductPriceQuantityRange(fromInt, fromInt);
   }
 
   @Override
   public String toString() {
-    return String.format("ProductPriceQuantityRange{from=%s, to=%s}", from, to);
+    return String.format("%s-%s", from, to);
   }
 }

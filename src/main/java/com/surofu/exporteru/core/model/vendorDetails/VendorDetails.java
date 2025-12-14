@@ -13,7 +13,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,19 +37,13 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "vendor_details")
 public final class VendorDetails implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "user_id",
-      nullable = false,
-      unique = true,
-      foreignKey = @ForeignKey(name = "fk_vendor_details_user_id")
-  )
+  @JoinColumn(name = "user_id")
   private User user;
 
   @ToString.Exclude
@@ -127,19 +120,14 @@ public final class VendorDetails implements Serializable {
 
   @Embedded
   private VendorDetailsInn inn;
-
   @Embedded
   private VendorDetailsAddress address;
-
   @Embedded
-  private VendorDetailsDescription description = new VendorDetailsDescription("");
-
+  private VendorDetailsDescription description;
   @Transient
   private Long vendorViewsCount = 0L;
-
   @Embedded
   private VendorDetailsCreationDate creationDate;
-
   @Embedded
   private VendorDetailsLastModificationDate lastModificationDate;
 
@@ -148,13 +136,14 @@ public final class VendorDetails implements Serializable {
     if (!(o instanceof VendorDetails that)) {
       return false;
     }
-    return Objects.equals(inn, that.inn) &&
-        Objects.equals(address, that.address) &&
-        Objects.equals(description, that.description);
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(inn, address, description);
+    return getClass().hashCode();
   }
 }

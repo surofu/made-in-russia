@@ -145,7 +145,7 @@ public class TelegramBotLinkAccountHandler {
         UserObject userObject = USERS.get(chatId);
 
         // Act
-        Optional<User> userOptional = userRepository.getUserByEmail(UserEmail.of(userObject.email));
+        Optional<User> userOptional = userRepository.getUserByEmail(new UserEmail(userObject.email));
 
         String invalidDataText = localizationManager.localize("telegram.bot.link.invalid-data");
         String markupAgain = localizationManager.localize("telegram.bot.register.step.save-data.markup.again");
@@ -191,8 +191,6 @@ public class TelegramBotLinkAccountHandler {
             );
             return reset(update);
         }
-
-
 
         Session session = sessionRepository.getSessionByUserIdAndDeviceId(
                 user.getId(),

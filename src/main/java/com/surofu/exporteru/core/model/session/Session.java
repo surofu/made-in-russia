@@ -25,7 +25,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "sessions")
 public final class Session implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -37,22 +36,16 @@ public final class Session implements Serializable {
 
   @Embedded
   private SessionDeviceId deviceId;
-
   @Embedded
   private SessionDeviceType deviceType;
-
   @Embedded
   private SessionBrowser browser;
-
   @Embedded
   private SessionOs os;
-
   @Embedded
   private SessionIpAddress ipAddress;
-
   @Embedded
   private SessionCreationDate creationDate;
-
   @Embedded
   private SessionLastModificationDate lastModificationDate;
 
@@ -61,12 +54,11 @@ public final class Session implements Serializable {
     SessionDeviceId sessionDeviceId = sessionInfo.getDeviceId();
     SessionIpAddress sessionIpAddress = sessionInfo.getIpAddress();
     String rawDeviceType = userAgent.getOperatingSystem().getDeviceType().getName();
-    SessionDeviceType sessionDeviceType = SessionDeviceType.of(rawDeviceType);
+    SessionDeviceType sessionDeviceType = new SessionDeviceType(rawDeviceType);
     String rawBrowserName = userAgent.getBrowser().getName();
-    SessionBrowser sessionBrowser = SessionBrowser.of(rawBrowserName);
+    SessionBrowser sessionBrowser = new SessionBrowser(rawBrowserName);
     String rawOsName = userAgent.getOperatingSystem().getName();
-    SessionOs sessionOs = SessionOs.of(rawOsName);
-
+    SessionOs sessionOs = new SessionOs(rawOsName);
     session.setUser(user);
     session.setDeviceId(sessionDeviceId);
     session.setDeviceType(sessionDeviceType);
@@ -78,18 +70,17 @@ public final class Session implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof Session session)) {
+    if (!(o instanceof Session that)) {
       return false;
     }
-    return Objects.equals(deviceId, session.deviceId) &&
-        Objects.equals(deviceType, session.deviceType) &&
-        Objects.equals(browser, session.browser) &&
-        Objects.equals(os, session.os) &&
-        Objects.equals(ipAddress, session.ipAddress);
+    if (deviceId == null || that.deviceId == null) {
+      return false;
+    }
+    return Objects.equals(deviceId, that.deviceId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(deviceId, deviceType, browser, os, ipAddress);
+    return getClass().hashCode();
   }
 }

@@ -36,6 +36,7 @@ import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -505,7 +506,7 @@ public class TelegramBotRegisterHandler {
       return null;
     }
 
-    if (userRepository.existsUserByPhoneNumber(UserPhoneNumber.of(phone))) {
+    if (userRepository.existsUserByPhoneNumber(new UserPhoneNumber(phone))) {
       String text =
           localizationManager.localize("telegram.bot.validation.phone.already-exists", phone);
       messageSender.sendMessage(chatId, text);
@@ -567,7 +568,7 @@ public class TelegramBotRegisterHandler {
       return null;
     }
 
-    if (vendorDetailsRepository.existsByInn(VendorDetailsInn.of(inn))) {
+    if (vendorDetailsRepository.existsByInn(new VendorDetailsInn(inn))) {
       String text = localizationManager.localize("telegram.bot.validation.inn.already-exists", inn);
       messageSender.sendMessage(chatId, text);
       prevOrFirstStep(update);
@@ -1049,11 +1050,11 @@ public class TelegramBotRegisterHandler {
     user.setPassword(userPassword);
     userPassword.setUser(user);
 
-    UserPasswordPassword userPasswordPassword = UserPasswordPassword.of(request.password);
+    UserPasswordPassword userPasswordPassword = new UserPasswordPassword(request.password);
     userPassword.setPassword(userPasswordPassword);
 
-    UserEmail userEmail = UserEmail.of(request.email);
-    UserPhoneNumber userPhoneNumber = UserPhoneNumber.of(request.phoneNumber);
+    UserEmail userEmail = new UserEmail(request.email);
+    UserPhoneNumber userPhoneNumber = new UserPhoneNumber(request.phoneNumber);
 
     if (userRepository.getUserByTelegramUserId(chatId).isPresent()) {
       String text = localizationManager.localize("telegram.bot.error.register.already-linked");
@@ -1063,27 +1064,26 @@ public class TelegramBotRegisterHandler {
 
     user.setRole(request.userRole);
     user.setTelegramUserId(chatId);
-    user.setLogin(TransliterationManager.transliterateUserLogin(new UserLogin(request.login), registerObject.locale));
+    user.setLogin(TransliterationManager.transliterateUserLogin(new UserLogin(request.login, new HashMap<>()), registerObject.locale));
     user.setEmail(userEmail);
-    user.setAvatar(UserAvatar.of(StringUtils.trimToNull(request.avatarUrl)));
+    user.setAvatar(new UserAvatar(StringUtils.trimToNull(request.avatarUrl)));
     user.setPhoneNumber(userPhoneNumber);
 
     if (UserRole.ROLE_VENDOR.equals(request.userRole)) {
       VendorDetails vendorDetails = new VendorDetails();
       vendorDetails.setUser(user);
       user.setVendorDetails(vendorDetails);
-      VendorDetailsInn inn = VendorDetailsInn.of(request.vendor.inn);
+      VendorDetailsInn inn = new VendorDetailsInn(request.vendor.inn);
       vendorDetails.setInn(inn);
-      VendorDetailsAddress address = VendorDetailsAddress.of(request.vendor.address);
+      VendorDetailsAddress address = new VendorDetailsAddress(request.vendor.address, new HashMap<>());
       vendorDetails.setAddress(address);
 
       for (String countryName : request.vendor.countries) {
         VendorCountry vendorCountry = new VendorCountry();
         vendorCountry.setVendorDetails(vendorDetails);
-        vendorCountry.setName(VendorCountryName.of(countryName));
 
         try {
-          vendorCountry.getName().setTranslations(translationRepository.expand(countryName));
+          vendorCountry.setName(new VendorCountryName(countryName, translationRepository.expand(countryName)));
         } catch (Exception e) {
           log.error(e.getMessage(), e);
           String text = localizationManager.localize("telegram.bot.error.unknown");
@@ -1094,9 +1094,9 @@ public class TelegramBotRegisterHandler {
         vendorDetails.getVendorCountries().add(vendorCountry);
       }
 
-      user.setRegion(UserRegion.of(request.vendor.countries.iterator().next()));
+      user.setRegion(new UserRegion(request.vendor.countries.iterator().next()));
     } else {
-      UserRegion userRegion = UserRegion.of(request.region);
+      UserRegion userRegion = new UserRegion(request.region);
       user.setRegion(userRegion);
     }
 
@@ -1198,7 +1198,7 @@ public class TelegramBotRegisterHandler {
 
   @Transactional(readOnly = true)
   protected boolean userExistsByEmail(String email) {
-    return userRepository.existsUserByEmail(UserEmail.of(email));
+    return userRepository.existsUserByEmail(new UserEmail(email));
   }
 
   public Void cancel(Update update) {

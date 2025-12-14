@@ -8,7 +8,6 @@ import com.surofu.exporteru.core.model.product.price.ProductPriceDiscount;
 import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
 import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
 import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
-import com.surofu.exporteru.core.repository.ProductPriceRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Service
 @RequiredArgsConstructor
 public class PricesProductUpdatingConsumer implements ProductUpdatingConsumer {
-  private final ProductPriceRepository priceRepository;
   private final TranslationRepository translationRepository;
 
   @Override
@@ -38,11 +36,11 @@ public class PricesProductUpdatingConsumer implements ProductUpdatingConsumer {
       for (UpdateProductPriceCommand command : operation.getUpdateProductPriceCommands()) {
         ProductPrice price = new ProductPrice();
         price.setProduct(product);
-        price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
-        price.setDiscount(ProductPriceDiscount.of(command.discount()));
-        price.setQuantityRange(
-            ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
-        price.setCurrency(ProductPriceCurrency.of(command.currency()));
+        price.setOriginalPrice(new ProductPriceOriginalPrice(command.price()));
+        price.setDiscount(new ProductPriceDiscount(command.discount()));
+        price.setQuantityRange(ProductPriceQuantityRange.of(
+            command.quantityFrom(), command.quantityTo()));
+        price.setCurrency(new ProductPriceCurrency(command.currency()));
         price.setUnit(new ProductPriceUnit(command.unit(), new HashMap<>()));
 
         if (!product.getPrices().contains(price)) {

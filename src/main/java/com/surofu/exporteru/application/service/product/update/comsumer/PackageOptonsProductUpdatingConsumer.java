@@ -37,8 +37,8 @@ public class PackageOptonsProductUpdatingConsumer implements ProductUpdatingCons
         ProductPackageOption packageOption = new ProductPackageOption();
         packageOption.setProduct(product);
         packageOption.setName(new ProductPackageOptionName(command.name(), new HashMap<>()));
-        packageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
-        packageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+        packageOption.setPrice(new ProductPackageOptionPrice(command.price()));
+        packageOption.setPriceUnit(new ProductPackageOptionPriceUnit(command.priceUnit()));
 
         if (!product.getPackageOptions().contains(packageOption)) {
           newPackageOptions.add(packageOption);

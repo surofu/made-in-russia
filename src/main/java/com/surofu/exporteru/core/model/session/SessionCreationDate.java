@@ -17,22 +17,26 @@ import java.util.Objects;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionCreationDate implements Serializable {
-
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
     private ZonedDateTime value = ZonedDateTime.now();
 
-    private SessionCreationDate(ZonedDateTime date) {
-        this.value = Objects.requireNonNullElseGet(date, ZonedDateTime::now);
-    }
-
-    public static SessionCreationDate of(ZonedDateTime date) {
-        return new SessionCreationDate(date);
-    }
-
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof SessionCreationDate that)) {
+            return false;
+        }
+      return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }

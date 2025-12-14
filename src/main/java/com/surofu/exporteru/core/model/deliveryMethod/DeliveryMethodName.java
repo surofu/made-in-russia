@@ -4,6 +4,7 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -17,14 +18,14 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryMethodName implements Serializable {
-
   @Column(name = "name", unique = true, nullable = false)
-  private final String value;
+  private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "name_translations")
-  private final Map<String, String> translations;
+  private Map<String, String> translations;
 
   public DeliveryMethodName(String name, Map<String, String> translations) {
     if (name == null || name.trim().isEmpty()) {
@@ -36,16 +37,9 @@ public final class DeliveryMethodName implements Serializable {
     }
 
     this.value = name;
-    this.translations = translations;
-  }
-
-  public DeliveryMethodName(String name) {
-    this(name, new HashMap<>());
-  }
-
-  public DeliveryMethodName() {
-    this.value = null;
-    this.translations = new HashMap<>();
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
   public String getLocalizedValue() {
@@ -55,6 +49,12 @@ public final class DeliveryMethodName implements Serializable {
     Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(),
         Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override

@@ -4,11 +4,14 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -16,35 +19,37 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class DeliveryTermDescription implements Serializable {
-
   @Column(name = "description", columnDefinition = "text")
-  private final String value;
+  private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "description_translations")
-  private final Map<String, String> translations;
+  private Map<String, String> translations;
 
   public DeliveryTermDescription(String value, Map<String, String> translations) {
     if (StringUtils.trimToNull(value) != null && value.length() > 1000) {
       throw new LocalizedValidationException("validation.delivery_term.description.max_length");
     }
-
     this.value = value;
-    this.translations = translations;
-  }
-
-  public DeliveryTermDescription() {
-    this("DESCRIPTION", new HashMap<>());
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
   public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-
     Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override
@@ -54,17 +59,14 @@ public final class DeliveryTermDescription implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof DeliveryTermDescription deliveryTermDescription)) {
+    if (!(o instanceof DeliveryTermDescription that)) {
       return false;
     }
-    return Objects.equals(value, deliveryTermDescription.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

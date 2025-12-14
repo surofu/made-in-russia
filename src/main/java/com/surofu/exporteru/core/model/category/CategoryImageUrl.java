@@ -5,27 +5,23 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryImageUrl implements Serializable {
-
   @Column(name = "image_url")
-  private final String value;
+  private String value;
 
   public CategoryImageUrl(String url) {
     if (url != null && url.length() > 20_000) {
       throw new LocalizedValidationException("validation.category.image_url.max_length");
     }
-
     this.value = url;
   }
-
-  public CategoryImageUrl() {
-    this.value = null;
-  }
-
   @Override
   public String toString() {
     return value;
@@ -33,17 +29,14 @@ public final class CategoryImageUrl implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CategoryImageUrl categoryImageUrl)) {
+    if (!(o instanceof CategoryImageUrl that)) {
       return false;
     }
-    return Objects.equals(value, categoryImageUrl.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

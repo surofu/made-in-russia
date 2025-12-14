@@ -1,7 +1,6 @@
 package com.surofu.exporteru.core.service.product.operation;
 
 import com.surofu.exporteru.application.dto.product.ProductSummaryViewDto;
-import com.surofu.exporteru.application.dto.product.SimilarProductDto;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import java.util.List;
 import lombok.Value;

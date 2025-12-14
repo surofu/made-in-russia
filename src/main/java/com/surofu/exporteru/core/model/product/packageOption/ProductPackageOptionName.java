@@ -3,6 +3,8 @@ package com.surofu.exporteru.core.model.product.packageOption;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +20,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPackageOptionName implements Serializable {
-
   @Column(name = "name", nullable = false)
   private String value;
 
@@ -30,23 +31,28 @@ public final class ProductPackageOptionName implements Serializable {
     if (StringUtils.trimToNull(name) == null) {
       throw new IllegalArgumentException("Название варианта упаковки товара не может быть пустым");
     }
-
     if (name.length() > 255) {
       throw new IllegalArgumentException(
           "Название варианта упаковки товара не может быть больше 255 символов");
     }
-
     this.value = name;
-    this.translations = translations;
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
   public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-
     Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override
@@ -56,17 +62,14 @@ public final class ProductPackageOptionName implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ProductPackageOptionName productPackageOptionName)) {
+    if (!(o instanceof ProductPackageOptionName that)) {
       return false;
     }
-    return Objects.equals(value, productPackageOptionName.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

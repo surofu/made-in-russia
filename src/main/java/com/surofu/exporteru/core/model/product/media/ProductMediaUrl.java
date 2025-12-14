@@ -13,24 +13,17 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductMediaUrl implements Serializable {
-
   @Column(name = "url", nullable = false, columnDefinition = "text")
   private String value;
 
-  private ProductMediaUrl(String url) {
+  public ProductMediaUrl(String url) {
     if (url == null || url.trim().isEmpty()) {
       throw new LocalizedValidationException("validation.media.url.empty");
     }
-
     if (url.length() >= 20_000) {
       throw new LocalizedValidationException("validation.media.url.max_length");
     }
-
     this.value = url;
-  }
-
-  public static ProductMediaUrl of(String url) {
-    return new ProductMediaUrl(url);
   }
 
   @Override
@@ -40,17 +33,14 @@ public final class ProductMediaUrl implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductMediaUrl productMediaUrl)) {
-          return false;
-      }
-    return Objects.equals(value, productMediaUrl.value);
+    if (!(o instanceof ProductMediaUrl that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

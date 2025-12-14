@@ -23,7 +23,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "product_package_options")
 public final class ProductPackageOption implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -35,16 +34,12 @@ public final class ProductPackageOption implements Serializable {
 
   @Embedded
   private ProductPackageOptionName name;
-
   @Embedded
   private ProductPackageOptionPrice price;
-
   @Embedded
   private ProductPackageOptionPriceUnit priceUnit;
-
   @Embedded
   private ProductPackageOptionCreationDate creationDate;
-
   @Embedded
   private ProductPackageOptionLastModificationDate lastModificationDate;
 
@@ -53,12 +48,14 @@ public final class ProductPackageOption implements Serializable {
     if (!(o instanceof ProductPackageOption that)) {
       return false;
     }
-    return Objects.equals(name, that.name) && Objects.equals(price, that.price) &&
-        Objects.equals(priceUnit, that.priceUnit);
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, price, priceUnit);
+    return getClass().hashCode();
   }
 }

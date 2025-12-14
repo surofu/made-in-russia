@@ -11,13 +11,15 @@ import com.surofu.exporteru.application.dto.vendor.VendorReviewPageDto;
 import com.surofu.exporteru.core.model.moderation.ApproveStatus;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
 import com.surofu.exporteru.core.model.user.User;
-import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
+import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmail;
 import com.surofu.exporteru.core.model.vendorDetails.email.VendorEmailEmail;
 import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaq;
+import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaqAnswer;
+import com.surofu.exporteru.core.model.vendorDetails.faq.VendorFaqQuestion;
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMedia;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumber;
 import com.surofu.exporteru.core.model.vendorDetails.phoneNumber.VendorPhoneNumberPhoneNumber;
@@ -242,14 +244,16 @@ public class VendorApplicationService implements VendorService {
 
     VendorFaq faq = new VendorFaq();
     faq.setVendorDetails(vendorDetails);
-    faq.setQuestion(operation.getQuestion());
-    faq.setAnswer(operation.getAnswer());
 
     try {
-      faq.getQuestion()
-          .setTranslations(translationRepository.expand(operation.getQuestion().toString()));
-      faq.getAnswer()
-          .setTranslations(translationRepository.expand(operation.getAnswer().toString()));
+      faq.setQuestion(new VendorFaqQuestion(
+          operation.getQuestion().getValue(),
+          translationRepository.expand(operation.getQuestion().toString())
+      ));
+      faq.setAnswer(new VendorFaqAnswer(
+          operation.getAnswer().getValue(),
+          translationRepository.expand(operation.getAnswer().toString())
+      ));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateVendorFaq.Result.translationError(e);
@@ -302,14 +306,16 @@ public class VendorApplicationService implements VendorService {
     }
 
     VendorFaq faq = faqOptional.get();
-    faq.setQuestion(operation.getQuestion());
-    faq.setAnswer(operation.getAnswer());
 
     try {
-      faq.getQuestion()
-          .setTranslations(translationRepository.expand(operation.getQuestion().toString()));
-      faq.getAnswer()
-          .setTranslations(translationRepository.expand(operation.getAnswer().toString()));
+      faq.setQuestion(new VendorFaqQuestion(
+          operation.getQuestion().getValue(),
+          translationRepository.expand(operation.getQuestion().toString())
+      ));
+      faq.setAnswer(new VendorFaqAnswer(
+          operation.getAnswer().getValue(),
+          translationRepository.expand(operation.getAnswer().toString())
+      ));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateVendorFaq.Result.translationError(operation.getId(), e);
@@ -414,7 +420,8 @@ public class VendorApplicationService implements VendorService {
       ForceUpdateVendorById operation, User user, VendorDetails vendorDetails
   ) {
     user.setEmail(operation.getEmail());
-    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getLogin(), LocaleContextHolder.getLocale()));
+    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getLogin(),
+        LocaleContextHolder.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     vendorDetails.setInn(operation.getInn());
     vendorDetails.setDescription(operation.getDescription());
@@ -522,9 +529,8 @@ public class VendorApplicationService implements VendorService {
         .map(name -> {
           VendorCountry vendorCountry = new VendorCountry();
           vendorCountry.setVendorDetails(vendorDetails);
-          vendorCountry.setName(name);
-          vendorCountry.getName()
-              .setTranslations(translationRepository.expand(name.getTranslations()));
+          vendorCountry.setName(new VendorCountryName(name.getValue(),
+              translationRepository.expand(name.getTranslations())));
           return vendorCountry;
         })
         .collect(Collectors.toList());
@@ -577,7 +583,6 @@ public class VendorApplicationService implements VendorService {
 
     User vendor = vendorOptional.get();
     String email = vendor.getEmail().toString();
-
     User sender = operation.getSecurityUser().getUser();
     String senderFirstName = sender.getLogin().toString();
     String senderEmail = sender.getEmail().toString();

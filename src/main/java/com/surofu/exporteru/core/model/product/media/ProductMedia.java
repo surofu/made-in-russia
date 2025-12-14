@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,18 +27,13 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "product_media")
 public final class ProductMedia implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "product_id",
-      nullable = false,
-      foreignKey = @ForeignKey(name = "fk_product_media_product_id")
-  )
+  @JoinColumn(name = "product_id")
   private Product product;
 
   @Column(nullable = false)
@@ -48,39 +42,30 @@ public final class ProductMedia implements Serializable {
 
   @Embedded
   private ProductMediaMimeType mimeType;
-
   @Embedded
   private ProductMediaPosition position;
-
   @Embedded
   private ProductMediaUrl url;
-
   @Embedded
   private ProductMediaAltText altText;
-
   @Embedded
   private ProductMediaCreationDate creationDate;
-
   @Embedded
   private ProductMediaLastModificationDate lastModificationDate;
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductMedia productMedia)) {
-          return false;
-      }
-    return Objects.equals(mediaType, productMedia.mediaType)
-        && Objects.equals(mimeType, productMedia.mimeType)
-        && Objects.equals(position, productMedia.position)
-        && Objects.equals(url, productMedia.url)
-        && Objects.equals(altText, productMedia.altText);
+    if (!(o instanceof ProductMedia that)) {
+      return false;
+    }
+    if (id == null && that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mediaType, mimeType, position, url, altText);
+    return getClass().hashCode();
   }
 }

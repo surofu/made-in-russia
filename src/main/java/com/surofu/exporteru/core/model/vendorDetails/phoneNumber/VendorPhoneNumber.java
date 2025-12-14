@@ -1,13 +1,21 @@
 package com.surofu.exporteru.core.model.vendorDetails.phoneNumber;
 
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
-import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.io.Serializable;
 
 @Data
 @Entity
@@ -15,34 +23,35 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Table(name = "vendor_details_phone_numbers")
 public final class VendorPhoneNumber implements Serializable {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @ToString.Exclude
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "vendor_details_id")
+  private VendorDetails vendorDetails;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vendor_details_id")
-    private VendorDetails vendorDetails;
+  @Embedded
+  private VendorPhoneNumberPhoneNumber phoneNumber;
+  @Embedded
+  private VendorPhoneNumberCreationDate creationDate;
+  @Embedded
+  private VendorPhoneNumberLastModificationDate lastModificationDate;
 
-    @Embedded
-    private VendorPhoneNumberPhoneNumber phoneNumber;
-
-    @Embedded
-    private VendorPhoneNumberCreationDate creationDate;
-
-    @Embedded
-    private VendorPhoneNumberLastModificationDate lastModificationDate;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        return id != null && id.equals(((VendorPhoneNumber) o).id);
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof VendorPhoneNumber that)) {
+      return false;
     }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    if (id == null || that.id == null) {
+      return false;
     }
+    return Objects.equals(id, that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

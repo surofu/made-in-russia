@@ -84,7 +84,7 @@ public class ProductUpdatingService {
       product.setDeliveryMethods(new HashSet<>(deliveryMethods));
       product.setDeliveryTerms(new HashSet<>(deliveryTerms));
       product.setSimilarProducts(new HashSet<>(similarProducts));
-      product.setPreviewImageUrl(ProductPreviewImageUrl.of("TEMP"));
+      product.setPreviewImageUrl(new ProductPreviewImageUrl("TEMP"));
 
       if (translationResults.containsKey("title")) {
         product.setTitle(new ProductTitle(

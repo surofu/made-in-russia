@@ -37,8 +37,8 @@ public final class SessionInfo implements Serializable {
 
         return SessionInfo.builder()
                 .userAgent(userAgent)
-                .ipAddress(SessionIpAddress.of(ipAddress))
-                .deviceId(SessionDeviceId.of(deviceId))
+                .ipAddress(new SessionIpAddress(ipAddress))
+                .deviceId(new SessionDeviceId(deviceId))
                 .sessionKey(xInternalRequestHeader)
                 .build();
     }

@@ -48,7 +48,6 @@ import org.hibernate.annotations.Formula;
 @AllArgsConstructor
 @Table(name = "products")
 public final class Product implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -157,44 +156,41 @@ public final class Product implements Serializable {
 
   @Embedded
   private ProductArticleCode articleCode;
-
   @Embedded
   private ProductTitle title;
-
   @Embedded
   private ProductDescription description;
-
   @Transient
   private Double rating;
-
   @Formula("(select count(*) from product_reviews r where r.product_id = id)")
   private Integer reviewsCount;
-
   @Embedded
   private ProductPreviewImageUrl previewImageUrl;
-
   @Embedded
   private ProductCreationDate creationDate;
-
   @Embedded
   private ProductMinimumOrderQuantity minimumOrderQuantity;
-
   @Embedded
   private ProductDiscountExpirationDate discountExpirationDate;
-
   @Embedded
   private ProductLastModificationDate lastModificationDate;
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof Product product)) {
+    if (!(o instanceof Product that)) {
       return false;
     }
-    return Objects.equals(id, product.id);
+    if (articleCode != null && that.articleCode != null) {
+      return Objects.equals(articleCode, that.articleCode);
+    }
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id);
+    return getClass().hashCode();
   }
 }

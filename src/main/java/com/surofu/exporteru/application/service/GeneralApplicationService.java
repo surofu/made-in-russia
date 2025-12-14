@@ -72,7 +72,7 @@ public class GeneralApplicationService implements GeneralService {
     Specification<Advertisement> advertisementSpec = AdvertisementSpecifications.byNotExpiredDate();
     List<Advertisement> advertisements = advertisementRepository.getAll(advertisementSpec, sort);
     List<AdvertisementDto> advertisementDtos = advertisements.stream()
-        .map(a -> AdvertisementDto.of(a, operation.getLocale()))
+        .map(AdvertisementDto::of)
         .toList();
 
     GeneralDto generalDto =

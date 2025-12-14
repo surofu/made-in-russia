@@ -43,9 +43,9 @@ public class PricesProductCreatingConsumer implements ProductCreatingConsumer {
         CreateProductPriceCommand command = createProductPriceCommands.get(i);
         ProductPrice price = new ProductPrice();
         price.setProduct(product);
-        price.setOriginalPrice(ProductPriceOriginalPrice.of(command.price()));
-        price.setDiscount(ProductPriceDiscount.of(command.discount()));
-        price.setCurrency(ProductPriceCurrency.of(command.currency()));
+        price.setOriginalPrice(new ProductPriceOriginalPrice(command.price()));
+        price.setDiscount(new ProductPriceDiscount(command.discount()));
+        price.setCurrency(new ProductPriceCurrency(command.currency()));
 
         if (command.unit().isBlank()) {
           price.setUnit(new ProductPriceUnit(command.unit(), new HashMap<>()));
@@ -54,8 +54,8 @@ public class PricesProductCreatingConsumer implements ProductCreatingConsumer {
           unitIndex++;
         }
 
-        price.setQuantityRange(
-            ProductPriceQuantityRange.of(command.quantityFrom(), command.quantityTo()));
+        price.setQuantityRange(ProductPriceQuantityRange.of(
+            command.quantityFrom(), command.quantityTo()));
         prices.add(price);
       }
 

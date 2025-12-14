@@ -6,43 +6,49 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductPriceCurrency implements Serializable {
+  @Enumerated(EnumType.STRING)
+  @Column(name = "currency", nullable = false, columnDefinition = "currency")
+  private CurrencyCode value;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency", nullable = false, columnDefinition = "currency")
-    private CurrencyCode value;
-
-    private ProductPriceCurrency(String currencyString) {
-        if (currencyString == null || currencyString.trim().isEmpty()) {
-            throw new LocalizedValidationException("validation.product.price.currency.empty");
-        }
-
-        CurrencyCode currencyCode;
-
-        try {
-            currencyCode = CurrencyCode.valueOf(currencyString);
-        } catch (IllegalArgumentException e) {
-            throw new LocalizedValidationException("validation.product.price.currency.type", currencyString);
-        }
-
-        this.value = currencyCode;
+  public ProductPriceCurrency(String currencyString) {
+    if (currencyString == null || currencyString.trim().isEmpty()) {
+      throw new LocalizedValidationException("validation.product.price.currency.empty");
     }
-
-    public static ProductPriceCurrency of(String currency) {
-        return new ProductPriceCurrency(currency);
+    CurrencyCode currencyCode;
+    try {
+      currencyCode = CurrencyCode.valueOf(currencyString);
+    } catch (IllegalArgumentException e) {
+      throw new LocalizedValidationException("validation.product.price.currency.type",
+          currencyString);
     }
+    this.value = currencyCode;
+  }
 
-    @Override
-    public String toString() {
-        return value.name();
+  @Override
+  public String toString() {
+    return value.name();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof ProductPriceCurrency that)) {
+      return false;
     }
+    return value == that.value;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
+  }
 }

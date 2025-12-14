@@ -6,37 +6,33 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryMetaDescription implements Serializable {
-
   @Column(name = "meta_description")
-  private final String value;
+  private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "meta_description_translations")
-  private final Map<String, String> translations;
+  private Map<String, String> translations;
 
   public CategoryMetaDescription(String value, Map<String, String> translations) {
     this.value = value;
     this.translations = translations;
   }
 
-  public CategoryMetaDescription() {
-    this.value = null;
-    this.translations = null;
-  }
-
   public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-
     Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
   }
@@ -48,17 +44,14 @@ public final class CategoryMetaDescription implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CategoryMetaDescription categoryMetaDescription)) {
+    if (!(o instanceof CategoryMetaDescription that)) {
       return false;
     }
-    return Objects.equals(value, categoryMetaDescription.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }
