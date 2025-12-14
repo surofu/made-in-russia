@@ -62,6 +62,13 @@ public interface SpringDataUserRepository extends JpaRepository<User, Long>, Jpa
             """)
     Optional<User> findFirstAdminUser();
 
+    @Query("""
+            select u from User u
+            where u.role = 'ROLE_ADMIN'
+            order by u.id asc
+            """)
+    List<User> findAllAdminUsers();
+
     // View
     Optional<UserView> findViewById(Long id);
 

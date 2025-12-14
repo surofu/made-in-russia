@@ -68,10 +68,7 @@ public class ChatService {
         addParticipant(chat, buyerId, ChatRole.BUYER);
         addParticipant(chat, sellerId, ChatRole.SELLER);
 
-        Long adminId = getAdminUserId();
-        if (adminId != null && !adminId.equals(buyerId) && !adminId.equals(sellerId)) {
-            addParticipant(chat, adminId, ChatRole.ADMIN);
-        }
+        addAllAdminsToChat(chat, buyerId, sellerId);
 
         log.info("Created new chat {} for product {} with buyer {}", chat.getId(), productId, buyerId);
 
@@ -164,5 +161,20 @@ public class ChatService {
         return userRepository.getFirstAdminUser()
                 .map(User::getId)
                 .orElse(null);
+    }
+
+    /**
+     * Добавить всех админов в чат
+     */
+    private void addAllAdminsToChat(Chat chat, Long buyerId, Long sellerId) {
+        List<User> admins = userRepository.getAllAdminUsers();
+        for (User admin : admins) {
+            Long adminId = admin.getId();
+
+            if (!adminId.equals(buyerId) && !adminId.equals(sellerId)) {
+                addParticipant(chat, adminId, ChatRole.ADMIN);
+                log.debug("Added admin {} to chat {}", adminId, chat.getId());
+            }
+        }
     }
 }

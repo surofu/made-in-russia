@@ -45,6 +45,8 @@ public interface UserRepository {
 
     Optional<User> getFirstAdminUser();
 
+    List<User> getAllAdminUsers();
+
     // View
     Optional<UserView> getViewById(Long id);
 }
