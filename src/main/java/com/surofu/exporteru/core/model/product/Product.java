@@ -162,7 +162,7 @@ public final class Product implements Serializable {
   private ProductDescription description;
   @Transient
   private Double rating;
-  @Formula("(select count(*) from product_reviews r where r.product_id = id)")
+  @Formula("(select count(*) from product_reviews r where r.product_id = id and r.approve_status = 'APPROVED')")
   private Integer reviewsCount;
   @Embedded
   private ProductPreviewImageUrl previewImageUrl;

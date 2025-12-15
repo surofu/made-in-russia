@@ -36,18 +36,32 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
     public AbstractAccountDto convertToEntityAttribute(String dbData) {
         try {
             JsonNode root = mapper.readTree(dbData);
-
             if (root.has("vendorDetails")) {
                 JsonNode vendorDetails = root.get("vendorDetails");
 
                 if (!vendorDetails.isNull()) {
                     VendorDto vendorDto = mapper.readValue(dbData, VendorDto.class);
                     processAddressTranslations(vendorDetails, vendorDto);
+                    if (root.has("loginTranslations")) {
+                        JsonNode loginTranslations = root.get("loginTranslations");
+                        String currentLanguage = LocaleContextHolder.getLocale().getLanguage();
+                        if (loginTranslations.has(currentLanguage)) {
+                            vendorDto.setLogin(loginTranslations.get(currentLanguage).asText());
+                        }
+                    }
                     return vendorDto;
                 }
             }
 
-            return mapper.readValue(dbData, UserDto.class);
+            UserDto userDto = mapper.readValue(dbData, UserDto.class);
+            if (root.has("loginTranslations")) {
+                JsonNode loginTranslations = root.get("loginTranslations");
+                String currentLanguage = LocaleContextHolder.getLocale().getLanguage();
+                if (loginTranslations.has(currentLanguage)) {
+                    userDto.setLogin(loginTranslations.get(currentLanguage).asText());
+                }
+            }
+            return userDto;
         } catch (Exception e) {
             throw new RuntimeException("Error converting JSON to AbstractAccountDto", e);
         }
@@ -57,7 +71,7 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
         if (vendorDetails.has("addressTranslations") && !vendorDetails.get("addressTranslations").isNull()) {
             JsonNode translationsNode = vendorDetails.get("addressTranslations");
 
-            String currentLanguage = getCurrentLanguage();
+            String currentLanguage = LocaleContextHolder.getLocale().getLanguage();
             String translatedAddress = extractAddressTranslation(translationsNode, currentLanguage);
 
             if (translatedAddress != null && vendorDto.getVendorDetails() != null) {
@@ -85,9 +99,5 @@ public class UserConverter implements AttributeConverter<AbstractAccountDto, Str
             log.error("Error extracting address translation: {}", e.getMessage(), e);
         }
         return null;
-    }
-
-    private String getCurrentLanguage() {
-        return LocaleContextHolder.getLocale().getLanguage();
     }
 }
