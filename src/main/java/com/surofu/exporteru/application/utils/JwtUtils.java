@@ -37,6 +37,11 @@ public class JwtUtils {
     return generateToken(userDetails, refreshTokenSecret, refreshTokenLifetime);
   }
 
+  public Long extractUserIdFromAccessToken(String accessToken)
+      throws JwtException, IllegalArgumentException {
+    return extractClaimFromAccessToken(accessToken, claims -> claims.get("id", Long.class));
+  }
+
   public UserEmail extractUserEmailFromAccessToken(String accessToken)
       throws JwtException, IllegalArgumentException {
     String rawEmail = extractClaimFromAccessToken(accessToken, Claims::getSubject);
