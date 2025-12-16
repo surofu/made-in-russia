@@ -8,11 +8,10 @@ import java.io.Serializable;
 public record CreateOrderCommand(
         @Validated
         @NotNull
-        String email,
         String firstName,
-        String phoneNumber,
         @Validated
         @NotNull
-        Integer quantity
+        String phoneNumber,
+        String comment
 ) implements Serializable {
 }

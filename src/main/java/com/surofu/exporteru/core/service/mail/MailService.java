@@ -26,8 +26,8 @@ public interface MailService {
                        String content, List<MultipartFile> attachments) throws IOException;
 
   void sendProductOrder(String to, String productUrl, String productTitle, BigDecimal originalPrice,
-                        BigDecimal discountedPrice, String email, String firstName,
-                        String phoneNumber, Integer quantity) throws IOException;
+                        BigDecimal discountedPrice, String firstName,
+                        String phoneNumber, String comment) throws IOException;
 
   void sendPhoneRequestMail(String email, String senderFirstName, String senderEmail,
                             String senderPhoneNumber) throws IOException;

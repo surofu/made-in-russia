@@ -87,11 +87,11 @@ public class MailApplicationService implements MailService {
   @Override
   public void sendProductOrder(String to, String productUrl, String productTitle,
                                BigDecimal originalPrice, BigDecimal discountedPrice,
-                               String firstName, String email, String phoneNumber, Integer quantity)
+                               String firstName, String phoneNumber, String comment)
       throws IOException {
     String template =
         MailTemplates.getOrderMail(productUrl, productTitle, originalPrice, discountedPrice,
-            firstName, email, phoneNumber, quantity);
+            firstName, phoneNumber, comment);
     sendWithMailer(to, "\uD83D\uDCE6 Новый заказ", template);
   }
 
@@ -185,9 +185,9 @@ public class MailApplicationService implements MailService {
   }
 
   private String stripHtml(String html) {
-      if (html == null) {
-          return "";
-      }
+    if (html == null) {
+      return "";
+    }
     return html.replaceAll("<[^>]*>", "")
         .replaceAll("&nbsp;", " ")
         .replaceAll("&amp;", "&")
