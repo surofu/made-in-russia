@@ -183,7 +183,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
                   end
               from product_reviews pr
               join products pp on pr.product_id = pp.id
-              where pp.article_code = :article
+              where pp.article_code = :article and pr.approve_status = 'APPROVED'
           ) as "rating",
           (
               select count(*)
