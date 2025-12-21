@@ -70,4 +70,9 @@ public class JpaCategoryRepository implements CategoryRepository {
   public List<CategoryView> getCategoryViewWithChildrenBySlugAndLang(String slug, String lang) {
     return repository.findCategoryWithChildrenViewBySlugAndLang(slug, lang);
   }
+
+  @Override
+  public List<CategoryWithProductsCountView> getCategoriesWithProductsCount() {
+    return repository.findCategoriesWithProductsCount();
+  }
 }

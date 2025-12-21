@@ -16,6 +16,7 @@ import com.surofu.exporteru.core.repository.specification.AdvertisementSpecifica
 import com.surofu.exporteru.core.service.general.GeneralService;
 import com.surofu.exporteru.core.service.general.operation.GetAllGeneral;
 import com.surofu.exporteru.core.view.ProductSummaryView;
+import com.surofu.exporteru.infrastructure.persistence.category.CategoryWithProductsCountView;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,8 @@ public class GeneralApplicationService implements GeneralService {
 
     // Categories
     List<Category> categories = categoryRepository.getAll();
-    List<CategoryDto> categoryDtoList = CategoryUtils.buildTree(categories);
+    List<CategoryWithProductsCountView> categoryWithProductsCountViews = categoryRepository.getCategoriesWithProductsCount();
+    List<CategoryDto> categoryDtoList = CategoryUtils.buildTree(categories, categoryWithProductsCountViews);
 
     List<CategoryDto> categoryL1L2DtoList = categoryDtoList.stream()
         .map(c -> {

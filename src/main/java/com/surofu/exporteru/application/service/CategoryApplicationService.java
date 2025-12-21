@@ -30,8 +30,8 @@ import com.surofu.exporteru.core.service.category.operation.GetCategoryById;
 import com.surofu.exporteru.core.service.category.operation.GetCategoryBySlug;
 import com.surofu.exporteru.core.service.category.operation.UpdateCategoryById;
 import com.surofu.exporteru.infrastructure.persistence.category.CategoryView;
+import com.surofu.exporteru.infrastructure.persistence.category.CategoryWithProductsCountView;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,15 +59,18 @@ public class CategoryApplicationService implements CategoryService {
   @Transactional(readOnly = true)
   public GetAllCategories.Result getAllCategories(GetAllCategories operation) {
     // Check cache
-    List<CategoryDto> cachedCategoryDtos =
-        categoryListCacheManager.getAllByLocale("ALL_" + operation.getLocale().getLanguage());
-    if (cachedCategoryDtos != null) {
-      return GetAllCategories.Result.success(cachedCategoryDtos);
-    }
+//    List<CategoryDto> cachedCategoryDtos =
+//        categoryListCacheManager.getAllByLocale("ALL_" + operation.getLocale().getLanguage());
+//    if (cachedCategoryDtos != null) {
+//      return GetAllCategories.Result.success(cachedCategoryDtos);
+//    }
 
     // Process
     List<Category> categories = categoryRepository.getAll();
-    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories);
+    List<CategoryWithProductsCountView> categoryWithProductsCountViews =
+        categoryRepository.getCategoriesWithProductsCount();
+    List<CategoryDto> categoryDtos =
+        CategoryUtils.buildTree(categories, categoryWithProductsCountViews);
     List<Long> categoryIds = categories.stream().map(Category::getId).toList();
     loadOkvedToDtos(categoryDtos, categoryIds);
 
@@ -92,7 +95,10 @@ public class CategoryApplicationService implements CategoryService {
 
     // Process
     List<Category> categories = categoryRepository.getCategoryL1AndL2();
-    List<CategoryDto> categoryDtos = CategoryUtils.buildTree(categories);
+    List<CategoryWithProductsCountView> categoryWithProductsCountViews =
+        categoryRepository.getCategoriesWithProductsCount();
+    List<CategoryDto> categoryDtos =
+        CategoryUtils.buildTree(categories, categoryWithProductsCountViews);
     List<Long> categoryIds = categories.stream().map(Category::getId).toList();
     loadOkvedToDtos(categoryDtos, categoryIds);
 
@@ -158,8 +164,11 @@ public class CategoryApplicationService implements CategoryService {
     List<CategoryView> categories =
         categoryRepository.getCategoryViewWithChildrenBySlugAndLang(
             operation.getCategorySlug().getValue(), operation.getLocale().getLanguage());
+    List<CategoryWithProductsCountView> categoryWithProductsCountViews =
+        categoryRepository.getCategoriesWithProductsCount();
 
-    List<CategoryDto> categoryDtos = CategoryUtils.buildTreeView(categories);
+    List<CategoryDto> categoryDtos =
+        CategoryUtils.buildTreeView(categories, categoryWithProductsCountViews);
     CategoryDto categoryDto = categoryDtos.get(0);
     List<Long> categoryIds = categories.stream().map(CategoryView::getId).toList();
     loadOkvedToDtos(categoryDtos, categoryIds);
@@ -628,19 +637,21 @@ public class CategoryApplicationService implements CategoryService {
     }
   }
 
-  private Map<Long, CategoryDto> createCategoryMap(List<CategoryDto> dtos) {
-    Map<Long, CategoryDto> result = new HashMap<>();
-
-    for (CategoryDto dto : dtos) {
-      if (!dto.getChildren().isEmpty()) {
-        Map<Long, CategoryDto> childMap = createCategoryMap(dto.getChildren());
-        result.putAll(childMap);
+  private void loadOkvedToDtos(List<CategoryDto> dtos, List<Long> categoryIds) {
+    Map<Long, List<OkvedCategory>> okvedMap =
+        okvedCategoryRepository.getAllByCategories(categoryIds);
+    for (CategoryDto l1 : dtos) {
+      l1.setOkved(okvedMap.getOrDefault(l1.getId(), new ArrayList<>()).stream()
+          .map(OkvedCategory::getOkvedId).toList());
+      for (CategoryDto l2 : l1.getChildren()) {
+        l2.setOkved(okvedMap.getOrDefault(l2.getId(), new ArrayList<>()).stream()
+            .map(OkvedCategory::getOkvedId).toList());
+        for (CategoryDto l3 : l2.getChildren()) {
+          l3.setOkved(okvedMap.getOrDefault(l3.getId(), new ArrayList<>()).stream()
+              .map(OkvedCategory::getOkvedId).toList());
+        }
       }
-
-      result.put(dto.getId(), dto);
     }
-
-    return result;
   }
 
   /**
@@ -662,19 +673,6 @@ public class CategoryApplicationService implements CategoryService {
 
     public static <T> Result<T> error(String message) {
       return new Result<>(null, new RuntimeException(message), false);
-    }
-  }
-
-  private void loadOkvedToDtos(List<CategoryDto> dtos, List<Long> categoryIds) {
-    Map<Long, List<OkvedCategory>> okvedMap = okvedCategoryRepository.getAllByCategories(categoryIds);
-    for (CategoryDto l1 : dtos) {
-      l1.setOkved(okvedMap.getOrDefault(l1.getId(), new ArrayList<>()).stream().map(OkvedCategory::getOkvedId).toList());
-      for (CategoryDto l2 : l1.getChildren()) {
-        l2.setOkved(okvedMap.getOrDefault(l2.getId(), new ArrayList<>()).stream().map(OkvedCategory::getOkvedId).toList());
-        for (CategoryDto l3 : l2.getChildren()) {
-          l3.setOkved(okvedMap.getOrDefault(l3.getId(), new ArrayList<>()).stream().map(OkvedCategory::getOkvedId).toList());
-        }
-      }
     }
   }
 }
