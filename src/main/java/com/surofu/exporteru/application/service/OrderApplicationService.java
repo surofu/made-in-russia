@@ -43,8 +43,8 @@ public class OrderApplicationService implements OrderService {
             product.getTitle().getLocalizedValue(),
             product.getPrices().iterator().next().getOriginalPrice().getValue(),
             product.getPrices().iterator().next().getDiscountedPrice().getValue(),
-            operation.getLogin().getLocalizedValue(),
-            operation.getPhoneNumber().getValue(),
+            operation.getLogin().getValue(),
+            operation.getQuantity(),
             operation.getComment()
         );
       } catch (Exception e) {

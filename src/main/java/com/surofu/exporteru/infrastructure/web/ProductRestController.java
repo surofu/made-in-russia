@@ -15,6 +15,7 @@ import com.surofu.exporteru.core.model.product.ProductMinimumOrderQuantity;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.product.review.ProductReviewContent;
 import com.surofu.exporteru.core.model.product.review.ProductReviewRating;
+import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.service.order.OrderService;
 import com.surofu.exporteru.core.service.order.operation.CreateOrder;
 import com.surofu.exporteru.core.service.product.ProductService;
@@ -417,8 +418,8 @@ public class ProductRestController {
       @PathVariable Long id,
       @RequestBody @Valid CreateOrderCommand command
   ) {
-    CreateOrder operation = CreateOrder.of(id, command.firstName(), command.email().toLowerCase(),
-        command.phoneNumber(), command.quantity());
+    CreateOrder operation = CreateOrder.of(id, new UserLogin(command.firstName(), new HashMap<>()),
+        command.quantity(), command.comment());
     return orderService.createOrder(operation).process(createOrderProcessor);
   }
 
@@ -436,8 +437,9 @@ public class ProductRestController {
 
   @GetMapping("{id}/similar")
   @Operation(summary = "Get similar products")
-  public ResponseEntity<?> getSimilar(@PathVariable Long id, @AuthenticationPrincipal SecurityUser securityUser) {
-    GetSimilarProducts operation = GetSimilarProducts.of(id , securityUser);
+  public ResponseEntity<?> getSimilar(@PathVariable Long id,
+                                      @AuthenticationPrincipal SecurityUser securityUser) {
+    GetSimilarProducts operation = GetSimilarProducts.of(id, securityUser);
     return productService.getSimilarProducts(operation).process(getSimilarProductsProcessor);
   }
 }

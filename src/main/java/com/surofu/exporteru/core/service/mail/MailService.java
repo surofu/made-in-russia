@@ -27,7 +27,7 @@ public interface MailService {
 
   void sendProductOrder(String to, String productUrl, String productTitle, BigDecimal originalPrice,
                         BigDecimal discountedPrice, String firstName,
-                        String phoneNumber, String comment) throws IOException;
+                        Integer quantity, String comment) throws IOException;
 
   void sendPhoneRequestMail(String email, String senderFirstName, String senderEmail,
                             String senderPhoneNumber) throws IOException;

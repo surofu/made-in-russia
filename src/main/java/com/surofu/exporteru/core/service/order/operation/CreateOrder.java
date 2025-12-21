@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CreateOrder {
   Long productId;
   UserLogin login;
-  UserPhoneNumber phoneNumber;
+  Integer quantity;
   String comment;
 
   public interface Result {

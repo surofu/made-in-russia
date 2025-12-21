@@ -93,7 +93,7 @@ public final class MailTemplates {
 
   public static String getOrderMail(String productUrl, String productTitle,
                                     BigDecimal originalPrice, BigDecimal discountedPrice,
-                                    String firstName, String phoneNumber, String comment) throws MailException {
+                                    String firstName, Integer quantity, String comment) throws MailException {
 
     return """
         <!DOCTYPE html>
@@ -170,14 +170,14 @@ public final class MailTemplates {
         
                         <div class="info-block">
                             <p><span class="label">Покупатель:</span> %s</p>
-                            <p><span class="label">Телефон:</span> %s</p>
+                            <p><span class="label">Количество:</span> %s</p>
                         </div>
         
                         <div class="info-block">
                             <p><span class="label">Товар:</span> <a href="%s">%s</a></p>
                             <p><span class="label">Цена:</span> %s</p>
                             <p><span class="label">Цена со скидкой:</span> %s</p>
-                            <p><span class="label">Комемнтарий:</span> %s</p>
+                            <p><span class="label">Комментарий:</span> %s</p>
                         </div>
         
                         <div class="footer">
@@ -188,7 +188,7 @@ public final class MailTemplates {
                     </html>
         """.formatted(
         Objects.requireNonNullElse(StringUtils.trimToNull(firstName), "-"),
-        Objects.requireNonNullElse(StringUtils.trimToNull(phoneNumber), "-"),
+        quantity,
         productUrl,
         productTitle,
         originalPrice.setScale(0, RoundingMode.DOWN).toString(),
