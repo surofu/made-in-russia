@@ -49,6 +49,8 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Long
       """, nativeQuery = true)
   Optional<Long> firstNotExists(Long[] productIdsArray);
 
+  Optional<Product> findFirstByUserId(Long userId);
+
   @Query(value = """
       SELECT
           p.id as productId,

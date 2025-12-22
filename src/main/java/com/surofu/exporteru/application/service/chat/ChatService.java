@@ -79,6 +79,50 @@ public class ChatService {
     }
 
     /**
+     * Создать или получить чат с поставщиком
+     * Использует любой активный товар поставщика для создания чата
+     */
+    @Transactional
+    public ChatDTO createOrGetVendorChat(Long vendorId, Long buyerId) {
+        User vendor = userRepository.getById(vendorId)
+                .orElseThrow(() -> new EntityNotFoundException("Vendor not found with id: " + vendorId));
+
+        if (vendorId.equals(buyerId)) {
+            throw new IllegalArgumentException("Cannot create chat with yourself");
+        }
+
+        // Проверяем, есть ли уже чат с этим поставщиком
+        Optional<Chat> existingChat = chatRepository.findByProductUserIdAndBuyerId(vendorId, buyerId);
+        if (existingChat.isPresent()) {
+            Chat chat = existingChat.get();
+            log.debug("Found existing vendor chat {} for vendor {} and buyer {}", chat.getId(), vendorId, buyerId);
+            return chatConverter.toDTO(chat, buyerId);
+        }
+
+        // Получаем любой активный товар поставщика
+        Product product = productRepository.findFirstByUserId(vendorId)
+                .orElseThrow(() -> new EntityNotFoundException("No products found for vendor with id: " + vendorId));
+
+        // Создаем чат с поставщиком
+        Chat chat = new Chat();
+        chat.setProduct(product);
+        chat.setIsVendorChat(true);
+        chat = chatRepository.save(chat);
+
+        addParticipant(chat, buyerId, ChatRole.BUYER);
+        addParticipant(chat, vendorId, ChatRole.SELLER);
+
+        addAllAdminsToChat(chat, buyerId, vendorId);
+
+        log.info("Created new vendor chat {} for vendor {} with buyer {}", chat.getId(), vendorId, buyerId);
+
+        Chat chatWithParticipants = chatRepository.findByIdWithParticipants(chat.getId())
+                .orElse(chat);
+
+        return chatConverter.toDTO(chatWithParticipants, buyerId);
+    }
+
+    /**
      * Получить все чаты пользователя с пагинацией
      */
     @Transactional(readOnly = true)

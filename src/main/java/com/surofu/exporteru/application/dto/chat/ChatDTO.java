@@ -16,6 +16,8 @@ import java.util.List;
 public class ChatDTO {
     private Long id;
     private ProductInfoDTO product;
+    private VendorInfoDTO vendorInfo;
+    private Boolean isVendorChat;
     private List<ChatParticipantDTO> participants;
     private ChatMessageDTO lastMessage;
     private Long unreadCount;

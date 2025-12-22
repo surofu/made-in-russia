@@ -72,4 +72,6 @@ public interface ProductRepository {
   Optional<Product> getProductWithUserById(Long productId);
 
   Optional<Product> getByIdWithDependencies(Long productId);
+
+  Optional<Product> findFirstByUserId(Long userId);
 }

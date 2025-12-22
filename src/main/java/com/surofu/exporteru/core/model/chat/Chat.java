@@ -63,6 +63,9 @@ public class Chat implements Serializable {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Column(name = "is_vendor_chat", nullable = false)
+    private Boolean isVendorChat = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

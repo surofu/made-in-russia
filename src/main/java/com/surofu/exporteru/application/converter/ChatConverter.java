@@ -27,9 +27,22 @@ public class ChatConverter {
      * Конвертировать Chat entity в ChatDTO
      */
     public ChatDTO toDTO(Chat chat, Long currentUserId) {
+        Boolean isVendorChat = chat.getIsVendorChat() != null && chat.getIsVendorChat();
+        VendorInfoDTO vendorInfo = null;
+
+        if (isVendorChat) {
+            vendorInfo = chat.getParticipants().stream()
+                    .filter(p -> p.getRole() == ChatRole.SELLER)
+                    .findFirst()
+                    .map(p -> toVendorInfoDTO(p.getUser()))
+                    .orElse(null);
+        }
+
         return ChatDTO.builder()
                 .id(chat.getId())
                 .product(toProductInfoDTO(chat.getProduct()))
+                .vendorInfo(vendorInfo)
+                .isVendorChat(isVendorChat)
                 .participants(chat.getParticipants().stream()
                         .map(this::toParticipantDTO)
                         .collect(Collectors.toList()))
@@ -127,6 +140,17 @@ public class ChatConverter {
                 .fileUrl(attachment.getFileUrl())
                 .fileSize(attachment.getFileSize())
                 .mimeType(attachment.getMimeType())
+                .build();
+    }
+
+    /**
+     * Конвертировать User в VendorInfoDTO для vendor chat
+     */
+    public VendorInfoDTO toVendorInfoDTO(User user) {
+        return VendorInfoDTO.builder()
+                .id(user.getId())
+                .name(user.getLogin() != null ? user.getLogin().getValue() : null)
+                .avatarUrl(user.getAvatar() != null ? user.getAvatar().getUrl() : null)
                 .build();
     }
 
