@@ -34,9 +34,6 @@ spring:
 
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
-    hibernate:
-      ddl-auto: none
-    show-sql: false
     properties:
       hibernate:
         connection.provider_disables_autocommit: true
