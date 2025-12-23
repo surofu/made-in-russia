@@ -9,9 +9,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
     validate-on-migrate: true
-    url: ${MASTER_POSTGRES_URL}
-    user: ${MASTER_POSTGRES_USERNAME}
-    password: ${MASTER_POSTGRES_PASSWORD}
   security:
     oauth2:
       client:
