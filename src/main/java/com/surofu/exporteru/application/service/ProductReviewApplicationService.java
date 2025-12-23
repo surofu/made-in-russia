@@ -8,6 +8,7 @@ import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.product.ProductPreviewImageUrl;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.product.review.ProductReview;
+import com.surofu.exporteru.core.model.product.review.ProductReviewContent;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMedia;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMediaAltText;
 import com.surofu.exporteru.core.model.product.review.media.ProductReviewMediaMediaPosition;
@@ -32,6 +33,7 @@ import com.surofu.exporteru.core.service.productReview.operation.UpdateProductRe
 import com.surofu.exporteru.infrastructure.persistence.product.ProductForReviewView;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -99,9 +101,10 @@ public class ProductReviewApplicationService implements ProductReviewService {
         if (productForReviewViewMap.containsKey(p.getProductId())) {
           ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
           Product productReference = productRepository.getReferenceById(p.getProductId());
-          productReference.setTitle(new ProductTitle(productForReviewView.getTitle()));
+          productReference.setTitle(
+              new ProductTitle(productForReviewView.getTitle(), new HashMap<>()));
           productReference.setPreviewImageUrl(
-              ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
+              new ProductPreviewImageUrl(productForReviewView.getPreviewImageUrl()));
           p.setProduct(productReference);
         }
         return p;
@@ -144,9 +147,10 @@ public class ProductReviewApplicationService implements ProductReviewService {
         if (productForReviewViewMap.containsKey(p.getProductId())) {
           ProductForReviewView productForReviewView = productForReviewViewMap.get(p.getProductId());
           Product productReference = productRepository.getReferenceById(p.getProductId());
-          productReference.setTitle(new ProductTitle(productForReviewView.getTitle()));
+          productReference.setTitle(
+              new ProductTitle(productForReviewView.getTitle(), new HashMap<>()));
           productReference.setPreviewImageUrl(
-              ProductPreviewImageUrl.of(productForReviewView.getPreviewImageUrl()));
+              new ProductPreviewImageUrl(productForReviewView.getPreviewImageUrl()));
           p.setProduct(productReference);
         }
         return p;
@@ -227,13 +231,14 @@ public class ProductReviewApplicationService implements ProductReviewService {
     ProductReview productReview = new ProductReview();
     productReview.setUser(user);
     productReview.setProduct(product.get());
-    productReview.setContent(operation.getProductReviewContent());
     productReview.setRating(operation.getProductReviewRating());
 
     // Translation
     try {
-      productReview.getContent().setTranslations(
-          translationRepository.expand(operation.getProductReviewContent().toString()));
+      productReview.setContent(new ProductReviewContent(
+          operation.getProductReviewContent().getValue(),
+          translationRepository.expand(operation.getProductReviewContent().toString())
+      ));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateProductReview.Result.translationError(e);
@@ -290,12 +295,12 @@ public class ProductReviewApplicationService implements ProductReviewService {
           productReviewMedia.setMediaType(MediaType.VIDEO);
         }
 
-        productReviewMedia.setPosition(ProductReviewMediaMediaPosition.of(i));
-        productReviewMedia.setMimeType(ProductReviewMediaMimeType.of(contentType));
-        productReviewMedia.setAltText(ProductReviewMediaAltText.of(file.getOriginalFilename()));
+        productReviewMedia.setPosition(new ProductReviewMediaMediaPosition(i));
+        productReviewMedia.setMimeType(new ProductReviewMediaMimeType(contentType));
+        productReviewMedia.setAltText(new ProductReviewMediaAltText(file.getOriginalFilename()));
 
         String url = mediaFutureList.get(i).get();
-        productReviewMedia.setUrl(ProductReviewMediaUrl.of(url));
+        productReviewMedia.setUrl(new ProductReviewMediaUrl(url));
         productReviewMediaSet.add(productReviewMedia);
       }
     } catch (Exception e) {
@@ -350,13 +355,12 @@ public class ProductReviewApplicationService implements ProductReviewService {
 
     // Setting
     if (operation.getProductReviewContent() != null) {
-      productReview.get().setContent(operation.getProductReviewContent());
-
       // Translation
       try {
-        productReview.get().getContent().setTranslations(
-            translationRepository.expand(operation.getProductReviewContent().toString()));
-
+        productReview.get().setContent(new ProductReviewContent(
+            operation.getProductReviewContent().getValue(),
+            translationRepository.expand(operation.getProductReviewContent().toString())
+        ));
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return UpdateProductReview.Result.translationError(e);

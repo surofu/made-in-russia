@@ -134,4 +134,12 @@ public interface SpringDataCategoryRepository extends JpaRepository<Category, Lo
   List<Category> findAllBy();
 
   Optional<Category> findBySlug_Value(String slugValue);
+
+  @Query(value = """
+      select c.id, count(p) as productsCount from categories c
+      left join products p on p.category_id = c.id
+      group by c.id
+      order by c.id
+      """, nativeQuery = true)
+  List<CategoryWithProductsCountView> findCategoriesWithProductsCount();
 }

@@ -35,6 +35,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
            "WHERE c.product.id = :productId " +
            "AND p.user.id = :buyerId " +
            "AND p.role = 'BUYER' " +
+           "AND (c.isVendorChat = false OR c.isVendorChat IS NULL) " +
            "AND c.isActive = true")
     Optional<Chat> findByProductIdAndBuyerId(@Param("productId") Long productId,
                                               @Param("buyerId") Long buyerId);
@@ -68,4 +69,14 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
            "LEFT JOIN FETCH p.user " +
            "WHERE c.id = :chatId")
     Optional<Chat> findByIdWithParticipants(@Param("chatId") Long chatId);
+
+    @Query("SELECT DISTINCT c FROM Chat c " +
+           "JOIN c.participants p " +
+           "WHERE c.product.user.id = :vendorId " +
+           "AND p.user.id = :buyerId " +
+           "AND p.role = 'BUYER' " +
+           "AND c.isVendorChat = true " +
+           "AND c.isActive = true")
+    Optional<Chat> findByProductUserIdAndBuyerId(@Param("vendorId") Long vendorId,
+                                                   @Param("buyerId") Long buyerId);
 }

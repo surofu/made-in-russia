@@ -11,7 +11,6 @@ import com.surofu.exporteru.core.model.vendorDetails.media.VendorMediaPosition;
 import com.surofu.exporteru.core.model.vendorDetails.media.VendorMediaUrl;
 import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.VendorDetailsRepository;
-import com.surofu.exporteru.core.repository.VendorMediaRepository;
 import com.surofu.exporteru.core.service.product.operation.UpdateProduct;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsumer {
-  private final VendorMediaRepository mediaRepository;
   private final FileStorageRepository storageRepository;
   private final VendorDetailsRepository vendorDetailsRepository;
 
@@ -49,7 +47,7 @@ public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsum
 
         if (dtoOptional.isPresent()) {
           UpdateOldMediaDto dto = dtoOptional.get();
-          media.setPosition(VendorMediaPosition.of(dto.position()));
+          media.setPosition(new VendorMediaPosition(dto.position()));
           resultMedia.add(media);
         }
       }
@@ -58,10 +56,10 @@ public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsum
         MultipartFile file = operation.getVendorMedia().get(i);
         VendorMedia media = new VendorMedia();
         media.setVendorDetails(vendorDetails);
-        media.setPosition(VendorMediaPosition.of(getFreePosition(resultMedia)));
+        media.setPosition(new VendorMediaPosition(getFreePosition(resultMedia)));
         media.setMediaType(getMediaType(file));
-        media.setMimeType(VendorMediaMimeType.of(file.getContentType()));
-        media.setUrl(VendorMediaUrl.of(urls.get(i)));
+        media.setMimeType(new VendorMediaMimeType(file.getContentType()));
+        media.setUrl(new VendorMediaUrl(urls.get(i)));
         resultMedia.add(media);
       }
 
@@ -117,11 +115,9 @@ public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsum
     if (Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
       return MediaType.IMAGE;
     }
-
     if (Objects.requireNonNull(file.getContentType()).startsWith("video/")) {
       return MediaType.VIDEO;
     }
-
     throw new IllegalArgumentException("Unsupported content type: " + file.getContentType());
   }
 }

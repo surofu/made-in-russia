@@ -592,11 +592,9 @@ public class ProductApplicationService implements ProductService {
     List<ProductPriceView> productPriceList = productPriceRepository.findAllViewsByProductId(
         productDto.getId(), locale
     );
-
     List<ProductPriceDto> productPriceDtoList = productPriceList.stream()
         .map(ProductPriceDto::of)
         .toList();
-
     productDto.setPrices(productPriceDtoList);
 
     // Reviews Media
@@ -630,7 +628,6 @@ public class ProductApplicationService implements ProductService {
         productPackageOptionViewList.stream()
             .map(ProductPackageOptionDto::of).toList();
     productDto.setPackagingOptions(productPackageOptionDtoList);
-
     return localizationManager.localizePrice(productDto, locale);
   }
 

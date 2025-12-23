@@ -3,6 +3,8 @@ package com.surofu.exporteru.core.model.product.deliveryMethodDetails;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -17,7 +19,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDeliveryMethodDetailsName implements Serializable {
-
   @Column(name = "name", nullable = false)
   private String value;
 
@@ -31,16 +32,23 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
     }
 
     this.value = name;
-    this.translations = translations;
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
   public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
-
     Locale locale = LocaleContextHolder.getLocale();
     return translations.getOrDefault(locale.getLanguage(), Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override
@@ -50,17 +58,14 @@ public final class ProductDeliveryMethodDetailsName implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ProductDeliveryMethodDetailsName productDeliveryMethodDetailsName)) {
+    if (!(o instanceof ProductDeliveryMethodDetailsName that)) {
       return false;
     }
-    return Objects.equals(value, productDeliveryMethodDetailsName.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

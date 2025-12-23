@@ -7,7 +7,9 @@ import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.core.model.advertisement.Advertisement;
 import com.surofu.exporteru.core.model.advertisement.AdvertisementImage;
+import com.surofu.exporteru.core.model.advertisement.AdvertisementSubtitle;
 import com.surofu.exporteru.core.model.advertisement.AdvertisementThirdText;
+import com.surofu.exporteru.core.model.advertisement.AdvertisementTitle;
 import com.surofu.exporteru.core.repository.AdvertisementRepository;
 import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
@@ -61,7 +63,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         .and(AdvertisementSpecifications.byText(operation.getText()));
     List<Advertisement> advertisements = advertisementRepository.getAll(specification, sort);
     List<AdvertisementDto> dtoList = advertisements.stream()
-        .map(a -> AdvertisementDto.of(a, operation.getLocale()))
+        .map(AdvertisementDto::of)
         .toList();
     return GetAllAdvertisements.Result.success(dtoList);
   }
@@ -76,7 +78,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         .and(AdvertisementSpecifications.byText(operation.getText()));
     List<Advertisement> advertisements = advertisementRepository.getAll(specification, sort);
     List<AdvertisementWithTranslationsDto> dtoList = advertisements.stream()
-        .map(a -> AdvertisementWithTranslationsDto.of(a, operation.getLocale()))
+        .map(AdvertisementWithTranslationsDto::of)
         .toList();
     return GetAllAdvertisementsWithTranslations.Result.success(dtoList);
   }
@@ -91,7 +93,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
       return GetAdvertisementById.Result.notFound(operation.getId());
     }
 
-    AdvertisementDto dto = AdvertisementDto.of(advertisementOptional.get(), operation.getLocale());
+    AdvertisementDto dto = AdvertisementDto.of(advertisementOptional.get());
     return GetAdvertisementById.Result.success(dto);
   }
 
@@ -107,7 +109,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     AdvertisementWithTranslationsDto dto =
-        AdvertisementWithTranslationsDto.of(advertisementOptional.get(), operation.getLocale());
+        AdvertisementWithTranslationsDto.of(advertisementOptional.get());
     return GetAdvertisementWithTranslationsById.Result.success(dto);
   }
 
@@ -121,19 +123,23 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     Advertisement advertisement = new Advertisement();
-    advertisement.setTitle(operation.getTitle());
-    advertisement.setSubtitle(operation.getSubtitle());
-    advertisement.setThirdText(new AdvertisementThirdText(operation.getThirdText().getValue(),
-        translationRepository.expand(operation.getThirdText().getTranslations())));
     advertisement.setLink(operation.getLink());
     advertisement.setIsBig(operation.getIsBig());
     advertisement.setExpirationDate(operation.getExpirationDate());
 
     try {
-      advertisement.getTitle()
-          .setTranslations(translationRepository.expand(operation.getTitle().getTranslations()));
-      advertisement.getSubtitle().setTranslations(
-          translationRepository.expand(operation.getSubtitle().getTranslations()));
+      advertisement.setTitle(new AdvertisementTitle(
+          operation.getTitle().getValue(),
+          translationRepository.expand(operation.getTitle().getTranslations())
+      ));
+      advertisement.setSubtitle(new AdvertisementSubtitle(
+          operation.getSubtitle().getValue(),
+          translationRepository.expand(operation.getSubtitle().getTranslations())
+      ));
+      advertisement.setThirdText(new AdvertisementThirdText(
+          operation.getThirdText().getValue(),
+          translationRepository.expand(operation.getThirdText().getTranslations())
+      ));
     } catch (EmptyTranslationException e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateAdvertisement.Result.emptyTranslation(e);
@@ -148,7 +154,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
           FileStorageFolders.ADVERTISEMENT_IMAGES.getValue(),
           getUploadOptions()
       );
-      advertisement.setImage(AdvertisementImage.of(imageUrl));
+      advertisement.setImage(new AdvertisementImage(imageUrl));
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return CreateAdvertisement.Result.savingFileError(e);
@@ -176,20 +182,23 @@ public class AdvertisementApplicationService implements AdvertisementService {
     }
 
     Advertisement advertisement = optionalAdvertisement.get();
-
-    advertisement.setTitle(operation.getTitle());
-    advertisement.setSubtitle(operation.getSubtitle());
-    advertisement.setThirdText(new AdvertisementThirdText(operation.getThirdText().getValue(),
-        translationRepository.expand(operation.getThirdText().getTranslations())));
     advertisement.setLink(operation.getLink());
     advertisement.setIsBig(operation.getIsBig());
     advertisement.setExpirationDate(operation.getExpirationDate());
 
     try {
-      advertisement.getTitle()
-          .setTranslations(translationRepository.expand(operation.getTitle().getTranslations()));
-      advertisement.getSubtitle().setTranslations(
-          translationRepository.expand(operation.getSubtitle().getTranslations()));
+      advertisement.setTitle(new AdvertisementTitle(
+          operation.getTitle().getValue(),
+          translationRepository.expand(operation.getTitle().getTranslations())
+      ));
+      advertisement.setSubtitle(new AdvertisementSubtitle(
+          operation.getSubtitle().getValue(),
+          translationRepository.expand(operation.getSubtitle().getTranslations())
+      ));
+      advertisement.setThirdText(new AdvertisementThirdText(
+          operation.getThirdText().getValue(),
+          translationRepository.expand(operation.getThirdText().getTranslations())
+      ));
     } catch (EmptyTranslationException e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return UpdateAdvertisementById.Result.emptyTranslation(e);
@@ -219,7 +228,7 @@ public class AdvertisementApplicationService implements AdvertisementService {
         log.error("Error while deleting old image from folder", e);
       }
 
-      advertisement.setImage(AdvertisementImage.of(newImageUrl));
+      advertisement.setImage(new AdvertisementImage(newImageUrl));
     }
 
     try {

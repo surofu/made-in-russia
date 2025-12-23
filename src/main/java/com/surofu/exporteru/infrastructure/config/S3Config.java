@@ -14,16 +14,12 @@ import java.net.URI;
 
 @Configuration
 public class S3Config {
-
     @Value("${s3.accessKey}")
     private String accessKey;
-
     @Value("${s3.secretKey}")
     private String secretKey;
-
     @Value("${s3.endpoint}")
     private String endpoint;
-
     @Value("${s3.region}")
     private String region;
 

@@ -10,9 +10,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Data
 @Entity
@@ -20,17 +18,29 @@ import lombok.Setter;
 @AllArgsConstructor
 @Table(name = "delivery_methods")
 public final class DeliveryMethod implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
   @Embedded
   private DeliveryMethodName name;
-
   @Embedded
   private DeliveryMethodCreationDate creationDate;
-
   @Embedded
   private DeliveryMethodLastModificationDate lastModificationDate;
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof DeliveryMethod that)) {
+      return false;
+    }
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

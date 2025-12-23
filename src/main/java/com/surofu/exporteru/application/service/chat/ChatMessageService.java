@@ -195,4 +195,12 @@ public class ChatMessageService {
         return messageRepository.countUnreadMessagesByChatIdAndUserId(chatId, userId);
     }
 
+    /**
+     * Получить общее количество непрочитанных сообщений пользователя по всем чатам
+     */
+    @Transactional(readOnly = true)
+    public Long getTotalUnreadCount(Long userId) {
+        return messageRepository.countTotalUnreadMessagesByUserId(userId);
+    }
+
 }

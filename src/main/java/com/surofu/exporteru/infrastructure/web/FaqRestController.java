@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -220,9 +221,9 @@ public class FaqRestController {
       @RequestBody @Valid CreateFaqCommand command
   ) {
     CreateFaq operation = CreateFaq.of(
-        FaqQuestion.of(command.question()),
+        new FaqQuestion(command.question(), new HashMap<>()),
         command.questionTranslations(),
-        FaqAnswer.of(command.answer()),
+        new FaqAnswer(command.answer(), new HashMap<>()),
         command.answerTranslations()
     );
     return service.createFaq(operation).process(createFaqProcessor);
@@ -314,9 +315,9 @@ public class FaqRestController {
   ) {
     UpdateFaqById operation = UpdateFaqById.of(
         faqId,
-        FaqQuestion.of(command.question()),
+        new FaqQuestion(command.question(), new HashMap<>()),
         command.questionTranslations(),
-        FaqAnswer.of(command.answer()),
+        new FaqAnswer(command.answer(), new HashMap<>()),
         command.answerTranslations()
     );
     return service.updateFaqById(operation).process(updateFaqProcessor);

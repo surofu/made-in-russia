@@ -12,24 +12,17 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductMediaPosition implements Serializable {
-
   @Column(name = "position", nullable = false, columnDefinition = "int default 0")
   private Integer value = 0;
 
-  private ProductMediaPosition(Integer position) {
+  public ProductMediaPosition(Integer position) {
     if (position == null) {
       throw new IllegalArgumentException("Позиция медиа не может быть пустой");
     }
-
     if (position < 0) {
       throw new IllegalArgumentException("Позиция медиа не может быть отрицательной");
     }
-
     this.value = position;
-  }
-
-  public static ProductMediaPosition of(Integer position) {
-    return new ProductMediaPosition(position);
   }
 
   @Override
@@ -39,17 +32,14 @@ public final class ProductMediaPosition implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof ProductMediaPosition productMediaPosition)) {
-          return false;
-      }
-    return Objects.equals(value, productMediaPosition.value);
+    if (!(o instanceof ProductMediaPosition that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(value);
   }
 }

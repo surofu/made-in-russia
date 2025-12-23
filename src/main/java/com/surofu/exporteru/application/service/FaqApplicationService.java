@@ -4,6 +4,8 @@ import com.surofu.exporteru.application.dto.faq.FaqDto;
 import com.surofu.exporteru.application.dto.faq.FaqWithTranslationsDto;
 import com.surofu.exporteru.application.exception.EmptyTranslationException;
 import com.surofu.exporteru.core.model.faq.Faq;
+import com.surofu.exporteru.core.model.faq.FaqAnswer;
+import com.surofu.exporteru.core.model.faq.FaqQuestion;
 import com.surofu.exporteru.core.repository.FaqRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.service.faq.FaqService;
@@ -72,14 +74,16 @@ public class FaqApplicationService implements FaqService {
   @Transactional
   public CreateFaq.Result createFaq(CreateFaq operation) {
     Faq faq = new Faq();
-    faq.setQuestion(operation.getQuestion());
-    faq.setAnswer(operation.getAnswer());
 
     try {
-      faq.getQuestion()
-          .setTranslations(translationRepository.expand(operation.getQuestionTranslations()));
-      faq.getAnswer()
-          .setTranslations(translationRepository.expand(operation.getAnswerTranslations()));
+      faq.setQuestion(new FaqQuestion(
+          operation.getQuestion().getValue(),
+          translationRepository.expand(operation.getQuestionTranslations())
+      ));
+      faq.setAnswer(new FaqAnswer(
+          operation.getAnswer().getValue(),
+          translationRepository.expand(operation.getAnswerTranslations())
+      ));
     } catch (EmptyTranslationException e) {
       return CreateFaq.Result.emptyTranslations(e);
     } catch (Exception e) {
@@ -108,14 +112,15 @@ public class FaqApplicationService implements FaqService {
 
     Faq faq = faqOptional.get();
 
-    faq.setQuestion(operation.getQuestion());
-    faq.setAnswer(operation.getAnswer());
-
     try {
-      faq.getQuestion()
-          .setTranslations(translationRepository.expand(operation.getQuestionTranslations()));
-      faq.getAnswer()
-          .setTranslations(translationRepository.expand(operation.getAnswerTranslations()));
+      faq.setQuestion(new FaqQuestion(
+          operation.getQuestion().getValue(),
+          translationRepository.expand(operation.getQuestionTranslations())
+      ));
+      faq.setAnswer(new FaqAnswer(
+          operation.getAnswer().getValue(),
+          translationRepository.expand(operation.getAnswerTranslations())
+      ));
     } catch (EmptyTranslationException e) {
       return UpdateFaqById.Result.emptyTranslations(e);
     } catch (Exception e) {

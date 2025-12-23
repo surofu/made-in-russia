@@ -2,31 +2,38 @@ package com.surofu.exporteru.core.model.vendorDetails.media;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VendorMediaPosition implements Serializable {
+  @Column(name = "position", nullable = false)
+  private Integer value = 0;
 
-    @Column(name = "position", nullable = false)
-    private Integer value = 0;
+  public VendorMediaPosition(Integer position) {
+    this.value = Objects.requireNonNullElse(position, 0);
+  }
 
-    private VendorMediaPosition(Integer position) {
-        this.value = Objects.requireNonNullElse(position, 0);
+  @Override
+  public String toString() {
+    return value.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof VendorMediaPosition that)) {
+      return false;
     }
+    return Objects.equals(value, that.value);
+  }
 
-    public static VendorMediaPosition of(Integer position) {
-        return new VendorMediaPosition(position);
-    }
-
-    @Override
-    public String toString() {
-        return this.value.toString();
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
+  }
 }

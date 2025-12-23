@@ -41,28 +41,24 @@ public final class DeliveryTerm implements Serializable {
 
   @Embedded
   private DeliveryTermCode code;
-
   @Embedded
   private DeliveryTermName name;
-
   @Embedded
   private DeliveryTermDescription description;
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof DeliveryTerm deliveryTerm)) {
+    if (!(o instanceof DeliveryTerm that)) {
       return false;
     }
-    return Objects.equals(code, deliveryTerm.code)
-        && Objects.equals(name, deliveryTerm.name)
-        && Objects.equals(description, deliveryTerm.description);
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(code, name, description);
+    return getClass().hashCode();
   }
 }

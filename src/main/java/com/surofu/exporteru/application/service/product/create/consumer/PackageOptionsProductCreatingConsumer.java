@@ -42,8 +42,8 @@ public class PackageOptionsProductCreatingConsumer implements ProductCreatingCon
         productPackageOption.setProduct(product);
         productPackageOption.setName(
             new ProductPackageOptionName(command.name(), translatedNames.get(i)));
-        productPackageOption.setPrice(ProductPackageOptionPrice.of(command.price()));
-        productPackageOption.setPriceUnit(ProductPackageOptionPriceUnit.of(command.priceUnit()));
+        productPackageOption.setPrice(new ProductPackageOptionPrice(command.price()));
+        productPackageOption.setPriceUnit(new ProductPackageOptionPriceUnit(command.priceUnit()));
         packageOptions.add(productPackageOption);
       }
 

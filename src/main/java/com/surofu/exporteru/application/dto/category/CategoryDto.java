@@ -35,6 +35,7 @@ public final class CategoryDto implements Serializable {
   private List<String> okved = new ArrayList<>();
   @Builder.Default
   private List<CategoryDto> children = new ArrayList<>();
+  private Long productsCount;
   private Long childrenCount;
   private ZonedDateTime creationDate;
   private ZonedDateTime lastModificationDate;

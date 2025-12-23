@@ -23,6 +23,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,18 +39,14 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "users")
 public final class User implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false, columnDefinition = "user_role")
   private UserRole role = UserRole.ROLE_USER;
-
   @Embedded
-  private UserIsEnabled isEnabled = UserIsEnabled.of(true);
-
+  private UserIsEnabled isEnabled = new UserIsEnabled(true);
   @Column(name = "telegram_user_id")
   private Long telegramUserId;
 
@@ -119,22 +116,16 @@ public final class User implements Serializable {
 
   @Embedded
   private UserEmail email;
-
   @Embedded
   private UserLogin login;
-
   @Embedded
   private UserPhoneNumber phoneNumber;
-
   @Embedded
   private UserRegion region;
-
   @Embedded
   private UserAvatar avatar;
-
   @Embedded
   private UserRegistrationDate registrationDate;
-
   @Embedded
   private UserLastModificationDate lastModificationDate;
 
@@ -142,7 +133,6 @@ public final class User implements Serializable {
     if (password == null || password.isEmpty()) {
       return null;
     }
-
     return password.iterator().next();
   }
 
@@ -156,7 +146,6 @@ public final class User implements Serializable {
     if (vendorDetails == null || vendorDetails.isEmpty()) {
       return null;
     }
-
     return vendorDetails.iterator().next();
   }
 
@@ -166,7 +155,6 @@ public final class User implements Serializable {
     } else {
       this.vendorDetails.clear();
     }
-
     if (vendorDetails != null) {
       vendorDetails.setUser(this);
       this.vendorDetails.add(vendorDetails);
@@ -175,13 +163,13 @@ public final class User implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof User user)) {
-          return false;
-      }
-    return id != null && id.equals(user.id);
+    if (!(o instanceof User user)) {
+      return false;
+    }
+    if (id == null || user.id == null) {
+      return false;
+    }
+    return Objects.equals(id, user.id);
   }
 
   @Override

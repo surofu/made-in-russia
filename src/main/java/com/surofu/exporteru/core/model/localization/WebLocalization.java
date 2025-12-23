@@ -1,14 +1,19 @@
 package com.surofu.exporteru.core.model.localization;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-
-import java.io.Serializable;
-import java.util.Map;
 
 @Data
 @Entity
@@ -16,14 +21,27 @@ import java.util.Map;
 @AllArgsConstructor
 @Table(name = "web_localization")
 public final class WebLocalization implements Serializable {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  @Column(unique = true, nullable = false)
+  private String languageCode;
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Map<String, Object> content;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof WebLocalization that)) {
+      return false;
+    }
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
+  }
 
-    @Column(unique = true, nullable = false)
-    private String languageCode;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> content;
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

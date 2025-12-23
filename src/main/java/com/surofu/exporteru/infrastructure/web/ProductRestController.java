@@ -15,6 +15,7 @@ import com.surofu.exporteru.core.model.product.ProductMinimumOrderQuantity;
 import com.surofu.exporteru.core.model.product.ProductTitle;
 import com.surofu.exporteru.core.model.product.review.ProductReviewContent;
 import com.surofu.exporteru.core.model.product.review.ProductReviewRating;
+import com.surofu.exporteru.core.model.user.UserLogin;
 import com.surofu.exporteru.core.service.order.OrderService;
 import com.surofu.exporteru.core.service.order.operation.CreateOrder;
 import com.surofu.exporteru.core.service.product.ProductService;
@@ -46,6 +47,7 @@ import jakarta.validation.constraints.Min;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -135,7 +137,7 @@ public class ProductRestController {
   @Operation(summary = "Get product by article code")
   public ResponseEntity<?> getProductByArticle(@PathVariable String article) {
     Locale locale = LocaleContextHolder.getLocale();
-    GetProductByArticle operation = GetProductByArticle.of(locale, ProductArticleCode.of(article));
+    GetProductByArticle operation = GetProductByArticle.of(locale, new ProductArticleCode(article));
     return productService.getProductByArticle(operation).process(getProductByArticleProcessor);
   }
 
@@ -210,8 +212,8 @@ public class ProductRestController {
     CreateProductReview operation = CreateProductReview.of(
         productId,
         securityUser,
-        ProductReviewContent.of(command.text()),
-        ProductReviewRating.of(command.rating()),
+        new ProductReviewContent(command.text(), new HashMap<>()),
+        new ProductReviewRating(command.rating()),
         Objects.requireNonNullElse(media, Collections.emptyList())
     );
     return productReviewService.createProductReview(operation)
@@ -232,8 +234,8 @@ public class ProductRestController {
         productId,
         productReviewId,
         securityUser,
-        ProductReviewContent.of(updateProductReviewCommand.text()),
-        ProductReviewRating.of(updateProductReviewCommand.rating())
+        new ProductReviewContent(updateProductReviewCommand.text(), new HashMap<>()),
+        new ProductReviewRating(updateProductReviewCommand.rating())
     );
     return productReviewService.updateProductReview(operation)
         .process(updateProductReviewProcessor);
@@ -316,8 +318,8 @@ public class ProductRestController {
         Objects.requireNonNullElse(createProductCommand.deliveryMethodDetails(), new ArrayList<>()),
         Objects.requireNonNullElse(createProductCommand.packageOptions(), new ArrayList<>()),
         Objects.requireNonNullElse(createProductCommand.mediaAltTexts(), new ArrayList<>()),
-        ProductMinimumOrderQuantity.of(createProductCommand.minimumOrderQuantity()),
-        ProductDiscountExpirationDate.of(
+        new ProductMinimumOrderQuantity(createProductCommand.minimumOrderQuantity()),
+        new ProductDiscountExpirationDate(
             ZonedDateTime.now().plusDays(createProductCommand.discountExpirationDate())),
         productMedia,
         Objects.requireNonNullElse(productVendorDetailsMedia, new ArrayList<>())
@@ -379,8 +381,8 @@ public class ProductRestController {
         Objects.requireNonNullElse(updateProductCommand.deliveryMethodDetails(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.packageOptions(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.mediaAltTexts(), new ArrayList<>()),
-        ProductMinimumOrderQuantity.of(updateProductCommand.minimumOrderQuantity()),
-        ProductDiscountExpirationDate.of(
+        new ProductMinimumOrderQuantity(updateProductCommand.minimumOrderQuantity()),
+        new ProductDiscountExpirationDate(
             ZonedDateTime.now().plusDays(updateProductCommand.discountExpirationDate())),
         Objects.requireNonNullElse(updateProductCommand.oldProductMedia(), Collections.emptyList()),
         Objects.requireNonNullElse(updateProductCommand.oldAboutVendorMedia(),
@@ -416,8 +418,8 @@ public class ProductRestController {
       @PathVariable Long id,
       @RequestBody @Valid CreateOrderCommand command
   ) {
-    CreateOrder operation = CreateOrder.of(id, command.firstName(), command.email().toLowerCase(),
-        command.phoneNumber(), command.quantity());
+    CreateOrder operation = CreateOrder.of(id, new UserLogin(command.firstName(), new HashMap<>()),
+        command.quantity(), command.comment());
     return orderService.createOrder(operation).process(createOrderProcessor);
   }
 
@@ -435,8 +437,9 @@ public class ProductRestController {
 
   @GetMapping("{id}/similar")
   @Operation(summary = "Get similar products")
-  public ResponseEntity<?> getSimilar(@PathVariable Long id, @AuthenticationPrincipal SecurityUser securityUser) {
-    GetSimilarProducts operation = GetSimilarProducts.of(id , securityUser);
+  public ResponseEntity<?> getSimilar(@PathVariable Long id,
+                                      @AuthenticationPrincipal SecurityUser securityUser) {
+    GetSimilarProducts operation = GetSimilarProducts.of(id, securityUser);
     return productService.getSimilarProducts(operation).process(getSimilarProductsProcessor);
   }
 }

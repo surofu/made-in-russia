@@ -72,7 +72,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 Optional<Session> currentSession = sessionRepository.getSessionByUserIdAndDeviceId(securityUser.getUser().getId(), sessionInfo.getDeviceId());
 
-                if (currentSession.isPresent()) {
+                if (currentSession.isPresent() || Objects.equals(sessionSecret, xInternalRequestHeader)) {
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             securityUser,
                             null,
@@ -92,7 +92,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         log.debug("JWT Filter finished");
-
         filterChain.doFilter(request, response);
     }
 }

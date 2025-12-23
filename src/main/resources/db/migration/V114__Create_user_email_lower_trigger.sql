@@ -7,9 +7,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-DROP TRIGGER IF EXISTS trigger_lowercase_email ON users;
-
 -- Создаем триггер
 CREATE TRIGGER trigger_lowercase_email
     BEFORE INSERT OR UPDATE ON users

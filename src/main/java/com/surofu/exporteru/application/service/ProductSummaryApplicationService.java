@@ -44,7 +44,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
   @Transactional(readOnly = true)
   public GetProductSummaryViewPage.Result getProductSummaryPage(
       GetProductSummaryViewPage operation) {
-    // Act
     List<Long> allChildCategoriesIds =
         categoryRepository.getCategoriesIdsByIds(operation.getCategoryIds());
 
@@ -63,7 +62,6 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
         operation.getSecurityUser().getUser().getRole().equals(UserRole.ROLE_ADMIN)) {
       specification = specification.and(
           ProductSummarySpecifications.approveStatusIn(operation.getApproveStatuses()));
-
       if (operation.getApproveStatuses().isEmpty()) {
         specification =
             specification.and(ProductSummarySpecifications.approveStatusIn(ApproveStatus.values()));
@@ -76,16 +74,13 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
     String[] sortStrings = operation.getSort().split(",");
     Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
-
     Page<ProductSummaryView> productSummaryViewPage =
         productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);
-
     Page<ProductSummaryViewDto> productSummaryViewDtoPage = productSummaryViewPage
         .map(p -> ProductSummaryViewDto.of(
             localizationManager.localizePrice(p, operation.getLocale()),
             operation.getLocale().getLanguage()
         ));
-
     return GetProductSummaryViewPage.Result.success(productSummaryViewDtoPage);
   }
 

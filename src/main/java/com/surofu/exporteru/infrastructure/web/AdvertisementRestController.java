@@ -163,14 +163,12 @@ public class AdvertisementRestController {
             )
             @RequestPart("image") MultipartFile image
     ) {
-        AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(command.titleTranslations());
-        AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(command.subtitleTranslations());
+        AdvertisementTitle title = new AdvertisementTitle(command.title(), command.titleTranslations());
+        AdvertisementSubtitle subtitle = new AdvertisementSubtitle(command.subtitle(), command.subtitleTranslations());
         AdvertisementThirdText thirdText = new AdvertisementThirdText(command.thirdText(), command.thirdTextTranslations());
-        AdvertisementLink link = AdvertisementLink.of(command.link());
-        AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
-        AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
+        AdvertisementLink link = new AdvertisementLink(command.link());
+        AdvertisementIsBig isBig = new AdvertisementIsBig(command.isBig());
+        AdvertisementExpirationDate expirationDate = new AdvertisementExpirationDate(command.expirationDate());
         CreateAdvertisement operation = CreateAdvertisement.of(title, subtitle, thirdText, link, isBig, expirationDate, image);
         return service.createAdvertisement(operation).process(createAdvertisementProcessor);
     }
@@ -232,14 +230,12 @@ public class AdvertisementRestController {
             )
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        AdvertisementTitle title = AdvertisementTitle.of(command.title());
-        title.setTranslations(command.titleTranslations());
-        AdvertisementSubtitle subtitle = AdvertisementSubtitle.of(command.subtitle());
-        subtitle.setTranslations(command.subtitleTranslations());
+        AdvertisementTitle title = new AdvertisementTitle(command.title(), command.titleTranslations());
+        AdvertisementSubtitle subtitle = new AdvertisementSubtitle(command.subtitle(), command.subtitleTranslations());
         AdvertisementThirdText thirdText = new AdvertisementThirdText(command.thirdText(), command.thirdTextTranslations());
-        AdvertisementLink link = AdvertisementLink.of(command.link());
-        AdvertisementIsBig isBig = AdvertisementIsBig.of(command.isBig());
-        AdvertisementExpirationDate expirationDate = AdvertisementExpirationDate.of(command.expirationDate());
+        AdvertisementLink link = new AdvertisementLink(command.link());
+        AdvertisementIsBig isBig = new AdvertisementIsBig(command.isBig());
+        AdvertisementExpirationDate expirationDate = new AdvertisementExpirationDate(command.expirationDate());
         UpdateAdvertisementById operation = UpdateAdvertisementById.of(id, title, subtitle, thirdText, link, isBig, expirationDate, image);
         return service.updateAdvertisementById(operation).process(updateAdvertisementByIdProcessor);
     }

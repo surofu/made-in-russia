@@ -45,6 +45,18 @@ public class ChatRestController {
         return chatService.createOrGetChat(request.getProductId(), userId);
     }
 
+    @PostMapping("/vendor")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(summary = "Create or get chat with vendor")
+    public ChatDTO createVendorChat(
+            @Valid @RequestBody CreateVendorChatRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        Long userId = securityUser.getUser().getId();
+        return chatService.createOrGetVendorChat(request.getVendorId(), userId);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
     @SecurityRequirement(name = "Bearer Authentication")
@@ -133,6 +145,18 @@ public class ChatRestController {
     ) {
         Long userId = securityUser.getUser().getId();
         Long count = messageService.getUnreadCount(chatId, userId);
+        return Map.of("unreadCount", count);
+    }
+
+    @GetMapping("/unread-count")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(summary = "Get total unread message count across all chats")
+    public Map<String, Long> getTotalUnreadCount(
+            @Parameter(hidden = true) @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        Long userId = securityUser.getUser().getId();
+        Long count = messageService.getTotalUnreadCount(userId);
         return Map.of("unreadCount", count);
     }
 }

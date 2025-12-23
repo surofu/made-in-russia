@@ -4,6 +4,7 @@ import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.category.CategorySlug;
 import com.surofu.exporteru.infrastructure.persistence.category.CategoryView;
 
+import com.surofu.exporteru.infrastructure.persistence.category.CategoryWithProductsCountView;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +32,6 @@ public interface CategoryRepository {
     // View
 
     List<CategoryView> getCategoryViewWithChildrenBySlugAndLang(String slug, String lang);
+
+    List<CategoryWithProductsCountView> getCategoriesWithProductsCount();
 }

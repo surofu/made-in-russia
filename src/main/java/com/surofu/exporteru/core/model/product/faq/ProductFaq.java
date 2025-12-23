@@ -4,7 +4,6 @@ import com.surofu.exporteru.core.model.product.Product;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,43 +23,37 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(name = "product_faq")
 public final class ProductFaq implements Serializable {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "product_id",
-      nullable = false,
-      foreignKey = @ForeignKey(name = "fk_product_faq_product_id")
-  )
+  @JoinColumn(name = "product_id")
   private Product product;
 
   @Embedded
   private ProductFaqQuestion question;
-
   @Embedded
   private ProductFaqAnswer answer;
-
   @Embedded
   private ProductFaqCreationDate creationDate;
-
   @Embedded
   private ProductFaqLastModificationDate lastModificationDate;
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof ProductFaq faq)) {
+    if (!(o instanceof ProductFaq that)) {
       return false;
     }
-    return Objects.equals(question, faq.question) &&
-        Objects.equals(answer, faq.answer);
+    if (id == null || that.id == null) {
+      return false;
+    }
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(question, answer);
+    return getClass().hashCode();
   }
 }

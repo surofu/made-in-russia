@@ -93,8 +93,7 @@ public final class MailTemplates {
 
   public static String getOrderMail(String productUrl, String productTitle,
                                     BigDecimal originalPrice, BigDecimal discountedPrice,
-                                    String firstName, String email, String phoneNumber,
-                                    Integer quantity) throws MailException {
+                                    String firstName, Integer quantity, String comment) throws MailException {
 
     return """
         <!DOCTYPE html>
@@ -171,15 +170,14 @@ public final class MailTemplates {
         
                         <div class="info-block">
                             <p><span class="label">Покупатель:</span> %s</p>
-                            <p><span class="label">Email:</span> <a href="mailto:%s">%s</a></p>
-                            <p><span class="label">Телефон:</span> %s</p>
+                            <p><span class="label">Количество:</span> %s</p>
                         </div>
         
                         <div class="info-block">
                             <p><span class="label">Товар:</span> <a href="%s">%s</a></p>
                             <p><span class="label">Цена:</span> %s</p>
                             <p><span class="label">Цена со скидкой:</span> %s</p>
-                            <p><span class="label">Количество:</span> %s</p>
+                            <p><span class="label">Комментарий:</span> %s</p>
                         </div>
         
                         <div class="footer">
@@ -190,13 +188,12 @@ public final class MailTemplates {
                     </html>
         """.formatted(
         Objects.requireNonNullElse(StringUtils.trimToNull(firstName), "-"),
-        email, email,
-        Objects.requireNonNullElse(StringUtils.trimToNull(phoneNumber), "-"),
+        quantity,
         productUrl,
         productTitle,
         originalPrice.setScale(0, RoundingMode.DOWN).toString(),
         discountedPrice.setScale(0, RoundingMode.DOWN).toString(),
-        quantity
+        comment
     );
   }
 
@@ -1115,16 +1112,16 @@ public final class MailTemplates {
                     <div class="container">
                         <h2>Password Recovery</h2>
                         <p>You are receiving this email because a password reset was requested for your Exporteru account.</p>
-
+        
                         <strong>Your recovery code:</strong>
                         <h1>%s</h1>
-
+        
                         <p>Please enter this code on the password recovery page. If you did not request a password reset, please ignore this email or contact our support team.</p>
-
+        
                         <p>This code is valid until: %s</p>
-
+        
                         <p>If you encounter any issues, please contact our support team.</p>
-
+        
                         <div class="footer">
                             <p>Best regards,<br>The exporteru.com Team</p>
                         </div>
@@ -1185,16 +1182,16 @@ public final class MailTemplates {
                     <div class="container">
                         <h2>密码恢复</h2>
                         <p>您收到此邮件是因为您的 Exporteru 账户请求了密码重置。</p>
-
+        
                         <strong>您的恢复代码：</strong>
                         <h1>%s</h1>
-
+        
                         <p>请在密码恢复页面输入此代码。如果您未请求密码重置，请忽略此邮件或联系我们的支持团队。</p>
-
+        
                         <p>此代码有效期至：%s</p>
-
+        
                         <p>如果您遇到任何问题，请联系我们的支持团队。</p>
-
+        
                         <div class="footer">
                             <p>此致，<br>exporteru.com 团队</p>
                         </div>
@@ -1255,16 +1252,16 @@ public final class MailTemplates {
                     <div class="container">
                         <h2>पासवर्ड पुनर्प्राप्ति</h2>
                         <p>आपको यह ईमेल प्राप्त हुआ है क्योंकि आपके Exporteru खाते के लिए पासवर्ड रीसेट का अनुरोध किया गया था।</p>
-
+        
                         <strong>आपका पुनर्प्राप्ति कोड:</strong>
                         <h1>%s</h1>
-
+        
                         <p>कृपया पासवर्ड पुनर्प्राप्ति पृष्ठ पर इस कोड को दर्ज करें। यदि आपने पासवर्ड रीसेट का अनुरोध नहीं किया है, तो कृपया इस ईमेल को अनदेखा करें या हमारी सहायता टीम से संपर्क करें।</p>
-
+        
                         <p>यह कोड इस तारीख तक वैध है: %s</p>
-
+        
                         <p>यदि आपको कोई समस्या आती है, तो कृपया हमारी सहायता टीम से संपर्क करें।</p>
-
+        
                         <div class="footer">
                             <p>सादर,<br>exporteru.com टीम</p>
                         </div>

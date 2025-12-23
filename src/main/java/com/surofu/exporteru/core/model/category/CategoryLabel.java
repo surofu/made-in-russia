@@ -4,10 +4,13 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,14 +18,14 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CategoryLabel implements Serializable {
-
   @Column(name = "label", nullable = false)
-  private final String value;
+  private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "label_translations", nullable = false)
-  private final Map<String, String> translations;
+  private Map<String, String> translations;
 
   public CategoryLabel(String value, Map<String, String> translations) {
     if (StringUtils.trimToNull(value) == null) {
@@ -34,12 +37,9 @@ public final class CategoryLabel implements Serializable {
     }
 
     this.value = value;
-    this.translations = translations;
-  }
-
-  public CategoryLabel() {
-    this.value = null;
-    this.translations = null;
+    this.translations = translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   public String getLocalizedValue() {
@@ -51,6 +51,12 @@ public final class CategoryLabel implements Serializable {
         Objects.requireNonNullElse(value, ""));
   }
 
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
+  }
+
   @Override
   public String toString() {
     return value;
@@ -58,17 +64,14 @@ public final class CategoryLabel implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CategoryLabel categoryLabel)) {
+    if (!(o instanceof CategoryLabel that)) {
       return false;
     }
-    return Objects.equals(value, categoryLabel.value);
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(value);
   }
 }

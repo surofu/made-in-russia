@@ -4,7 +4,6 @@ import com.surofu.exporteru.core.model.advertisement.Advertisement;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,22 +29,22 @@ public final class AdvertisementWithTranslationsDto implements Serializable {
   private ZonedDateTime creationDate;
   private ZonedDateTime lastModificationDate;
 
-  public static AdvertisementWithTranslationsDto of(Advertisement advertisement, Locale locale) {
+  public static AdvertisementWithTranslationsDto of(Advertisement advertisement) {
     return AdvertisementWithTranslationsDto.builder()
         .id(advertisement.getId())
         .title(
-            advertisement.getTitle() != null ? advertisement.getTitle().getLocalizedValue(locale) :
+            advertisement.getTitle() != null ? advertisement.getTitle().getLocalizedValue() :
                 "")
         .titleTranslations(
             advertisement.getTitle() != null ? advertisement.getTitle().getTranslations() :
                 Collections.emptyMap())
         .subtitle(advertisement.getSubtitle() != null ?
-            advertisement.getSubtitle().getLocalizedValue(locale) : "")
+            advertisement.getSubtitle().getLocalizedValue() : "")
         .subtitleTranslations(
             advertisement.getSubtitle() != null ? advertisement.getSubtitle().getTranslations() :
                 Collections.emptyMap())
         .thirdText(advertisement.getThirdText() != null ?
-            advertisement.getThirdText().getLocalizedValue(locale) : "")
+            advertisement.getThirdText().getLocalizedValue() : "")
         .thirdTextTranslations(
             advertisement.getThirdText() != null ? advertisement.getThirdText().getTranslations() :
                 Collections.emptyMap())

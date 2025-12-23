@@ -28,6 +28,7 @@ import com.surofu.exporteru.core.model.user.UserAvatar;
 import com.surofu.exporteru.core.model.user.UserEmail;
 import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetails;
+import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsAddress;
 import com.surofu.exporteru.core.model.vendorDetails.VendorDetailsDescription;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountry;
 import com.surofu.exporteru.core.model.vendorDetails.country.VendorCountryName;
@@ -404,11 +405,11 @@ public class MeApplicationService implements MeService {
       }
 
       if (operation.getAddress() != null) {
-        vendorDetails.setAddress(operation.getAddress());
-
         try {
-          vendorDetails.getAddress()
-              .setTranslations(translationRepository.expand(operation.getAddress().toString()));
+          vendorDetails.setAddress(new VendorDetailsAddress(
+              operation.getAddress().getValue(),
+              translationRepository.expand(operation.getAddress().toString())
+          ));
         } catch (Exception e) {
           TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
           return UpdateMe.Result.translationError(e);
@@ -444,10 +445,12 @@ public class MeApplicationService implements MeService {
           for (VendorCountryName countryName : operation.getCountryNames()) {
             VendorCountry vendorCountry = new VendorCountry();
             vendorCountry.setVendorDetails(vendorDetails);
-            vendorCountry.setName(countryName);
 
             try {
-              countryName.setTranslations(translationRepository.expand(countryName.toString()));
+              vendorCountry.setName(new VendorCountryName(
+                  countryName.getValue(),
+                  translationRepository.expand(countryName.toString())
+              ));
             } catch (Exception e) {
               TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
               return UpdateMe.Result.translationError(e);
@@ -681,7 +684,7 @@ public class MeApplicationService implements MeService {
       }
     }
 
-    user.setAvatar(UserAvatar.of(url));
+    user.setAvatar(new UserAvatar(url));
 
     try {
       userRepository.save(operation.getSecurityUser().getUser());
@@ -845,16 +848,16 @@ public class MeApplicationService implements MeService {
     try {
       for (int i = 0; i < imageLinks.size(); i++) {
         String link = imageLinks.get(i);
-        vendorMediaImageList.get(i).setUrl(VendorMediaUrl.of(link));
+        vendorMediaImageList.get(i).setUrl(new VendorMediaUrl(link));
         vendorMediaImageList.get(i)
-            .setPosition(VendorMediaPosition.of(operation.getNewMediaPositions().get(i)));
+            .setPosition(new VendorMediaPosition(operation.getNewMediaPositions().get(i)));
       }
 
       for (int i = 0; i < videoLinks.size(); i++) {
         String link = videoLinks.get(i);
-        vendorMediaVideoList.get(i).setUrl(VendorMediaUrl.of(link));
+        vendorMediaVideoList.get(i).setUrl(new VendorMediaUrl(link));
         vendorMediaVideoList.get(i).setPosition(
-            VendorMediaPosition.of(operation.getNewMediaPositions().get(imageLinks.size() + i)));
+            new VendorMediaPosition(operation.getNewMediaPositions().get(imageLinks.size() + i)));
       }
     } catch (IndexOutOfBoundsException e) {
       log.warn("Позиция нового медиа вышла за границы нового массива: {} ({})",
@@ -882,7 +885,7 @@ public class MeApplicationService implements MeService {
             new RuntimeException("Old media position not found"));
       }
 
-      oldMedia.setPosition(VendorMediaPosition.of(oldMediaPosition));
+      oldMedia.setPosition(new VendorMediaPosition(oldMediaPosition));
     }
 
     media.addAll(vendorMediaImageList);
@@ -940,7 +943,7 @@ public class MeApplicationService implements MeService {
         }
       }
 
-      vendorMedia.setPosition(VendorMediaPosition.of(index));
+      vendorMedia.setPosition(new VendorMediaPosition(index));
       resultMediaList.add(vendorMedia);
       index++;
     }
@@ -1119,7 +1122,7 @@ public class MeApplicationService implements MeService {
     VendorMedia vendorMedia = new VendorMedia();
     vendorMedia.setVendorDetails(vendorDetails);
     vendorMedia.setMediaType(mediaType);
-    vendorMedia.setMimeType(VendorMediaMimeType.of(file.getContentType()));
+    vendorMedia.setMimeType(new VendorMediaMimeType(file.getContentType()));
     return vendorMedia;
   }
 }

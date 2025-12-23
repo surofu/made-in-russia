@@ -3,34 +3,41 @@ package com.surofu.exporteru.core.model.session;
 import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class SessionDeviceId implements Serializable {
+  @Column(name = "device_id", nullable = false, updatable = false)
+  private String value;
 
-    @Column(name = "device_id", nullable = false, updatable = false)
-    private String value;
-
-    private SessionDeviceId(String deviceId) {
-        if (deviceId == null || deviceId.trim().isEmpty()) {
-            throw new LocalizedValidationException("validation.session.device_id.empty");
-        }
-
-        this.value = deviceId;
+  public SessionDeviceId(String deviceId) {
+    if (deviceId == null || deviceId.trim().isEmpty()) {
+      throw new LocalizedValidationException("validation.session.device_id.empty");
     }
- 
-    public static SessionDeviceId of(String deviceId) {
-        return new SessionDeviceId(deviceId);
-    }
+    this.value = deviceId;
+  }
 
-    @Override
-    public String toString() {
-        return value;
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof SessionDeviceId that)) {
+      return false;
     }
+    return Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value);
+  }
 }

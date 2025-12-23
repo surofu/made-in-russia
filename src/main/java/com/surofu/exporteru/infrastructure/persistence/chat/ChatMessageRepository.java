@@ -46,4 +46,17 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
            "WHERE m.chat.id = :chatId AND m.isDeleted = false")
     Long countByChatId(@Param("chatId") Long chatId);
 
+    /**
+     * Count all unread messages for a user across all chats
+     */
+    @Query("SELECT COUNT(m) FROM ChatMessage m " +
+           "JOIN ChatParticipant cp ON cp.chat = m.chat AND cp.user.id = :userId " +
+           "WHERE m.sender.id != :userId " +
+           "AND m.isDeleted = false " +
+           "AND NOT EXISTS (" +
+           "  SELECT 1 FROM MessageReadStatus mrs " +
+           "  WHERE mrs.message = m AND mrs.user.id = :userId" +
+           ")")
+    Long countTotalUnreadMessagesByUserId(@Param("userId") Long userId);
+
 }

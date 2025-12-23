@@ -70,22 +70,17 @@ public class UserApplicationService implements UserService {
             .and(UserSpecifications.byLogin(operation.getLogin()))
             .and(UserSpecifications.byPhoneNumber(operation.getPhoneNumber()))
             .and(UserSpecifications.byRegion(operation.getRegion()));
-
     Page<User> page = userRepository.getPage(specification, pageable);
-
     List<Long> ids = page.getContent().stream().map(User::getId).toList();
     List<User> fullUserList = userRepository.getByIds(ids);
-
     Page<AbstractAccountDto> dtoPage = page.map(user -> {
       User fullUser = fullUserList.stream()
           .filter(u -> u.getId().equals(user.getId()))
           .findFirst()
           .orElse(null);
-
       if (fullUser == null) {
         return UserDto.of(user);
       }
-
       if (fullUser.getVendorDetails() != null) {
         return VendorDto.of(fullUser);
       }
@@ -97,74 +92,72 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    User user = userRepository.getUserByEmail(UserEmail.of(username))
+    User user = userRepository.getUserByEmail(new UserEmail(username))
         .orElseThrow(() -> new UsernameNotFoundException(username));
-
     ServletRequestAttributes servletRequestAttributes =
         (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-
     if (servletRequestAttributes == null) {
       log.error("Servlet RequestAttributes is null");
       throw new UsernameNotFoundException(username);
     }
-
     HttpServletRequest request = servletRequestAttributes.getRequest();
     SessionInfo sessionInfo = SessionInfo.of(request);
-
     return new SecurityUser(user, user.getPassword(), sessionInfo);
   }
 
   @Override
   @Transactional(readOnly = true)
   public GetUserById.Result getUserById(GetUserById operation) {
-    Optional<User> user = userRepository.getById(operation.getUserId());
-
-    if (user.isEmpty()) {
+    Optional<User> userOptional = userRepository.getById(operation.getUserId());
+    if (userOptional.isEmpty()) {
       return GetUserById.Result.notFound(operation.getUserId());
     }
 
-    if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get());
+    User user = userOptional.get();
+    if (user.getVendorDetails() != null) {
+      VendorDto dto = VendorDto.of(user);
       return GetUserById.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get());
+    UserDto dto = UserDto.of(user);
     return GetUserById.Result.success(dto);
   }
 
   @Override
   @Transactional(readOnly = true)
   public GetUserByLogin.Result getUserByLogin(GetUserByLogin operation) {
-    Optional<User> user = userRepository.getUserByLogin(operation.getLogin());
+    Optional<User> userOptional = userRepository.getUserByLogin(operation.getLogin());
 
-    if (user.isEmpty()) {
+    if (userOptional.isEmpty()) {
       return GetUserByLogin.Result.notFound(operation.getLogin());
     }
 
-    if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get());
+    User user = userOptional.get();
+    if (user.getVendorDetails() != null) {
+      VendorDto dto = VendorDto.of(user);
       return GetUserByLogin.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get());
+    UserDto dto = UserDto.of(user);
     return GetUserByLogin.Result.success(dto);
   }
 
   @Override
   @Transactional(readOnly = true)
   public GetUserByEmail.Result getUserByEmail(GetUserByEmail operation) {
-    Optional<User> user = userRepository.getUserByEmail(operation.getEmail());
+    Optional<User> userOptional = userRepository.getUserByEmail(operation.getEmail());
 
-    if (user.isEmpty()) {
+    if (userOptional.isEmpty()) {
       return GetUserByEmail.Result.notFound(operation.getEmail());
     }
 
-    if (user.get().getVendorDetails() != null) {
-      VendorDto dto = VendorDto.of(user.get());
+    User user = userOptional.get();
+    if (user.getVendorDetails() != null) {
+      VendorDto dto = VendorDto.of(user);
       return GetUserByEmail.Result.success(dto);
     }
 
-    UserDto dto = UserDto.of(user.get());
+    UserDto dto = UserDto.of(user);
     return GetUserByEmail.Result.success(dto);
   }
 
@@ -178,7 +171,6 @@ public class UserApplicationService implements UserService {
       }
 
       User user = userOptional.get();
-
       if (!user.getEmail().equals(operation.getEmail()) &&
           userRepository.existsUserByEmail(operation.getEmail())) {
         return ForceUpdateUserById.Result.emailAlreadyExists(operation.getEmail());
@@ -198,7 +190,6 @@ public class UserApplicationService implements UserService {
               LocaleContextHolder.getLocale()));
       user.setPhoneNumber(operation.getPhoneNumber());
       user.setRegion(operation.getRegion());
-
       userRepository.save(user);
       return ForceUpdateUserById.Result.success(operation.getId());
     } catch (Exception e) {
@@ -234,21 +225,22 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public DeleteUserByEmail.Result deleteUserByEmail(DeleteUserByEmail operation) {
-    Optional<User> user = userRepository.getUserByEmail(operation.getEmail());
+    Optional<User> userOptional = userRepository.getUserByEmail(operation.getEmail());
 
-    if (user.isEmpty()) {
+    if (userOptional.isEmpty()) {
       return DeleteUserByEmail.Result.notFound(operation.getEmail());
     }
 
+    User user = userOptional.get();
     try {
-      userRepository.delete(user.get());
+      userRepository.delete(user);
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return DeleteUserByEmail.Result.deleteError(operation.getEmail(), e);
     }
 
     try {
-      mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
+      mailService.sendDeleteAccountMail(user.getEmail().toString(), operation.getLocale());
       return DeleteUserByEmail.Result.success(operation.getEmail());
     } catch (IOException e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -259,23 +251,18 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public DeleteUserByLogin.Result deleteUserByLogin(DeleteUserByLogin operation) {
-    Optional<User> user = userRepository.getUserByLogin(operation.getLogin());
-
-    if (user.isEmpty()) {
-      return DeleteUserByLogin.Result.notFound(operation.getLogin());
-    }
-
     try {
-      userRepository.delete(user.get());
-    } catch (Exception e) {
-      TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-      return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
-    }
+      Optional<User> userOptional = userRepository.getUserByLogin(operation.getLogin());
 
-    try {
-      mailService.sendDeleteAccountMail(user.get().getEmail().toString(), operation.getLocale());
+      if (userOptional.isEmpty()) {
+        return DeleteUserByLogin.Result.notFound(operation.getLogin());
+      }
+
+      User user = userOptional.get();
+      userRepository.delete(user);
+      mailService.sendDeleteAccountMail(user.getEmail().toString(), operation.getLocale());
       return DeleteUserByLogin.Result.success(operation.getLogin());
-    } catch (IOException e) {
+    } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       return DeleteUserByLogin.Result.deleteError(operation.getLogin(), e);
     }
@@ -284,16 +271,16 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public BanUserById.Result banUserById(BanUserById operation) {
-    Optional<User> user = userRepository.getById(operation.getId());
-
-    if (user.isEmpty()) {
-      return BanUserById.Result.notFound(operation.getId());
-    }
-
-    user.get().setIsEnabled(UserIsEnabled.of(false));
-
     try {
-      userRepository.save(user.get());
+      Optional<User> userOptional = userRepository.getById(operation.getId());
+
+      if (userOptional.isEmpty()) {
+        return BanUserById.Result.notFound(operation.getId());
+      }
+
+      User user = userOptional.get();
+      user.setIsEnabled(new UserIsEnabled(false));
+      userRepository.save(user);
       return BanUserById.Result.success(operation.getId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -304,16 +291,16 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public UnbanUserById.Result unbanUserById(UnbanUserById operation) {
-    Optional<User> user = userRepository.getById(operation.getId());
-
-    if (user.isEmpty()) {
-      return UnbanUserById.Result.notFound(operation.getId());
-    }
-
-    user.get().setIsEnabled(UserIsEnabled.of(true));
-
     try {
-      userRepository.save(user.get());
+      Optional<User> userOptional = userRepository.getById(operation.getId());
+
+      if (userOptional.isEmpty()) {
+        return UnbanUserById.Result.notFound(operation.getId());
+      }
+
+      User user = userOptional.get();
+      user.setIsEnabled(new UserIsEnabled(true));
+      userRepository.save(user);
       return UnbanUserById.Result.success(operation.getId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -324,16 +311,16 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public ChangeUserRoleById.Result changeUserRoleById(ChangeUserRoleById operation) {
-    Optional<User> user = userRepository.getById(operation.getId());
-
-    if (user.isEmpty()) {
-      return ChangeUserRoleById.Result.notFound(operation.getId());
-    }
-
-    user.get().setRole(operation.getRole());
-
     try {
-      userRepository.save(user.get());
+      Optional<User> userOptional = userRepository.getById(operation.getId());
+
+      if (userOptional.isEmpty()) {
+        return ChangeUserRoleById.Result.notFound(operation.getId());
+      }
+
+      User user = userOptional.get();
+      user.setRole(operation.getRole());
+      userRepository.save(user);
       return ChangeUserRoleById.Result.success(operation.getId());
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -354,7 +341,7 @@ public class UserApplicationService implements UserService {
       try {
         String url = fileStorageRepository.uploadImageToFolder(operation.getFile(),
             FileStorageFolders.USERS_AVATARS.getValue());
-        user.get().setAvatar(UserAvatar.of(url));
+        user.get().setAvatar(new UserAvatar(url));
       } catch (Exception e) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         return SaveUserAvatarById.Result.saveError(e);
@@ -373,13 +360,14 @@ public class UserApplicationService implements UserService {
   @Override
   @Transactional
   public DeleteUserAvatarById.Result deleteUserAvatarById(DeleteUserAvatarById operation) {
-    Optional<User> user = userRepository.getById(operation.getId());
-    if (user.isEmpty()) {
-      return DeleteUserAvatarById.Result.notFound(operation.getId());
-    }
-    user.get().setAvatar(null);
     try {
-      userRepository.save(user.get());
+      Optional<User> userOptional = userRepository.getById(operation.getId());
+      if (userOptional.isEmpty()) {
+        return DeleteUserAvatarById.Result.notFound(operation.getId());
+      }
+      User user = userOptional.get();
+      user.setAvatar(null);
+      userRepository.save(user);
       return DeleteUserAvatarById.Result.success();
     } catch (Exception e) {
       TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

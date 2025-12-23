@@ -3,7 +3,6 @@ package com.surofu.exporteru.application.dto.advertisement;
 import com.surofu.exporteru.core.model.advertisement.Advertisement;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,37 +13,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class AdvertisementDto implements Serializable {
-
   private Long id;
-
   private String title;
-
   private String subtitle;
-
   private String thirdText;
-
   private String imageUrl;
-
   private String link;
-
   private Boolean isBig;
-
   private ZonedDateTime expirationDate;
-
   private ZonedDateTime creationDate;
-
   private ZonedDateTime lastModificationDate;
 
-  public static AdvertisementDto of(Advertisement advertisement, Locale locale) {
+  public static AdvertisementDto of(Advertisement advertisement) {
     return AdvertisementDto.builder()
         .id(advertisement.getId())
         .title(
-            advertisement.getTitle() != null ? advertisement.getTitle().getLocalizedValue(locale) :
+            advertisement.getTitle() != null ? advertisement.getTitle().getLocalizedValue() :
                 "")
         .subtitle(advertisement.getSubtitle() != null ?
-            advertisement.getSubtitle().getLocalizedValue(locale) : "")
+            advertisement.getSubtitle().getLocalizedValue() : "")
         .thirdText(advertisement.getThirdText() != null ?
-            advertisement.getThirdText().getLocalizedValue(locale) : "")
+            advertisement.getThirdText().getLocalizedValue() : "")
         .imageUrl(advertisement.getImage().getUrl())
         .link(advertisement.getLink().toString())
         .isBig(advertisement.getIsBig().getValue())

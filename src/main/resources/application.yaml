@@ -34,6 +34,9 @@ spring:
 
   jpa:
     open-in-view: ${JPA_OPEN_IN_VIEW}
+    hibernate:
+      ddl-auto: none
+    show-sql: false
     properties:
       hibernate:
         connection.provider_disables_autocommit: true
@@ -51,6 +54,10 @@ spring:
     user: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
   datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -58,6 +65,7 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 60000
+      auto-commit: false
 
   data:
   #========= Redis =========#

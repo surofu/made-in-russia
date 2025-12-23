@@ -4,6 +4,7 @@ import com.surofu.exporteru.application.exception.LocalizedValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -13,34 +14,42 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class AdvertisementThirdText implements Serializable {
-
   @Column(name = "third_text")
   private String value;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "third_text_translations")
-  private Map<String, String> translations = new HashMap<>();
+  private Map<String, String> translations;
 
   public AdvertisementThirdText(String text, Map<String, String> translations) {
     if (text != null && text.length() > 255) {
       throw new LocalizedValidationException("validation.third_title.max_length");
     }
-
     this.value = text;
-    this.translations = translations;
+    this.translations = translations != null
+        ? new HashMap<>(translations)
+        : new HashMap<>();
   }
 
-  public String getLocalizedValue(Locale locale) {
+  public String getLocalizedValue() {
     if (translations == null || translations.isEmpty()) {
       return Objects.requireNonNullElse(value, "");
     }
+    Locale locale = LocaleContextHolder.getLocale();
     return Objects.requireNonNullElse(translations.get(locale.getLanguage()),
         Objects.requireNonNullElse(value, ""));
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations != null
+        ? Collections.unmodifiableMap(translations)
+        : Collections.emptyMap();
   }
 
   @Override
@@ -50,17 +59,14 @@ public final class AdvertisementThirdText implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof AdvertisementThirdText advertisementThirdText)) {
-          return false;
-      }
-    return Objects.equals(value, advertisementThirdText.value);
+    if (!(o instanceof AdvertisementThirdText that)) {
+      return false;
+    }
+    return Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hash(value);
   }
 }
