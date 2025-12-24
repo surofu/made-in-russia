@@ -114,6 +114,8 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
 
+        log.info("Received update for chat {}: {}", chatId, text);
+
         if (comandMap.containsKey(text)) {
           comandMap.get(text).apply(update);
         } else if (userHandlerMap.containsKey(String.valueOf(chatId))) {
