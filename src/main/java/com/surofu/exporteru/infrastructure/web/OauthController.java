@@ -115,10 +115,18 @@ public class OauthController {
       return chinaTelegramBot;
     }
 
+    if (russianTelegramBotConfig.getEnable()) {
+      return russianTelegramBot;
+    }
+
     if (englishTelegramBotConfig.getEnable()) {
       return englishTelegramBot;
     }
 
-    return null;
+    if (chinaTelegramBotConfig.getEnable()) {
+      return chinaTelegramBot;
+    }
+
+    throw new IllegalStateException("No TelegramBot found for locale: " + locale.getLanguage());
   }
 }

@@ -1,10 +1,6 @@
 package com.surofu.exporteru;
 
 import com.surofu.exporteru.application.components.telegrambot.TelegramBot;
-import com.surofu.exporteru.application.components.telegrambot.TelegramBotLinkAccountHandler;
-import com.surofu.exporteru.application.components.telegrambot.TelegramBotLoginHandler;
-import com.surofu.exporteru.application.components.telegrambot.TelegramBotRegisterHandler;
-import com.surofu.exporteru.infrastructure.config.telegrambot.TelegramBotHandlerConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -23,7 +19,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @EnableScheduling
 @SpringBootApplication
 public class ExporteruApplication implements ApplicationRunner {
-  private final TelegramBotHandlerConfig telegramBotHandlerConfig;
   private final TelegramBot telegramBotRussian;
   private final TelegramBot telegramBotEnglish;
   private final TelegramBot telegramBotChina;
@@ -40,18 +35,11 @@ public class ExporteruApplication implements ApplicationRunner {
       @Qualifier("englishTelegramBot")
       TelegramBot telegramBotEnglish,
       @Qualifier("chinaTelegramBot")
-      TelegramBot telegramBotChina,
-      TelegramBotHandlerConfig telegramBotHandlerConfig,
-      TelegramBotRegisterHandler registerHandler,
-      TelegramBotLoginHandler loginHandler,
-      TelegramBotLinkAccountHandler linkAccountHandler
+      TelegramBot telegramBotChina
   ) {
     this.telegramBotRussian = telegramBotRussian;
     this.telegramBotEnglish = telegramBotEnglish;
     this.telegramBotChina = telegramBotChina;
-    this.telegramBotHandlerConfig = telegramBotHandlerConfig;
-    telegramBotHandlerConfig.initializeTelegramBots(telegramBotRussian, telegramBotEnglish,
-        telegramBotChina, registerHandler, loginHandler, linkAccountHandler);
   }
 
   public static void main(String[] args) {
