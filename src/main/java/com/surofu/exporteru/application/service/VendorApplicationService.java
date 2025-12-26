@@ -386,17 +386,17 @@ public class VendorApplicationService implements VendorService {
 
   private ForceUpdateVendorById.Result validateUniqueFields(ForceUpdateVendorById operation,
                                                             User user) {
-    if (!user.getEmail().equals(operation.getEmail()) &&
+    if (!Objects.equals(user.getEmail(), operation.getEmail()) &&
         userRepository.existsUserByEmail(operation.getEmail())) {
       return ForceUpdateVendorById.Result.emailAlreadyExists(operation.getEmail());
     }
 
-    if (!user.getLogin().equals(operation.getLogin()) &&
+    if (!Objects.equals(user.getLogin(), operation.getLogin()) &&
         userRepository.existsUserByLogin(operation.getLogin())) {
       return ForceUpdateVendorById.Result.loginAlreadyExists(operation.getLogin());
     }
 
-    if (!user.getPhoneNumber().equals(operation.getPhoneNumber()) &&
+    if (!Objects.equals(user.getPhoneNumber(), operation.getPhoneNumber()) &&
         userRepository.existsUserByPhoneNumber(operation.getPhoneNumber())) {
       return ForceUpdateVendorById.Result.phoneNumberAlreadyExists(operation.getPhoneNumber());
     }
