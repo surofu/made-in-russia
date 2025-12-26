@@ -1,6 +1,10 @@
 package com.surofu.exporteru;
 
 import com.surofu.exporteru.application.components.telegrambot.TelegramBot;
+import com.surofu.exporteru.application.components.telegrambot.TelegramBotLinkAccountHandler;
+import com.surofu.exporteru.application.components.telegrambot.TelegramBotLoginHandler;
+import com.surofu.exporteru.application.components.telegrambot.TelegramBotRegisterHandler;
+import com.surofu.exporteru.infrastructure.config.telegrambot.TelegramBotHandlerConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -19,48 +23,66 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @EnableScheduling
 @SpringBootApplication
 public class ExporteruApplication implements ApplicationRunner {
+  private final TelegramBotHandlerConfig telegramBotHandlerConfig;
+  private final TelegramBot telegramBotRussian;
+  private final TelegramBot telegramBotEnglish;
+  private final TelegramBot telegramBotChina;
+  @Value("${telegram.bot.russian.enable:false}")
+  private boolean botEnableRussian;
+  @Value("${telegram.bot.english.enable:false}")
+  private boolean botEnableEnglish;
+  @Value("${telegram.bot.china.enable:false}")
+  private boolean botEnableChina;
 
-    @Value("${telegram.bot.enable:false}")
-    private boolean botEnabled;
+  public ExporteruApplication(
+      @Qualifier("telegramBot")
+      TelegramBot telegramBotRussian,
+      @Qualifier("englishTelegramBot")
+      TelegramBot telegramBotEnglish,
+      @Qualifier("chinaTelegramBot")
+      TelegramBot telegramBotChina,
+      TelegramBotHandlerConfig telegramBotHandlerConfig,
+      TelegramBotRegisterHandler registerHandler,
+      TelegramBotLoginHandler loginHandler,
+      TelegramBotLinkAccountHandler linkAccountHandler
+  ) {
+    this.telegramBotRussian = telegramBotRussian;
+    this.telegramBotEnglish = telegramBotEnglish;
+    this.telegramBotChina = telegramBotChina;
+    this.telegramBotHandlerConfig = telegramBotHandlerConfig;
+    telegramBotHandlerConfig.initializeTelegramBots(telegramBotRussian, telegramBotEnglish,
+        telegramBotChina, registerHandler, loginHandler, linkAccountHandler);
+  }
 
-    @Value("${telegram.bot2.enable:false}")
-    private boolean bot2Enabled;
+  public static void main(String[] args) {
+    SpringApplication.run(ExporteruApplication.class, args);
+  }
 
-    private final TelegramBot telegramBot;
-    private final TelegramBot telegramBot2;
-
-    public ExporteruApplication(
-            @Qualifier("telegramBot")
-            TelegramBot telegramBot,
-            @Qualifier("englishTelegramBot")
-            TelegramBot telegramBot2
-    ) {
-        this.telegramBot = telegramBot;
-        this.telegramBot2 = telegramBot2;
+  @Override
+  public void run(ApplicationArguments args) throws TelegramApiException {
+    if (botEnableRussian) {
+      runTelegramBotRussian();
     }
-
-    public static void main(String[] args) {
-        SpringApplication.run(ExporteruApplication.class, args);
+    if (botEnableEnglish) {
+      runTelegramBotEnglish();
     }
-
-    @Override
-    public void run(ApplicationArguments args) throws TelegramApiException {
-        if (botEnabled) {
-            runTelegramBot();
-        }
-
-        if (bot2Enabled) {
-            runTelegramBot2();
-        }
+    if (botEnableChina) {
+      runTelegramBotChina();
     }
+  }
 
-    private void runTelegramBot() throws TelegramApiException {
-        TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(telegramBot);
-    }
+  private void runTelegramBotRussian() throws TelegramApiException {
+    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
+    api.registerBot(telegramBotRussian);
+  }
 
-    private void runTelegramBot2() throws TelegramApiException {
-        TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(telegramBot2);
-    }
+  private void runTelegramBotEnglish() throws TelegramApiException {
+    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
+    api.registerBot(telegramBotEnglish);
+  }
+
+  private void runTelegramBotChina() throws TelegramApiException {
+    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
+    api.registerBot(telegramBotChina);
+  }
 }

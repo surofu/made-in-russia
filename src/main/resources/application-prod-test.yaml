@@ -6,7 +6,7 @@ spring:
       ddl-auto: none
     show-sql: false
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
     validate-on-migrate: true
   security:
