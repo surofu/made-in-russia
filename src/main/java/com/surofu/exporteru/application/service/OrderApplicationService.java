@@ -1,10 +1,12 @@
 package com.surofu.exporteru.application.service;
 
 import com.surofu.exporteru.core.model.product.Product;
+import com.surofu.exporteru.core.model.product.price.ProductPrice;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.service.mail.MailService;
 import com.surofu.exporteru.core.service.order.OrderService;
 import com.surofu.exporteru.core.service.order.operation.CreateOrder;
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +37,18 @@ public class OrderApplicationService implements OrderService {
     Product product = productOptional.get();
     String productUrl = String.format("%s/%s", frontendProductPath, product.getId());
 
+    ProductPrice price = product.getPrices().iterator().next();
+    BigDecimal originalPrice = price.getOriginalPrice().getValue();
+    BigDecimal discountedPrice = price.getDiscountedPrice().getValue();
+
     CompletableFuture.runAsync(() -> {
       try {
         mailService.sendProductOrder(
             product.getUser().getEmail().getValue(),
             productUrl,
             product.getTitle().getLocalizedValue(),
-            product.getPrices().iterator().next().getOriginalPrice().getValue(),
-            product.getPrices().iterator().next().getDiscountedPrice().getValue(),
+            originalPrice,
+            discountedPrice,
             operation.getLogin().getValue(),
             operation.getQuantity(),
             operation.getComment()

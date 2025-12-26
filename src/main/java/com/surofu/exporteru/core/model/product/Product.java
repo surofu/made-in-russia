@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Formula;
 
 @Getter
@@ -87,6 +88,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("position")
+  @BatchSize(size = 20)
   private Set<ProductMedia> media = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.LAZY)
@@ -104,6 +106,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("creationDate")
+  @BatchSize(size = 20)
   private Set<ProductCharacteristic> characteristics = new HashSet<>();
 
   @OneToMany(
@@ -113,6 +116,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("creationDate")
+  @BatchSize(size = 20)
   private Set<ProductReview> reviews = new HashSet<>();
 
   @Transient
@@ -125,6 +129,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("creationDate")
+  @BatchSize(size = 20)
   private Set<ProductFaq> faq = new HashSet<>();
 
   @OneToMany(
@@ -134,6 +139,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("creationDate")
+  @BatchSize(size = 20)
   private Set<ProductPrice> prices = new HashSet<>();
 
   @OneToMany(
@@ -152,6 +158,7 @@ public final class Product implements Serializable {
       orphanRemoval = true
   )
   @OrderBy("creationDate")
+  @BatchSize(size = 20)
   private Set<ProductPackageOption> packageOptions = new HashSet<>();
 
   @Embedded
