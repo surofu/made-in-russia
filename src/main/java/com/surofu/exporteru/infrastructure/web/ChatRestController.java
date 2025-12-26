@@ -4,6 +4,8 @@ import com.surofu.exporteru.application.dto.chat.*;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.service.chat.ChatMessageService;
 import com.surofu.exporteru.application.service.chat.ChatService;
+import com.surofu.exporteru.core.repository.TranslationRepository;
+import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,6 +34,7 @@ public class ChatRestController {
 
     private final ChatService chatService;
     private final ChatMessageService messageService;
+    private final TranslationRepository translationRepository;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
@@ -158,5 +161,31 @@ public class ChatRestController {
         Long userId = securityUser.getUser().getId();
         Long count = messageService.getTotalUnreadCount(userId);
         return Map.of("unreadCount", count);
+    }
+
+    @PostMapping("/messages/translate")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_VENDOR', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(summary = "Translate message text to target language")
+    public TranslateMessageResponse translateMessage(
+            @Valid @RequestBody TranslateMessageRequest request
+    ) {
+        String text = request.getText();
+        String targetLanguage = request.getTargetLanguage();
+
+        TranslationResponse response = switch (targetLanguage) {
+            case "en" -> translationRepository.translateToEn(text);
+            case "ru" -> translationRepository.translateToRu(text);
+            case "zh" -> translationRepository.translateToZh(text);
+            case "hi" -> translationRepository.translateToHi(text);
+            default -> throw new IllegalArgumentException("Unsupported language: " + targetLanguage);
+        };
+
+        var translation = response.getTranslations()[0];
+        return new TranslateMessageResponse(
+                translation.getText(),
+                targetLanguage,
+                translation.getDetectedLanguageCode()
+        );
     }
 }
