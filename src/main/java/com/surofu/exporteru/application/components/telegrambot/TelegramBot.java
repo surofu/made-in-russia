@@ -6,6 +6,7 @@ import com.surofu.exporteru.core.model.telegram.TelegramUser;
 import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.repository.UserRepository;
 import com.surofu.exporteru.infrastructure.config.telegrambot.TelegramBotConfig;
+import jakarta.annotation.PostConstruct;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -42,64 +43,63 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
   private final Map<Long, TempUserObject> userObjectMap = new ConcurrentHashMap<>();
   private final Map<String, String> userHandlerMap = new ConcurrentHashMap<>();
   private final KeyboardBuilder keyboardBuilder;
-  private TelegramBotRegisterHandler telegramBotRegisterHandler;
-  private TelegramBotLoginHandler telegramBotLoginHandler;
-  private TelegramBotLinkAccountHandler telegramBotLinkAccountHandler;
+  private final TelegramBotRegisterHandler telegramBotRegisterHandler;
+  private final TelegramBotLoginHandler telegramBotLoginHandler;
+  private final TelegramBotLinkAccountHandler telegramBotLinkAccountHandler;
 
   public TelegramBot(
       TelegramBotConfig config,
       UserRepository userRepository,
       KeyboardBuilder keyboardBuilder,
-      LocalizationManager localizationManager) {
+      LocalizationManager localizationManager,
+      TelegramBotRegisterHandler telegramBotRegisterHandler,
+      TelegramBotLoginHandler telegramBotLoginHandler,
+      TelegramBotLinkAccountHandler telegramBotLinkAccountHandler
+  ) {
     super(config.getToken());
     this.config = config;
     this.userRepository = userRepository;
     this.keyboardBuilder = keyboardBuilder;
     this.localizationManager = localizationManager;
-
-    // Инициализируем только базовые команды, которые не зависят от handlers
-    initBasicCommands();
+    this.telegramBotRegisterHandler = telegramBotRegisterHandler;
+    this.telegramBotLoginHandler = telegramBotLoginHandler;
+    this.telegramBotLinkAccountHandler = telegramBotLinkAccountHandler;
   }
 
-  private void initBasicCommands() {
+  @PostConstruct
+  public void init() {
+    initAllCommands();
+  }
+
+  private void initAllCommands() {
+    // Базовые команды
     comandMap.putAll(Map.of(
         "English", (Update update) -> changeLanguage(Locale.forLanguageTag("en"), update),
         "Русский", (Update update) -> changeLanguage(Locale.forLanguageTag("ru"), update),
         "中文", (Update update) -> changeLanguage(Locale.forLanguageTag("zh"), update)
     ));
-  }
 
-  // Метод для установки handlers после создания бина
-  public void setHandlers(
-      TelegramBotRegisterHandler registerHandler,
-      TelegramBotLoginHandler loginHandler,
-      TelegramBotLinkAccountHandler linkAccountHandler) {
+    // Команды, зависящие от handlers
+    if (telegramBotRegisterHandler != null) {
+      comandMap.putAll(Map.of(
+          "Отмена ❌", telegramBotRegisterHandler::cancel,
+          "Cancel ❌", telegramBotRegisterHandler::cancel,
+          "取消 ❌", telegramBotRegisterHandler::cancel
+      ));
 
-    this.telegramBotRegisterHandler = registerHandler;
-    this.telegramBotLoginHandler = loginHandler;
-    this.telegramBotLinkAccountHandler = linkAccountHandler;
+      registerCallbackMap.putAll(Map.of(
+          "/register", telegramBotRegisterHandler::processRegister,
+          "/skip", telegramBotRegisterHandler::skipStep,
+          "/save-data", telegramBotRegisterHandler::processRegister,
+          "/reset", telegramBotRegisterHandler::reset
+      ));
+    }
 
-    // Инициализируем команды, которые зависят от handlers
-    initHandlerDependentCommands();
-  }
-
-  private void initHandlerDependentCommands() {
-    comandMap.putAll(Map.of(
-        "Отмена ❌", telegramBotRegisterHandler::cancel,
-        "Cancel ❌", telegramBotRegisterHandler::cancel,
-        "取消 ❌", telegramBotRegisterHandler::cancel
-    ));
-
-    registerCallbackMap.putAll(Map.of(
-        "/register", telegramBotRegisterHandler::processRegister,
-        "/skip", telegramBotRegisterHandler::skipStep,
-        "/save-data", telegramBotRegisterHandler::processRegister,
-        "/reset", telegramBotRegisterHandler::reset
-    ));
-
-    linkAccountCallbackMap.put(
-        "/link-account", telegramBotLinkAccountHandler::linkAccount
-    );
+    if (telegramBotLinkAccountHandler != null) {
+      linkAccountCallbackMap.put(
+          "/link-account", telegramBotLinkAccountHandler::linkAccount
+      );
+    }
   }
 
   @Override

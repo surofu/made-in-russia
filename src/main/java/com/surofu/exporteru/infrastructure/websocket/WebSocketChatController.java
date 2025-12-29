@@ -42,7 +42,11 @@ public class WebSocketChatController {
             @Payload SendMessageRequest request,
             Principal principal
     ) {
-        Long userId = Long.parseLong(principal.getName());
+        Long userId = parseUserId(principal);
+        if (userId == null) {
+            log.error("Cannot send message: user not authenticated for chat {}", chatId);
+            return null;
+        }
         log.debug("Received WebSocket message from user {} in chat {}", userId, chatId);
 
         return messageService.sendMessage(request, userId);
@@ -53,12 +57,12 @@ public class WebSocketChatController {
             @DestinationVariable Long chatId,
             Principal principal
     ) {
-        if (principal == null) {
-            log.error("TYPING EVENT FAILED: Principal is null for chat {}", chatId);
+        Long senderId = parseUserId(principal);
+        if (senderId == null) {
+            log.error("TYPING EVENT FAILED: User not authenticated for chat {}", chatId);
             return;
         }
 
-        Long senderId = Long.parseLong(principal.getName());
         log.info("TYPING EVENT: User {} is typing in chat {}", senderId, chatId);
 
         String userName = userRepository.getById(senderId)
@@ -99,9 +103,12 @@ public class WebSocketChatController {
             @DestinationVariable Long messageId,
             Principal principal
     ) {
-        Long userId = Long.parseLong(principal.getName());
+        Long userId = parseUserId(principal);
+        if (userId == null) {
+            log.error("Cannot mark message as read: user not authenticated for message {}", messageId);
+            return;
+        }
         log.debug("Marking message {} as read by user {}", messageId, userId);
-
 
         var message = messageService.getMessage(messageId);
         if (message == null) {
@@ -115,5 +122,25 @@ public class WebSocketChatController {
                 "/topic/chat/" + message.getChat().getId() + "/read",
                 Map.of("userId", userId, "messageId", messageId, "timestamp", System.currentTimeMillis())
         );
+    }
+
+    /**
+     * Парсит ID пользователя из Principal.
+     * Возвращает null если пользователь не аутентифицирован или principal содержит невалидное значение.
+     */
+    private Long parseUserId(Principal principal) {
+        if (principal == null) {
+            return null;
+        }
+        String name = principal.getName();
+        if (name == null || name.isEmpty() || "anonymous".equalsIgnoreCase(name)) {
+            return null;
+        }
+        try {
+            return Long.parseLong(name);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid user ID format in principal: {}", name);
+            return null;
+        }
     }
 }

@@ -93,7 +93,8 @@ public final class MailTemplates {
 
   public static String getOrderMail(String productUrl, String productTitle,
                                     BigDecimal originalPrice, BigDecimal discountedPrice,
-                                    String firstName, Integer quantity, String comment) throws MailException {
+                                    String firstName, Integer quantity, String comment)
+      throws MailException {
 
     return """
         <!DOCTYPE html>
@@ -142,6 +143,30 @@ public final class MailTemplates {
                                 margin: 15px 0;
                             }
         
+                            .chat-notice {
+                                background-color: #e3f2fd;
+                                padding: 15px;
+                                border-radius: 6px;
+                                margin: 20px 0;
+                                border-left: 4px solid #2196F3;
+                                text-align: center;
+                            }
+        
+                            .chat-link {
+                                display: inline-block;
+                                background-color: #4CAF50;
+                                color: white;
+                                padding: 10px 20px;
+                                text-decoration: none;
+                                border-radius: 4px;
+                                margin-top: 10px;
+                                font-weight: bold;
+                            }
+        
+                            .chat-link:hover {
+                                background-color: #45a049;
+                            }
+        
                             .label {
                                 font-weight: bold;
                                 color: #555;
@@ -178,6 +203,13 @@ public final class MailTemplates {
                             <p><span class="label">Цена:</span> %s</p>
                             <p><span class="label">Цена со скидкой:</span> %s</p>
                             <p><span class="label">Комментарий:</span> %s</p>
+                        </div>
+        
+                        <div class="chat-notice">
+                            <p><strong>Для завершения сделки перейдите в чат на сайте exporteru.com</strong></p>
+                            <a href="https://exporteru.com/chats" class="chat-link">
+                                Перейти в чат
+                            </a>
                         </div>
         
                         <div class="footer">

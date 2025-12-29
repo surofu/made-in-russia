@@ -50,7 +50,76 @@ public class YandexTranslationRepository implements TranslationRepository {
   @Override
   public TranslationResponse translateToHi(String... texts) {
     log.info("translateToHi: {} texts", texts.length);
-    return translate("hi", texts);
+    return translateInternal("hi", null, texts);
+  }
+
+  @Override
+  public TranslationResponse translate(String targetLanguage, String sourceLanguage, String... texts) {
+    log.info("translate: targetLanguage={}, sourceLanguage={}, {} texts", targetLanguage, sourceLanguage, texts.length);
+    String effectiveSourceLanguage = sourceLanguage;
+    if (StringUtils.isBlank(sourceLanguage) && texts.length > 0) {
+      effectiveSourceLanguage = detectLanguageByUnicode(texts[0]);
+      if (effectiveSourceLanguage != null) {
+        log.info("Detected source language by Unicode: {}", effectiveSourceLanguage);
+      }
+    }
+
+    return translateInternal(targetLanguage, effectiveSourceLanguage, texts);
+  }
+
+  /**
+   * Detect language by Unicode character ranges.
+   * Returns language code if detected, null otherwise.
+   */
+  private String detectLanguageByUnicode(String text) {
+    if (text == null || text.isEmpty()) {
+      return null;
+    }
+
+    int hindiCount = 0;
+    int chineseCount = 0;
+    int cyrillicCount = 0;
+    int latinCount = 0;
+    int totalLetters = 0;
+
+    for (char c : text.toCharArray()) {
+      if (Character.isLetter(c)) {
+        totalLetters++;
+        if (c >= 0x0900 && c <= 0x097F) {
+          hindiCount++;
+        }
+        else if ((c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF)) {
+          chineseCount++;
+        }
+        else if (c >= 0x0400 && c <= 0x04FF) {
+          cyrillicCount++;
+        }
+        else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+          latinCount++;
+        }
+      }
+    }
+
+    if (totalLetters == 0) {
+      return null;
+    }
+
+    double threshold = 0.3;
+
+    if ((double) hindiCount / totalLetters > threshold) {
+      return "hi";
+    }
+    if ((double) chineseCount / totalLetters > threshold) {
+      return "zh";
+    }
+    if ((double) cyrillicCount / totalLetters > threshold) {
+      return "ru";
+    }
+    if ((double) latinCount / totalLetters > threshold) {
+      return "en";
+    }
+
+    return null;
   }
 
   public Map<String, String> expand(Map<String, String> translations) {
@@ -139,12 +208,17 @@ public class YandexTranslationRepository implements TranslationRepository {
   }
 
   private TranslationResponse translate(String language, String... texts) {
+    return translateInternal(language, null, texts);
+  }
+
+  private TranslationResponse translateInternal(String targetLanguage, String sourceLanguage, String... texts) {
     if (texts == null || texts.length == 0) {
       return new YandexTranslationResponse(new YandexTranslation[] {});
     }
 
     TranslationRequest translationRequest = new TranslationRequest(
-        language,
+        targetLanguage,
+        sourceLanguage,
         texts,
         folderId
     );
@@ -225,16 +299,19 @@ public class YandexTranslationRepository implements TranslationRepository {
   @Data
   private static final class TranslationRequest {
     private final String targetLanguageCode;
+    private final String sourceLanguageCode;
     private final String[] texts;
     private final String folderId;
     private final String textType;
 
     private TranslationRequest(
         String targetLanguageCode,
+        String sourceLanguageCode,
         String[] texts,
         String folderId
     ) {
       this.targetLanguageCode = targetLanguageCode;
+      this.sourceLanguageCode = sourceLanguageCode;
       this.texts = texts;
       this.folderId = folderId;
       this.textType = "html";

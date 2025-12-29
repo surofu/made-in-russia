@@ -172,14 +172,9 @@ public class ChatRestController {
     ) {
         String text = request.getText();
         String targetLanguage = request.getTargetLanguage();
+        String sourceLanguage = request.getSourceLanguage();
 
-        TranslationResponse response = switch (targetLanguage) {
-            case "en" -> translationRepository.translateToEn(text);
-            case "ru" -> translationRepository.translateToRu(text);
-            case "zh" -> translationRepository.translateToZh(text);
-            case "hi" -> translationRepository.translateToHi(text);
-            default -> throw new IllegalArgumentException("Unsupported language: " + targetLanguage);
-        };
+        TranslationResponse response = translationRepository.translate(targetLanguage, sourceLanguage, text);
 
         var translation = response.getTranslations()[0];
         return new TranslateMessageResponse(
