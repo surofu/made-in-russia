@@ -18,4 +18,8 @@ public class TranslateMessageRequest {
     @NotBlank(message = "Target language is required")
     @Pattern(regexp = "^(en|ru|zh|hi)$", message = "Target language must be one of: en, ru, zh, hi")
     private String targetLanguage;
+
+
+    @Pattern(regexp = "^(en|ru|zh|hi)?$", message = "Source language must be one of: en, ru, zh, hi")
+    private String sourceLanguage;
 }

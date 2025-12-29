@@ -75,7 +75,7 @@ public class ChatConverter {
 
         return ProductInfoDTO.builder()
                 .id(product.getId())
-                .name(product.getTitle() != null ? product.getTitle().getValue() : null)
+                .name(product.getTitle() != null ? product.getTitle().getLocalizedValue() : null)
                 .price(price)
                 .imageUrl(imageUrl)
                 .build();

@@ -13,6 +13,9 @@ public interface TranslationRepository {
 
   TranslationResponse translateToHi(String... texts);
 
+ 
+  TranslationResponse translate(String targetLanguage, String sourceLanguage, String... texts);
+
   Map<String, String> expand(Map<String, String> translations);
 
   Map<String, String> expand(String text);
