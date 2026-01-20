@@ -40,10 +40,6 @@ public final class ProductPriceCurrency implements Serializable {
 
   @Override
   public String toString() {
-    if (CurrencyCode.NO_CURRENCY.equals(value)) {
-      return "notNumberCurrency";
-    }
-
     return value.name();
   }
 
