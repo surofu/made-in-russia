@@ -63,6 +63,10 @@ public class LocalizationManager {
   }
 
   public ProductSummaryView localizePrice(ProductSummaryView view, Locale locale) {
+    if (CurrencyCode.NO_CURRENCY.equals(view.getPriceCurrencyCode())) {
+      return view;
+    }
+
     CurrencyCode from = view.getPriceCurrencyCode();
     CurrencyCode to = switch (locale.getLanguage()) {
       case ("en") -> CurrencyCode.USD;
