@@ -276,9 +276,10 @@ public class ProductRestController {
       @RequestPart("productMedia") List<MultipartFile> productMedia,
       @RequestPart(value = "aboutVendorMedia", required = false)
       List<MultipartFile> productVendorDetailsMedia,
-      @AuthenticationPrincipal SecurityUser securityUser
+      @AuthenticationPrincipal SecurityUser securityUser,
+      @RequestParam(name = "nullPrice", required = false, defaultValue = "false") Boolean nullPrice
   ) {
-    if (createProductCommand.prices() == null || createProductCommand.prices().isEmpty()) {
+    if (!nullPrice && (createProductCommand.prices() == null || createProductCommand.prices().isEmpty())) {
       String message = localizationManager.localize("validation.product.create.empty_prices");
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
@@ -337,9 +338,10 @@ public class ProductRestController {
       @RequestPart(value = "productMedia", required = false) List<MultipartFile> productMedia,
       @RequestPart(value = "aboutVendorMedia", required = false)
       List<MultipartFile> productVendorDetailsMedia,
-      @AuthenticationPrincipal SecurityUser securityUser
+      @AuthenticationPrincipal SecurityUser securityUser,
+      @RequestParam(name = "nullPrice", required = false, defaultValue = "false") Boolean nullPrice
   ) {
-    if (updateProductCommand.prices() == null || updateProductCommand.prices().isEmpty()) {
+    if (!nullPrice && (updateProductCommand.prices() == null || updateProductCommand.prices().isEmpty())) {
       String message = localizationManager.localize("validation.product.update.empty_prices");
       SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(message, HttpStatus.BAD_REQUEST);
       return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
@@ -376,7 +378,7 @@ public class ProductRestController {
         Objects.requireNonNullElse(updateProductCommand.deliveryTermIds(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.similarProducts(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.prices(), new ArrayList<>()),
-        Objects.requireNonNullElse(updateProductCommand.characteristics(), new ArrayList<>()),
+        updateProductCommand.characteristics(),
         Objects.requireNonNullElse(updateProductCommand.faq(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.deliveryMethodDetails(), new ArrayList<>()),
         Objects.requireNonNullElse(updateProductCommand.packageOptions(), new ArrayList<>()),

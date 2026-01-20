@@ -26,7 +26,11 @@ public final class ProductPriceCurrency implements Serializable {
     }
     CurrencyCode currencyCode;
     try {
-      currencyCode = CurrencyCode.valueOf(currencyString);
+      if ("notNumberCurrency".equals(currencyString)) {
+        currencyCode = CurrencyCode.NO_CURRENCY;
+      } else {
+        currencyCode = CurrencyCode.valueOf(currencyString);
+      }
     } catch (IllegalArgumentException e) {
       throw new LocalizedValidationException("validation.product.price.currency.type",
           currencyString);
@@ -36,6 +40,10 @@ public final class ProductPriceCurrency implements Serializable {
 
   @Override
   public String toString() {
+    if (CurrencyCode.NO_CURRENCY.equals(value)) {
+      return "notNumberCurrency";
+    }
+
     return value.name();
   }
 

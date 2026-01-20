@@ -126,6 +126,10 @@ public class LocalizationManager {
     };
 
     if (!dto.getPrices().isEmpty()) {
+      if (CurrencyCode.NO_CURRENCY.toString().equals(dto.getPrices().get(0).getCurrency())) {
+        return dto;
+      }
+
       from = CurrencyCode.valueOf(dto.getPrices().get(0).getCurrency());
     }
 
