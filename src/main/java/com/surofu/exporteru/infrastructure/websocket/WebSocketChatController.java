@@ -110,16 +110,21 @@ public class WebSocketChatController {
         }
         log.debug("Marking message {} as read by user {}", messageId, userId);
 
-        var message = messageService.getMessage(messageId);
-        if (message == null) {
-            log.warn("Message {} not found", messageId);
+        // Используем новый метод который возвращает информацию для broadcast
+        var result = messageService.markAsReadAndGetBroadcastInfo(messageId, userId);
+        if (result == null) {
             return;
         }
 
-        messageService.markAsRead(messageId, userId);
+        // Если админ - не отправляем broadcast
+        if (result.isAdmin()) {
+            log.debug("Admin {} read message {}, skipping broadcast to preserve other participants' unread status",
+                    userId, messageId);
+            return;
+        }
 
         messagingTemplate.convertAndSend(
-                "/topic/chat/" + message.getChat().getId() + "/read",
+                "/topic/chat/" + result.getChatId() + "/read",
                 Map.of("userId", userId, "messageId", messageId, "timestamp", System.currentTimeMillis())
         );
     }
