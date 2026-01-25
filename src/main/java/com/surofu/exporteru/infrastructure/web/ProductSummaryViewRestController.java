@@ -50,143 +50,31 @@ public class ProductSummaryViewRestController {
     private final GetProductSummaryViewById.Result.Processor<ResponseEntity<?>> getProductSummaryByIdProcessor;
 
     @GetMapping
-    @Operation(
-            summary = "Get filtered and paginated list of products summary",
-            description = "Retrieves a page of products with optional filtering by category and price range",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successfully retrieved page of products summary",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = GetProductSummaryViewPageDto.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid request parameters",
-                            content = @Content(
-                                    schema = @Schema(
-                                            implementation = ValidationExceptionDto.class
-                                    )
-                            )
-                    )
-            }
-    )
+    @Operation(summary = "Get filtered and paginated list of products summary")
     public ResponseEntity<?> getProducts(
-            @Parameter(
-                    name = "page",
-                    description = "Zero-based page index (0..N)",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "integer", defaultValue = "0", minimum = "0")
-            )
             @RequestParam(defaultValue = "0")
             @Min(0)
             int page,
-
-            @Parameter(
-                    name = "size",
-                    description = "Number of products per page",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "integer", defaultValue = "10", minimum = "1", maximum = "100")
-            )
             @RequestParam(defaultValue = "10")
             @Min(1)
             @Max(100)
             int size,
-
-
-            @Parameter(
-                    name = "title",
-                    description = "Title of the product",
-                    in = ParameterIn.QUERY
-            )
             @RequestParam(defaultValue = "")
             String title,
-
-            @Parameter(
-                    name = "deliveryMethodIds",
-                    description = "Filter products by delivery method IDs. Multiple delivery method IDs can be provided",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(
-                            type = "array",
-                            format = "int64",
-                            example = "[1, 2]",
-                            minLength = 1,
-                            maxLength = 40
-                    ),
-                    explode = Explode.FALSE,
-                    examples = {
-                            @ExampleObject(
-                                    name = "Single delivery method",
-                                    value = "1",
-                                    description = "Filter by single delivery method ID"
-                            ),
-                            @ExampleObject(
-                                    name = "Multiple delivery methods",
-                                    value = "1,2",
-                                    description = "Filter by multiple delivery method IDs"
-                            )
-                    }
-            )
             @RequestParam(required = false)
             List<Long> deliveryMethodIds,
-
-            @Parameter(
-                    name = "categoryIds",
-                    description = "Filter products by category IDs. Multiple category IDs can be provided",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(
-                            type = "array",
-                            format = "int64",
-                            example = "[1, 2, 3]",
-                            minLength = 1,
-                            maxLength = 80
-                    ),
-                    explode = Explode.FALSE,
-                    examples = {
-                            @ExampleObject(
-                                    name = "Single category",
-                                    value = "1",
-                                    description = "Filter by single category ID"
-                            ),
-                            @ExampleObject(
-                                    name = "Multiple categories",
-                                    value = "1,2,3",
-                                    description = "Filter by multiple category IDs"
-                            )
-                    }
-            )
             @RequestParam(required = false)
             List<Long> categoryIds,
-
-            @Parameter(
-                    name = "minPrice",
-                    description = "Minimum price filter (inclusive)",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "1")
-            )
             @RequestParam(required = false)
             BigDecimal minPrice,
-
-            @Parameter(
-                    name = "maxPrice",
-                    description = "Maximum price filter (inclusive)",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(type = "number", format = "decimal", example = "100000")
-            )
             @RequestParam(required = false)
             BigDecimal maxPrice,
-
             @RequestParam(required = false)
             List<ApproveStatus> approveStatuses,
-
             @RequestParam(required = false, defaultValue = "id")
             String sort,
-
             @RequestParam(required = false, defaultValue = "asc")
             String direction,
-
             @AuthenticationPrincipal SecurityUser securityUser
     ) {
         Locale locale = LocaleContextHolder.getLocale();

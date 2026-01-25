@@ -90,10 +90,28 @@ public class DataSourceConfig {
   @Bean
   public LocalContainerEntityManagerFactoryBean entityManagerFactory(
       EntityManagerFactoryBuilder builder) {
+
+    Map<String, Object> properties = new HashMap<>();
+
+    // Важные свойства Hibernate
+    properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+    properties.put("hibernate.hbm2ddl.auto", "none");
+    properties.put("hibernate.show_sql", "false");
+
+    // Оптимизации производительности
+    properties.put("hibernate.jdbc.batch_size", 20);
+    properties.put("hibernate.order_inserts", true);
+    properties.put("hibernate.order_updates", true);
+    properties.put("hibernate.generate_statistics", false);
+
+    // Для работы с routing data source
+    properties.put("hibernate.temp.use_jdbc_metadata_defaults", false);
+
     return builder
         .dataSource(routingDataSource())
         .packages("com.surofu.exporteru")
         .persistenceUnit("default")
+        .properties(properties)
         .build();
   }
 

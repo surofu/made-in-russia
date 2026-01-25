@@ -36,10 +36,13 @@ spring:
     open-in-view: ${JPA_OPEN_IN_VIEW}
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         connection.provider_disables_autocommit: true
         generate_statistics: false # Для мониторинга
         order_inserts: true       # Оптимизация batch-операций
         order_updates: true
+        temp:
+          use_jdbc_metadata_defaults: false
         jdbc:
           time_zone: Europe/Moscow
           batch_size: 20          # Размер batch-операций
@@ -63,7 +66,6 @@ spring:
       max-lifetime: 1800000
       leak-detection-threshold: 60000
       auto-commit: false
-
   data:
   #========= Redis =========#
     redis:

@@ -4,24 +4,36 @@ import com.surofu.exporteru.application.dto.chat.*;
 import com.surofu.exporteru.core.model.chat.*;
 import com.surofu.exporteru.core.model.product.Product;
 import com.surofu.exporteru.core.model.user.User;
+import com.surofu.exporteru.core.model.user.UserLogin;
+import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.infrastructure.persistence.chat.ChatMessageRepository;
 import com.surofu.exporteru.infrastructure.persistence.chat.MessageReadStatusRepository;
+import com.surofu.exporteru.infrastructure.persistence.translation.TranslationResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
  * Конвертер для преобразования Entity чата в DTO и обратно
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChatConverter {
 
     private final MessageReadStatusRepository readStatusRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final TranslationRepository translationRepository;
+
+    private static final Map<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
      * Конвертировать Chat entity в ChatDTO
@@ -90,7 +102,7 @@ public class ChatConverter {
         return ChatParticipantDTO.builder()
                 .id(participant.getId())
                 .userId(user.getId())
-                .userName(user.getLogin() != null ? user.getLogin().getValue() : null)
+                .userName(getTranslatedUserName(user.getLogin()))
                 .userAvatar(user.getAvatar() != null ? user.getAvatar().getUrl() : null)
                 .role(participant.getRole())
                 .joinedAt(participant.getJoinedAt())
@@ -106,7 +118,8 @@ public class ChatConverter {
 
         boolean isRead;
         if (sender.getId().equals(currentUserId)) {
-            isRead = readStatusRepository.existsByMessageId(message.getId());
+            // Для отправителя: проверяем прочитал ли РЕАЛЬНЫЙ получатель (не админ)
+            isRead = readStatusRepository.existsByMessageIdAndReaderIsNotAdmin(message.getId());
         } else {
             isRead = readStatusRepository.existsByMessageIdAndUserId(message.getId(), currentUserId);
         }
@@ -115,7 +128,7 @@ public class ChatConverter {
                 .id(message.getId())
                 .chatId(message.getChat().getId())
                 .senderId(sender.getId())
-                .senderName(sender.getLogin() != null ? sender.getLogin().getValue() : null)
+                .senderName(getTranslatedUserName(sender.getLogin()))
                 .senderAvatar(sender.getAvatar() != null ? sender.getAvatar().getUrl() : null)
                 .content(message.getContent())
                 .attachments(message.getAttachments() != null
@@ -149,7 +162,7 @@ public class ChatConverter {
     public VendorInfoDTO toVendorInfoDTO(User user) {
         return VendorInfoDTO.builder()
                 .id(user.getId())
-                .name(user.getLogin() != null ? user.getLogin().getValue() : null)
+                .name(getTranslatedUserName(user.getLogin()))
                 .avatarUrl(user.getAvatar() != null ? user.getAvatar().getUrl() : null)
                 .build();
     }
@@ -167,5 +180,73 @@ public class ChatConverter {
      */
     private Long countUnreadMessages(Long chatId, Long userId) {
         return chatMessageRepository.countUnreadMessagesByChatIdAndUserId(chatId, userId);
+    }
+
+    /**
+     * Получить переведённое имя пользователя.
+     * Если перевод для текущей локали отсутствует - переводит через API.
+     * Результаты кэшируются для избежания повторных запросов.
+     */
+    private String getTranslatedUserName(UserLogin login) {
+        if (login == null) {
+            return null;
+        }
+
+        String originalValue = login.getValue();
+        if (originalValue == null || originalValue.isEmpty()) {
+            return null;
+        }
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String targetLanguage = locale.getLanguage();
+
+        Map<String, String> transliteration = login.getTransliteration();
+        if (transliteration != null && !transliteration.isEmpty()) {
+            String existingTranslation = transliteration.get(targetLanguage);
+            if (existingTranslation != null && !existingTranslation.isEmpty()) {
+                return existingTranslation;
+            }
+        }
+
+        if ("ru".equals(targetLanguage) && isCyrillic(originalValue)) {
+            return originalValue;
+        }
+
+        String cacheKey = targetLanguage + ":" + originalValue;
+        String cachedTranslation = translationCache.get(cacheKey);
+        if (cachedTranslation != null) {
+            return cachedTranslation;
+        }
+
+        try {
+            TranslationResponse response = translationRepository.translate(targetLanguage, null, originalValue);
+            if (response != null && response.getTranslations() != null && response.getTranslations().length > 0) {
+                String translated = response.getTranslations()[0].getText();
+                if (translated != null && !translated.isEmpty()) {
+                    translationCache.put(cacheKey, translated);
+                    return translated;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to translate user name '{}' to '{}': {}", originalValue, targetLanguage, e.getMessage());
+        }
+
+        translationCache.put(cacheKey, originalValue);
+        return originalValue;
+    }
+
+    /**
+     * Проверить, содержит ли строка кириллические символы
+     */
+    private boolean isCyrillic(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        for (char c : text.toCharArray()) {
+            if (c >= 0x0400 && c <= 0x04FF) {
+                return true;
+            }
+        }
+        return false;
     }
 }
