@@ -8,6 +8,7 @@ import com.surofu.exporteru.application.dto.chat.SendMessageRequest;
 import com.surofu.exporteru.application.exception.AccessDeniedException;
 import com.surofu.exporteru.core.model.chat.*;
 import com.surofu.exporteru.core.model.user.User;
+import com.surofu.exporteru.core.model.user.UserRole;
 import com.surofu.exporteru.core.repository.UserRepository;
 import com.surofu.exporteru.infrastructure.persistence.chat.ChatMessageRepository;
 import com.surofu.exporteru.infrastructure.persistence.chat.ChatParticipantRepository;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import com.surofu.exporteru.infrastructure.websocket.WebSocketMessageSender;
 
@@ -33,6 +35,15 @@ import com.surofu.exporteru.infrastructure.websocket.WebSocketMessageSender;
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
+
+    /**
+     * Результат операции markAsRead с информацией для broadcast
+     */
+    @lombok.Value
+    public static class MarkAsReadResult {
+        Long chatId;
+        boolean isAdmin;
+    }
 
     private final ChatMessageRepository messageRepository;
     private final ChatRepository chatRepository;
@@ -142,40 +153,45 @@ public class ChatMessageService {
         return messageRepository.findById(messageId).orElse(null);
     }
 
-    /**
-     * Отметить сообщение как прочитанное
-     */
-    @Transactional(noRollbackFor = org.springframework.dao.DataIntegrityViolationException.class)
+    @Transactional
     public void markAsRead(Long messageId, Long userId) {
-        if (readStatusRepository.existsByMessageIdAndUserId(messageId, userId)) {
+        User user = userRepository.getById(userId).orElse(null);
+        if (user == null) {
+            log.warn("User not found {}", userId);
             return;
         }
 
-        ChatMessage message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
-
-        User user = userRepository.getById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-
-        try {
-            MessageReadStatus readStatus = new MessageReadStatus();
-            readStatus.setMessage(message);
-            readStatus.setUser(user);
-            readStatusRepository.save(readStatus);
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            log.debug("Message {} already marked as read by user {} (race condition)", messageId, userId);
+        // Если пользователь - ADMIN, не помечаем сообщение как прочитанное
+        // чтобы не влиять на unreadCount у продавца и покупателя
+        if (user.getRole() == UserRole.ROLE_ADMIN) {
+            log.debug("Admin {} reading message {}, skipping mark as read", userId, messageId);
             return;
         }
+
+        ChatMessage message = messageRepository.findById(messageId).orElse(null);
+        if (message == null) {
+            log.warn("Message not found {}", messageId);
+            return;
+        }
+
+        // Атомарно вставляем запись, игнорируя дубликаты
+        readStatusRepository.insertIgnoreDuplicate(messageId, userId);
 
         ChatParticipant participant = participantRepository
                 .findByChatIdAndUserId(message.getChat().getId(), userId)
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
+                .orElse(null);
+
+        if (participant == null) {
+            log.warn("Participant not found");
+            return;
+        }
+
         participant.setLastReadAt(LocalDateTime.now());
         participantRepository.save(participant);
 
         webSocketSender.sendNotificationToUser(
                 message.getSender().getId(),
-                java.util.Map.of(
+                Map.of(
                         "type", "MESSAGE_READ",
                         "messageId", messageId,
                         "chatId", message.getChat().getId(),
@@ -183,8 +199,64 @@ public class ChatMessageService {
                         "timestamp", System.currentTimeMillis()
                 )
         );
+    }
 
+    /**
+     * Отметить сообщение как прочитанное и вернуть информацию для broadcast.
+     * Используется WebSocket контроллером.
+     * @return null если операция не удалась, иначе информацию о chatId и роли пользователя
+     */
+    @Transactional
+    public MarkAsReadResult markAsReadAndGetBroadcastInfo(Long messageId, Long userId) {
+        User user = userRepository.getById(userId).orElse(null);
+        if (user == null) {
+            log.warn("User not found with id: {}", userId);
+            return null;
+        }
+
+        ChatMessage message = messageRepository.findById(messageId).orElse(null);
+        if (message == null) {
+            log.warn("Message not found with id: {}", messageId);
+            return null;
+        }
+
+        Long chatId = message.getChat().getId();
+        boolean isAdmin = user.getRole() == UserRole.ROLE_ADMIN;
+
+        // Если админ - не создаём запись о прочтении, просто возвращаем результат
+        if (isAdmin) {
+            log.debug("Admin {} reading message {}, skipping mark as read", userId, messageId);
+            return new MarkAsReadResult(chatId, true);
+        }
+
+        // Атомарно вставляем запись, игнорируя дубликаты
+        readStatusRepository.insertIgnoreDuplicate(messageId, userId);
+
+        ChatParticipant participant = participantRepository
+                .findByChatIdAndUserId(chatId, userId)
+                .orElse(null);
+        if (participant == null) {
+            log.warn("Participant not found for chat {} and user {}", chatId, userId);
+            return null;
+        }
+
+        participant.setLastReadAt(LocalDateTime.now());
+        participantRepository.save(participant);
+
+        // Отправляем уведомление отправителю
+        webSocketSender.sendNotificationToUser(
+                message.getSender().getId(),
+                Map.of(
+                        "type", "MESSAGE_READ",
+                        "messageId", messageId,
+                        "chatId", chatId,
+                        "readBy", userId,
+                        "timestamp", System.currentTimeMillis()
+                )
+        );
         log.debug("Sent read notification to sender {} for message {}", message.getSender().getId(), messageId);
+
+        return new MarkAsReadResult(chatId, false);
     }
 
     /**
