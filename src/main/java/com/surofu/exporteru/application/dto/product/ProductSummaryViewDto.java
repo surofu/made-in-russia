@@ -54,7 +54,7 @@ public final class ProductSummaryViewDto implements Serializable {
             (view.getDiscountedPrice().compareTo(BigDecimal.ZERO) < 1 ? BigDecimal.ONE :
                 view.getDiscountedPrice()))
         .priceCurrency(
-            view.getPriceCurrencyCode() == null ? null : view.getPriceCurrencyCode().toString())
+            view.getPriceCurrencyCode() == null ? null : view.getPriceCurrencyCode().name())
         .rating(view.getRating())
         .previewImageUrl(view.getPreviewImageUrl())
         .creationDate(view.getCreationDate())

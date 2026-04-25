@@ -203,8 +203,12 @@ public class LocalizationManager {
     };
 
     if (!product.getPrices().isEmpty()) {
-      from = CurrencyCode.valueOf(
-          product.getPrices().iterator().next().getCurrency().getValue().name());
+      try {
+        from = CurrencyCode.valueOf(
+            product.getPrices().iterator().next().getCurrency().getValue().name());
+      } catch (Exception e) {
+        from = CurrencyCode.USD;
+      }
     }
 
     for (ProductPackageOption packagingOption : product.getPackageOptions()) {

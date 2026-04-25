@@ -15,6 +15,11 @@ public class JpaDeliveryMethodRepository implements DeliveryMethodRepository {
     private final SpringDataDeliveryMethodRepository repository;
 
     @Override
+    public Optional<DeliveryMethod> getById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
     public List<DeliveryMethodView> getAllDeliveryMethodViewsByLang(String lang) {
         return repository.findAllViewsByLang(lang);
     }
