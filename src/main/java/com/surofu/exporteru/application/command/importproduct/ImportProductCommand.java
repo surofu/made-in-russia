@@ -6,11 +6,13 @@ public record ImportProductCommand(
     String title,
     String mainDescription,
     String furtherDescription,
-    List<Characteristic> characteristics
+    List<Characteristic> characteristics,
+    List<String> images
 ) {
 
   public record Characteristic(
       String name,
       String value
-  ) {}
+  ) {
+  }
 }

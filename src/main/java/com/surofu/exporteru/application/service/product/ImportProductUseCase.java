@@ -1,6 +1,8 @@
 package com.surofu.exporteru.application.service.product;
 
 import com.surofu.exporteru.application.command.importproduct.ImportProductCommand;
+import com.surofu.exporteru.application.components.ImageDownloadService;
+import com.surofu.exporteru.application.enums.FileStorageFolders;
 import com.surofu.exporteru.core.model.category.Category;
 import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
 import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
@@ -30,15 +32,20 @@ import com.surofu.exporteru.core.model.user.User;
 import com.surofu.exporteru.core.repository.CategoryRepository;
 import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
 import com.surofu.exporteru.core.repository.DeliveryTermRepository;
+import com.surofu.exporteru.core.repository.FileStorageRepository;
 import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
 import com.surofu.exporteru.core.repository.UserRepository;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImportProductUseCase {
@@ -62,6 +69,8 @@ public class ImportProductUseCase {
   private final DeliveryMethodRepository deliveryMethodRepository;
   private final DeliveryTermRepository deliveryTermRepository;
   private final TranslationRepository translationRepository;
+  private final FileStorageRepository fileStorageRepository;
+  private final ImageDownloadService imageDownloadService;
 
   @Transactional
   public void execute(ImportProductCommand command) {
@@ -82,6 +91,11 @@ public class ImportProductUseCase {
     Map<String, String> mainDescTranslations =
         translationRepository.expand(command.mainDescription());
 
+    // Загружаем картинки в S3
+    List<String> uploadedUrls = uploadImages(command.images());
+    System.out.println("uploadedUrls: " + uploadedUrls);
+    String previewUrl = uploadedUrls.isEmpty() ? STUB_LOGO_URL : uploadedUrls.get(0);
+
     Product product = new Product();
     product.setUser(user);
     product.setCategory(category);
@@ -92,14 +106,22 @@ public class ImportProductUseCase {
         mainDescTranslations,
         Map.of()
     ));
-    product.setPreviewImageUrl(new ProductPreviewImageUrl(STUB_LOGO_URL));
+    product.setPreviewImageUrl(new ProductPreviewImageUrl(previewUrl));
 
     product.getDeliveryMethods().add(deliveryMethod);
     product.getDeliveryTerms().add(deliveryTerm);
 
     product.getPrices().add(buildStubPrice(product));
     product.getDeliveryMethodDetails().add(buildStubDeliveryDetail(product));
-    product.getMedia().add(buildStubMedia(product));
+
+    if (uploadedUrls.isEmpty()) {
+      product.getMedia().add(buildStubMedia(product));
+    } else {
+      for (int i = 0; i < uploadedUrls.size(); i++) {
+        product.getMedia()
+            .add(buildMedia(product, uploadedUrls.get(i), command.title(), titleTranslations, i));
+      }
+    }
 
     if (command.characteristics() != null) {
       for (var ch : command.characteristics()) {
@@ -111,8 +133,47 @@ public class ImportProductUseCase {
   }
 
   // -------------------------------------------------------------------------
+  // Image upload
+  // -------------------------------------------------------------------------
+
+  private List<String> uploadImages(List<String> imageUrls) {
+    if (imageUrls == null || imageUrls.isEmpty()) {
+      return List.of();
+    }
+
+    List<String> result = new ArrayList<>();
+    for (String url : imageUrls) {
+      imageDownloadService.download(url).ifPresentOrElse(
+          file -> {
+            try {
+              String s3Url = fileStorageRepository.uploadImageToFolder(file,
+                  FileStorageFolders.PRODUCT_IMAGES.getValue());
+              result.add(s3Url);
+            } catch (Exception e) {
+              log.warn("Failed to upload image to S3 from url {}: {}", url, e.getMessage());
+            }
+          },
+          () -> log.warn("Skipping image, download failed: {}", url)
+      );
+    }
+    return result;
+  }
+
+  // -------------------------------------------------------------------------
   // Builders
   // -------------------------------------------------------------------------
+
+  private ProductMedia buildMedia(Product product, String url, String altText,
+                                  Map<String, String> altTrans, int position) {
+    var media = new ProductMedia();
+    media.setProduct(product);
+    media.setMediaType(MediaType.IMAGE);
+    media.setMimeType(new ProductMediaMimeType("image/jpeg"));
+    media.setUrl(new ProductMediaUrl(url));
+    media.setAltText(new ProductMediaAltText(altText, altTrans));
+    media.setPosition(new ProductMediaPosition(position));
+    return media;
+  }
 
   private ProductPrice buildStubPrice(Product product) {
     var price = new ProductPrice();
