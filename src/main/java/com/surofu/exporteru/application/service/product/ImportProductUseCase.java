@@ -93,7 +93,6 @@ public class ImportProductUseCase {
 
     // Загружаем картинки в S3
     List<String> uploadedUrls = uploadImages(command.images());
-    System.out.println("uploadedUrls: " + uploadedUrls);
     String previewUrl = uploadedUrls.isEmpty() ? STUB_LOGO_URL : uploadedUrls.get(0);
 
     Product product = new Product();
@@ -111,7 +110,7 @@ public class ImportProductUseCase {
     product.getDeliveryMethods().add(deliveryMethod);
     product.getDeliveryTerms().add(deliveryTerm);
 
-    product.getPrices().add(buildStubPrice(product));
+    product.getPrices().add(buildPrice(product, command.price()));
     product.getDeliveryMethodDetails().add(buildStubDeliveryDetail(product));
 
     if (uploadedUrls.isEmpty()) {
@@ -175,15 +174,25 @@ public class ImportProductUseCase {
     return media;
   }
 
-  private ProductPrice buildStubPrice(Product product) {
-    var price = new ProductPrice();
-    price.setProduct(product);
-    price.setQuantityRange(ProductPriceQuantityRange.of(STUB_QUANTITY, STUB_QUANTITY));
-    price.setCurrency(new ProductPriceCurrency(STUB_CURRENCY));
-    price.setUnit(new ProductPriceUnit(STUB_UNIT, translationRepository.expand(STUB_UNIT)));
-    price.setOriginalPrice(new ProductPriceOriginalPrice(STUB_PRICE));
-    price.setDiscount(new ProductPriceDiscount(BigDecimal.ZERO));
-    return price;
+  private ProductPrice buildPrice(Product product, ImportProductCommand.Price price) {
+    var productPrice = new ProductPrice();
+    productPrice.setProduct(product);
+    productPrice.setQuantityRange(ProductPriceQuantityRange.of(STUB_QUANTITY, STUB_QUANTITY));
+    productPrice.setDiscount(new ProductPriceDiscount(BigDecimal.ZERO));
+
+    if (price != null) {
+      productPrice.setCurrency(new ProductPriceCurrency(price.currency().name()));
+      productPrice.setOriginalPrice(new ProductPriceOriginalPrice(price.value()));
+      productPrice.setUnit(
+          new ProductPriceUnit(price.unit(), translationRepository.expand(price.unit())));
+    } else {
+      productPrice.setCurrency(new ProductPriceCurrency(STUB_CURRENCY));
+      productPrice.setOriginalPrice(new ProductPriceOriginalPrice(STUB_PRICE));
+      productPrice.setUnit(
+          new ProductPriceUnit(STUB_UNIT, translationRepository.expand(STUB_UNIT)));
+    }
+
+    return productPrice;
   }
 
   private ProductDeliveryMethodDetails buildStubDeliveryDetail(Product product) {

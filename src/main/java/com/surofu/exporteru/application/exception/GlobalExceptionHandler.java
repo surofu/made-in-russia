@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-
     private final LocalizationManager localizationManager;
 
     @ExceptionHandler({
@@ -64,5 +63,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBadRequestException(Exception exception) {
         SimpleResponseErrorDto errorDto = SimpleResponseErrorDto.of(exception.getMessage(), HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleException(Exception exception) throws Exception {
+        log.error("Неизвестная ошибка: {}", exception.getMessage(), exception);
+        throw exception;
     }
 }
