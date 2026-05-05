@@ -3,151 +3,75 @@ package com.surofu.exporteru.application.service.product;
 import com.surofu.exporteru.application.command.importproduct.ImportProductCommand;
 import com.surofu.exporteru.application.components.ImageDownloadService;
 import com.surofu.exporteru.application.enums.FileStorageFolders;
-import com.surofu.exporteru.core.model.category.Category;
-import com.surofu.exporteru.core.model.deliveryMethod.DeliveryMethod;
-import com.surofu.exporteru.core.model.deliveryTerm.DeliveryTerm;
-import com.surofu.exporteru.core.model.media.MediaType;
-import com.surofu.exporteru.core.model.product.Product;
-import com.surofu.exporteru.core.model.product.ProductDescription;
-import com.surofu.exporteru.core.model.product.ProductPreviewImageUrl;
-import com.surofu.exporteru.core.model.product.ProductTitle;
-import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristic;
-import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristicName;
-import com.surofu.exporteru.core.model.product.characteristic.ProductCharacteristicValue;
-import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetails;
-import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsName;
-import com.surofu.exporteru.core.model.product.deliveryMethodDetails.ProductDeliveryMethodDetailsValue;
-import com.surofu.exporteru.core.model.product.media.ProductMedia;
-import com.surofu.exporteru.core.model.product.media.ProductMediaAltText;
-import com.surofu.exporteru.core.model.product.media.ProductMediaMimeType;
-import com.surofu.exporteru.core.model.product.media.ProductMediaPosition;
-import com.surofu.exporteru.core.model.product.media.ProductMediaUrl;
-import com.surofu.exporteru.core.model.product.price.ProductPrice;
-import com.surofu.exporteru.core.model.product.price.ProductPriceCurrency;
-import com.surofu.exporteru.core.model.product.price.ProductPriceDiscount;
-import com.surofu.exporteru.core.model.product.price.ProductPriceOriginalPrice;
-import com.surofu.exporteru.core.model.product.price.ProductPriceQuantityRange;
-import com.surofu.exporteru.core.model.product.price.ProductPriceUnit;
-import com.surofu.exporteru.core.model.user.User;
-import com.surofu.exporteru.core.repository.CategoryRepository;
-import com.surofu.exporteru.core.repository.DeliveryMethodRepository;
-import com.surofu.exporteru.core.repository.DeliveryTermRepository;
 import com.surofu.exporteru.core.repository.FileStorageRepository;
-import com.surofu.exporteru.core.repository.ProductRepository;
 import com.surofu.exporteru.core.repository.TranslationRepository;
-import com.surofu.exporteru.core.repository.UserRepository;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImportProductUseCase {
-  private static final long HARDCODED_USER_ID = 201L;
-  private static final long DEFAULT_CATEGORY_ID = 1L;
-  private static final long DEFAULT_DELIVERY_METHOD_ID = 1L;
-  private static final long DEFAULT_DELIVERY_TERM_ID = 3L;
-  private static final String STUB_QUANTITY = "7777";
-  private static final BigDecimal STUB_PRICE = new BigDecimal("777777777777");
-  private static final String STUB_CURRENCY = "NO_CURRENCY";
   private static final String STUB_UNIT = "тонна";
   private static final String STUB_DELIVERY_DETAIL_NAME = "[ЗАГЛУШКА] Железнодорожная доставка";
-  private static final String STUB_DELIVERY_DETAIL_VALUE = "100";
-  private static final String STUB_LOGO_URL =
-      "https://6e9e2c8a-521e-4620-9cf1-ef51353051d3.srvstatic.uz/products/placeholder.png";
   private static final String STUB_ALT_TEXT = "[ЗАГЛУШКА] Logo";
 
-  private final ProductRepository productRepository;
-  private final UserRepository userRepository;
-  private final CategoryRepository categoryRepository;
-  private final DeliveryMethodRepository deliveryMethodRepository;
-  private final DeliveryTermRepository deliveryTermRepository;
   private final TranslationRepository translationRepository;
   private final FileStorageRepository fileStorageRepository;
   private final ImageDownloadService imageDownloadService;
+  private final ImportProductPersistenceService persistenceService;
 
-  @Transactional
   public void execute(ImportProductCommand command) {
-    User user = userRepository.getById(HARDCODED_USER_ID)
-        .orElseThrow(
-            () -> new IllegalStateException("Import user not found: " + HARDCODED_USER_ID));
-
-    Category category = categoryRepository.getById(DEFAULT_CATEGORY_ID)
-        .orElseThrow(() -> new IllegalStateException("Default category not found"));
-
-    DeliveryMethod deliveryMethod = deliveryMethodRepository.getById(DEFAULT_DELIVERY_METHOD_ID)
-        .orElseThrow(() -> new IllegalStateException("Default delivery method not found"));
-
-    DeliveryTerm deliveryTerm = deliveryTermRepository.findById(DEFAULT_DELIVERY_TERM_ID)
-        .orElseThrow(() -> new IllegalStateException("Default delivery term not found"));
-
-    Map<String, String> titleTranslations = translationRepository.expand(command.title());
-    Map<String, String> mainDescTranslations =
-        translationRepository.expand(command.mainDescription());
-
-    // Загружаем картинки в S3
+    TranslationBatch batch = buildBatch(command);
+    List<Map<String, String>> allTranslations = translationRepository.expand(batch.texts());
     List<String> uploadedUrls = uploadImages(command.images());
-    String previewUrl = uploadedUrls.isEmpty() ? STUB_LOGO_URL : uploadedUrls.get(0);
 
-    Product product = new Product();
-    product.setUser(user);
-    product.setCategory(category);
-    product.setTitle(new ProductTitle(command.title(), titleTranslations));
-    product.setDescription(new ProductDescription(
-        command.mainDescription(),
-        command.furtherDescription(),
-        mainDescTranslations,
-        Map.of()
-    ));
-    product.setPreviewImageUrl(new ProductPreviewImageUrl(previewUrl));
-
-    product.getDeliveryMethods().add(deliveryMethod);
-    product.getDeliveryTerms().add(deliveryTerm);
-
-    product.getPrices().add(buildPrice(product, command.price()));
-    product.getDeliveryMethodDetails().add(buildStubDeliveryDetail(product));
-
-    if (uploadedUrls.isEmpty()) {
-      product.getMedia().add(buildStubMedia(product));
-    } else {
-      for (int i = 0; i < uploadedUrls.size(); i++) {
-        product.getMedia()
-            .add(buildMedia(product, uploadedUrls.get(i), command.title(), titleTranslations, i));
-      }
-    }
-
-    if (command.characteristics() != null) {
-      for (var ch : command.characteristics()) {
-        product.getCharacteristics().add(buildCharacteristic(product, ch));
-      }
-    }
-
-    productRepository.save(product);
+    persistenceService.persist(command, batch, allTranslations, uploadedUrls);
   }
 
-  // -------------------------------------------------------------------------
-  // Image upload
-  // -------------------------------------------------------------------------
+  private TranslationBatch buildBatch(ImportProductCommand command) {
+    List<String> texts = new ArrayList<>();
+
+    int titleIdx = add(texts, command.title());
+    int mainDescIdx = add(texts, command.mainDescription());
+    int furtherDescIdx = add(texts, command.furtherDescription());
+    int priceUnitIdx = add(texts, command.price() != null ? command.price().unit() : STUB_UNIT);
+    int delivDetailIdx = add(texts, STUB_DELIVERY_DETAIL_NAME);
+    int stubAltIdx = add(texts, STUB_ALT_TEXT);
+
+    int charsBaseIdx = texts.size();
+    if (command.characteristics() != null) {
+      for (var ch : command.characteristics()) {
+        texts.add(ch.name());
+        texts.add(ch.value());
+      }
+    }
+
+    return new TranslationBatch(texts, titleIdx, mainDescIdx, furtherDescIdx, priceUnitIdx,
+        delivDetailIdx, stubAltIdx, charsBaseIdx);
+  }
+
+  private int add(List<String> list, String value) {
+    int idx = list.size();
+    list.add(value);
+    return idx;
+  }
 
   private List<String> uploadImages(List<String> imageUrls) {
     if (imageUrls == null || imageUrls.isEmpty()) {
       return List.of();
     }
-
     List<String> result = new ArrayList<>();
     for (String url : imageUrls) {
       imageDownloadService.download(url).ifPresentOrElse(
           file -> {
             try {
-              String s3Url = fileStorageRepository.uploadImageToFolder(file,
-                  FileStorageFolders.PRODUCT_IMAGES.getValue());
-              result.add(s3Url);
+              result.add(fileStorageRepository.uploadImageToFolder(
+                  file, FileStorageFolders.PRODUCT_IMAGES.getValue()));
             } catch (Exception e) {
               log.warn("Failed to upload image to S3 from url {}: {}", url, e.getMessage());
             }
@@ -158,81 +82,22 @@ public class ImportProductUseCase {
     return result;
   }
 
-  // -------------------------------------------------------------------------
-  // Builders
-  // -------------------------------------------------------------------------
-
-  private ProductMedia buildMedia(Product product, String url, String altText,
-                                  Map<String, String> altTrans, int position) {
-    var media = new ProductMedia();
-    media.setProduct(product);
-    media.setMediaType(MediaType.IMAGE);
-    media.setMimeType(new ProductMediaMimeType("image/jpeg"));
-    media.setUrl(new ProductMediaUrl(url));
-    media.setAltText(new ProductMediaAltText(altText, altTrans));
-    media.setPosition(new ProductMediaPosition(position));
-    return media;
-  }
-
-  private ProductPrice buildPrice(Product product, ImportProductCommand.Price price) {
-    var productPrice = new ProductPrice();
-    productPrice.setProduct(product);
-    productPrice.setQuantityRange(ProductPriceQuantityRange.of(STUB_QUANTITY, STUB_QUANTITY));
-    productPrice.setDiscount(new ProductPriceDiscount(BigDecimal.ZERO));
-
-    if (price != null) {
-      productPrice.setCurrency(new ProductPriceCurrency(price.currency().name()));
-      productPrice.setOriginalPrice(new ProductPriceOriginalPrice(price.value()));
-      productPrice.setUnit(
-          new ProductPriceUnit(price.unit(), translationRepository.expand(price.unit())));
-    } else {
-      productPrice.setCurrency(new ProductPriceCurrency(STUB_CURRENCY));
-      productPrice.setOriginalPrice(new ProductPriceOriginalPrice(STUB_PRICE));
-      productPrice.setUnit(
-          new ProductPriceUnit(STUB_UNIT, translationRepository.expand(STUB_UNIT)));
+  public record TranslationBatch(
+      List<String> texts,
+      int titleIdx,
+      int mainDescIdx,
+      int furtherDescIdx,
+      int priceUnitIdx,
+      int delivDetailNameIdx,
+      int stubAltTextIdx,
+      int charsBaseIdx
+  ) {
+    public int charNameIdx(int i) {
+      return charsBaseIdx + i * 2;
     }
 
-    return productPrice;
-  }
-
-  private ProductDeliveryMethodDetails buildStubDeliveryDetail(Product product) {
-    Map<String, String> nameTrans = translationRepository.expand(STUB_DELIVERY_DETAIL_NAME);
-    Map<String, String> valueTrans = Map.of("ru", STUB_DELIVERY_DETAIL_VALUE,
-        "en", STUB_DELIVERY_DETAIL_VALUE,
-        "hi", STUB_DELIVERY_DETAIL_VALUE,
-        "zh", STUB_DELIVERY_DETAIL_VALUE);
-
-    var detail = new ProductDeliveryMethodDetails();
-    detail.setProduct(product);
-    detail.setName(new ProductDeliveryMethodDetailsName(STUB_DELIVERY_DETAIL_NAME, nameTrans));
-    detail.setValue(new ProductDeliveryMethodDetailsValue(STUB_DELIVERY_DETAIL_VALUE, valueTrans));
-    return detail;
-  }
-
-  private ProductMedia buildStubMedia(Product product) {
-    Map<String, String> altTrans = translationRepository.expand(STUB_ALT_TEXT);
-
-    var media = new ProductMedia();
-    media.setProduct(product);
-    media.setMediaType(MediaType.IMAGE);
-    media.setMimeType(new ProductMediaMimeType("image/svg+xml"));
-    media.setUrl(new ProductMediaUrl(STUB_LOGO_URL));
-    media.setAltText(new ProductMediaAltText(STUB_ALT_TEXT, altTrans));
-    media.setPosition(new ProductMediaPosition(0));
-    return media;
-  }
-
-  private ProductCharacteristic buildCharacteristic(
-      Product product,
-      ImportProductCommand.Characteristic ch
-  ) {
-    Map<String, String> nameTrans = translationRepository.expand(ch.name());
-    Map<String, String> valueTrans = translationRepository.expand(ch.value());
-
-    var characteristic = new ProductCharacteristic();
-    characteristic.setProduct(product);
-    characteristic.setName(new ProductCharacteristicName(ch.name(), nameTrans));
-    characteristic.setValue(new ProductCharacteristicValue(ch.value(), valueTrans));
-    return characteristic;
+    public int charValueIdx(int i) {
+      return charsBaseIdx + i * 2 + 1;
+    }
   }
 }

@@ -54,8 +54,10 @@ public class YandexTranslationRepository implements TranslationRepository {
   }
 
   @Override
-  public TranslationResponse translate(String targetLanguage, String sourceLanguage, String... texts) {
-    log.info("translate: targetLanguage={}, sourceLanguage={}, {} texts", targetLanguage, sourceLanguage, texts.length);
+  public TranslationResponse translate(String targetLanguage, String sourceLanguage,
+                                       String... texts) {
+    log.info("translate: targetLanguage={}, sourceLanguage={}, {} texts", targetLanguage,
+        sourceLanguage, texts.length);
     String effectiveSourceLanguage = sourceLanguage;
     if (StringUtils.isBlank(sourceLanguage) && texts.length > 0) {
       effectiveSourceLanguage = detectLanguageByUnicode(texts[0]);
@@ -87,14 +89,11 @@ public class YandexTranslationRepository implements TranslationRepository {
         totalLetters++;
         if (c >= 0x0900 && c <= 0x097F) {
           hindiCount++;
-        }
-        else if ((c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF)) {
+        } else if ((c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF)) {
           chineseCount++;
-        }
-        else if (c >= 0x0400 && c <= 0x04FF) {
+        } else if (c >= 0x0400 && c <= 0x04FF) {
           cyrillicCount++;
-        }
-        else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+        } else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
           latinCount++;
         }
       }
@@ -211,7 +210,8 @@ public class YandexTranslationRepository implements TranslationRepository {
     return translateInternal(language, null, texts);
   }
 
-  private TranslationResponse translateInternal(String targetLanguage, String sourceLanguage, String... texts) {
+  private TranslationResponse translateInternal(String targetLanguage, String sourceLanguage,
+                                                String... texts) {
     if (texts == null || texts.length == 0) {
       return new YandexTranslationResponse(new YandexTranslation[] {});
     }

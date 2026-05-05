@@ -49,6 +49,15 @@ spring:
           fetch_size: 100         # Размер выборки для ResultSet
         query:
           in_clause_parameter_padding: true # Оптимизация IN-условий
+  ai:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY}  # используйте переменную окружения для безопасности
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat  # или deepseek-reasoner
+          temperature: 0.7
+          max-tokens: 2000
   flyway:
     url: ${POSTGRES_URL}
     user: ${POSTGRES_USERNAME}
