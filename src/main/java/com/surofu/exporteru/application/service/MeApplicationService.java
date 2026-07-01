@@ -145,6 +145,7 @@ public class MeApplicationService implements MeService {
   private final DeleteAccountCache deleteAccountCache;
   private final JpaVendorViewRepository vendorViewRepository;
   private final LocalizationManager localizationManager;
+  private final TransliterationManager transliterationManager;
 
   @Value("${app.session.secret}")
   private String sessionSecret;
@@ -281,8 +282,8 @@ public class MeApplicationService implements MeService {
 
     categoryIdsWithChildren.addAll(allChildCategoriesIds);
 
-    Specification<ProductSummaryView> specification = Specification
-        .where(ProductSummarySpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
+    Specification<ProductSummaryView> specification = Specification.<ProductSummaryView>unrestricted()
+        .and(ProductSummarySpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
         .and(ProductSummarySpecifications.byTitle(operation.getTitle()))
         .and(ProductSummarySpecifications.hasCategories(categoryIdsWithChildren))
         .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
@@ -305,8 +306,8 @@ public class MeApplicationService implements MeService {
   @Transactional(readOnly = true)
   public GetMeReviewPage.Result getMeReviewPage(GetMeReviewPage operation) {
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-    Specification<ProductReview> specification = Specification
-        .where(ProductReviewSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
+    Specification<ProductReview> specification = Specification.<ProductReview>unrestricted()
+        .and(ProductReviewSpecifications.byUserId(operation.getSecurityUser().getUser().getId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()));
     Page<ProductReviewDto> productReviewDtoPage = getProductReviewsBy(specification, pageable);
@@ -318,8 +319,8 @@ public class MeApplicationService implements MeService {
   public GetMeVendorProductReviewPage.Result getMeVendorProductReviewPage(
       GetMeVendorProductReviewPage operation) {
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
-    Specification<ProductReview> specification = Specification
-        .where(ProductReviewSpecifications.byProductUserId(
+    Specification<ProductReview> specification = Specification.<ProductReview>unrestricted()
+        .and(ProductReviewSpecifications.byProductUserId(
             operation.getSecurityUser().getUser().getId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()));
@@ -596,7 +597,7 @@ public class MeApplicationService implements MeService {
     }
 
     if (operation.getUserLogin() != null) {
-      user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+      user.setLogin(transliterationManager.transliterateUserLogin(operation.getUserLogin(),
           operation.getLocale()));
     }
 

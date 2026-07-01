@@ -42,7 +42,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
@@ -50,6 +54,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -82,6 +87,10 @@ public class TelegramBotRegisterHandler {
   private final KeyboardBuilder keyboardBuilder;
   private final LocalizationManager localizationManager;
   private final VendorDetailsRepository vendorDetailsRepository;
+  private final TransliterationManager transliterationManager;
+
+  private final ScheduledExecutorService animationScheduler;
+
   private MessageSender messageSender;
   @Value("${app.redis.verification-ttl-duration}")
   private Duration verificationTtl;
@@ -98,6 +107,8 @@ public class TelegramBotRegisterHandler {
       KeyboardBuilder keyboardBuilder,
       LocalizationManager localizationManager,
       VendorDetailsRepository vendorDetailsRepository,
+      TransliterationManager transliterationManager,
+      @Qualifier("animationScheduler") ScheduledExecutorService animationScheduler,
       @Value("${app.redis.verification-ttl-duration}") Duration verificationTtl,
       @Value("${app.frontend.oauth.telegram.redirect.success}") String redirectSuccessHost) {
 
@@ -110,6 +121,8 @@ public class TelegramBotRegisterHandler {
     this.keyboardBuilder = keyboardBuilder;
     this.localizationManager = localizationManager;
     this.vendorDetailsRepository = vendorDetailsRepository;
+    this.transliterationManager = transliterationManager;
+    this.animationScheduler = animationScheduler;
     this.verificationTtl = verificationTtl;
     this.redirectSuccessHost = redirectSuccessHost;
   }
@@ -174,7 +187,7 @@ public class TelegramBotRegisterHandler {
   );
 
   public void setLocale(Update update, Locale locale) {
-    long chatId = TelegramBotUtils.safeGetChatId(update);
+    long chatId = safeGetChatId(update);
     RegisterObject registerObject = history.get(chatId);
     registerObject.locale = locale;
   }
@@ -1011,38 +1024,32 @@ public class TelegramBotRegisterHandler {
     String saveProcessText =
         localizationManager.localize("telegram.bot.register.step.save-data.process");
 
-    CompletableFuture.runAsync(() -> {
-      int dots = 1;
-      int steps = 0;
+    AtomicInteger dots = new AtomicInteger(1);
+    AtomicInteger steps = new AtomicInteger(0);
 
-      while (!saved.get() && steps < 30) {
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(chatId);
-        editMessageText.setMessageId(saveMessage.getMessageId());
-        editMessageText.setText(saveProcessText.concat(".".repeat(dots)));
-
-        try {
-          messageSender.editMessageText(editMessageText);
-        } catch (TelegramApiException e) {
-          log.error(e.getMessage(), e);
-          saved.set(true);
-          return;
-        } finally {
-          steps++;
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-          }
-        }
-
-        if (dots < 3) {
-          dots++;
-        } else {
-          dots = 1;
-        }
+    ScheduledFuture<?> animationTask = animationScheduler.scheduleAtFixedRate(() -> {
+      if (saved.get() || steps.get() >= 30) {
+        saved.set(true);
+        return;
       }
-    });
+
+      EditMessageText editMessageText = new EditMessageText();
+      editMessageText.setChatId(chatId);
+      editMessageText.setMessageId(saveMessage.getMessageId());
+      editMessageText.setText(saveProcessText.concat(".".repeat(dots.get())));
+
+      try {
+        messageSender.editMessageText(editMessageText);
+      } catch (TelegramApiException e) {
+        log.error(e.getMessage(), e);
+        saved.set(true);
+        return;
+      } finally {
+        steps.incrementAndGet();
+      }
+
+      dots.set(dots.get() < 3 ? dots.get() + 1 : 1);
+    }, 0, 500, TimeUnit.MILLISECONDS);
 
     // Act
     var user = new com.surofu.exporteru.core.model.user.User();
@@ -1064,7 +1071,7 @@ public class TelegramBotRegisterHandler {
 
     user.setRole(request.userRole);
     user.setTelegramUserId(chatId);
-    user.setLogin(TransliterationManager.transliterateUserLogin(new UserLogin(request.login, new HashMap<>()), registerObject.locale));
+    user.setLogin(transliterationManager.transliterateUserLogin(new UserLogin(request.login, new HashMap<>()), registerObject.locale));
     user.setEmail(userEmail);
     user.setAvatar(new UserAvatar(StringUtils.trimToNull(request.avatarUrl)));
     user.setPhoneNumber(userPhoneNumber);
@@ -1094,7 +1101,7 @@ public class TelegramBotRegisterHandler {
         vendorDetails.getVendorCountries().add(vendorCountry);
       }
 
-      user.setRegion(new UserRegion(request.vendor.countries.iterator().next()));
+      user.setRegion(new UserRegion(request.vendor.countries.getFirst()));
     } else {
       UserRegion userRegion = new UserRegion(request.region);
       user.setRegion(userRegion);
@@ -1310,7 +1317,4 @@ public class TelegramBotRegisterHandler {
       private String address;
     }
   }
-
-
-
 }

@@ -1,5 +1,7 @@
 package com.surofu.exporteru.infrastructure.config;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -21,5 +23,11 @@ public class TaskExecutorConfig {
         executor.setThreadNamePrefix("ExporteruExecutor-");
         executor.initialize();
         return executor;
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService animationScheduler() {
+        return Executors.newScheduledThreadPool(2,
+            Thread.ofVirtual().name("anim-scheduler-", 0).factory());
     }
 }

@@ -181,14 +181,13 @@ public class ProductReviewRestController {
             }
     )
     public ResponseEntity<?> deleteProductReviewById(
-            @Parameter(
+        @PathVariable @Parameter(
                     name = "id",
                     description = "ID of the product review that will be deleted",
                     required = true,
                     example = "123",
                     schema = @Schema(type = "integer", format = "int64", minimum = "1")
-            )
-            @PathVariable(name = "id") Long id) {
+        ) Long id) {
         DeleteProductReviewById operation = DeleteProductReviewById.of(id);
         return productReviewService.deleteProductReviewById(operation).process(deleteProductReviewByIdProcessor);
     }

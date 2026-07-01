@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="LOG_DIR" value="${LOG_DIR:-./logs}"/>
+
+    <!-- Консоль — оставляем, чтобы docker logs / docker compose logs тоже работал -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        Ежедневная ротация (granularity = yyyy-MM-dd), maxHistory=7 хранит
+        ровно 7 последних дней — старые файлы автоматически удаляются Logback'ом.
+        В имени файла дата + день недели, например exporteru-2026-06-28_Sun.log.
+        Каждую неделю файлы НЕ перезаписываются с тем же именем (даты разные),
+        просто старше 7 дней — удаляются.
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/exporteru.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--
+                %d{yyyy-MM-dd_EEE} ведёт granularity ротации по дате (yyyy-MM-dd),
+                Logback корректно распознаёт это как "ежедневно". EEE (Mon/Tue/...)
+                добавлен как декоративный суффикс в само имя файла, не влияет на
+                расчёт периода ротации.
+                Пример: exporteru-2026-06-28_Sun.log
+            -->
+            <fileNamePattern>${LOG_DIR}/exporteru-%d{yyyy-MM-dd_EEE}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

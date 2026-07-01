@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record ImportProductCommand(
+    Long categoryId,
     String title,
     String mainDescription,
     String furtherDescription,

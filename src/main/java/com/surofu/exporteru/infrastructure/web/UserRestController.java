@@ -91,7 +91,7 @@ public class UserRestController {
   @Operation(summary = "Get user by identifier (Admin only)")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> getUserByIdentifier(@PathVariable("identifier") String identifier) {
+  public ResponseEntity<?> getUserByIdentifier(@PathVariable String identifier) {
     Locale locale = LocaleContextHolder.getLocale();
 
     try {
@@ -117,7 +117,7 @@ public class UserRestController {
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
   public ResponseEntity<?> updateUserById(
-      @PathVariable("id") Long id,
+      @PathVariable Long id,
       @RequestBody ForceUpdateUserCommand command) {
     ForceUpdateUserById operation = ForceUpdateUserById.of(
         id,
@@ -133,7 +133,7 @@ public class UserRestController {
   @Operation(summary = "Delete user by identifier (Admin only)")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> deleteUserById(@PathVariable("identifier") String identifier) {
+  public ResponseEntity<?> deleteUserById(@PathVariable String identifier) {
     Locale locale = LocaleContextHolder.getLocale();
 
     try {
@@ -159,7 +159,7 @@ public class UserRestController {
   @Operation(summary = "Ban user by ID (Admin only)")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> banUserById(@PathVariable("id") Long id) {
+  public ResponseEntity<?> banUserById(@PathVariable Long id) {
     BanUserById operation = BanUserById.of(id);
     return service.banUserById(operation).process(banUserByIdProcessor);
   }
@@ -168,7 +168,7 @@ public class UserRestController {
   @Operation(summary = "Unban user by ID (Admin only)")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> unbanUserById(@PathVariable("id") Long id) {
+  public ResponseEntity<?> unbanUserById(@PathVariable Long id) {
     UnbanUserById operation = UnbanUserById.of(id);
     return service.unbanUserById(operation).process(unbanUserByIdProcessor);
   }
@@ -178,7 +178,7 @@ public class UserRestController {
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
   public ResponseEntity<?> changeUserRoleById(
-      @PathVariable("id") Long id,
+      @PathVariable Long id,
       @RequestBody ChangeUserRoleCommand command
   ) {
     ChangeUserRoleById operation = ChangeUserRoleById.of(id, UserRole.of(command.role()));
@@ -190,7 +190,7 @@ public class UserRestController {
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
   public ResponseEntity<?> saveUserAvatarById(
-      @PathVariable(name = "id") Long id,
+      @PathVariable Long id,
       @RequestPart("file") MultipartFile file
   ) {
     SaveUserAvatarById operation = SaveUserAvatarById.of(id, file);
@@ -201,7 +201,7 @@ public class UserRestController {
   @Operation(summary = "Delete user avatar by ID (Admin only)")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> deleteUserAvatarById(@PathVariable(name = "id") Long id) {
+  public ResponseEntity<?> deleteUserAvatarById(@PathVariable Long id) {
     DeleteUserAvatarById operation = DeleteUserAvatarById.of(id);
     return service.deleteUserAvatarById(operation).process(deleteUserAvatarByIdProcessor);
   }

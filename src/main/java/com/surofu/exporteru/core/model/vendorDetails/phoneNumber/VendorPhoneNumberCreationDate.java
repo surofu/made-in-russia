@@ -2,8 +2,6 @@ package com.surofu.exporteru.core.model.vendorDetails.phoneNumber;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -17,7 +15,6 @@ import org.hibernate.annotations.CreationTimestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class VendorPhoneNumberCreationDate implements Serializable {
   @CreationTimestamp
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz default now()")
   private ZonedDateTime value = ZonedDateTime.now();
 

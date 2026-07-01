@@ -1,17 +1,7 @@
+
+
 server:
   port: ${PORT}
-  compression:
-    enabled: true
-    mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript,application/javascript
-    min-response-size: 1KB
-    excluded-user-agents: MSIE 6.0,UCBrowser
-  undertow:
-    threads:
-      io: 4                         # Рекомендуется = число ядер CPU
-      worker: 100                    # 20-25 на ядро (4 ядра * 25 = 100)
-    buffer-size: 32KB               # Увеличим для больших ответов
-    direct-buffers: true
-    no-request-timeout: 30s         # Уменьшим таймаут
 
 #========= Spring =========#
 spring:
@@ -54,10 +44,9 @@ spring:
       api-key: ${DEEPSEEK_API_KEY}  # используйте переменную окружения для безопасности
       base-url: https://api.deepseek.com
       chat:
-        options:
-          model: deepseek-chat  # или deepseek-reasoner
-          temperature: 0.7
-          max-tokens: 2000
+        model: deepseek-chat
+        temperature: 0.7
+        max-tokens: 2000
   flyway:
     url: ${POSTGRES_URL}
     user: ${POSTGRES_USERNAME}
@@ -131,6 +120,9 @@ spring:
     encoding: UTF-8
   jackson:
     time-zone: Europe/Moscow
+  threads:
+    virtual:
+      enabled: true
 
 #========= Management =========#
 management:

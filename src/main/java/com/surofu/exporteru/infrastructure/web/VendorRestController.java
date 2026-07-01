@@ -199,7 +199,7 @@ public class VendorRestController {
   @PutMapping("{id}")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @SecurityRequirement(name = "Bearer Authentication")
-  public ResponseEntity<?> forceUpdateVendorById(@PathVariable("id") Long id,
+  public ResponseEntity<?> forceUpdateVendorById(@PathVariable Long id,
                                                  @RequestBody ForceUpdateVendorCommand command) {
     ForceUpdateVendorById operation = ForceUpdateVendorById.of(
         id,
@@ -231,7 +231,7 @@ public class VendorRestController {
   @PreAuthorize("isAuthenticated()")
   @SecurityRequirement(name = "Bearer Authentication")
   public ResponseEntity<?> sendCallRequestMail(
-      @PathVariable("id") Long id,
+      @PathVariable Long id,
       @Parameter(hidden = true)
       @AuthenticationPrincipal SecurityUser securityUser
   ) {

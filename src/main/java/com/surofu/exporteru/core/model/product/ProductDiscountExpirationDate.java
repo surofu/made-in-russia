@@ -2,8 +2,6 @@ package com.surofu.exporteru.core.model.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -15,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class ProductDiscountExpirationDate implements Serializable {
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "discount_expiration_date", nullable = false, columnDefinition = "timestamptz")
   private ZonedDateTime value;
 

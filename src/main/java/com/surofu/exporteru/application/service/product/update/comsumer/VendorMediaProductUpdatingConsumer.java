@@ -38,7 +38,7 @@ public class VendorMediaProductUpdatingConsumer implements ProductUpdatingConsum
       List<VendorMedia> resultMedia = new ArrayList<>(
           operation.getOldVendorDetailsMedia().size() + operation.getVendorMedia().size());
       VendorDetails vendorDetails =
-          vendorDetailsRepository.getByProductId(product.getId()).iterator().next();
+          vendorDetailsRepository.getByProductId(product.getId()).getFirst();
 
       for (VendorMedia media : vendorDetails.getMedia()) {
         Optional<UpdateOldMediaDto> dtoOptional = operation.getOldVendorDetailsMedia().stream()

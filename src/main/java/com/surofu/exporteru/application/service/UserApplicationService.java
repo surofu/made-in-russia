@@ -56,6 +56,7 @@ public class UserApplicationService implements UserService {
   private final UserRepository userRepository;
   private final FileStorageRepository fileStorageRepository;
   private final MailService mailService;
+  private final TransliterationManager transliterationManager;
 
   @Override
   @Transactional(readOnly = true)
@@ -64,7 +65,8 @@ public class UserApplicationService implements UserService {
     Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
     Specification<User> specification =
-        Specification.where(UserSpecifications.byRole(operation.getRole()))
+        Specification.<User>unrestricted()
+            .and(UserSpecifications.byRole(operation.getRole()))
             .and(UserSpecifications.byIsEnabled(operation.getIsEnabled()))
             .and(UserSpecifications.byEmail(operation.getEmail()))
             .and(UserSpecifications.byLogin(operation.getLogin()))
@@ -186,7 +188,7 @@ public class UserApplicationService implements UserService {
 
       user.setEmail(operation.getEmail());
       user.setLogin(
-          TransliterationManager.transliterateUserLogin(operation.getLogin(),
+          transliterationManager.transliterateUserLogin(operation.getLogin(),
               LocaleContextHolder.getLocale()));
       user.setPhoneNumber(operation.getPhoneNumber());
       user.setRegion(operation.getRegion());

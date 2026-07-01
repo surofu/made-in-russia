@@ -34,7 +34,8 @@ public class VendorMediaProductCreatingConsumer implements ProductCreatingConsum
   @Transactional
   public void accept(Product product, CreateProduct operation) {
     try {
-      VendorDetails vendorDetails = vendorDetailsRepository.getByProductId(product.getId()).iterator().next();
+      VendorDetails vendorDetails = vendorDetailsRepository.getByProductId(product.getId())
+          .getFirst();
       List<MultipartFile> productMedia = operation.getVendorMedia();
       List<VendorMedia> mediaList = new ArrayList<>(productMedia.size());
       List<String> urls;

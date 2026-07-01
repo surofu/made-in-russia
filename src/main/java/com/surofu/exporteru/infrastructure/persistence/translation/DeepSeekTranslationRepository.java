@@ -24,7 +24,12 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
   private final DeepSeekService deepSeekService;
   private final ObjectMapper objectMapper;
 
-  // ── public translate methods ────────────────────────────────────────────────
+  private static final Map<String, String> LANGUAGE_NAMES = Map.of(
+      "en", "English",
+      "ru", "Russian",
+      "zh", "Chinese (Simplified, using Han characters)",
+      "hi", "Hindi"
+  );
 
   @Override
   public TranslationResponse translateToEn(String... texts) {
@@ -57,8 +62,6 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
         targetLanguage, sourceLanguage, texts.length);
     return translateInternal(targetLanguage, sourceLanguage, texts);
   }
-
-  // ── expand helpers ──────────────────────────────────────────────────────────
 
   @Override
   public Map<String, String> expand(String text) {
@@ -150,8 +153,6 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
     return result;
   }
 
-  // ── core translation logic ──────────────────────────────────────────────────
-
   private TranslationResponse translateInternal(String targetLanguage, String sourceLanguage,
                                                 String... texts) {
     if (texts == null || texts.length == 0) {
@@ -162,48 +163,44 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
     log.debug("DeepSeek prompt: {}", prompt);
 
     String raw = deepSeekService.generateResponse(prompt);
-    log.debug("DeepSeek raw response: {}", raw);
+    log.info("DeepSeek raw response for target={}: {}", targetLanguage, raw);
 
-    YandexTranslation[] translations = parseTranslations(raw, texts.length);
+    YandexTranslation[] translations = parseTranslations(raw, texts.length, targetLanguage);
     return new YandexTranslationResponse(translations);
   }
 
-  /**
-   * Ask DeepSeek to return a plain JSON array of translated strings — one element per input text.
-   * Using JSON makes parsing deterministic and avoids numbered-list ambiguity.
-   */
   private String buildPrompt(String targetLanguage, String sourceLanguage, String[] texts) {
+    String targetName = LANGUAGE_NAMES.getOrDefault(targetLanguage, targetLanguage);
+
     String sourcePart = StringUtils.isNotBlank(sourceLanguage)
-        ? String.format("Source language: %s. ", sourceLanguage)
+        ? String.format("Source language: %s. ",
+        LANGUAGE_NAMES.getOrDefault(sourceLanguage, sourceLanguage))
         : "";
 
     String textsJson;
     try {
       textsJson = objectMapper.writeValueAsString(texts);
     } catch (JsonProcessingException e) {
-      // Fallback: manual join (should never happen for plain strings)
       textsJson = Arrays.toString(texts);
     }
 
     return String.format(
         """
-        %sTranslate each element of the following JSON array to language code "%s".
+        %sTranslate each element of the following JSON array into %s (language code "%s").
+        You MUST translate every element, even if it looks similar to the target script.
+        If the target language is Chinese, the output MUST contain Chinese (Han) characters \
+        and MUST NOT contain Cyrillic or Latin text copied from the source.
         Return ONLY a valid JSON array of translated strings in the same order, no extra text.
         Input: %s
         """,
-        sourcePart, targetLanguage, textsJson
+        sourcePart, targetName, targetLanguage, textsJson
     );
   }
 
-  /**
-   * Parse JSON array returned by the model.
-   * Falls back gracefully: if only one text was requested and parsing fails,
-   * the raw response itself is used as the translation.
-   */
-  private YandexTranslation[] parseTranslations(String raw, int expectedCount) {
+  private YandexTranslation[] parseTranslations(String raw, int expectedCount,
+                                                String targetLanguage) {
     String cleaned = raw == null ? "" : raw.strip();
 
-    // Strip accidental markdown code fences
     if (cleaned.startsWith("```")) {
       cleaned = cleaned.replaceAll("(?s)^```[a-z]*\\n?", "").replaceAll("```$", "").strip();
     }
@@ -211,18 +208,27 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
     try {
       List<String> list = objectMapper.readValue(cleaned, new TypeReference<>() {
       });
+
+      if ("zh".equals(targetLanguage)) {
+        for (int i = 0; i < list.size(); i++) {
+          String t = list.get(i);
+          if (t != null && !t.isBlank() && !containsHanCharacters(t)) {
+            log.warn("DeepSeek returned non-Chinese text for target=zh at index {}: {}", i, t);
+          }
+        }
+      }
+
       return list.stream()
           .map(t -> new YandexTranslation(t, null))
           .toArray(YandexTranslation[]::new);
     } catch (Exception e) {
-      log.warn("Failed to parse DeepSeek JSON response, falling back. Response: {}", cleaned, e);
+      log.error("Failed to parse DeepSeek JSON response for target={}, falling back. Response: {}",
+          targetLanguage, cleaned, e);
 
-      // Single-text fallback: use the raw response as-is
       if (expectedCount == 1) {
         return new YandexTranslation[] {new YandexTranslation(cleaned, null)};
       }
 
-      // Multi-text fallback: fill all slots with empty string to avoid NPE upstream
       YandexTranslation[] fallback = new YandexTranslation[expectedCount];
       for (int i = 0; i < expectedCount; i++) {
         fallback[i] = new YandexTranslation("", null);
@@ -231,10 +237,12 @@ public class DeepSeekTranslationRepository implements TranslationRepository {
     }
   }
 
-  // ── internal helpers ────────────────────────────────────────────────────────
+  private boolean containsHanCharacters(String text) {
+    return text.codePoints().anyMatch(
+        cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN);
+  }
 
   private String getPrimaryLocaleText(Map<String, String> translations) {
-    // Mirror Yandex priority: ru → en → zh → hi
     for (String lang : List.of("ru", "en", "zh", "hi")) {
       String val = StringUtils.trimToNull(translations.get(lang));
       if (val != null) {

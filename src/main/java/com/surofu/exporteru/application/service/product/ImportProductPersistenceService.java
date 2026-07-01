@@ -76,8 +76,17 @@ public class ImportProductPersistenceService {
     User user = userRepository.getById(HARDCODED_USER_ID)
         .orElseThrow(
             () -> new IllegalStateException("Import user not found: " + HARDCODED_USER_ID));
-    Category category = categoryRepository.getById(DEFAULT_CATEGORY_ID)
-        .orElseThrow(() -> new IllegalStateException("Default category not found"));
+    Category category;
+
+    if (command.categoryId() != null) {
+      category = categoryRepository.getById(command.categoryId())
+          .orElseThrow(() -> new IllegalStateException(
+              "Import category not found: " + command.categoryId()));
+    } else {
+      category = categoryRepository.getById(DEFAULT_CATEGORY_ID)
+          .orElseThrow(() -> new IllegalStateException("Default category not found"));
+    }
+
     DeliveryMethod deliveryMethod = deliveryMethodRepository.getById(DEFAULT_DELIVERY_METHOD_ID)
         .orElseThrow(() -> new IllegalStateException("Default delivery method not found"));
     DeliveryTerm deliveryTerm = deliveryTermRepository.findById(DEFAULT_DELIVERY_TERM_ID)

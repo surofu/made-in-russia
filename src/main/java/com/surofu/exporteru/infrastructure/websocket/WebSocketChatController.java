@@ -77,19 +77,17 @@ public class WebSocketChatController {
                 "timestamp", System.currentTimeMillis()
         );
 
-        chatRepository.findByIdWithParticipants(chatId).ifPresent(chat -> {
-            chat.getParticipants().stream()
-                    .map(p -> p.getUser().getId())
-                    .filter(participantId -> !participantId.equals(senderId))
-                    .forEach(participantId -> {
-                        messagingTemplate.convertAndSendToUser(
-                                participantId.toString(),
-                                "/queue/typing",
-                                typingData
-                        );
-                        log.debug("Sent typing indicator to user {} for chat {}", participantId, chatId);
-                    });
-        });
+        chatRepository.findByIdWithParticipants(chatId).ifPresent(chat -> chat.getParticipants().stream()
+                .map(p -> p.getUser().getId())
+                .filter(participantId -> !participantId.equals(senderId))
+                .forEach(participantId -> {
+                    messagingTemplate.convertAndSendToUser(
+                            participantId.toString(),
+                            "/queue/typing",
+                            typingData
+                    );
+                    log.debug("Sent typing indicator to user {} for chat {}", participantId, chatId);
+                }));
 
         log.info("Sent typing indicator for chat {} from user {} to other participants", chatId, senderId);
     }
@@ -124,7 +122,7 @@ public class WebSocketChatController {
         }
 
         messagingTemplate.convertAndSend(
-                "/topic/chat/" + result.getChatId() + "/read",
+                "/topic/chat/" + result.chatId() + "/read",
                 Map.of("userId", userId, "messageId", messageId, "timestamp", System.currentTimeMillis())
         );
     }

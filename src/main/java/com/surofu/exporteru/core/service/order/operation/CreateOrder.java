@@ -1,7 +1,6 @@
 package com.surofu.exporteru.core.service.order.operation;
 
 import com.surofu.exporteru.core.model.user.UserLogin;
-import com.surofu.exporteru.core.model.user.UserPhoneNumber;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

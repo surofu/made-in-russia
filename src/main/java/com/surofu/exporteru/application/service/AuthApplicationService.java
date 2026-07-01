@@ -87,6 +87,8 @@ public class AuthApplicationService implements AuthService {
   private final PasswordEncoder passwordEncoder;
   private final MailService mailService;
   private final SessionRepository sessionRepository;
+  private final TransliterationManager transliterationManager;
+
   @Value("${app.redis.verification-ttl-duration}")
   private Duration verificationTtl;
   @Value("${app.redis.recover-password-ttl-duration}")
@@ -108,7 +110,7 @@ public class AuthApplicationService implements AuthService {
     user.setIsEnabled(new UserIsEnabled(true));
     user.setRole(UserRole.ROLE_USER);
     user.setEmail(operation.getUserEmail());
-    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+    user.setLogin(transliterationManager.transliterateUserLogin(operation.getUserLogin(),
         operation.getLocale()));
     user.setPhoneNumber(new UserPhoneNumber(StringUtils.trimToNull(
         Objects.requireNonNullElse(operation.getUserPhoneNumber(), "").toString())));
@@ -171,7 +173,7 @@ public class AuthApplicationService implements AuthService {
     user.setRole(UserRole.ROLE_VENDOR);
     user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getUserEmail());
-    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getUserLogin(),
+    user.setLogin(transliterationManager.transliterateUserLogin(operation.getUserLogin(),
         operation.getLocale()));
     user.setPhoneNumber(operation.getUserPhoneNumber());
     user.setRegion(operation.getUserRegion());
@@ -479,7 +481,7 @@ public class AuthApplicationService implements AuthService {
     user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getEmail());
     user.setLogin(
-        TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
+        transliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setRegion(operation.getRegion());
     user.setAvatar(operation.getAvatar());
@@ -528,7 +530,7 @@ public class AuthApplicationService implements AuthService {
     user.setIsEnabled(new UserIsEnabled(true));
     user.setEmail(operation.getEmail());
     user.setLogin(
-        TransliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
+        transliterationManager.transliterateUserLogin(operation.getLogin(), operation.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     user.setAvatar(operation.getAvatar());
     UserPassword userPassword = new UserPassword();

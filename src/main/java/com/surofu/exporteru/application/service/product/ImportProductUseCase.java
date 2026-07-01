@@ -73,7 +73,7 @@ public class ImportProductUseCase {
               result.add(fileStorageRepository.uploadImageToFolder(
                   file, FileStorageFolders.PRODUCT_IMAGES.getValue()));
             } catch (Exception e) {
-              log.warn("Failed to upload image to S3 from url {}: {}", url, e.getMessage());
+              log.warn("Failed to upload image to S3 from url {}: {}", url, e.getMessage(), e);
             }
           },
           () -> log.warn("Skipping image, download failed: {}", url)

@@ -76,8 +76,8 @@ public class ProductReviewApplicationService implements ProductReviewService {
     String[] sortStrings = operation.getSort().split(",");
     Sort sort = Sort.by(Sort.Direction.fromString(operation.getDirection()), sortStrings);
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(), sort);
-    Specification<ProductReview> specification = Specification
-        .where(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
+    Specification<ProductReview> specification = Specification.<ProductReview>unrestricted()
+        .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()))
         .and(ProductReviewSpecifications.byContent(operation.getContent()))
         .and(ProductReviewSpecifications.approveStatusIn(operation.getApproveStatuses()));
@@ -122,8 +122,8 @@ public class ProductReviewApplicationService implements ProductReviewService {
       GetProductReviewPageByProductId operation) {
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize(),
         Sort.by("creationDate").descending());
-    Specification<ProductReview> specification = Specification
-        .where(ProductReviewSpecifications.byProductId(operation.getProductId()))
+    Specification<ProductReview> specification = Specification.<ProductReview>unrestricted()
+        .and(ProductReviewSpecifications.byProductId(operation.getProductId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()))
         .and(ProductReviewSpecifications.approveStatusIn(ApproveStatus.APPROVED));

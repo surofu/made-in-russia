@@ -3,7 +3,6 @@ package com.surofu.exporteru.infrastructure.filter;
 import com.surofu.exporteru.application.converter.OAuth2ToSecurityUserConverter;
 import com.surofu.exporteru.application.model.security.SecurityUser;
 import com.surofu.exporteru.application.utils.JwtUtils;
-import com.surofu.exporteru.core.service.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

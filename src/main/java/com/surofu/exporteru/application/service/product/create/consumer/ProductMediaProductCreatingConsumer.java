@@ -65,7 +65,7 @@ public class ProductMediaProductCreatingConsumer implements ProductCreatingConsu
         }
       }
 
-      product.setPreviewImageUrl(new ProductPreviewImageUrl(urls.iterator().next()));
+      product.setPreviewImageUrl(new ProductPreviewImageUrl(urls.getFirst()));
       productRepository.save(product);
       productMediaRepository.saveAll(mediaList);
     } catch (Exception e) {

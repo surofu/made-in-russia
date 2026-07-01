@@ -169,7 +169,7 @@ public class CategoryApplicationService implements CategoryService {
 
     List<CategoryDto> categoryDtos =
         CategoryUtils.buildTreeView(categories, categoryWithProductsCountViews);
-    CategoryDto categoryDto = categoryDtos.get(0);
+    CategoryDto categoryDto = categoryDtos.getFirst();
     List<Long> categoryIds = categories.stream().map(CategoryView::getId).toList();
     loadOkvedToDtos(categoryDtos, categoryIds);
 

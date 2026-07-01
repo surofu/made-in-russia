@@ -197,19 +197,16 @@ public class MediaProcessor {
 
     // Улучшенный метод конвертации в WebP
     private byte[] convertToWebP(BufferedImage image, float quality) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        try {
-            // Сначала пытаемся использовать ImageIO с установленным WebP writer
-            if (!compressWebPWithImageIO(image, outputStream, quality)) {
-                // Если не получилось, пробуем через внешнюю утилиту cwebp
-                log.warn("WebP ImageIO writer not available, trying cwebp");
-                compressWebPWithCwebp(image, outputStream, quality);
-            }
-            return outputStream.toByteArray();
-        } finally {
-            outputStream.close();
+      try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+        // Сначала пытаемся использовать ImageIO с установленным WebP writer
+        if (!compressWebPWithImageIO(image, outputStream, quality)) {
+          // Если не получилось, пробуем через внешнюю утилиту cwebp
+          log.warn("WebP ImageIO writer not available, trying cwebp");
+          compressWebPWithCwebp(image, outputStream, quality);
         }
+        return outputStream.toByteArray();
+      }
     }
 
     private boolean compressWebPWithImageIO(BufferedImage image, OutputStream outputStream, float quality) {
@@ -353,27 +350,24 @@ public class MediaProcessor {
     }
 
     private byte[] compressImage(BufferedImage image, String format, float quality) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        try {
-            switch (format.toLowerCase()) {
-                case "webp":
-                    return convertToWebP(image, quality);
-                case "gif":
-                    compressGif(image, outputStream, quality);
-                    break;
-                case "avif":
-                    log.warn("AVIF format not fully supported, converting to PNG");
-                    compressStandardFormat(image, "png", outputStream, quality);
-                    break;
-                default:
-                    compressStandardFormat(image, format, outputStream, quality);
-                    break;
-            }
-            return outputStream.toByteArray();
-        } finally {
-            outputStream.close();
+      try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+        switch (format.toLowerCase()) {
+          case "webp":
+            return convertToWebP(image, quality);
+          case "gif":
+            compressGif(image, outputStream, quality);
+            break;
+          case "avif":
+            log.warn("AVIF format not fully supported, converting to PNG");
+            compressStandardFormat(image, "png", outputStream, quality);
+            break;
+          default:
+            compressStandardFormat(image, format, outputStream, quality);
+            break;
         }
+        return outputStream.toByteArray();
+      }
     }
 
     private void compressGif(BufferedImage image, OutputStream outputStream, float quality) throws IOException {

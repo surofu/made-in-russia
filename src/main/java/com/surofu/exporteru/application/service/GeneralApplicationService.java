@@ -46,7 +46,7 @@ public class GeneralApplicationService implements GeneralService {
     }
 
     // Products
-    Specification<ProductSummaryView> specification = Specification.where(null);
+    Specification<ProductSummaryView> specification = Specification.unrestricted();
     Pageable pageable = PageRequest.of(0, 10, Sort.by("creationDate").descending());
     Page<ProductSummaryView> page =
         productSummaryViewRepository.getProductSummaryViewPage(specification, pageable);

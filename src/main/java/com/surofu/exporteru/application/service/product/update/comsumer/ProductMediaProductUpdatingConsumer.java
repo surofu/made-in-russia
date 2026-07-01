@@ -93,7 +93,7 @@ public class ProductMediaProductUpdatingConsumer implements ProductUpdatingConsu
           .toList();
       product.setPreviewImageUrl(new ProductPreviewImageUrl(resultMedia.stream()
           .sorted(Comparator.comparingInt(a -> a.getPosition().getValue()))
-          .toList().get(0).getUrl().getValue()));
+          .toList().getFirst().getUrl().getValue()));
       storageRepository.deleteMediaByLink(mediaUrlsToDelete.toArray(new String[0]));
       mediaToDelete.forEach(product.getMedia()::remove);
       resultMedia.forEach(product.getMedia()::add);

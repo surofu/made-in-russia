@@ -34,6 +34,7 @@ public class LocalizationManager {
 
   private final MessageSource messageSource;
   private final CurrencyConverterService currencyConverterService;
+  private final TransliterationManager transliterationManager;
 
   @Nullable
   private static Long getDaysBeforeDiscountExpires(@Nullable ZonedDateTime discountExpirationDate) {
@@ -69,7 +70,6 @@ public class LocalizationManager {
 
     CurrencyCode from = view.getPriceCurrencyCode();
     CurrencyCode to = switch (locale.getLanguage()) {
-      case ("en") -> CurrencyCode.USD;
       case ("ru") -> CurrencyCode.RUB;
       case ("zh") -> CurrencyCode.CNY;
       case ("hi") -> CurrencyCode.INR;
@@ -108,8 +108,8 @@ public class LocalizationManager {
         String login = vendorDto.getLogin();
         String address = vendorDto.getVendorDetails().getAddress();
 
-        String translitLogin = TransliterationManager.transliterate(login);
-        String translitAddress = TransliterationManager.transliterate(address);
+        String translitLogin = transliterationManager.transliterate(login);
+        String translitAddress = transliterationManager.transliterate(address);
 
         vendorDto.setLogin(translitLogin);
         vendorDto.getVendorDetails().setAddress(translitAddress);
@@ -122,7 +122,6 @@ public class LocalizationManager {
   public ProductDto localizePrice(ProductDto dto, Locale locale) {
     CurrencyCode from = CurrencyCode.USD;
     CurrencyCode to = switch (locale.getLanguage()) {
-      case ("en") -> CurrencyCode.USD;
       case ("ru") -> CurrencyCode.RUB;
       case ("zh") -> CurrencyCode.CNY;
       case ("hi") -> CurrencyCode.INR;
@@ -130,11 +129,11 @@ public class LocalizationManager {
     };
 
     if (!dto.getPrices().isEmpty()) {
-      if (CurrencyCode.NO_CURRENCY.toString().equals(dto.getPrices().get(0).getCurrency())) {
+      if (CurrencyCode.NO_CURRENCY.toString().equals(dto.getPrices().getFirst().getCurrency())) {
         return dto;
       }
 
-      from = CurrencyCode.valueOf(dto.getPrices().get(0).getCurrency());
+      from = CurrencyCode.valueOf(dto.getPrices().getFirst().getCurrency());
     }
 
     for (ProductPackageOptionDto packagingOption : dto.getPackagingOptions()) {
@@ -182,8 +181,8 @@ public class LocalizationManager {
       String login = vendorDto.getLogin();
       String address = vendorDto.getVendorDetails().getAddress();
 
-      String translitLogin = TransliterationManager.transliterate(login);
-      String translitAddress = TransliterationManager.transliterate(address);
+      String translitLogin = transliterationManager.transliterate(login);
+      String translitAddress = transliterationManager.transliterate(address);
 
       vendorDto.setLogin(translitLogin);
       vendorDto.getVendorDetails().setAddress(translitAddress);
@@ -195,7 +194,6 @@ public class LocalizationManager {
   public Product localizePrice(Product product, Locale locale) {
     CurrencyCode from = CurrencyCode.USD;
     CurrencyCode to = switch (locale.getLanguage()) {
-      case ("en") -> CurrencyCode.USD;
       case ("ru") -> CurrencyCode.RUB;
       case ("zh") -> CurrencyCode.CNY;
       case ("hi") -> CurrencyCode.INR;
@@ -206,8 +204,7 @@ public class LocalizationManager {
       try {
         from = CurrencyCode.valueOf(
             product.getPrices().iterator().next().getCurrency().getValue().name());
-      } catch (Exception e) {
-        from = CurrencyCode.USD;
+      } catch (Exception _) {
       }
     }
 
@@ -231,7 +228,7 @@ public class LocalizationManager {
         price.setOriginalPrice(new ProductPriceOriginalPrice(
             localizedOriginalPrice.setScale(0, RoundingMode.DOWN)));
 
-        if (getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()) == null) {
+        if (product.getDiscountExpirationDate() == null || getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()) == null) {
           price.setDiscountedPrice(new ProductPriceDiscountedPrice(localizedOriginalPrice));
         } else {
           if (Math.abs(localizedDiscountedPrice.compareTo(BigDecimal.ZERO)) < 1) {

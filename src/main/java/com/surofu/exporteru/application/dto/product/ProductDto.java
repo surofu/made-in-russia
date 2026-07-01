@@ -94,7 +94,7 @@ public class ProductDto implements Serializable {
         .minimumOrderQuantity(product.getMinimumOrderQuantity() == null ? null :
             product.getMinimumOrderQuantity().toString())
         .daysBeforeDiscountExpires(
-            getDaysBeforeDiscountExpires(product.getDiscountExpirationDate().getValue()))
+            getDaysBeforeDiscountExpires(product.getDiscountExpirationDate()))
         .build();
   }
 
@@ -113,8 +113,7 @@ public class ProductDto implements Serializable {
         .minimumOrderQuantity(view.getMinimumOrderQuantity() == null ? null :
             view.getMinimumOrderQuantity().toString())
         .daysBeforeDiscountExpires(view.getDiscountExpirationDate() == null ? null :
-            getDaysBeforeDiscountExpires(
-                view.getDiscountExpirationDate().atZone(ZoneId.systemDefault())))
+            getDaysBeforeDiscountExpires(view.getDiscountExpirationDate().atZone(ZoneId.systemDefault())))
         .creationDate(view.getCreationDate().atZone(ZoneId.systemDefault()))
         .lastModificationDate(view.getLastModificationDate().atZone(ZoneId.systemDefault()))
         .build();
@@ -135,19 +134,26 @@ public class ProductDto implements Serializable {
     return price;
   }
 
-  private static Long getDaysBeforeDiscountExpires(ZonedDateTime discountExpirationDate) {
-    if (discountExpirationDate == null) {
+  private static Long getDaysBeforeDiscountExpires(ProductDiscountExpirationDate productDiscountExpirationDate) {
+    if (productDiscountExpirationDate == null) {
+      return null;
+    }
+    return getDaysBeforeDiscountExpires(productDiscountExpirationDate.getValue());
+  }
+
+  private static Long getDaysBeforeDiscountExpires(ZonedDateTime productDiscountExpirationDate) {
+    if (productDiscountExpirationDate == null) {
       return null;
     }
 
     ZonedDateTime now = ZonedDateTime.now();
 
     // Если дата истекла или равна текущей - возвращаем null
-    if (discountExpirationDate.isBefore(now) || discountExpirationDate.isEqual(now)) {
+    if (productDiscountExpirationDate.isBefore(now) || productDiscountExpirationDate.isEqual(now)) {
       return null;
     }
 
     // Корректный расчет с учетом часовых поясов
-    return now.until(discountExpirationDate, ChronoUnit.DAYS);
+    return now.until(productDiscountExpirationDate, ChronoUnit.DAYS);
   }
 }

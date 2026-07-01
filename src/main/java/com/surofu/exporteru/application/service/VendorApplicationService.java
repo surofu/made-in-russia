@@ -92,6 +92,7 @@ public class VendorApplicationService implements VendorService {
   private final TranslationRepository translationRepository;
   private final MailService mailService;
   private final JpaVendorMediaRepository vendorMediaRepository;
+  private final TransliterationManager transliterationManager;
 
   @Override
   @Transactional
@@ -198,8 +199,8 @@ public class VendorApplicationService implements VendorService {
 
     Pageable pageable = PageRequest.of(operation.getPage(), operation.getSize());
 
-    Specification<ProductReview> specification = Specification
-        .where(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
+    Specification<ProductReview> specification = Specification.<ProductReview>unrestricted()
+        .and(ProductReviewSpecifications.byProductUserId(operation.getVendorId()))
         .and(ProductReviewSpecifications.ratingBetween(operation.getMinRating(),
             operation.getMaxRating()))
         .and(ProductReviewSpecifications.approveStatusIn(List.of(ApproveStatus.APPROVED)));
@@ -420,7 +421,7 @@ public class VendorApplicationService implements VendorService {
       ForceUpdateVendorById operation, User user, VendorDetails vendorDetails
   ) {
     user.setEmail(operation.getEmail());
-    user.setLogin(TransliterationManager.transliterateUserLogin(operation.getLogin(),
+    user.setLogin(transliterationManager.transliterateUserLogin(operation.getLogin(),
         LocaleContextHolder.getLocale()));
     user.setPhoneNumber(operation.getPhoneNumber());
     vendorDetails.setInn(operation.getInn());

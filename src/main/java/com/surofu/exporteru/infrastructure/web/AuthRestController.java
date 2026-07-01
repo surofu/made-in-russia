@@ -93,7 +93,7 @@ public class AuthRestController {
     Locale locale = LocaleContextHolder.getLocale();
     List<String> vendorCountryList =
         Objects.requireNonNullElse(command.countries(), new ArrayList<>());
-    String region = vendorCountryList.isEmpty() ? "" : vendorCountryList.get(0);
+    String region = vendorCountryList.isEmpty() ? "" : vendorCountryList.getFirst();
     List<String> vendorProductCategoryList =
         Objects.requireNonNullElse(command.productCategories(), new ArrayList<>());
     RegisterVendor operation = RegisterVendor.of(

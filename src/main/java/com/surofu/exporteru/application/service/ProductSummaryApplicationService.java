@@ -51,8 +51,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
       allChildCategoriesIds.addAll(operation.getCategoryIds());
     }
 
-    Specification<ProductSummaryView> specification = Specification
-        .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+    Specification<ProductSummaryView> specification = Specification.<ProductSummaryView>unrestricted()
+        .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
         .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
         .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(),
             operation.getMaxPrice()))
@@ -153,8 +153,8 @@ public class ProductSummaryApplicationService implements ProductSummaryService {
       }
     }
 
-    Specification<ProductSummaryView> specification = Specification
-        .where(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
+    Specification<ProductSummaryView> specification = Specification.<ProductSummaryView>unrestricted()
+        .and(ProductSummarySpecifications.hasDeliveryMethods(operation.getDeliveryMethodIds()))
         .and(ProductSummarySpecifications.hasCategories(allChildCategoriesIds))
         .and(ProductSummarySpecifications.priceBetween(operation.getMinPrice(),
             operation.getMaxPrice()))
