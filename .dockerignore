@@ -111,7 +111,6 @@ pom.xml.versionsBackup
 **/actuator/
 **/debug/
 **/debugs/
-**/target/
 **/test/
 **/test-reports/
 **/tests/

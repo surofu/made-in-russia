@@ -57,13 +57,13 @@ spring:
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      leak-detection-threshold: 60000
+      maximum-pool-size: 16
+      minimum-idle: 4
+      connection-timeout: 3000
+      leak-detection-threshold: 20000
       auto-commit: false
+      idle-timeout: 30000
+
   data:
   #========= Redis =========#
     redis:

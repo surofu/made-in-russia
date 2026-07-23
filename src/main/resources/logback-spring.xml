@@ -13,10 +13,10 @@
 
     <springProfile name="prod">
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_DIR}/septaria.log</file>
+            <file>${LOG_DIR}/exporteru.log</file>
 
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${LOG_DIR}/septaria-%d{yyyy-MM-dd_EEE}.log</fileNamePattern>
+                <fileNamePattern>${LOG_DIR}/exporteru-%d{yyyy-MM-dd_EEE}.log</fileNamePattern>
                 <maxHistory>7</maxHistory>
             </rollingPolicy>
 

@@ -1,7 +1,6 @@
 package com.surofu.exporteru;
 
-import com.surofu.exporteru.application.components.telegrambot.TelegramBot;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.surofu.exporteru.infrastructure.config.TelegramBotRegistrar;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -10,18 +9,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @EnableAsync
 @EnableCaching
 @EnableScheduling
 @SpringBootApplication
 public class ExporteruApplication implements ApplicationRunner {
-  private final TelegramBot telegramBotRussian;
-  private final TelegramBot telegramBotEnglish;
-  private final TelegramBot telegramBotChina;
+
+  private final TelegramBotRegistrar botRegistrar;
+
   @Value("${telegram.bot.russian.enable:false}")
   private boolean botEnableRussian;
   @Value("${telegram.bot.english.enable:false}")
@@ -30,16 +26,9 @@ public class ExporteruApplication implements ApplicationRunner {
   private boolean botEnableChina;
 
   public ExporteruApplication(
-      @Qualifier("telegramBot")
-      TelegramBot telegramBotRussian,
-      @Qualifier("englishTelegramBot")
-      TelegramBot telegramBotEnglish,
-      @Qualifier("chinaTelegramBot")
-      TelegramBot telegramBotChina
+      TelegramBotRegistrar botRegistrar
   ) {
-    this.telegramBotRussian = telegramBotRussian;
-    this.telegramBotEnglish = telegramBotEnglish;
-    this.telegramBotChina = telegramBotChina;
+    this.botRegistrar = botRegistrar;
   }
 
   public static void main(String[] args) {
@@ -47,30 +36,15 @@ public class ExporteruApplication implements ApplicationRunner {
   }
 
   @Override
-  public void run(ApplicationArguments args) throws TelegramApiException {
+  public void run(ApplicationArguments args) {
     if (botEnableRussian) {
-      runTelegramBotRussian();
+      botRegistrar.registerRussianBot();
     }
     if (botEnableEnglish) {
-      runTelegramBotEnglish();
+      botRegistrar.registerEnglishBot();
     }
     if (botEnableChina) {
-      runTelegramBotChina();
+      botRegistrar.registerChinaBot();
     }
-  }
-
-  private void runTelegramBotRussian() throws TelegramApiException {
-    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-    api.registerBot(telegramBotRussian);
-  }
-
-  private void runTelegramBotEnglish() throws TelegramApiException {
-    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-    api.registerBot(telegramBotEnglish);
-  }
-
-  private void runTelegramBotChina() throws TelegramApiException {
-    TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-    api.registerBot(telegramBotChina);
   }
 }
